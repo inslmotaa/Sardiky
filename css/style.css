@@ -111,10 +111,9 @@ svg { width: 1em; height: 1em; flex-shrink: 0; }
 }
 .header__inner { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 
-.logo { display: inline-flex; flex-direction: column; line-height: 1; }
-.logo__word { font-family: var(--font-display); font-weight: 800; font-size: 1.45rem; letter-spacing: .06em; }
-.logo__word span { color: var(--accent); margin-left: 2px; }
-.logo small { font-size: .62rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-top: 6px; font-weight: 600; }
+.logo { display: inline-flex; align-items: center; line-height: 0; }
+.logo img { height: 46px; width: auto; }
+.logo--footer img { height: 48px; }
 
 .nav { display: flex; align-items: center; gap: 4px; }
 .nav > a:not(.btn) {
@@ -541,5 +540,5 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--a
   .section__head { margin-bottom: 40px; }
   .results-banner .btn { width: 100%; }
   .cta-final__box { padding: 52px 20px; }
-  .logo small { display: none; }
+  .logo img { height: 34px; }
 }
