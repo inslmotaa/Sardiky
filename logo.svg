@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Gregory Nascimento Advocacia">
+  <rect x="2" y="2" width="60" height="60" rx="6" fill="#0f1f38"/>
+  <rect x="6" y="6" width="52" height="52" rx="3" fill="none" stroke="#c5a46d" stroke-width="1.2"/>
+  <!-- Balança estilizada -->
+  <line x1="32" y1="14" x2="32" y2="48" stroke="#c5a46d" stroke-width="2" stroke-linecap="round"/>
+  <line x1="18" y1="20" x2="46" y2="20" stroke="#c5a46d" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="32" cy="14" r="2" fill="#c5a46d"/>
+  <path d="M18 20 L13 32 H23 Z" fill="none" stroke="#c5a46d" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M46 20 L41 32 H51 Z" fill="none" stroke="#c5a46d" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M12 32 Q18 37 24 32" fill="#c5a46d"/>
+  <path d="M40 32 Q46 37 52 32" fill="#c5a46d"/>
+  <rect x="24" y="47" width="16" height="3" rx="1.5" fill="#c5a46d"/>
+</svg>
