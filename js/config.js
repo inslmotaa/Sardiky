@@ -1,6 +1,6 @@
 /*
  * ==========================================================
- *  CONFIGURAÇÃO DO SITE — edite aqui os dados da MF Team.
+ *  CONFIGURAÇÃO DO SITE — edite aqui os dados da Fonseca Team.
  *  Tudo que está aqui é aplicado automaticamente na página.
  * ==========================================================
  */

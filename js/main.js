@@ -83,7 +83,7 @@
     return base && p.protocols > 1 ? Math.round((1 - p.price / p.protocols / base.price) * 100) : 0;
   };
   var planMsg = function (p) {
-    return "Olá! Tenho interesse na Consultoria Online - " + p.name + " (" + brl(p.price) + ") da MF Team.";
+    return "Olá! Tenho interesse na Consultoria Online - " + p.name + " (" + brl(p.price) + ") da Fonseca Team.";
   };
 
   $("#plans").innerHTML = plans.map(function (p) {
@@ -212,7 +212,7 @@
     err.hidden = true;
     f.nome.classList.remove("is-invalid");
     var lines = [
-      "Olá! Vim pelo site da MF Team.",
+      "Olá! Vim pelo site da Fonseca Team.",
       "",
       "*Nome:* " + nome,
       f.idade.value ? "*Idade:* " + f.idade.value : null,
