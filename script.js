@@ -2,15 +2,11 @@
 //  DADOS DO ESCRITÓRIO — altere aqui e o site inteiro é atualizado.
 // ================================================================
 const CONFIG = {
-  // Somente números, com DDI 55 + DDD. Ex.: "5511987654321"
-  whatsapp: "5500000000000",
-  whatsappMessage: "Olá, Dr. Gregory! Vim pelo site e gostaria de agendar um atendimento.",
-  phone: "(00) 00000-0000",
-  email: "contato@gregoryadv.com.br",
-  oab: "OAB/UF 000.000",
-  address: "Endereço do escritório — Cidade/UF",
-  hours: "Segunda a sexta, 9h às 18h",
-  instagram: "https://instagram.com/",
+  // Somente números, com DDI 55 + DDD.
+  whatsapp: "5541987660899",
+  whatsappMessage: "Olá, Gregory! Encontrei seu site e gostaria de conversar sobre uma questão trabalhista.",
+  phone: "(41) 98766-0899",
+  instagram: "https://www.instagram.com/gregoryz.adv",
 };
 
 const waLink = (text) =>
@@ -22,14 +18,11 @@ document.querySelectorAll("[data-field]").forEach((el) => {
   if (value) el.textContent = value;
 });
 
-// Links de WhatsApp, e-mail e Instagram
+// Links de WhatsApp e Instagram
 document.querySelectorAll("[data-whatsapp]").forEach((el) => {
   el.href = waLink(CONFIG.whatsappMessage);
   el.target = "_blank";
   el.rel = "noopener";
-});
-document.querySelectorAll("[data-email]").forEach((el) => {
-  el.href = `mailto:${CONFIG.email}`;
 });
 document.querySelectorAll("[data-instagram]").forEach((el) => {
   el.href = CONFIG.instagram;
@@ -42,9 +35,8 @@ document.getElementById("contact-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const data = new FormData(e.target);
   const text = [
-    "Olá, Dr. Gregory! Vim pelo site.",
+    "Olá, Gregory! Vim pelo site.",
     `Nome: ${data.get("nome")}`,
-    `Telefone: ${data.get("telefone")}`,
     `Assunto: ${data.get("assunto")}`,
     data.get("mensagem") ? `Mensagem: ${data.get("mensagem")}` : "",
   ].filter(Boolean).join("\n");

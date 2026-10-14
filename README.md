@@ -1,12 +1,12 @@
-# Gregory Nascimento | Advocacia
+# Gregory Nascimento Zechmann | Advogado Trabalhista (OAB/PR 93.853)
 
 Site institucional estático (HTML, CSS e JS puros), pronto para publicar no Netlify.
 
 ## Como editar os dados de contato
 
 Abra `script.js` e altere o objeto `CONFIG` no topo do arquivo:
-WhatsApp (somente números, com 55 + DDD), telefone, e-mail, OAB, endereço,
-horário e Instagram. O site inteiro é atualizado automaticamente.
+WhatsApp (somente números, com 55 + DDD), mensagem padrão, telefone e
+Instagram. Todos os botões e links do site são atualizados automaticamente.
 
 ## Foto do advogado
 
