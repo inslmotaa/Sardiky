@@ -10,9 +10,11 @@ Site one-page da **Logtech Seguros** (corretora especialista em seguros para tra
 index.html              página completa
 assets/css/style.css    identidade visual e layout responsivo
 assets/js/main.js       menu, animações e formulário → WhatsApp
-assets/img/logo.svg     logo completo redesenhado em vetor
-assets/img/logo-mark.svg  símbolo (estrada em "L")
-assets/img/favicon.svg
+assets/img/logo.png           logo original (texto escuro, para fundos claros)
+assets/img/logo-white.png     logo original (texto branco, para fundos escuros)
+assets/img/logo-mark.png      símbolo (estrada em "L")
+assets/img/logo-wordmark*.png  "LOGTECH SEGUROS" (escuro e branco)
+assets/img/favicon.png, apple-touch-icon.png
 assets/img/og-image.png imagem de compartilhamento (WhatsApp, LinkedIn…)
 assets/img/instagram/   miniaturas dos posts do Instagram
 assets/img/cliente-avatar.jpg  foto do cliente do depoimento

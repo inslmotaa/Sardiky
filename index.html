@@ -6,7 +6,8 @@
   <title>Logtech Seguros | Seguros para Transportadoras, Carga e Frota</title>
   <meta name="description" content="Logtech Seguros — corretora especialista em seguros para transportadoras. Protegemos sua carga, sua frota e seu negócio, com atendimento em todo o Brasil.">
   <meta name="theme-color" content="#071328">
-  <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 
   <meta property="og:type" content="website">
   <meta property="og:locale" content="pt_BR">
@@ -25,7 +26,7 @@
     "@type": "InsuranceAgency",
     "name": "Logtech Seguros",
     "description": "Corretora de seguros especialista em transportadoras: seguro de carga, frota e pesados.",
-    "logo": "assets/img/logo.svg",
+    "logo": "assets/img/logo.png",
     "areaServed": "BR",
     "sameAs": ["https://www.instagram.com/logtechseguros/"]
   }
@@ -66,12 +67,6 @@
       <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
       <symbol id="i-trailer" viewBox="0 0 24 24"><path d="M1.5 6.5h15v9h-15zM16.5 13.5h3l2-2"/><circle cx="5" cy="17.5" r="1.8"/><circle cx="10" cy="17.5" r="1.8"/></symbol>
       <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
-      <symbol id="mark" viewBox="95 70 405 345">
-        <path d="M170 80H222V208L170 266Z" fill="#95CAFD" stroke="none"/>
-        <path d="M105 405C150 300 262 160 490 112C362 142 262 212 236 352H400V405Z" fill="#3B89E6" stroke="none"/>
-        <path d="M176 356C196 302 236 252 298 212" fill="none" stroke="#0B1B33" stroke-width="7" stroke-dasharray="20 24" stroke-linecap="round"/>
-        <path d="M252 382H382" fill="none" stroke="#0B1B33" stroke-width="7" stroke-dasharray="30 40" stroke-linecap="round"/>
-      </symbol>
     </defs>
   </svg>
 
@@ -81,11 +76,8 @@
   <header class="header" id="topo">
     <div class="container header__inner">
       <a href="#topo" class="brand" aria-label="Logtech Seguros — início">
-        <span class="brand__badge"><svg class="brand__mark"><use href="#mark"/></svg></span>
-        <span class="brand__text">
-          <span class="brand__name">LOGTECH</span>
-          <span class="brand__sub">SEGUROS</span>
-        </span>
+        <img class="brand__mark" src="assets/img/logo-mark.png" alt="" width="53" height="44">
+        <img class="brand__word" src="assets/img/logo-wordmark-white.png" alt="Logtech Seguros" width="124" height="30">
       </a>
 
       <nav class="nav" id="nav" aria-label="Principal">
@@ -134,36 +126,11 @@
             <a href="#seguros" class="btn btn--ghost btn--lg">Conheça nossos seguros</a>
           </div>
 
-          <a class="hero__proof reveal" href="#depoimentos">
-            <span class="hero__proof-avatar">
-              <img src="assets/img/cliente-avatar.jpg" alt="" width="56" height="56">
-              <span class="hero__proof-play"><svg class="ico"><use href="#i-play"/></svg></span>
-            </span>
-            <span class="hero__proof-text">
-              <q>O pessoal atendeu a gente super bem. Super indico.</q>
-              <small>Matheus · cliente em Goiânia (GO) — <b>assista ao depoimento</b></small>
-            </span>
-          </a>
         </div>
 
         <div class="hero__visual" aria-hidden="true">
           <div class="road">
-            <svg class="road__svg" viewBox="95 70 405 345">
-              <defs>
-                <linearGradient id="roadGrad" x1="0" y1="1" x2="1" y2="0">
-                  <stop offset="0" stop-color="#2C6FD0"/>
-                  <stop offset=".6" stop-color="#3B89E6"/>
-                  <stop offset="1" stop-color="#7DB8F7"/>
-                </linearGradient>
-                <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#C6E3FF"/>
-                  <stop offset="1" stop-color="#95CAFD"/>
-                </linearGradient>
-              </defs>
-              <path class="road__bar" d="M170 80H222V208L170 266Z" fill="url(#barGrad)"/>
-              <path class="road__body" d="M105 405C150 300 262 160 490 112C362 142 262 212 236 352H400V405Z" fill="url(#roadGrad)"/>
-              <path class="road__lane" d="M392 382H252M176 356C196 302 236 252 298 212C308 205 316 199 324 194" fill="none"/>
-            </svg>
+            <img class="road__img" src="assets/img/logo-mark.png" alt="" width="600" height="497">
             <div class="road__ring road__ring--1"></div>
             <div class="road__ring road__ring--2"></div>
           </div>
@@ -203,7 +170,7 @@
             Você confiaria a <em>segurança</em> do seu negócio a qualquer um?
           </h2>
           <div class="about__sign">
-            <svg class="about__mark"><use href="#mark"/></svg>
+            <img class="about__mark" src="assets/img/logo-mark.png" alt="" width="62" height="51" loading="lazy">
             <span>Logtech Seguros<br><small>Corretor de seguros</small></span>
           </div>
         </div>
@@ -424,7 +391,7 @@
               </button>
             </div>
             <div class="video-card__badge">
-              <svg class="video-card__mark"><use href="#mark"/></svg>
+              <img class="video-card__mark" src="assets/img/logo-mark.png" alt="" width="36" height="30" loading="lazy">
               <span>Cliente<br>Logtech</span>
             </div>
           </div>
@@ -482,7 +449,7 @@
     <!-- ============ FRASE ============ -->
     <section class="statement">
       <div class="container statement__inner reveal">
-        <svg class="statement__mark" aria-hidden="true"><use href="#mark"/></svg>
+        <span class="statement__mark"><img src="assets/img/logo.png" alt="Logtech Seguros" width="300" height="314" loading="lazy"></span>
         <p>Conexões que fortalecem.<br><span>Parcerias que geram confiança.</span></p>
       </div>
     </section>
@@ -656,11 +623,7 @@
     <div class="container footer__inner">
       <div class="footer__brand">
         <a href="#topo" class="brand brand--footer" aria-label="Logtech Seguros — voltar ao topo">
-          <span class="brand__badge"><svg class="brand__mark"><use href="#mark"/></svg></span>
-          <span class="brand__text">
-            <span class="brand__name">LOGTECH</span>
-            <span class="brand__sub">SEGUROS</span>
-          </span>
+          <img class="footer__logo" src="assets/img/logo-white.png" alt="Logtech Seguros" width="170" height="178" loading="lazy">
         </a>
         <p>Protegemos sua carga, sua frota e seu negócio. Especialistas em seguros para transportadoras, com atendimento em todo o Brasil.</p>
       </div>
