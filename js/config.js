@@ -6,11 +6,10 @@
  */
 window.CONFIG = {
   coachName: "Maicon Fonseca",
-  // Somente números, com DDI + DDD. Ex.: 5541999999999
-  whatsapp: "5500000000000",
-  whatsappDisplay: "(00) 00000-0000",
-  instagram: "@mfteam",
-  email: "contato@mfteam.com.br",
+  // Somente números, com DDI + DDD. Ex.: 554197611616
+  whatsapp: "554197611616",
+  whatsappDisplay: "(41) 9761-1616",
+  instagram: "@fonseca.treinador",
 
   // Planos de consultoria. "price" é o valor total do plano.
   // O site calcula sozinho o valor por protocolo e a economia.

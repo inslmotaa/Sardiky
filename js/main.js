@@ -25,7 +25,6 @@
     el.href = "https://instagram.com/" + String(C.instagram || "").replace("@", "");
     el.target = "_blank"; el.rel = "noopener";
   });
-  $$("[data-email]").forEach(function (el) { el.href = "mailto:" + C.email; });
   $("#year").textContent = new Date().getFullYear();
 
   /* ---------- Header / menu ---------- */
