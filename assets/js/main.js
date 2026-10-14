@@ -22,6 +22,40 @@
   onScroll();
   window.addEventListener("scroll", onScroll, { passive: true });
 
+  // Barra de progresso da leitura
+  var bar = document.getElementById("progress-bar");
+  function onProgress() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    bar.style.transform = "scaleX(" + (max > 0 ? window.scrollY / max : 0) + ")";
+  }
+  onProgress();
+  window.addEventListener("scroll", onProgress, { passive: true });
+  window.addEventListener("resize", onProgress);
+
+  // Vídeo de depoimento
+  var video = document.getElementById("dep-video");
+  var playBtn = document.getElementById("dep-play");
+  if (video && playBtn) {
+    var card = video.closest(".video-card");
+    playBtn.addEventListener("click", function () {
+      video.controls = true;
+      card.classList.add("is-playing");
+      var p = video.play();
+      if (p && p.catch) p.catch(function () {});
+    });
+    video.addEventListener("ended", function () {
+      video.controls = false;
+      card.classList.remove("is-playing");
+      video.load();
+    });
+    // Pausa quando o vídeo sai da tela
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(function (entries) {
+        if (!entries[0].isIntersecting && !video.paused) video.pause();
+      }, { threshold: 0.2 }).observe(video);
+    }
+  }
+
   // Menu mobile
   var burger = document.getElementById("burger");
   var nav = document.getElementById("nav");

@@ -30,6 +30,17 @@
     "sameAs": ["https://www.instagram.com/logtechseguros/"]
   }
   </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {"@type": "Question", "name": "Quais seguros são obrigatórios para transportadoras?", "acceptedAnswer": {"@type": "Answer", "text": "Desde a Lei 14.599/2023, o transportador rodoviário de cargas deve contratar RCTR-C, RC-DC e RC-V."}},
+      {"@type": "Question", "name": "Qual a diferença entre RCTR-C, RC-DC e RC-V?", "acceptedAnswer": {"@type": "Answer", "text": "RCTR-C cobre danos à carga em acidentes com o veículo; RC-DC cobre roubo, furto e desaparecimento da carga; RC-V cobre danos materiais e corporais causados a terceiros pelo veículo."}},
+      {"@type": "Question", "name": "Atendem fora do Paraná?", "acceptedAnswer": {"@type": "Answer", "text": "Sim, a Logtech Seguros atende clientes em todo o Brasil."}}
+    ]
+  }
+  </script>
 </head>
 <body>
 
@@ -51,6 +62,9 @@
       <symbol id="i-instagram" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5.2"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r=".6"/></symbol>
       <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4.5 12h15M13.5 6l6 6-6 6"/></symbol>
       <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+      <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5.5v13l10.5-6.5z"/></symbol>
+      <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+      <symbol id="i-trailer" viewBox="0 0 24 24"><path d="M1.5 6.5h15v9h-15zM16.5 13.5h3l2-2"/><circle cx="5" cy="17.5" r="1.8"/><circle cx="10" cy="17.5" r="1.8"/></symbol>
       <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
       <symbol id="mark" viewBox="95 70 405 345">
         <path d="M170 80H222V208L170 266Z" fill="#95CAFD" stroke="none"/>
@@ -77,8 +91,9 @@
       <nav class="nav" id="nav" aria-label="Principal">
         <a href="#sobre">Sobre</a>
         <a href="#seguros">Seguros</a>
-        <a href="#diferenciais">Diferenciais</a>
         <a href="#como-funciona">Como funciona</a>
+        <a href="#depoimentos">Depoimentos</a>
+        <a href="#duvidas">Dúvidas</a>
         <a href="#contato">Contato</a>
         <a href="https://wa.me/message/QX25ZWUYGF2OM1" target="_blank" rel="noopener" class="btn btn--primary btn--sm nav__cta">
           <svg class="ico"><use href="#i-chat"/></svg> Fale conosco
@@ -89,6 +104,7 @@
         <span></span><span></span><span></span>
       </button>
     </div>
+    <div class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
   </header>
 
   <main id="conteudo">
@@ -118,11 +134,16 @@
             <a href="#seguros" class="btn btn--ghost btn--lg">Conheça nossos seguros</a>
           </div>
 
-          <ul class="hero__chips reveal">
-            <li><svg class="ico"><use href="#i-box"/></svg> Carga</li>
-            <li><svg class="ico"><use href="#i-truck"/></svg> Frota &amp; Pesados</li>
-            <li><svg class="ico"><use href="#i-pin"/></svg> Todo o Brasil</li>
-          </ul>
+          <a class="hero__proof reveal" href="#depoimentos">
+            <span class="hero__proof-avatar">
+              <img src="assets/img/cliente-avatar.jpg" alt="" width="56" height="56">
+              <span class="hero__proof-play"><svg class="ico"><use href="#i-play"/></svg></span>
+            </span>
+            <span class="hero__proof-text">
+              <q>O pessoal atendeu a gente super bem. Super indico.</q>
+              <small>Matheus · cliente em Goiânia (GO) — <b>assista ao depoimento</b></small>
+            </span>
+          </a>
         </div>
 
         <div class="hero__visual" aria-hidden="true">
@@ -379,6 +400,85 @@
       </div>
     </section>
 
+    <!-- ============ DEPOIMENTOS ============ -->
+    <section class="section testimonial" id="depoimentos">
+      <div class="testimonial__bg" aria-hidden="true"></div>
+      <div class="container">
+        <header class="section__head section__head--light reveal">
+          <p class="eyebrow"><span class="eyebrow__dash"></span>Depoimentos</p>
+          <h2 class="title">Quem roda com a Logtech, <em>recomenda</em></h2>
+        </header>
+
+        <div class="testimonial__grid">
+          <div class="video-card reveal">
+            <div class="video-card__frame">
+              <video id="dep-video" poster="assets/video/depoimento-poster.jpg"
+                     preload="none" playsinline width="720" height="1280"
+                     aria-label="Depoimento em vídeo do cliente Matheus, de Goiânia (GO)">
+                <source src="assets/video/depoimento-cliente.mp4" type="video/mp4">
+                <source src="assets/video/depoimento-cliente.webm" type="video/webm">
+              </video>
+              <button class="video-card__play" id="dep-play" type="button" aria-label="Assistir ao depoimento">
+                <span class="video-card__btn"><svg class="ico"><use href="#i-play"/></svg></span>
+                <span class="video-card__label">Assistir depoimento <small>0:40 · com legenda</small></span>
+              </button>
+            </div>
+            <div class="video-card__badge">
+              <svg class="video-card__mark"><use href="#mark"/></svg>
+              <span>Cliente<br>Logtech</span>
+            </div>
+          </div>
+
+          <div class="testimonial__body">
+            <svg class="testimonial__quote-ico reveal" viewBox="0 0 48 36" aria-hidden="true"><path d="M0 36V20.6C0 8.7 6.3 1.8 18.9 0l1.8 4.9C13.6 6.8 10.4 10.6 10 16.4h9.3V36zm27.4 0V20.6C27.4 8.7 33.7 1.8 46.3 0L48 4.9c-7.1 1.9-10.3 5.7-10.7 11.5h9.3V36z"/></svg>
+            <blockquote class="testimonial__quote reveal">
+              Já aproveitei e fiz o seguro com o pessoal da Logtech. O pessoal atendeu a gente super bem.
+              <strong>Super indico: atencioso, serviço profissional.</strong>
+            </blockquote>
+
+            <div class="testimonial__author reveal">
+              <img src="assets/img/cliente-avatar.jpg" alt="Matheus, cliente Logtech" width="56" height="56" loading="lazy">
+              <div><strong>Matheus</strong><span>Transportador · Goiânia (GO)</span></div>
+            </div>
+
+            <div class="testimonial__case reveal">
+              <p class="testimonial__case-title">O que foi contratado</p>
+              <ul class="testimonial__items">
+                <li><span><svg class="ico"><use href="#i-box"/></svg></span><div>Seguro de carga</div></li>
+                <li><span><svg class="ico"><use href="#i-truck"/></svg></span><div>Seguro do caminhão</div></li>
+                <li><span><svg class="ico"><use href="#i-trailer"/></svg></span><div>Seguro de 2 carretas<small>reboque e semirreboque</small></div></li>
+              </ul>
+              <dl class="testimonial__meta">
+                <div><dt>Seguradora</dt><dd>Bradesco Seguros</dd></div>
+                <div><dt>Veículo</dt><dd>Adquirido na SVD Seminovos</dd></div>
+              </dl>
+            </div>
+
+            <details class="transcript reveal">
+              <summary>Ler a transcrição do vídeo <svg class="ico"><use href="#i-plus"/></svg></summary>
+              <div class="transcript__body">
+                <p><b>Logtech:</b> Boa tarde, estamos aqui com o nosso amigo Matheus, cliente nosso. Comprou o veículo ali na SVD Seminovos e fez o seguro junto com a Logtech, pela Bradesco Seguros — e daqui pra frente vamos cuidar de todos os seguros dele. Fala um pouquinho como foi essa experiência pra gente.</p>
+                <p><b>Matheus:</b> Turma, adquiri esse veículo aqui na SVD Seminovos. Já aproveitei e fiz o seguro com o pessoal da Logtech. O pessoal atendeu a gente super bem. Sou lá de Goiânia, Goiás. Fiz o seguro aqui com eles pela Bradesco Seguros: seguro de carga, seguro de veículo, seguro das duas carretas, reboque e semirreboque. O pessoal aí, super indico: atencioso, serviço profissional. Logtech! Fechou, meu querido, muito obrigado.</p>
+              </div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PARCEIROS ============ -->
+    <section class="partners" aria-label="Seguradoras e parceiros">
+      <div class="container partners__inner reveal">
+        <p class="partners__label">Seguradoras <br>e parceiros</p>
+        <ul class="partners__list">
+          <li>Bradesco <span>Seguros</span></li>
+          <li>Yelum <span>Seguros</span></li>
+          <li>Grupo <span>SVD</span></li>
+          <li class="partners__more">+ diversas seguradoras do mercado</li>
+        </ul>
+      </div>
+    </section>
+
     <!-- ============ FRASE ============ -->
     <section class="statement">
       <div class="container statement__inner reveal">
@@ -407,6 +507,51 @@
           <a class="insta__item reveal" href="https://www.instagram.com/logtechseguros/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-4.jpg" alt="Clientes ao lado de caminhão Volvo segurado" loading="lazy" width="240" height="318"></a>
           <a class="insta__item reveal" href="https://www.instagram.com/logtechseguros/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-5.jpg" alt="Post de feliz aniversário para Matheus Rossato" loading="lazy" width="239" height="318"></a>
           <a class="insta__item reveal" href="https://www.instagram.com/logtechseguros/" target="_blank" rel="noopener"><img src="assets/img/instagram/post-6.jpg" alt="Encontro com parceiros do mercado de seguros" loading="lazy" width="239" height="318"></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DÚVIDAS ============ -->
+    <section class="section faq" id="duvidas">
+      <div class="container faq__grid">
+        <header class="faq__head reveal">
+          <p class="eyebrow eyebrow--dark"><span class="eyebrow__dash"></span>Dúvidas frequentes</p>
+          <h2 class="title">Tudo o que você precisa saber <em>antes de cotar</em></h2>
+          <p class="section__sub">Não encontrou sua resposta? Fale com um especialista — sem compromisso.</p>
+          <a href="https://wa.me/message/QX25ZWUYGF2OM1" target="_blank" rel="noopener" class="btn btn--primary">
+            <svg class="ico"><use href="#i-chat"/></svg> Tirar dúvida no WhatsApp
+          </a>
+        </header>
+
+        <div class="faq__list">
+          <details class="faq__item reveal" open>
+            <summary>Quais seguros são obrigatórios para transportadoras?<span class="faq__icon"></span></summary>
+            <p>Desde a Lei 14.599/2023, o transportador rodoviário de cargas deve contratar três seguros: <strong>RCTR-C</strong>, <strong>RC-DC</strong> e <strong>RC-V</strong>. A Logtech estrutura as três apólices de acordo com o tipo de carga, as rotas e o volume da sua operação.</p>
+          </details>
+          <details class="faq__item reveal">
+            <summary>Qual a diferença entre RCTR-C, RC-DC e RC-V?<span class="faq__icon"></span></summary>
+            <p><strong>RCTR-C</strong> cobre danos à carga em acidentes com o veículo, como colisão, capotamento, tombamento e incêndio. <strong>RC-DC</strong> cobre roubo, furto e desaparecimento da carga. <strong>RC-V</strong> cobre danos materiais e corporais causados a terceiros pelo veículo.</p>
+          </details>
+          <details class="faq__item reveal">
+            <summary>Vocês atendem caminhoneiros autônomos e pequenas frotas?<span class="faq__icon"></span></summary>
+            <p>Sim. Atendemos desde o caminhoneiro autônomo com um único caminhão até transportadoras com grandes frotas — incluindo cavalo mecânico, carretas, reboques e semirreboques.</p>
+          </details>
+          <details class="faq__item reveal">
+            <summary>Atendem fora do Paraná?<span class="faq__icon"></span></summary>
+            <p>Sim, atendemos clientes em todo o Brasil. Todo o processo — cotação, contratação e acompanhamento — pode ser feito pelo WhatsApp, por telefone ou presencialmente.</p>
+          </details>
+          <details class="faq__item reveal">
+            <summary>Comprei um caminhão. Consigo sair já com o seguro?<span class="faq__icon"></span></summary>
+            <p>Sim. Trabalhamos junto com parceiros como a SVD Seminovos para que você saia com o veículo, as carretas e a carga protegidos desde o primeiro dia.</p>
+          </details>
+          <details class="faq__item reveal">
+            <summary>Quanto custa o seguro?<span class="faq__icon"></span></summary>
+            <p>O valor depende do tipo de carga, rotas, valor transportado, perfil da frota e gerenciamento de risco. Como comparamos diversas seguradoras, conseguimos a melhor relação entre cobertura e preço para o seu caso. A cotação é gratuita e sem compromisso.</p>
+          </details>
+          <details class="faq__item reveal">
+            <summary>O que fazer em caso de sinistro?<span class="faq__icon"></span></summary>
+            <p>Garanta primeiro a segurança das pessoas, registre o boletim de ocorrência, faça fotos do local e avise a Logtech o quanto antes. A partir daí, orientamos cada etapa e acompanhamos o processo junto à seguradora até a indenização.</p>
+          </details>
         </div>
       </div>
     </section>
@@ -500,6 +645,7 @@
             <svg class="ico"><use href="#i-chat"/></svg> Enviar pelo WhatsApp
           </button>
           <p class="form__note" id="form-note" role="status" aria-live="polite"></p>
+          <p class="form__legal">Seus dados são usados apenas para responder à sua solicitação, conforme a LGPD.</p>
         </form>
       </div>
     </section>
@@ -532,7 +678,8 @@
         <a href="#sobre">Sobre</a>
         <a href="#diferenciais">Diferenciais</a>
         <a href="#como-funciona">Como funciona</a>
-        <a href="#contato">Contato</a>
+        <a href="#depoimentos">Depoimentos</a>
+        <a href="#duvidas">Dúvidas frequentes</a>
       </div>
 
       <div class="footer__col">
