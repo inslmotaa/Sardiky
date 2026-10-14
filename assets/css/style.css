@@ -309,15 +309,18 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .about__text p + p { margin-top: 20px; color: var(--muted); font-size: 17px; }
 
 .pillars { margin-top: 40px; display: grid; gap: 14px; }
-.pillars li {
-  display: flex; gap: 18px; align-items: flex-start;
+.pillars a {
+  display: flex; gap: 18px; align-items: center;
   padding: 22px; border-radius: var(--radius);
   background: var(--paper); border: 1px solid var(--line);
   transition: transform .3s var(--ease), box-shadow .3s, border-color .3s, background .3s;
 }
-.pillars li:hover { transform: translateX(6px); background: #fff; border-color: rgba(59, 137, 230, .35); box-shadow: var(--shadow); }
+.pillars a > div { flex: 1; }
+.pillars a:hover { transform: translateX(6px); background: #fff; border-color: rgba(59, 137, 230, .35); box-shadow: var(--shadow); }
+.pillars__arrow { color: var(--blue); opacity: .45; transition: opacity .3s, transform .3s var(--ease); }
+.pillars a:hover .pillars__arrow { opacity: 1; transform: translateX(4px); }
 .pillars strong { display: block; font-family: var(--font-display); color: var(--ink); font-size: 17px; }
-.pillars span { color: var(--muted); font-size: 15px; }
+.pillars a > div span { display: block; color: var(--muted); font-size: 15px; }
 .pillars__ico {
   width: 48px; height: 48px; border-radius: 14px; flex: none; display: grid; place-items: center;
   background: var(--blue-pale); color: var(--blue);
