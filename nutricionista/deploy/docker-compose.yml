@@ -1,0 +1,78 @@
+# Produção em um servidor (VPS) com Docker. Veja docs/03-publicacao.md.
+# Uso: copie deploy/.env.example para deploy/.env, ajuste e rode:
+#   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nutri
+      POSTGRES_USER: nutri
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?defina DB_PASSWORD}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U nutri -d nutri']
+      interval: 10s
+      retries: 10
+
+  app:
+    build: ..
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://nutri:${DB_PASSWORD}@db:5432/nutri
+      APP_URL: https://${DOMAIN}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
+      CRON_SECRET: ${CRON_SECRET:?defina CRON_SECRET}
+    volumes:
+      - uploads:/data/uploads
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ['80:80', '443:443']
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on: [app]
+
+  # Lembretes e limpeza de dados vencidos, de hora em hora.
+  cron:
+    image: curlimages/curl:8.10.1
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      CRON_SECRET: ${CRON_SECRET}
+    entrypoint: ['sh', '-c', 'while true; do sleep 3600; curl -fsS -H "Authorization: Bearer $$CRON_SECRET" http://app:3000/api/cron || true; done']
+
+  # Cópia diária do banco e dos arquivos, mantendo 14 dias. Envie ./backups para fora do servidor (ver docs).
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    depends_on: [db]
+    environment:
+      PGPASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./backups:/backups
+      - uploads:/uploads:ro
+    entrypoint:
+      - sh
+      - -c
+      - |
+        while true; do
+          ts=$$(date +%Y%m%d-%H%M)
+          pg_dump -h db -U nutri -d nutri -Fc -f /backups/db-$$ts.dump && tar -czf /backups/uploads-$$ts.tgz -C /uploads . && echo "backup $$ts ok"
+          find /backups -type f -mtime +14 -delete
+          sleep 86400
+        done
+
+volumes:
+  db:
+  uploads:
+  caddy_data:

@@ -71,7 +71,7 @@ export function LineChart({
         {target != null && (
           <g>
             <line className="target-line" x1={pad.left} x2={W - pad.right} y1={y(target)} y2={y(target)} />
-            <text x={W - pad.right + 6} y={y(target) + 4}>
+            <text x={pad.left + 4} y={y(target) - 5} style={{ fill: 'var(--accent)' }}>
               meta
             </text>
           </g>

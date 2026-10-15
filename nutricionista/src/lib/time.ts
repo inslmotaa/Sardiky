@@ -155,6 +155,8 @@ export function fmtDayLong(day: string) {
   return `${WEEKDAYS[weekdayOf(day)]}, ${d} de ${MONTHS[m - 1]}`
 }
 
+export const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
+
 /** 15/10/2026 às 14:30 (no fuso do consultório) */
 export function fmtDateTime(date: Date, tz = DEFAULT_TZ) {
   const p = zonedParts(date, tz)

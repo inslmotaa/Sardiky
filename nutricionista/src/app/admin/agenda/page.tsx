@@ -7,6 +7,7 @@ import { getSettings } from '@/lib/settings'
 import {
   addDays,
   addMonths,
+  capitalize,
   daysInMonth,
   fmtDateTime,
   fmtDay,
@@ -92,7 +93,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <PageHead
         title="Agenda"
-        subtitle={<span style={{ textTransform: 'capitalize' }}>{title}</span>}
+        subtitle={capitalize(title)}
         actions={
           <Link href="/admin/agenda/nova" className="btn btn--primary">
             Nova consulta

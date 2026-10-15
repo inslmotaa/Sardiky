@@ -25,3 +25,9 @@ Hero com foto · Objetivos · Método Fonseca Team + como começar · Benefício
 ## Publicar na Netlify
 
 Arraste a pasta do projeto em https://app.netlify.com/drop, ou conecte este repositório (sem comando de build, diretório de publicação `.`).
+
+---
+
+## Sistema do nutricionista André Farion (`nutricionista/`)
+
+Projeto separado, em Next.js + PostgreSQL: site público com storytelling, agendamento on-line, área do paciente e painel administrativo. Não altera o site estático acima. Veja [`nutricionista/README.md`](nutricionista/README.md).

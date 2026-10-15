@@ -4,7 +4,7 @@ import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
-import { addDays, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfMonth, todayIn, zonedToUtc } from '@/lib/time'
+import { addDays, capitalize, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfMonth, todayIn, zonedToUtc } from '@/lib/time'
 import { money } from '@/lib/format'
 import { PageHead, Stat, StatusBadge } from '@/components/ui'
 
@@ -85,7 +85,7 @@ export default async function AdminHome() {
     <div className="stack" style={{ ['--gap' as string]: '24px' }}>
       <PageHead
         title={`Olá, ${user.name.split(' ')[0]}`}
-        subtitle={<span style={{ textTransform: 'capitalize' }}>{fmtDayLong(today)}</span>}
+        subtitle={capitalize(fmtDayLong(today))}
         actions={
           <>
             {agenda && (

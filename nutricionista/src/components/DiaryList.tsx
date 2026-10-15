@@ -1,6 +1,6 @@
 import type { schema } from '@/db'
 import { ADHERENCE_LABEL } from '@/lib/format'
-import { fmtDayLong } from '@/lib/time'
+import { capitalize, fmtDayLong } from '@/lib/time'
 
 type Entry = typeof schema.diaryEntries.$inferSelect
 
@@ -20,7 +20,7 @@ export function DiaryList({
     <div className="stack">
       {[...byDay.entries()].map(([day, list]) => (
         <section key={day} className="card">
-          <h3 style={{ textTransform: 'capitalize' }}>{fmtDayLong(day)}</h3>
+          <h3>{capitalize(fmtDayLong(day))}</h3>
           <ul className="list">
             {list.map((e) => (
               <li key={e.id}>

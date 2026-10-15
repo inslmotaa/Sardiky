@@ -28,7 +28,6 @@ export function ActionForm({
   resetOnSuccess = false,
   confirm,
   id,
-  encType,
 }: {
   action: Action
   children: ReactNode
@@ -36,6 +35,7 @@ export function ActionForm({
   resetOnSuccess?: boolean
   confirm?: string
   id?: string
+  /** Mantido por clareza nos formulários com arquivo; o React já envia como multipart. */
   encType?: 'multipart/form-data'
 }) {
   const [state, formAction, pending] = useActionState(action, {})
@@ -50,7 +50,6 @@ export function ActionForm({
       ref={ref}
       id={id}
       action={formAction}
-      encType={encType}
       className={className}
       aria-busy={pending}
       noValidate

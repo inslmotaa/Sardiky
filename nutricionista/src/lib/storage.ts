@@ -2,6 +2,8 @@ import 'server-only'
 import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
+import { sniffMime } from './storage-sniff'
+import { localDataDir } from './data-dir'
 
 /**
  * Armazenamento de arquivos em pasta privada (fora de /public).
@@ -9,22 +11,9 @@ import path from 'node:path'
  * Para hospedagens sem disco persistente, substitua por um driver S3/R2
  * mantendo estas três funções.
  */
-const root = () => path.resolve(process.env.UPLOAD_DIR ?? '.data/uploads')
+const root = () => path.resolve(process.env.UPLOAD_DIR ?? localDataDir('uploads'))
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
-
-const SIGNATURES: { mime: string; ext: string; test: (b: Buffer) => boolean }[] = [
-  { mime: 'image/jpeg', ext: 'jpg', test: (b) => b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
-  { mime: 'image/png', ext: 'png', test: (b) => b.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) },
-  { mime: 'image/webp', ext: 'webp', test: (b) => b.subarray(0, 4).toString() === 'RIFF' && b.subarray(8, 12).toString() === 'WEBP' },
-  { mime: 'application/pdf', ext: 'pdf', test: (b) => b.subarray(0, 5).toString() === '%PDF-' },
-]
-
-/** Identifica o tipo pelo conteúdo (não confia na extensão nem no navegador). */
-export function sniffMime(buf: Buffer, allowed: string[]) {
-  const sig = SIGNATURES.find((s) => allowed.includes(s.mime) && s.test(buf))
-  return sig ?? null
-}
 
 export async function saveUpload(file: File, allowed: string[]) {
   if (!file || file.size === 0) return { error: 'Nenhum arquivo selecionado.' } as const

@@ -117,8 +117,8 @@ export default async function PatientHome() {
           </div>
           {plan ? (
             <div className="stack" style={{ ['--gap' as string]: '6px' }}>
-              <strong>{plan.title}</strong>
-              <span className="muted small">
+              <strong style={{ display: 'block' }}>{plan.title}</strong>
+              <span className="muted small" style={{ display: 'block' }}>
                 Versão {plan.version} · atualizado em {plan.publishedAt ? fmtDay(plan.publishedAt.toISOString().slice(0, 10)) : '—'}
                 {plan.validUntil && ` · válido até ${fmtDay(plan.validUntil)}`}
               </span>
