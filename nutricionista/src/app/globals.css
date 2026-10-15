@@ -834,7 +834,7 @@ details.disclosure > div {
   .site-nav {
     display: flex;
   }
-  .mobile-menu {
+  .site-header .mobile-menu {
     display: none;
   }
 }
@@ -1473,9 +1473,12 @@ details.disclosure > div {
   color: var(--brand-ink);
   font-weight: 650;
 }
-@media (min-width: 900px) {
+@media (min-width: 1180px) {
   .patient-nav {
     display: flex;
+  }
+  .patient-header .mobile-menu {
+    display: none;
   }
 }
 .tabbar {

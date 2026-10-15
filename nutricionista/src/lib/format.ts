@@ -70,3 +70,8 @@ export const ADHERENCE_LABEL: Record<string, string> = {
   parcial: 'Segui em parte',
   nao_seguiu: 'Não segui',
 }
+
+/** Preenche {variaveis} de um modelo de mensagem (sem dependências de servidor). */
+export function renderWaText(tpl: string, vars: Record<string, string>) {
+  return tpl.replace(/\{(\w+)\}/g, (m, k: string) => vars[k] ?? m)
+}
