@@ -51,3 +51,4 @@ npm run dev     # abra http://localhost:3000
 - [Segurança, privacidade e LGPD](docs/02-seguranca-lgpd.md)
 - [Publicação: domínio, hospedagem, backups, monitoramento e custos](docs/03-publicacao.md)
 - [Testes](docs/04-testes.md)
+- [Próximos passos: informações do André, consultoria de dieta e treino, aplicativo](docs/05-proximos-passos.md)
