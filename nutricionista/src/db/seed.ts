@@ -1,0 +1,738 @@
+/**
+ * Dados fictícios para demonstração. Nenhuma informação real de paciente.
+ * Uso: npm run db:seed (apaga e recria todos os dados do banco configurado).
+ */
+import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js'
+import { drizzle as drizzleLite } from 'drizzle-orm/pglite'
+import { sql } from 'drizzle-orm'
+import { createConnection } from './connection'
+import { loadEnv } from './env'
+import * as s from './schema'
+import { hashPassword } from '../lib/auth/password'
+import { addDays, todayIn, zonedToUtc } from '../lib/time'
+import { newCode } from '../lib/auth/tokens'
+import type { PlanContent } from '../lib/plan'
+import type { FormField } from '../lib/forms'
+
+loadEnv()
+
+if (process.env.NODE_ENV === 'production' && process.env.ALLOW_DEMO_SEED !== 'true') {
+  console.error('Seed de demonstração bloqueado em produção (defina ALLOW_DEMO_SEED=true para forçar).')
+  process.exit(1)
+}
+
+const conn = createConnection()
+const db = (conn.kind === 'postgres' ? drizzlePg(conn.client, { schema: s }) : drizzleLite(conn.client, { schema: s })) as ReturnType<
+  typeof drizzlePg<typeof s>
+>
+
+const TZ = 'America/Sao_Paulo'
+const today = todayIn(TZ)
+const at = (offsetDays: number, time: string) => zonedToUtc(addDays(today, offsetDays), time, TZ)
+const day = (offsetDays: number) => addDays(today, offsetDays)
+
+const PASSWORDS = {
+  admin: 'Nutri#Demo2026',
+  staff: 'Equipe#Demo2026',
+  patient: 'Paciente#Demo2026',
+}
+
+async function main() {
+  console.log('Limpando dados…')
+  await db.execute(sql`
+    TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
+      form_templates, notifications, messages, diary_entries, meal_plans, measurements, goals, leads,
+      appointments, patients, packages, faqs, testimonials, time_blocks, working_hours, services,
+      settings, auth_tokens, sessions, users CASCADE
+  `)
+
+  /* -------------------------- configurações -------------------------- */
+  await db.insert(s.settings).values({
+    id: 1,
+    professionalName: 'André Farion',
+    professionalTitle: 'Nutricionista',
+    registry: 'CRN-0 00000 (exemplo — informe o número real em Configurações)',
+    bio: 'Nutricionista dedicado a um atendimento individualizado. Acredito em um plano que caiba na sua vida: possível de seguir, construído junto com você e ajustado a cada consulta. (Texto de exemplo — ajuste a biografia em Configurações.)',
+    specialties: ['Reeducação alimentar', 'Nutrição esportiva', 'Saúde da mulher', 'Comportamento alimentar'],
+    method:
+      'O atendimento começa por uma avaliação completa da sua rotina, histórico e preferências. A partir dela, definimos metas realistas e um plano alimentar individualizado, revisado nos retornos conforme sua evolução.',
+    differentials: [
+      'Plano alimentar individualizado, com substituições para dar flexibilidade',
+      'Área do paciente para consultar o plano e registrar a rotina',
+      'Acompanhamento entre consultas pelos canais combinados',
+      'Atendimento presencial e on-line',
+    ],
+    howItWorks: [
+      { title: 'Agende', text: 'Escolha o tipo de consulta, a data e o horário disponíveis.' },
+      { title: 'Pré-consulta', text: 'Você recebe um questionário breve para aproveitarmos melhor o encontro.' },
+      { title: 'Consulta', text: 'Avaliação, conversa sobre objetivos e definição das primeiras metas.' },
+      { title: 'Plano e acompanhamento', text: 'Seu plano fica disponível na área do paciente e é ajustado nos retornos.' },
+    ],
+    address: 'Rua Exemplo, 123 — sala 45, Centro, Cidade/UF (endereço fictício)',
+    hoursText: 'Segunda a sexta, 8h às 18h · Sábados, 8h às 12h',
+    modalityText: 'Presencial no consultório e on-line por videochamada',
+    whatsapp: '5500000000000',
+    instagram: 'https://instagram.com/',
+    contactEmail: 'contato@example.com',
+    privacyContact: 'privacidade@example.com',
+    timezone: TZ,
+    slotStepMinutes: 30,
+    bufferMinutes: 10,
+    minNoticeHours: 12,
+    maxDaysAhead: 45,
+    financeEnabled: true,
+    demoBanner: true,
+    templates: {
+      confirmacao:
+        'Olá, {nome}! Sua consulta ({servico}) está confirmada para {data} às {hora}. Código: {codigo}. Se precisar remarcar, responda esta mensagem.',
+      lembrete: 'Olá, {nome}! Lembrete: sua consulta ({servico}) é amanhã, {data}, às {hora}.',
+      cancelamento: 'Olá, {nome}. Sua consulta de {data} às {hora} foi cancelada. Fale conosco para escolher um novo horário.',
+    },
+  })
+
+  const services = await db
+    .insert(s.services)
+    .values([
+      {
+        name: 'Primeira consulta',
+        description: 'Avaliação completa, definição de metas e elaboração do plano alimentar individualizado.',
+        modality: 'ambos',
+        durationMinutes: 60,
+        priceCents: 25000,
+        sort: 1,
+      },
+      {
+        name: 'Retorno',
+        description: 'Reavaliação, análise da evolução e ajustes no plano.',
+        modality: 'ambos',
+        durationMinutes: 40,
+        priceCents: 15000,
+        sort: 2,
+      },
+      {
+        name: 'Acompanhamento esportivo',
+        description: 'Estratégia nutricional alinhada à rotina de treinos e às competições.',
+        modality: 'ambos',
+        durationMinutes: 60,
+        priceCents: 28000,
+        sort: 3,
+      },
+      {
+        name: 'Reeducação alimentar on-line',
+        description: 'Consulta por videochamada com foco em hábitos e rotina, para quem mora longe.',
+        modality: 'online',
+        durationMinutes: 50,
+        priceCents: 22000,
+        sort: 4,
+      },
+    ])
+    .returning()
+  const [svcFirst, svcReturn, svcSport] = services
+
+  const hours: { weekday: number; start: string; end: string }[] = []
+  for (const wd of [1, 2, 3, 4, 5]) hours.push({ weekday: wd, start: '08:00', end: '12:00' }, { weekday: wd, start: '13:30', end: '18:00' })
+  hours.push({ weekday: 6, start: '08:00', end: '12:00' })
+  await db.insert(s.workingHours).values(hours)
+
+  await db.insert(s.testimonials).values([
+    {
+      authorDisplay: 'M. S. (exemplo)',
+      text: 'Pela primeira vez consegui manter uma alimentação organizada sem sentir que estava de dieta. As substituições no plano fazem muita diferença.',
+      authorizedAt: day(-60),
+      published: true,
+      sort: 1,
+    },
+    {
+      authorDisplay: 'R. A. (exemplo)',
+      text: 'O acompanhamento entre as consultas me ajudou a ajustar a alimentação nos dias de treino. Atendimento atencioso e muito claro.',
+      authorizedAt: day(-40),
+      published: true,
+      sort: 2,
+    },
+    {
+      authorDisplay: 'J. P. (exemplo)',
+      text: 'Gosto de ver minha evolução na área do paciente e de ter o plano sempre à mão no celular.',
+      authorizedAt: day(-20),
+      published: true,
+      sort: 3,
+    },
+    {
+      authorDisplay: 'Depoimento sem autorização (não aparece no site)',
+      text: 'Exemplo de depoimento recebido, ainda sem autorização registrada.',
+      authorizedAt: null,
+      published: false,
+      sort: 4,
+    },
+  ])
+
+  await db.insert(s.faqs).values([
+    {
+      question: 'Como funciona a primeira consulta?',
+      answer:
+        'Conversamos sobre sua rotina, histórico de saúde, preferências e objetivos. Fazemos a avaliação antropométrica (no presencial) e, em até alguns dias, seu plano fica disponível na área do paciente.',
+      sort: 1,
+    },
+    {
+      question: 'A consulta on-line tem a mesma qualidade?',
+      answer:
+        'A consulta on-line segue a mesma estrutura, por videochamada. Algumas medidas podem ser informadas por você com orientação; elas aparecem identificadas como “informadas pelo paciente” nos gráficos.',
+      sort: 2,
+    },
+    {
+      question: 'Quanto tempo leva para ver resultados?',
+      answer:
+        'Cada pessoa responde de um jeito, e não há resultado garantido. O que fazemos é definir metas realistas, acompanhar a evolução e ajustar a estratégia sempre que necessário.',
+      sort: 3,
+    },
+    {
+      question: 'Vocês atendem por convênio?',
+      answer: 'O atendimento é particular. Emitimos recibo para que você solicite reembolso ao seu plano, quando ele oferecer essa possibilidade.',
+      sort: 4,
+    },
+    {
+      question: 'Posso remarcar minha consulta?',
+      answer: 'Sim. Pedimos aviso com pelo menos 24 horas de antecedência, pelo WhatsApp ou pela área do paciente.',
+      sort: 5,
+    },
+    {
+      question: 'Como meus dados são protegidos?',
+      answer:
+        'Seus dados de saúde ficam em área com acesso restrito, protegida por senha e conexão criptografada, e são usados apenas para o seu atendimento. Veja os detalhes na Política de Privacidade.',
+      sort: 6,
+    },
+  ])
+
+  await db.insert(s.packages).values([
+    { name: 'Trimestral', description: 'Primeira consulta + 2 retornos em até 90 dias.', sessions: 3, priceCents: 49000, validityDays: 90 },
+    { name: 'Semestral', description: 'Primeira consulta + 5 retornos em até 180 dias.', sessions: 6, priceCents: 89000, validityDays: 180 },
+  ])
+
+  /* ------------------------------ usuários ----------------------------- */
+  console.log('Criando usuários (o hash de senha leva alguns segundos)…')
+  const [adminHash, staffHash, patientHash] = await Promise.all([
+    hashPassword(PASSWORDS.admin),
+    hashPassword(PASSWORDS.staff),
+    hashPassword(PASSWORDS.patient),
+  ])
+  const [admin, , uBeatriz, uLucas] = await db
+    .insert(s.users)
+    .values([
+      { email: 'nutri@example.com', name: 'André Farion', role: 'admin', passwordHash: adminHash },
+      {
+        email: 'recepcao@example.com',
+        name: 'Recepção (exemplo)',
+        role: 'staff',
+        passwordHash: staffHash,
+        permissions: ['agenda', 'cadastro', 'financeiro', 'site'],
+      },
+      { email: 'paciente@example.com', name: 'Beatriz Exemplo', role: 'patient', passwordHash: patientHash },
+      { email: 'lucas@example.com', name: 'Lucas Fictício', role: 'patient', passwordHash: patientHash },
+    ])
+    .returning()
+
+  const [beatriz, lucas, rafael, helena] = await db
+    .insert(s.patients)
+    .values([
+      {
+        userId: uBeatriz.id,
+        fullName: 'Beatriz Exemplo',
+        email: 'paciente@example.com',
+        phone: '11900000001',
+        birthDate: '1991-04-12',
+        objective: 'Reeducação alimentar e melhora da disposição',
+        status: 'ativo',
+        stage: 'Acompanhamento',
+        followUpDays: 30,
+        nextFollowUp: day(5),
+      },
+      {
+        userId: uLucas.id,
+        fullName: 'Lucas Fictício',
+        email: 'lucas@example.com',
+        phone: '11900000002',
+        birthDate: '1996-09-30',
+        objective: 'Performance em corrida de rua',
+        status: 'ativo',
+        stage: 'Avaliação inicial',
+        followUpDays: 21,
+        nextFollowUp: day(-3),
+      },
+      {
+        fullName: 'Rafael Demonstração',
+        email: 'rafael@example.com',
+        phone: '11900000003',
+        birthDate: '1985-01-20',
+        objective: 'Controle de peso',
+        status: 'pausado',
+        stage: 'Manutenção',
+        followUpDays: 60,
+      },
+      {
+        fullName: 'Helena Teste',
+        email: 'helena@example.com',
+        phone: '11900000004',
+        birthDate: '1978-07-08',
+        objective: 'Alimentação na menopausa',
+        status: 'ativo',
+        stage: 'Acompanhamento',
+        followUpDays: 30,
+        nextFollowUp: day(12),
+      },
+    ])
+    .returning()
+
+  await db.insert(s.consents).values([
+    { userId: uBeatriz.id, patientId: beatriz.id, kind: 'tratamento_dados_saude', version: '2026-10' },
+    { userId: uLucas.id, patientId: lucas.id, kind: 'tratamento_dados_saude', version: '2026-10' },
+  ])
+
+  /* ------------------------------ consultas ---------------------------- */
+  const appt = (
+    p: { id: string; fullName: string; email: string | null; phone: string | null } | null,
+    svc: typeof svcFirst,
+    offset: number,
+    time: string,
+    status: (typeof s.appointmentStatusEnum.enumValues)[number],
+    extra: Partial<typeof s.appointments.$inferInsert> = {},
+  ): typeof s.appointments.$inferInsert => {
+    const startAt = at(offset, time)
+    return {
+      patientId: p?.id ?? null,
+      serviceId: svc.id,
+      serviceName: svc.name,
+      modality: 'presencial',
+      startAt,
+      endAt: new Date(startAt.getTime() + svc.durationMinutes * 60_000),
+      status,
+      priceCents: svc.priceCents,
+      contactName: p?.fullName ?? 'Contato',
+      contactEmail: p?.email ?? 'contato@example.com',
+      contactPhone: p?.phone ?? '11900000000',
+      isReturning: Boolean(p),
+      code: newCode(),
+      source: 'admin',
+      ...extra,
+    }
+  }
+  // Ajusta para dia útil: evita gerar consultas de exemplo em domingos.
+  const wd = (offset: number) => {
+    let o = offset
+    while (new Date(at(o, '12:00')).getUTCDay() === 0) o += offset >= 0 ? 1 : -1
+    return o
+  }
+
+  const pastAppts = await db
+    .insert(s.appointments)
+    .values([
+      appt(beatriz, svcFirst, wd(-150), '09:00', 'realizada'),
+      appt(beatriz, svcReturn, wd(-120), '09:00', 'realizada'),
+      appt(beatriz, svcReturn, wd(-90), '10:00', 'realizada'),
+      appt(beatriz, svcReturn, wd(-60), '10:00', 'realizada', { modality: 'online' }),
+      appt(beatriz, svcReturn, wd(-30), '14:00', 'realizada'),
+      appt(lucas, svcSport, wd(-24), '15:00', 'realizada'),
+      appt(rafael, svcReturn, wd(-45), '16:00', 'faltou'),
+      appt(helena, svcReturn, wd(-15), '11:00', 'cancelada', { cancelReason: 'Paciente pediu para remarcar' }),
+      appt(helena, svcReturn, wd(-10), '11:00', 'realizada'),
+    ])
+    .returning()
+
+  await db.insert(s.appointments).values([
+    appt(helena, svcReturn, 0, '14:00', 'confirmada'),
+    appt(lucas, svcReturn, 0, '16:00', 'confirmada', { modality: 'online', meetingUrl: 'https://meet.example.com/demo' }),
+    appt(beatriz, svcReturn, wd(5), '09:00', 'confirmada'),
+    appt(null, svcFirst, wd(2), '10:00', 'pendente', {
+      contactName: 'Interessada Exemplo',
+      contactEmail: 'interessada@example.com',
+      contactPhone: '11900000010',
+      isReturning: false,
+      source: 'site',
+      patientNotes: 'Gostaria de orientação para melhorar a alimentação no trabalho.',
+    }),
+    appt(null, svcSport, wd(3), '15:00', 'pendente', {
+      contactName: 'Atleta Fictício',
+      contactEmail: 'atleta@example.com',
+      contactPhone: '11900000011',
+      isReturning: false,
+      source: 'site',
+      modality: 'online',
+    }),
+  ])
+
+  await db.insert(s.timeBlocks).values({
+    startAt: at(wd(4), '13:30'),
+    endAt: at(wd(4), '18:00'),
+    reason: 'Congresso (exemplo)',
+    createdBy: admin.id,
+  })
+
+  /* ------------------------------ evolução ----------------------------- */
+  const weights = [78.4, 77.3, 76.6, 75.9, 75.1]
+  const waists = [86, 84.5, 83.5, 82, 81]
+  const fats = [31.5, 30.6, 29.9, 29.1, 28.4]
+  await db.insert(s.measurements).values([
+    ...weights.map((w, i) => ({
+      patientId: beatriz.id,
+      date: day(wd(-150 + i * 30)),
+      source: 'profissional' as const,
+      weightKg: w,
+      heightCm: 165,
+      bodyFatPct: fats[i],
+      bodyFatMethod: 'Bioimpedância',
+      waistCm: waists[i],
+      hipCm: 104 - i * 0.8,
+      armCm: 30 - i * 0.2,
+      thighCm: 58 - i * 0.4,
+      extra: [{ label: 'Circunferência do pescoço', value: 33 - i * 0.2, unit: 'cm' }],
+      createdBy: admin.id,
+    })),
+    { patientId: beatriz.id, date: day(-20), source: 'paciente' as const, weightKg: 75.4, notes: 'Balança de casa, pela manhã' },
+    { patientId: beatriz.id, date: day(-10), source: 'paciente' as const, weightKg: 74.9, notes: 'Balança de casa' },
+    { patientId: beatriz.id, date: day(-3), source: 'paciente' as const, weightKg: 74.8, waistCm: 80.5 },
+    {
+      patientId: lucas.id,
+      date: day(wd(-24)),
+      source: 'profissional' as const,
+      weightKg: 71.2,
+      heightCm: 178,
+      bodyFatPct: 14.2,
+      bodyFatMethod: 'Dobras cutâneas (7 dobras)',
+      waistCm: 78,
+      createdBy: admin.id,
+    },
+    { patientId: helena.id, date: day(wd(-10)), source: 'profissional' as const, weightKg: 68.3, heightCm: 160, waistCm: 84, createdBy: admin.id },
+  ])
+
+  await db.insert(s.goals).values([
+    {
+      patientId: beatriz.id,
+      title: 'Reduzir a circunferência da cintura',
+      metric: 'waistCm',
+      startValue: 86,
+      targetValue: 80,
+      unit: 'cm',
+      dueDate: day(60),
+    },
+    { patientId: beatriz.id, title: 'Incluir frutas em pelo menos 2 refeições por dia', description: 'Registrar no diário alimentar.' },
+    { patientId: beatriz.id, title: 'Beber 2 litros de água por dia', status: 'concluida' },
+    { patientId: lucas.id, title: 'Ajustar a alimentação pré-treino', description: 'Testar as opções do plano antes dos treinos longos.' },
+  ])
+
+  /* --------------------------- planos alimentares ---------------------- */
+  const plan = (variant: 1 | 2): PlanContent => ({
+    guidance:
+      'Beba água ao longo do dia (meta combinada: 2 litros). Prefira preparações assadas, cozidas ou grelhadas. Mastigue devagar e faça as refeições sem telas sempre que possível.' +
+      (variant === 2 ? ' Nos dias de treino, antecipe o lanche da tarde para 1h antes do exercício.' : ''),
+    meals: [
+      {
+        id: 'm1',
+        name: 'Café da manhã',
+        time: '07:00',
+        notes: '',
+        items: [
+          {
+            id: 'i1',
+            food: 'Pão integral',
+            quantity: '50 g',
+            householdMeasure: '2 fatias',
+            notes: '',
+            substitutions: [
+              { food: 'Tapioca', quantity: '40 g', householdMeasure: '2 colheres de sopa de goma' },
+              { food: 'Cuscuz de milho', quantity: '80 g', householdMeasure: '1 xícara' },
+            ],
+          },
+          {
+            id: 'i2',
+            food: 'Ovo mexido',
+            quantity: '100 g',
+            householdMeasure: '2 unidades',
+            notes: 'Pouco óleo',
+            substitutions: [{ food: 'Queijo branco', quantity: '60 g', householdMeasure: '2 fatias' }],
+          },
+          {
+            id: 'i3',
+            food: 'Mamão',
+            quantity: '150 g',
+            householdMeasure: '1 fatia média',
+            notes: '',
+            substitutions: [{ food: 'Banana', quantity: '80 g', householdMeasure: '1 unidade' }],
+          },
+        ],
+      },
+      {
+        id: 'm2',
+        name: 'Almoço',
+        time: '12:30',
+        notes: 'Comece pela salada.',
+        items: [
+          { id: 'i4', food: 'Salada de folhas e legumes', quantity: 'à vontade', householdMeasure: 'meio prato', notes: '', substitutions: [] },
+          {
+            id: 'i5',
+            food: 'Arroz integral',
+            quantity: '100 g',
+            householdMeasure: '4 colheres de sopa',
+            notes: '',
+            substitutions: [
+              { food: 'Batata-doce', quantity: '150 g', householdMeasure: '1 unidade média' },
+              { food: 'Macarrão integral', quantity: '100 g', householdMeasure: '1 pegador' },
+            ],
+          },
+          { id: 'i6', food: 'Feijão', quantity: '80 g', householdMeasure: '1 concha pequena', notes: '', substitutions: [{ food: 'Lentilha', quantity: '80 g', householdMeasure: '1 concha pequena' }] },
+          {
+            id: 'i7',
+            food: 'Frango grelhado',
+            quantity: '120 g',
+            householdMeasure: '1 filé médio',
+            notes: '',
+            substitutions: [
+              { food: 'Peixe assado', quantity: '130 g', householdMeasure: '1 posta média' },
+              { food: 'Carne magra', quantity: '110 g', householdMeasure: '1 bife médio' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'm3',
+        name: 'Lanche da tarde',
+        time: variant === 2 ? '16:00' : '16:30',
+        notes: '',
+        items: [
+          {
+            id: 'i8',
+            food: 'Iogurte natural',
+            quantity: '170 g',
+            householdMeasure: '1 pote',
+            notes: '',
+            substitutions: [{ food: 'Leite com café', quantity: '200 ml', householdMeasure: '1 copo' }],
+          },
+          { id: 'i9', food: 'Aveia em flocos', quantity: '20 g', householdMeasure: '2 colheres de sopa', notes: '', substitutions: [] },
+        ],
+      },
+      {
+        id: 'm4',
+        name: 'Jantar',
+        time: '19:30',
+        notes: '',
+        items: [
+          {
+            id: 'i10',
+            food: 'Omelete com legumes',
+            quantity: '2 ovos',
+            householdMeasure: '1 unidade',
+            notes: '',
+            substitutions: [{ food: 'Sopa de legumes com frango', quantity: '400 ml', householdMeasure: '1 prato fundo' }],
+          },
+          { id: 'i11', food: 'Salada crua', quantity: 'à vontade', householdMeasure: '1 prato raso', notes: '', substitutions: [] },
+        ],
+      },
+    ],
+  })
+
+  const [v1] = await db
+    .insert(s.mealPlans)
+    .values({
+      patientId: beatriz.id,
+      title: 'Plano alimentar — reeducação',
+      status: 'arquivado',
+      version: 1,
+      content: plan(1),
+      validFrom: day(-150),
+      validUntil: day(-31),
+      publishedAt: at(-150, '18:00'),
+      publishedBy: admin.id,
+      createdBy: admin.id,
+    })
+    .returning()
+  await db.insert(s.mealPlans).values([
+    {
+      patientId: beatriz.id,
+      title: 'Plano alimentar — reeducação',
+      status: 'publicado',
+      version: 2,
+      parentId: v1.id,
+      content: plan(2),
+      validFrom: day(-30),
+      validUntil: day(30),
+      publishedAt: at(-30, '18:00'),
+      publishedBy: admin.id,
+      createdBy: admin.id,
+    },
+    {
+      patientId: lucas.id,
+      title: 'Plano para treinos de corrida',
+      status: 'rascunho',
+      version: 1,
+      content: plan(2),
+      createdBy: admin.id,
+    },
+    {
+      isTemplate: true,
+      title: 'Modelo — reeducação alimentar (4 refeições)',
+      status: 'rascunho',
+      version: 1,
+      content: plan(1),
+      createdBy: admin.id,
+    },
+  ])
+
+  /* ------------------------------ diário ------------------------------- */
+  await db.insert(s.diaryEntries).values([
+    {
+      patientId: beatriz.id,
+      date: day(-1),
+      time: '07:15',
+      meal: 'Café da manhã',
+      foods: 'Pão integral com ovo mexido, mamão',
+      quantity: '2 fatias, 2 ovos, 1 fatia',
+      hunger: 3,
+      satiety: 4,
+      adherence: 'total',
+    },
+    {
+      patientId: beatriz.id,
+      date: day(-1),
+      time: '13:00',
+      meal: 'Almoço',
+      foods: 'Arroz, feijão, frango e salada',
+      quantity: 'Prato conforme o plano',
+      hunger: 4,
+      satiety: 4,
+      adherence: 'total',
+      professionalComment: 'Ótimo registro! Continue começando pela salada.',
+    },
+    {
+      patientId: beatriz.id,
+      date: day(-1),
+      time: '17:30',
+      meal: 'Lanche da tarde',
+      foods: 'Salgado assado e refrigerante zero',
+      quantity: '1 unidade',
+      hunger: 5,
+      satiety: 2,
+      adherence: 'nao_seguiu',
+      notes: 'Reunião longa, fiquei muito tempo sem comer.',
+    },
+    { patientId: beatriz.id, date: day(0), time: '07:10', meal: 'Café da manhã', foods: 'Cuscuz com ovo e banana', quantity: '1 xícara, 2 ovos', hunger: 3, satiety: 4, adherence: 'total' },
+  ])
+
+  /* ----------------------------- mensagens ----------------------------- */
+  await db.insert(s.messages).values([
+    { patientId: beatriz.id, senderId: admin.id, fromPatient: false, isGuidance: true, body: 'Nesta fase, foque em não pular o lanche da tarde: ele ajuda a chegar ao jantar com menos fome.', createdAt: at(-29, '09:00'), readAt: at(-29, '12:00') },
+    { patientId: beatriz.id, senderId: uBeatriz.id, fromPatient: true, body: 'Posso trocar o iogurte por kefir no lanche?', createdAt: at(-2, '18:20'), readAt: at(-2, '19:00') },
+    { patientId: beatriz.id, senderId: admin.id, fromPatient: false, body: 'Pode sim! Use a mesma quantidade (1 pote, 170 g).', createdAt: at(-2, '19:05'), readAt: at(-1, '08:00') },
+    { patientId: beatriz.id, senderId: uBeatriz.id, fromPatient: true, body: 'Ontem tive dificuldade com o lanche por causa de uma reunião. Alguma sugestão prática?', createdAt: at(0, '08:10') },
+    { patientId: lucas.id, senderId: admin.id, fromPatient: false, isGuidance: true, body: 'Seu plano está em revisão. Enquanto isso, mantenha a hidratação nos treinos longos.', createdAt: at(-20, '10:00') },
+  ])
+
+  /* ---------------------------- formulários ---------------------------- */
+  const anamnese: FormField[] = [
+    { id: 'objetivo', label: 'Qual é o seu principal objetivo com o acompanhamento?', type: 'textarea', required: true, options: [], help: '' },
+    { id: 'saude', label: 'Possui alguma condição de saúde diagnosticada?', type: 'textarea', required: false, options: [], help: 'Ex.: diabetes, hipertensão, alergias.' },
+    { id: 'medicamentos', label: 'Usa medicamentos ou suplementos? Quais?', type: 'textarea', required: false, options: [], help: '' },
+    { id: 'restricoes', label: 'Restrições alimentares', type: 'checkbox', required: false, options: ['Lactose', 'Glúten', 'Vegetariano(a)', 'Vegano(a)', 'Frutos do mar', 'Nenhuma'], help: '' },
+    { id: 'refeicoes', label: 'Quantas refeições você faz por dia?', type: 'select', required: true, options: ['1 a 2', '3', '4', '5 ou mais'], help: '' },
+    { id: 'agua', label: 'Quantos litros de água bebe por dia (aprox.)?', type: 'number', required: false, options: [], help: '' },
+    { id: 'atividade', label: 'Pratica atividade física?', type: 'radio', required: true, options: ['Não', '1 a 2 vezes/semana', '3 a 4 vezes/semana', '5 ou mais vezes/semana'], help: '' },
+    { id: 'sono', label: 'Como avalia seu sono?', type: 'radio', required: false, options: ['Ruim', 'Regular', 'Bom'], help: '' },
+  ]
+  const acompanhamento: FormField[] = [
+    { id: 'adesao', label: 'Como foi a adesão ao plano nas últimas semanas?', type: 'radio', required: true, options: ['Segui quase tudo', 'Segui em parte', 'Tive muita dificuldade'], help: '' },
+    { id: 'dificuldades', label: 'Quais foram as principais dificuldades?', type: 'textarea', required: false, options: [], help: '' },
+    { id: 'disposicao', label: 'Disposição no dia a dia (1 a 5)', type: 'select', required: true, options: ['1', '2', '3', '4', '5'], help: '' },
+  ]
+  const termo: FormField[] = [
+    {
+      id: 'ciencia',
+      label:
+        'Declaro que as informações fornecidas são verdadeiras e autorizo o uso dos meus dados pessoais e de saúde exclusivamente para o meu acompanhamento nutricional, conforme a Política de Privacidade.',
+      type: 'consent',
+      required: true,
+      options: [],
+      help: '',
+    },
+  ]
+  const preConsulta: FormField[] = [
+    { id: 'motivo', label: 'O que motivou você a buscar acompanhamento agora?', type: 'textarea', required: true, options: [], help: '' },
+    { id: 'rotina', label: 'Descreva brevemente sua rotina de trabalho', type: 'textarea', required: false, options: [], help: '' },
+  ]
+  const [tAnamnese, tAcomp, tTermo] = await db
+    .insert(s.formTemplates)
+    .values([
+      { title: 'Anamnese nutricional', kind: 'anamnese', description: 'Informações essenciais para a primeira consulta.', fields: anamnese },
+      { title: 'Questionário de acompanhamento', kind: 'acompanhamento', description: 'Preencha entre as consultas.', fields: acompanhamento },
+      { title: 'Termo de consentimento', kind: 'consentimento', description: 'Autorização para tratamento de dados de saúde.', fields: termo },
+      { title: 'Questionário pré-consulta', kind: 'pre_consulta', description: 'Enviado antes da primeira consulta.', fields: preConsulta },
+    ])
+    .returning()
+
+  await db.insert(s.formAssignments).values([
+    {
+      templateId: tAnamnese.id,
+      patientId: beatriz.id,
+      title: tAnamnese.title,
+      kind: tAnamnese.kind,
+      fields: anamnese,
+      answers: {
+        objetivo: 'Organizar a alimentação e ter mais disposição.',
+        saude: 'Nenhuma diagnosticada.',
+        medicamentos: '',
+        restricoes: ['Nenhuma'],
+        refeicoes: '3',
+        agua: '1',
+        atividade: '1 a 2 vezes/semana',
+        sono: 'Regular',
+      },
+      answeredAt: at(-151, '20:00'),
+      createdAt: at(-152, '10:00'),
+    },
+    { templateId: tTermo.id, patientId: beatriz.id, title: tTermo.title, kind: tTermo.kind, fields: termo, answers: { ciencia: true }, answeredAt: at(-151, '20:05') },
+    { templateId: tAcomp.id, patientId: beatriz.id, title: tAcomp.title, kind: tAcomp.kind, fields: acompanhamento, dueDate: day(4) },
+    { templateId: tAnamnese.id, patientId: lucas.id, title: tAnamnese.title, kind: tAnamnese.kind, fields: anamnese, dueDate: day(-1) },
+  ])
+
+  /* --------------------------- notas clínicas -------------------------- */
+  await db.insert(s.clinicalNotes).values([
+    { patientId: beatriz.id, authorId: admin.id, body: 'Boa adesão nos dias úteis; dificuldade aos fins de semana. Trabalhar estratégias para eventos sociais no próximo retorno.', createdAt: at(-30, '15:00') },
+    { patientId: lucas.id, authorId: admin.id, body: 'Treina para meia maratona. Revisar estratégia de carboidratos antes dos longões.', createdAt: at(-24, '16:00') },
+  ])
+
+  /* ----------------------------- financeiro ---------------------------- */
+  await db.insert(s.payments).values([
+    ...pastAppts
+      .filter((a) => a.status === 'realizada')
+      .map((a) => ({
+        patientId: a.patientId,
+        appointmentId: a.id,
+        description: a.serviceName,
+        amountCents: a.priceCents,
+        status: 'pago' as const,
+        method: 'pix',
+        paidAt: a.startAt.toISOString().slice(0, 10),
+        createdBy: admin.id,
+      })),
+    { patientId: lucas.id, description: 'Pacote trimestral', amountCents: 49000, discountCents: 4900, discountReason: 'Pagamento à vista', status: 'pendente', dueDate: day(7), createdBy: admin.id },
+    { patientId: helena.id, description: 'Retorno', amountCents: 15000, status: 'pendente', dueDate: day(0), createdBy: admin.id },
+  ])
+
+  /* ------------------------ interessados (leads) ----------------------- */
+  await db.insert(s.leads).values([
+    { name: 'Pessoa Interessada (exemplo)', phone: '11900000020', email: 'lead1@example.com', interest: 'Reeducação alimentar', message: 'Gostaria de saber valores.', consentAt: at(-1, '10:00') },
+    { name: 'Corredor Exemplo', phone: '11900000021', interest: 'Acompanhamento esportivo', consentAt: at(-4, '15:00'), status: 'contatado' },
+  ])
+
+  await db.insert(s.notifications).values([
+    { userId: uBeatriz.id, title: 'Novo questionário disponível', body: 'Questionário de acompanhamento', link: '/paciente/formularios', createdAt: at(-1, '09:00') },
+    { userId: uBeatriz.id, title: 'Consulta confirmada', body: 'Seu retorno foi confirmado.', link: '/paciente/consultas', createdAt: at(-2, '09:00') },
+  ])
+
+  await db.insert(s.auditLogs).values({ action: 'seed', entity: 'sistema', actorLabel: 'script de demonstração', details: { note: 'Dados fictícios carregados' } })
+
+  console.log('\nPronto! Acessos de demonstração (dados fictícios):')
+  console.log(`  Nutricionista: nutri@example.com / ${PASSWORDS.admin}`)
+  console.log(`  Equipe:        recepcao@example.com / ${PASSWORDS.staff}`)
+  console.log(`  Paciente:      paciente@example.com / ${PASSWORDS.patient}`)
+  console.log(`  Paciente 2:    lucas@example.com / ${PASSWORDS.patient}`)
+}
+
+await main()
+if (conn.kind === 'postgres') await conn.client.end()
+else await conn.client.close()
