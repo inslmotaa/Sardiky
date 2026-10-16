@@ -11,6 +11,18 @@
   var waLink = function (msg) {
     return "https://wa.me/" + C.whatsapp + "?text=" + encodeURIComponent(msg || "");
   };
+  var esc = function (t) {
+    return String(t == null ? "" : t).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+  var root = document.documentElement;
+  var reduceMotion = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // As animações avançadas (js/motion.js) só rodam quando as bibliotecas carregaram.
+  // Sem elas, o site continua funcionando com as animações simples deste arquivo.
+  var motionOn = !!(window.gsap && window.ScrollTrigger && root.classList.contains("motion"));
+  if (!motionOn) root.classList.remove("motion", "is-loading");
 
   /* ---------- Dados de contato ---------- */
   $$("[data-config]").forEach(function (el) {
@@ -135,6 +147,139 @@
       }).join("") + "</tr>";
     }).join("") + "</tbody>";
 
+  /* ---------- Vídeos ---------- */
+  var parseVideo = function (v) {
+    var url = String(v.url || "");
+    var m = url.match(/(?:youtube\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
+    if (m) {
+      return {
+        kind: "youtube", id: m[1],
+        vertical: v.vertical != null ? v.vertical : /shorts\//.test(url),
+        poster: v.poster || "https://i.ytimg.com/vi/" + m[1] + "/hqdefault.jpg"
+      };
+    }
+    m = url.match(/instagram\.com\/(?:[\w.]+\/)?(reels?|p|tv)\/([\w-]+)/);
+    if (m) return { kind: "instagram", id: m[2], path: m[1] === "p" ? "p" : "reel", vertical: true, poster: v.poster || "" };
+    var src = v.src || (/\.(mp4|webm|mov)(\?|#|$)/i.test(url) ? url : "");
+    if (src) return { kind: "file", src: src, vertical: v.vertical != null ? v.vertical : true, poster: v.poster || "" };
+    return null;
+  };
+
+  var videos = (C.videos || []).map(function (v) {
+    var p = parseVideo(v || {});
+    if (p) { p.title = v.title || ""; p.tag = v.tag || ""; }
+    return p;
+  }).filter(Boolean);
+
+  if (videos.length) {
+    $("#videos").hidden = false;
+    $("#videoGrid").innerHTML = videos.map(function (v, i) {
+      var mediaHtml;
+      if (v.kind === "file") {
+        // Sem capa, o navegador mostra o primeiro quadro do vídeo.
+        mediaHtml = '<video muted loop playsinline preload="metadata"' +
+          (v.poster ? ' poster="' + esc(v.poster) + '"' : "") +
+          ' src="' + esc(v.src) + (v.poster ? "" : "#t=0.1") + '"></video>';
+      } else if (v.poster) {
+        mediaHtml = '<img src="' + esc(v.poster) + '" alt="" loading="lazy" decoding="async">';
+      } else {
+        mediaHtml = '<span class="video-card__placeholder"><img src="assets/logo-mark.png" alt="" loading="lazy"></span>';
+      }
+      return (
+        '<button type="button" class="video-card reveal" data-video="' + i + '" aria-label="Assistir: ' + esc(v.title || "vídeo") + '">' +
+          '<span class="video-card__media">' + mediaHtml + "</span>" +
+          (v.tag ? '<span class="video-card__tag">' + esc(v.tag) + "</span>" : "") +
+          '<span class="video-card__play"><svg aria-hidden="true"><use href="#i-play"/></svg></span>' +
+          '<span class="video-card__info">' +
+            (v.title ? '<span class="video-card__title">' + esc(v.title) + "</span>" : "") +
+            '<span class="video-card__source">' + (v.kind === "instagram" ? "Instagram" : v.kind === "youtube" ? "YouTube" : "Fonseca Team") + "</span>" +
+          "</span>" +
+        "</button>"
+      );
+    }).join("");
+  } else {
+    $$("[data-videos-link]").forEach(function (a) { (a.closest("li") || a).remove(); });
+  }
+
+  // Se a capa de um vídeo não carregar, mostra a capa com o logo
+  $$(".video-card__media > img").forEach(function (img) {
+    img.addEventListener("error", function () {
+      img.outerHTML = '<span class="video-card__placeholder"><img src="assets/logo-mark.png" alt=""></span>';
+    });
+  });
+
+  // Prévia sem som ao passar o mouse (só em computador)
+  var canHover = window.matchMedia && matchMedia("(hover: hover) and (pointer: fine)").matches;
+  $$(".video-card").forEach(function (card) {
+    var vid = $("video", card);
+    if (!vid || !canHover || reduceMotion) return;
+    card.addEventListener("mouseenter", function () {
+      var pr = vid.play();
+      if (pr && pr.catch) pr.catch(function () {});
+    });
+    card.addEventListener("mouseleave", function () { vid.pause(); });
+  });
+
+  // Player em tela cheia
+  var modal = $("#videoModal");
+  var modalMedia = $("#videoModalMedia");
+  var lastFocus = null;
+  var openVideo = function (v) {
+    lastFocus = document.activeElement;
+    var title = esc(v.title || "Vídeo da Fonseca Team");
+    var html;
+    if (v.kind === "file") {
+      html = '<video src="' + esc(v.src) + '" controls autoplay playsinline' + (v.poster ? ' poster="' + esc(v.poster) + '"' : "") + "></video>";
+    } else if (v.kind === "youtube") {
+      html = '<iframe src="https://www.youtube-nocookie.com/embed/' + v.id + '?autoplay=1&rel=0&playsinline=1" title="' + title +
+        '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+    } else {
+      html = '<iframe src="https://www.instagram.com/' + v.path + "/" + v.id + '/embed/" title="' + title +
+        '" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>';
+    }
+    modalMedia.innerHTML = html;
+    modalMedia.setAttribute("data-ratio", v.vertical ? "v" : "h");
+    modalMedia.setAttribute("data-kind", v.kind);
+    $("#videoModalTitle").textContent = v.title || "";
+    modal.hidden = false;
+    document.body.classList.add("no-scroll");
+    requestAnimationFrame(function () { modal.classList.add("is-open"); });
+    $(".video-modal__close", modal).focus();
+  };
+  var closeVideo = function () {
+    if (modal.hidden) return;
+    modal.classList.remove("is-open");
+    modalMedia.innerHTML = "";
+    modal.hidden = true;
+    document.body.classList.remove("no-scroll");
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  };
+  $("#videoGrid").addEventListener("click", function (e) {
+    var card = e.target.closest(".video-card");
+    if (card) openVideo(videos[+card.getAttribute("data-video")]);
+  });
+  $$("[data-close]", modal).forEach(function (el) { el.addEventListener("click", closeVideo); });
+  document.addEventListener("keydown", function (e) {
+    if (modal.hidden) return;
+    if (e.key === "Escape") closeVideo();
+    if (e.key === "Tab") {
+      // Mantém o foco dentro do player
+      var items = $$("button, iframe, video", modal);
+      var first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
+  // Vídeo de fundo no topo (opcional)
+  var hv = C.heroVideo;
+  var saveData = navigator.connection && navigator.connection.saveData;
+  if (hv && hv.src && !reduceMotion && !saveData) {
+    $("#heroVideo").innerHTML = '<video autoplay muted loop playsinline preload="auto"' +
+      (hv.poster ? ' poster="' + esc(hv.poster) + '"' : "") + ' src="' + esc(hv.src) + '"></video>';
+    $(".hero").classList.add("has-video");
+  }
+
   /* ---------- Contadores ---------- */
   var animateCount = function (el) {
     var target = +el.getAttribute("data-count");
@@ -148,8 +293,10 @@
     requestAnimationFrame(step);
   };
 
-  /* ---------- Animações ao rolar ---------- */
-  if ("IntersectionObserver" in window) {
+  /* ---------- Animações ao rolar (versão simples, sem GSAP) ---------- */
+  if (motionOn) {
+    // js/motion.js cuida das animações
+  } else if ("IntersectionObserver" in window) {
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (en) {
         if (!en.isIntersecting) return;

@@ -11,6 +11,22 @@ window.CONFIG = {
   whatsappDisplay: "(41) 9761-1616",
   instagram: "@fonseca.treinador",
 
+  // Vídeos da seção "Fonseca Team em ação". A seção só aparece quando houver
+  // pelo menos um vídeo. Cada vídeo pode ser:
+  //  - um arquivo MP4 salvo em assets/videos/ (use "src" e, se quiser, "poster"
+  //    com uma imagem de capa);
+  //  - um link de reel/post do Instagram ou de vídeo/short do YouTube (use "url").
+  // "tag" é a etiqueta vermelha do card (ex.: Treino, Dica, Resultado).
+  // Exemplos:
+  //  { title: "Treino de pernas completo", tag: "Treino", src: "assets/videos/pernas.mp4", poster: "assets/videos/pernas.jpg" },
+  //  { title: "Como montar seu prato", tag: "Dica", url: "https://www.instagram.com/reel/CODIGO/" },
+  //  { title: "Resultado do aluno", tag: "Resultado", url: "https://youtube.com/shorts/CODIGO" },
+  videos: [],
+
+  // Vídeo opcional de fundo no topo do site (sem som, em repetição).
+  // Ex.: heroVideo: { src: "assets/videos/fundo.mp4", poster: "assets/coach.jpg" },
+  heroVideo: null,
+
   // Planos de consultoria. "price" é o valor total do plano.
   // O site calcula sozinho o valor por protocolo e a economia.
   plans: [
