@@ -1,0 +1,11 @@
+{
+  "name": "fonseca-team",
+  "private": true,
+  "description": "Site e app da Fonseca Team (Maicon Fonseca).",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.129.0",
+    "@supabase/supabase-js": "2.117.2"
+  }
+}

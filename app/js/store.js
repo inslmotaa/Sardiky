@@ -174,11 +174,23 @@ const supa = {
     if (alunoId) q = q.eq("aluno_id", alunoId);
     return must(await q);
   },
-  async getAvaliacao(id) { return must(await sb.from("avaliacoes").select("*").eq("id", id).single()); },
+  async getAvaliacao(id) {
+    const a = must(await sb.from("avaliacoes").select("*").eq("id", id).single());
+    // O rascunho da IA fica numa tabela que só o profissional consegue ler (RLS).
+    const r = await sb.from("rascunhos_ia").select("resultado").eq("avaliacao_id", id).maybeSingle();
+    return { ...a, resultado_ia: r.data ? r.data.resultado : null };
+  },
   async createAvaliacao(alunoId, medidas) {
     return must(await sb.from("avaliacoes").insert({ aluno_id: alunoId, status: "pendente", medidas: medidas || {} }).select().single());
   },
-  async updateAvaliacao(id, patch) { return must(await sb.from("avaliacoes").update(patch).eq("id", id).select().single()); },
+  async updateAvaliacao(id, patch) {
+    const { resultado_ia, ...rest } = patch;
+    if (resultado_ia !== undefined) {
+      must(await sb.from("rascunhos_ia").upsert({ avaliacao_id: id, resultado: resultado_ia, atualizado_em: nowISO() }));
+    }
+    if (Object.keys(rest).length) must(await sb.from("avaliacoes").update(rest).eq("id", id));
+    return supa.getAvaliacao(id);
+  },
   async uploadFoto(avaliacaoId, alunoId, pose, blob) {
     const caminho = `${alunoId}/${avaliacaoId}/${pose}.jpg`;
     must(await sb.storage.from("avaliacoes").upload(caminho, blob, { contentType: "image/jpeg", upsert: true }));
