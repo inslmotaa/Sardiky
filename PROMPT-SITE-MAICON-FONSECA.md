@@ -1,11 +1,18 @@
-# Prompt: site do treinador Maicon Fonseca (Fonseca Team), versão com storytelling em vídeo
+# Prompt: site-app do treinador Maicon Fonseca (Fonseca Team), com storytelling em vídeo e avaliação com IA
 
 Copie tudo abaixo da linha e cole na ferramenta que vai criar o site. Envie junto o logo, a foto do Maicon e os vídeos.
 Antes, revise os pontos marcados com **[CONFIRMAR]** e responda às perguntas marcadas com **[RESPONDER]**. Elas existem para o site contar a história real do Maicon, sem frases inventadas.
 
+O prompt tem duas partes: a **página pública** (seções 1 a 7), que vende a consultoria, e o **site-app** (seção 8), com a área do aluno e a área do profissional, incluindo fotos de avaliação e análise com IA. Dá para construir a página pública primeiro e o site-app depois.
+
 ---
 
-Crie do zero o site de **Maicon Fonseca**, treinador e coach de musculação e alimentação, dono da marca **Fonseca Team**. É uma página única (landing page) que conta uma história enquanto o visitante rola a tela: cada capítulo tem um vídeo curto, sem som, ocupando a tela inteira ao fundo, com o texto por cima. No fim da história vêm os planos, a calculadora e os botões para o WhatsApp e o Instagram. Todo o conteúdo é em português do Brasil.
+Crie do zero o **site-app** de **Maicon Fonseca**, treinador e coach de musculação e alimentação, dono da marca **Fonseca Team**. Ele tem duas partes:
+
+1. **Página pública (landing page):** conta uma história enquanto o visitante rola a tela. Cada capítulo tem um vídeo curto, sem som, ocupando a tela inteira ao fundo, com o texto por cima. No fim da história vêm os planos, a calculadora e os botões para o WhatsApp e o Instagram.
+2. **Site-app (área logada):** funciona como um aplicativo instalável no celular. O aluno tira as fotos de avaliação pela câmera, responde a anamnese e acompanha a evolução. O Maicon gera, com IA, uma avaliação postural, exercícios corretivos, uma estimativa de percentual de gordura e rascunhos de treino e alimentação, e revisa tudo antes de liberar para o aluno.
+
+Todo o conteúdo é em português do Brasil.
 
 ## 1. Regras de conteúdo (obrigatórias)
 - Use somente os fatos e textos deste prompt. **Não invente** números, prêmios, certificações, depoimentos, frases do Maicon ou detalhes da vida dele.
@@ -50,7 +57,7 @@ Use as respostas para escrever os capítulos 3 e 7. Enquanto não houver respost
 Fundo preto. O "F" do logo entra inclinado, uma barra vermelha carrega de 0 a 100% e a tela sobe, revelando o site.
 
 ### 4.1 Topo fixo
-Logo à esquerda. Menu: A história, Planos, Calculadora, Dúvidas. Botão vermelho "Falar no WhatsApp". O menu se esconde ao rolar para baixo e volta ao rolar para cima. Uma barra vermelha fina no topo mostra o quanto da página já foi lido. No celular, o menu vira um botão de três linhas com navegação em tela cheia.
+Logo à esquerda. Menu: A história, App, Planos, Calculadora, Dúvidas. Botão de contorno "Entrar" (leva ao site-app) e botão vermelho "Falar no WhatsApp". O menu se esconde ao rolar para baixo e volta ao rolar para cima. Uma barra vermelha fina no topo mostra o quanto da página já foi lido. No celular, o menu vira um botão de três linhas com navegação em tela cheia.
 
 ### 4.2 Abertura (primeira tela)
 - **Fundo:** vídeo `story-00`, sem som, em repetição, escurecido com um gradiente preto para o texto ficar legível.
@@ -79,6 +86,15 @@ Resumo rápido logo depois da história. Três cartões com números vazados 1, 
 1. **Treino individualizado:** montado para o seu objetivo, o seu nível e o seu local de treino.
 2. **Alimentação estratégica:** **[CONFIRMAR o formato]**, possível de seguir na rotina real.
 3. **Acompanhamento:** WhatsApp e ajustes periódicos.
+
+### 4.4.1 O app Fonseca Team (apresentação do site-app)
+Seção que mostra o site-app como diferencial, com um celular em destaque exibindo telas do app que trocam com a rolagem. Título: "SUA CONSULTORIA NA PALMA DA MÃO". Quatro itens:
+1. **Fotos de avaliação pela câmera:** frente, costas e os dois lados, com uma silhueta-guia na tela para acertar a posição.
+2. **Avaliação postural com apoio de IA:** os desvios encontrados e os exercícios de alongamento, mobilidade e fortalecimento para corrigir, revisados por mim.
+3. **Anamnese online:** você responde uma vez, e eu já monto seu treino a partir dela.
+4. **Sua evolução lado a lado:** compare fotos de antes e depois e compartilhe, com ou sem a marca da Fonseca Team.
+
+Botão: "Quero fazer parte" (leva aos planos). Texto pequeno: "A avaliação com IA é um apoio ao trabalho do profissional. Ela não substitui avaliação presencial nem diagnóstico médico."
 
 ### 4.5 Planos (valores exatos, não alterar)
 Título: "ESCOLHA O PROTOCOLO IDEAL PARA COMEÇAR". Quatro cartões, todos com o rótulo "Consultoria online".
@@ -182,6 +198,10 @@ js/story.js      → capítulos com vídeo (storytelling)
 js/motion.js     → abertura, animações de rolagem, efeitos de mouse
 js/vendor/       → gsap.min.js, ScrollTrigger.min.js, lenis.min.js
 assets/          → logo, favicon, foto e vídeos
+
+app/             → site-app (área do aluno e do profissional), descrito na seção 8
+netlify/functions/ → funções do servidor (IA e tarefas protegidas)
+manifest.webmanifest, sw.js → instalação como app (PWA)
 ```
 
 ### 6.3 `js/config.js` (todos os dados num lugar só)
@@ -291,3 +311,190 @@ Todos os botões usam essa função, com uma mensagem própria para cada um (pla
 - Logo da Fonseca Team (fundo preto)
 - Foto do Maicon (camiseta preta da Fonseca Team)
 - Vídeos `story-00` a `story-07` (takes sem som), nomeados conforme a tabela da seção 4.3
+- Prints da avaliação ou da anamnese que o Maicon já usa hoje, se houver, para servir de modelo para a anamnese do site-app
+
+## 8. Site-app: área do aluno e área do profissional
+
+### 8.1 Visão geral
+- **O que é:** um aplicativo web instalável (PWA). Pelo celular, o aluno toca em "Adicionar à tela inicial" e o app abre em tela cheia, com o ícone do "F", como um aplicativo comum. Fica em `/app`, com o mesmo visual da página pública.
+- **Perfis:**
+  - **Aluno:** cada aluno vê só os próprios dados.
+  - **Profissional:** o Maicon e, se houver, a equipe dele. Vê todos os alunos.
+- **Login:** e-mail com link mágico ou código por e-mail (sem senha). Opcional: entrar com Google.
+- **Regra principal: a IA nunca fala direto com o aluno.** Ela gera um **rascunho**. O Maicon revisa, edita e só então **aprova e libera** para o aluno.
+
+### 8.2 Área do aluno
+1. **Primeiro acesso:**
+   - Aceite do termo de consentimento (LGPD, veja a seção 8.6).
+   - Dados básicos: nome, data de nascimento, sexo, altura, peso e WhatsApp.
+2. **Anamnese:** formulário em etapas, com barra de progresso, que salva sozinho a cada resposta. O profissional envia o link pelo WhatsApp e o aluno responde pelo app. Blocos:
+   - **Objetivo:** emagrecimento, hipertrofia, definição ou performance, e o prazo desejado.
+   - **Rotina:** horários, trabalho, sono, dias e tempo disponível para treinar.
+   - **Local de treino:** academia completa, condomínio ou casa, e os equipamentos disponíveis.
+   - **Histórico:** tempo de treino, o que já fez e o que funcionou ou não.
+   - **Saúde:** lesões, dores, cirurgias, doenças, medicamentos e a pergunta "algum médico já restringiu exercício?". Use o questionário PAR-Q como base.
+   - **Alimentação:** refeições do dia, horários, preferências, restrições, alergias, água, álcool e suplementos.
+   - **Medidas (opcional):** cintura, quadril, braço e coxa.
+3. **Fotos de avaliação:** quatro poses, **frente, costas, lado direito e lado esquerdo**.
+   - **Câmera dentro do app:** abre a câmera (`getUserMedia`) com uma **silhueta-guia** transparente da pose por cima, uma linha de prumo central e um nível que avisa se o celular está torto (`DeviceOrientationEvent`). Tem um **timer de 10 segundos** para o aluno se posicionar sozinho, com contagem regressiva em tela cheia. Dá para trocar entre a câmera frontal e a traseira.
+   - **Também pela galeria:** `<input type="file" accept="image/*">`, para quem prefere tirar a foto com outra pessoa.
+   - **Instruções antes de cada foto:** roupa justa ou de treino, fundo liso, boa luz, corpo inteiro na tela, pés afastados na largura do quadril e braços relaxados.
+   - **Conferência:** depois de cada foto, uma prévia com "Usar esta foto" e "Tirar de novo".
+   - **Preparo da imagem:** o app reduz a foto no próprio celular, com no máximo 2048px no lado maior, em JPEG com qualidade 0,85, e remove os dados de localização (EXIF) antes de enviar.
+4. **Minha evolução:**
+   - Linha do tempo com as avaliações por data.
+   - Comparador **antes e depois** com um controle deslizante, na mesma pose.
+   - Gráficos de peso e medidas.
+5. **Compartilhar:**
+   - Gera uma imagem de antes e depois (por canvas) e abre o compartilhamento do celular (`navigator.share` com arquivo), para Instagram, WhatsApp e outros.
+   - Opção **"com ou sem a marca da Fonseca Team"** na imagem gerada.
+   - Se o navegador não compartilhar arquivos, oferece o botão "Baixar imagem".
+6. **Meu plano:**
+   - O treino e as orientações liberados pelo profissional, com séries, repetições, descanso e observações.
+   - Os exercícios corretivos aprovados.
+   - Botão "Falar com o Maicon" (WhatsApp).
+
+### 8.3 Área do profissional
+1. **Painel:**
+   - Lista de alunos com busca e filtros (objetivo, plano e situação).
+   - Avisos: "anamnese respondida", "fotos novas" e "avaliação pronta para revisar".
+2. **Convidar aluno:** cria o acesso e gera o link da anamnese, com um botão para enviar pelo WhatsApp com a mensagem pronta.
+3. **Ficha do aluno:**
+   - Anamnese completa.
+   - As 4 fotos lado a lado, com zoom e linhas de grade por cima.
+   - Histórico de avaliações.
+4. **Avaliação com IA:** botão **"Gerar avaliação com IA"**.
+   - Mostra "Analisando fotos e anamnese…" e avisa quando terminar (a análise leva em torno de 1 minuto).
+   - O resultado chega como **rascunho editável**, em blocos (veja a seção 8.4). O profissional pode marcar, desmarcar, editar ou apagar qualquer item.
+   - Botões **"Salvar rascunho"** e **"Aprovar e liberar para o aluno"**.
+5. **Montar treino:** editor de treino (dias, exercícios, séries, repetições, descanso e observações), que pode começar a partir do rascunho da IA ou do zero, com uma biblioteca de exercícios.
+6. **Exportar:** a avaliação e o treino aprovados em PDF com a identidade da Fonseca Team, para enviar ao aluno.
+
+### 8.4 O que a IA gera (rascunho para revisão)
+A IA recebe as 4 fotos e a anamnese e devolve um JSON validado por um esquema (structured outputs), com estes blocos:
+
+1. **Qualidade das fotos:** se cada foto serve para a análise e, se não servir, o motivo (pose errada, corpo cortado, roupa larga, pouca luz). Se alguma foto for inadequada, a IA **não chuta**: pede a foto de novo.
+2. **Avaliação postural:** a lista de desvios **observáveis na foto**, com:
+   - a vista em que aparece (frente, costas ou lado);
+   - a região (cabeça, ombros, escápulas, coluna, pelve, joelhos ou pés);
+   - a descrição em linguagem simples;
+   - o grau aparente (leve, moderado ou acentuado);
+   - a confiança da IA (baixa, média ou alta).
+
+   Exemplos: anteriorização da cabeça, ombros protraídos, assimetria de ombros, escápulas aladas, hipercifose, hiperlordose, inclinação pélvica, joelhos valgos ou varos, pés pronados.
+3. **Exercícios corretivos:** para cada desvio, alongamentos, mobilidade e fortalecimento, com séries, repetições ou tempo, frequência semanal e cuidados.
+4. **Composição corporal estimada:** uma **faixa** de percentual de gordura (ex.: "18% a 22%"), nunca um número exato, com a explicação do que foi observado e o aviso "estimativa visual, não substitui bioimpedância, dobras cutâneas ou DEXA".
+5. **Sugestão de treino:** divisão semanal, dias, exercícios, séries, repetições e descanso, coerentes com o objetivo, o nível, o local, os equipamentos e as **restrições de saúde** da anamnese. Exercícios contraindicados para as lesões relatadas não entram.
+6. **Rascunho de alimentação:**
+   - Calorias e macros pela fórmula de Mifflin-St Jeor, ajustadas pelo objetivo e pela composição estimada.
+   - Distribuição das refeições de acordo com a rotina, os horários e as preferências da anamnese.
+   - **[CONFIRMAR]** No Brasil, **prescrever dieta é atividade exclusiva de nutricionista** (Lei 8.234/91). Por isso:
+     - o rascunho só é liberado depois de aprovado por um **nutricionista parceiro** com CRN, que aparece no app;
+     - ou, se não houver nutricionista na equipe, o app libera apenas **orientações gerais** (meta de calorias, macros, água e sugestões de distribuição), sem cardápio prescrito.
+7. **Alertas para o profissional:** sinais que pedem **encaminhamento médico ou fisioterapêutico** (dor relatada, cirurgia recente, escoliose aparente acentuada, restrição médica), sempre no topo do resultado.
+8. **Observações:** o que a IA não conseguiu avaliar e por quê.
+
+### 8.5 Arquitetura e código
+- **Front-end:** o mesmo padrão da página pública (HTML, CSS e JavaScript puro, GSAP e Lenis), em `app/`, com `manifest.webmanifest` e um service worker (`sw.js`) que guarda em cache as telas e os arquivos estáticos para o app abrir rápido. **As fotos e os dados do aluno não ficam no cache.**
+- **Banco de dados, login e fotos:** **Supabase**.
+  - **Auth:** login por link mágico ou código.
+  - **Postgres** com **Row Level Security** ativado em todas as tabelas, para que o aluno só leia e grave os próprios registros e o profissional leia os alunos dele.
+  - **Storage:** bucket **privado** `avaliacoes`. As fotos são abertas só com links assinados de curta duração.
+  - **Tabelas sugeridas:** `profiles` (id, papel, nome, contato), `anamneses`, `fotos` (aluno, avaliação, pose e caminho), `avaliacoes` (status `pendente` → `processando` → `rascunho` → `aprovada`, `resultado_ia` em JSON, `resultado_final` em JSON, quem aprovou e quando), `treinos` e `consentimentos`.
+- **Servidor:** Netlify Functions em Node.js, em `netlify/functions/`.
+  - A chave da IA (`ANTHROPIC_API_KEY`) e a chave de serviço do Supabase ficam **só nas variáveis de ambiente da Netlify, nunca no navegador**.
+  - A análise roda numa **Background Function** (o nome do arquivo termina em `-background`), porque leva mais do que o limite das funções comuns. **[CONFIRMAR se o plano da Netlify inclui Background Functions. Se não incluir, use uma Supabase Edge Function.]**
+  - O app consulta o status da avaliação a cada poucos segundos, ou recebe a mudança pelo Supabase Realtime.
+- **Publicação:** com funções no servidor, o site precisa ser publicado **conectando o repositório do GitHub à Netlify**. Arrastar a pasta não instala as funções.
+- **IA:** API da Anthropic (Claude), modelo **`claude-opus-5-5`**, com análise de imagens e resposta em JSON estruturado. Custo estimado por avaliação, com 4 fotos e a anamnese: em torno de **US$ 0,20 a US$ 0,60** **[CONFIRMAR medindo nas primeiras avaliações]**.
+
+Função da avaliação (`netlify/functions/avaliacao-background.mjs`), em linhas gerais:
+
+```js
+import Anthropic from "@anthropic-ai/sdk";
+import { createClient } from "@supabase/supabase-js";
+
+const anthropic = new Anthropic(); // lê ANTHROPIC_API_KEY das variáveis de ambiente
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+const POSES = ["frente", "costas", "lado_direito", "lado_esquerdo"];
+
+export default async (req) => {
+  const { avaliacaoId } = await req.json();
+  // 1) Conferir que quem chamou é um profissional logado (token do Supabase no cabeçalho Authorization).
+  // 2) Buscar a anamnese e as 4 fotos da avaliação.
+  const { data: avaliacao } = await supabase
+    .from("avaliacoes").select("*, anamnese:anamneses(*), fotos(*)").eq("id", avaliacaoId).single();
+  await supabase.from("avaliacoes").update({ status: "processando" }).eq("id", avaliacaoId);
+
+  const imagens = [];
+  for (const pose of POSES) {
+    const foto = avaliacao.fotos.find((f) => f.pose === pose);
+    const { data } = await supabase.storage.from("avaliacoes").download(foto.caminho);
+    imagens.push(
+      { type: "text", text: `Foto: ${pose}` },
+      { type: "image", source: { type: "base64", media_type: "image/jpeg",
+        data: Buffer.from(await data.arrayBuffer()).toString("base64") } },
+    );
+  }
+
+  const resposta = await anthropic.beta.messages.create({
+    model: "claude-opus-5-5",
+    max_tokens: 16000,
+    betas: ["server-side-fallback-2026-07-01"],
+    fallbacks: "default", // se o modelo recusar, a própria API tenta de novo com o modelo indicado
+    output_config: {
+      effort: "high",
+      format: { type: "json_schema", schema: ESQUEMA_AVALIACAO }, // blocos da seção 8.4, additionalProperties: false
+    },
+    system: PROMPT_DO_SISTEMA, // seção 8.4: rascunho para um profissional revisar, só o que é visível, faixas e não números, alertas de encaminhamento
+    messages: [{
+      role: "user",
+      content: [...imagens, { type: "text", text: "Anamnese do aluno (JSON):\n" + JSON.stringify(avaliacao.anamnese) }],
+    }],
+  });
+
+  if (resposta.stop_reason === "refusal" || resposta.stop_reason === "max_tokens") {
+    await supabase.from("avaliacoes").update({ status: "erro", erro: resposta.stop_reason }).eq("id", avaliacaoId);
+    return;
+  }
+  const texto = resposta.content.find((b) => b.type === "text")?.text ?? "{}";
+  await supabase.from("avaliacoes")
+    .update({ status: "rascunho", resultado_ia: JSON.parse(texto) })
+    .eq("id", avaliacaoId);
+};
+```
+
+- **Prompt de sistema da IA:**
+  - Diga que ela prepara um **rascunho para um profissional de Educação Física revisar**.
+  - Ela só descreve o que é **visível nas fotos**, usa faixas no percentual de gordura, segue as restrições de saúde da anamnese e coloca no topo os alertas de encaminhamento.
+  - Ela pede foto nova quando a imagem não serve, e nunca faz diagnóstico médico.
+  - Ela responde em português do Brasil.
+- **Câmera no navegador:**
+  - `navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" | "environment", width: { ideal: 1920 } } })`, com a imagem num `<video>` e a captura num `<canvas>`.
+  - Peça a permissão só quando o aluno tocar em "Abrir câmera".
+  - Se a permissão for negada, ofereça a galeria.
+  - Desligue a câmera (`track.stop()`) ao sair da tela.
+
+### 8.6 Privacidade e segurança (LGPD)
+- Fotos do corpo e dados de saúde são **dados pessoais sensíveis** pela LGPD. Antes das fotos e da anamnese, o aluno aceita um **termo de consentimento específico**, que explica:
+  - para que servem os dados;
+  - que eles são analisados por uma IA de um fornecedor externo (Anthropic);
+  - que só o profissional vê as fotos;
+  - por quanto tempo os dados ficam guardados;
+  - como pedir para apagar.
+
+  Registre o aceite com data e versão do termo.
+- **Fotos:** em bucket privado, nunca públicas, abertas só por links assinados que expiram.
+- **Controle do aluno:** botões **"Baixar meus dados"** e **"Apagar minhas fotos e minha conta"**.
+- **Menores de 18 anos:** só com consentimento do responsável. **[CONFIRMAR se a consultoria atende menores]**
+- **Política de privacidade:** página própria, com link no rodapé do site e do app.
+- **Aviso fixo nos resultados:** "Avaliação feita com apoio de inteligência artificial e revisada por um profissional. Não substitui avaliação presencial nem diagnóstico médico."
+
+### 8.7 Ordem sugerida de construção
+1. Página pública (seções 1 a 7).
+2. Login, perfis e anamnese.
+3. Câmera com silhueta-guia, envio das fotos e evolução com antes e depois e compartilhamento.
+4. Área do profissional, com a ficha do aluno e o editor de treino.
+5. Avaliação com IA (função, esquema e tela de revisão e aprovação).
+6. Alimentação, conforme a decisão sobre o nutricionista (seção 8.4, item 6).
