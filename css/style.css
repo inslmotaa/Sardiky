@@ -155,33 +155,42 @@ html:not(.motion) .scroll-progress { display: none; }
 .media video.is-ready { opacity: 1; }
 .media__fallback { position: absolute; inset: 0; background-size: cover; background-position: center; }
 .media__fallback::before, .media__fallback::after { content: ""; position: absolute; }
-/* Foto do Maicon */
-.media__fallback--coach {
-  background: url("../assets/coach.jpg") right 6% center / auto 92% no-repeat,
-              radial-gradient(60% 70% at 78% 50%, rgba(222, 2, 19, .28), transparent 70%), #0b0606;
+/* Fotos do Maicon: a foto nítida fica à direita, sobre uma versão desfocada dela mesma */
+.media__fallback--photo { background: radial-gradient(60% 70% at 78% 50%, rgba(222, 2, 19, .22), transparent 70%), #0b0606; }
+.media__fallback--photo::before {
+  inset: 0; opacity: .38;
+  background: var(--blur) center / cover no-repeat;
 }
-.media__fallback--center { background-position: center 40%, center, center; background-size: auto 100%, cover, cover; }
+.media__fallback--photo::after {
+  top: 0; right: 6%; height: 100%; aspect-ratio: var(--ar);
+  background: var(--photo) center bottom / cover no-repeat;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14%, #000 82%, transparent 100%), linear-gradient(0deg, transparent 0, #000 18%);
+  -webkit-mask-composite: source-in; mask-image: linear-gradient(90deg, transparent 0, #000 14%, #000 82%, transparent 100%), linear-gradient(0deg, transparent 0, #000 18%);
+  mask-composite: intersect;
+}
+.media__fallback--center::after { right: auto; left: 50%; transform: translateX(-50%); }
+.media__fallback--coach { --photo: url("../assets/coach.jpg"); --blur: url("../assets/fotos/coach-fundo.jpg"); --ar: 1 / 1; }
+.media__fallback--postura { --photo: url("../assets/fotos/treino-postura.jpg"); --blur: url("../assets/fotos/treino-postura-fundo.jpg"); --ar: 740 / 1280; }
+.media__fallback--remada-costas { --photo: url("../assets/fotos/treino-remada-costas.jpg"); --blur: url("../assets/fotos/treino-remada-costas-fundo.jpg"); --ar: 726 / 1280; }
+.media__fallback--remada-lado { --photo: url("../assets/fotos/treino-remada-lado.jpg"); --blur: url("../assets/fotos/treino-remada-lado-fundo.jpg"); --ar: 730 / 1280; }
+.media__fallback--puxada { --photo: url("../assets/fotos/treino-puxada.jpg"); --blur: url("../assets/fotos/treino-puxada-fundo.jpg"); --ar: 743 / 1280; }
 /* Fundos da marca: faixas diagonais e número vazado */
-.media__fallback--1, .media__fallback--2, .media__fallback--4, .media__fallback--5, .media__fallback--6 {
+.media__fallback--1, .media__fallback--2 {
   background:
     radial-gradient(55% 60% at 80% 30%, rgba(222, 2, 19, .32), transparent 70%),
     repeating-linear-gradient(115deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 46px),
     linear-gradient(160deg, #120304 0%, #050505 70%);
 }
-.media__fallback--1::before, .media__fallback--2::before, .media__fallback--4::before, .media__fallback--5::before, .media__fallback--6::before {
+.media__fallback--1::before, .media__fallback--2::before {
   right: -10%; top: 22%; width: 70%; height: 64px; background: linear-gradient(90deg, transparent, rgba(222, 2, 19, .45)); transform: skewX(-38deg);
 }
-.media__fallback--1::after, .media__fallback--2::after, .media__fallback--4::after, .media__fallback--5::after, .media__fallback--6::after {
+.media__fallback--1::after, .media__fallback--2::after {
   right: 4%; bottom: 4%; font: italic 900 clamp(14rem, 38vw, 34rem)/.8 var(--font-display); color: transparent; -webkit-text-stroke: 2px rgba(222, 2, 19, .35);
 }
 .media__fallback--1::after { content: "01"; }
 .media__fallback--2::after { content: "02"; }
-.media__fallback--4::after { content: "04"; }
-.media__fallback--5::after { content: "05"; }
-.media__fallback--6::after { content: "06"; }
 .media__fallback--2::before { top: 58%; width: 55%; }
 .media__fallback.has-poster::before, .media__fallback.has-poster::after { display: none; }
-.media__fallback--5::before { top: 40%; }
 
 /* ---------- 4.2 Abertura ---------- */
 .hero { position: relative; min-height: 100vh; min-height: 100svh; display: flex; align-items: flex-end; padding: calc(var(--header-h) + 40px) 0 120px; isolation: isolate; }
@@ -491,7 +500,7 @@ html.lenis, html.lenis body { height: auto; }
   .footer__grid { grid-template-columns: 1fr 1fr; }
   .footer__grid > div:first-child { grid-column: 1 / -1; }
   .section { padding: 84px 0; }
-  .media__fallback--coach { background-position: 70% center, center, center; background-size: auto 80%, cover, cover; }
+  .media__fallback--photo::after { right: 0; }
   .story__nav { right: 12px; }
   .story__dots button { font-size: 0; gap: 0; }
 }
@@ -501,7 +510,8 @@ html.lenis, html.lenis body { height: auto; }
   .logo--footer img { height: 90px; }
   .hero { padding-bottom: 100px; }
   .hero__shade { background: linear-gradient(0deg, rgba(5, 5, 5, .98) 0%, rgba(5, 5, 5, .8) 55%, rgba(5, 5, 5, .35) 100%); }
-  .media__fallback--coach { background-position: center 12%, center, center; background-size: auto 62%, cover, cover; }
+  .media__fallback--photo::before { display: none; }
+  .media__fallback--photo::after { inset: 0; height: auto; aspect-ratio: auto; transform: none; background-position: center 20%; -webkit-mask-image: linear-gradient(0deg, transparent 0, #000 30%); mask-image: linear-gradient(0deg, transparent 0, #000 30%); }
   .hero__actions .btn { width: 100%; }
   .hero__facts { flex-wrap: nowrap; }
   .hero__facts li { flex: 1 1 0; min-width: 0; padding-right: 10px; margin-right: 10px; }
@@ -510,7 +520,7 @@ html.lenis, html.lenis body { height: auto; }
   .scroll-hint { display: none; }
   .plans { grid-template-columns: 1fr; }
   .chapter { padding: 110px 44px 110px 16px; }
-  .story__shade { background: linear-gradient(0deg, rgba(5, 5, 5, .95) 0%, rgba(5, 5, 5, .7) 60%, rgba(5, 5, 5, .5) 100%); }
+  .story__shade { background: linear-gradient(0deg, rgba(5, 5, 5, .95) 0%, rgba(5, 5, 5, .72) 50%, rgba(5, 5, 5, .3) 100%); }
   .calc__grid { grid-template-columns: 1fr 1fr; }
   .field-row { grid-template-columns: 1fr; gap: 0; }
   .card { padding: 22px; }
@@ -518,5 +528,6 @@ html.lenis, html.lenis body { height: auto; }
   .pill::before, .eyebrow::before, .section__head:not(.section__head--left) .pill::after { width: 22px; }
   .marquee span { font-size: 1.2rem; }
   .cta-final { padding: 110px 0; }
+  .cta-final__shade { background: radial-gradient(80% 60% at 50% 45%, rgba(5, 5, 5, .72), rgba(5, 5, 5, .94)), linear-gradient(180deg, var(--bg), transparent 25%, transparent 75%, var(--bg)); }
   .cta-final .hero__actions .btn { width: 100%; }
 }
