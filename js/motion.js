@@ -131,8 +131,7 @@
   /* ---------- Capítulos da história ---------- */
   $$(".chapter").forEach(function (ch) {
     var tl = gsap.timeline({ paused: true, defaults: { ease: "power3.out" } })
-      .from($(".chapter__num", ch), { autoAlpha: 0, x: -30, duration: 0.8 })
-      .from(splits.get($("h2", ch)) || [], { yPercent: 118, duration: 0.95, stagger: 0.05, ease: "power4.out" }, 0.05)
+      .from(splits.get($("h2", ch)) || [], { yPercent: 118, duration: 0.95, stagger: 0.05, ease: "power4.out" })
       .from($$("p, .quotes, .btn", ch).filter(function (el) { return !el.closest(".quote"); }), { autoAlpha: 0, y: 24, duration: 0.8, stagger: 0.1 }, 0.4);
     ST.create({ trigger: ch, start: "top 65%", end: "bottom 35%", onEnter: function () { tl.play(); }, onEnterBack: function () { tl.play(); }, onLeave: function () { tl.reverse(); }, onLeaveBack: function () { tl.reverse(); } });
   });

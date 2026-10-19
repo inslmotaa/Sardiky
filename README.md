@@ -76,7 +76,7 @@ São 8 vídeos sem som: `story-00` (fundo da abertura) e `story-01` a `story-07`
 - Use MP4 (H.264) **sem áudio**, de 6 a 12 segundos.
 - Para computador: 1920×1080, de 3 a 6 MB. Para celular (opcional): 1080×1920, de 2 a 4 MB.
 - O `poster` é a capa mostrada antes do vídeo começar e para quem pede menos movimento.
-- Sem vídeo, cada parte mostra uma foto: o retrato do Maicon (`assets/coach.jpg`) na abertura e no capítulo 7, e as fotos de treino de `assets/fotos/` nos capítulos 3 a 6 e na chamada final. Os capítulos 1 e 2 usam o fundo da marca.
+- Sem vídeo, cada foto aparece uma vez só: o retrato do Maicon (`assets/coach.jpg`) na abertura e as fotos de treino de `assets/fotos/` nos capítulos 3 a 6. Os capítulos 1, 2 e 7 e a chamada final usam o fundo da marca.
 - Para trocar uma foto, substitua o arquivo mantendo o mesmo nome. O arquivo `-fundo.jpg` é uma versão pequena e desfocada usada atrás da foto no computador.
 
 ## Outros ajustes em `js/config.js`

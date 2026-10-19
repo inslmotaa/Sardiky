@@ -68,13 +68,11 @@
   var chapters = $$(".chapter");
   var layers = $$(".story__layer");
   var dotsEl = $("#storyDots");
-  var current = $("#storyCurrent");
   var active = 0;
-  var pad = function (n) { return (n < 10 ? "0" : "") + n; };
 
   if (dotsEl) {
     dotsEl.innerHTML = chapters.map(function (c, k) {
-      return '<li><button type="button" data-go="' + k + '" aria-label="Ir para o capítulo ' + (k + 1) + '">' + pad(k + 1) + "</button></li>";
+      return '<li><button type="button" data-go="' + k + '" aria-label="Ir para a parte ' + (k + 1) + ' da história"></button></li>';
     }).join("");
     dotsEl.addEventListener("click", function (e) {
       var b = e.target.closest("button[data-go]");
@@ -89,7 +87,6 @@
     active = k;
     layers.forEach(function (l, j) { l.classList.toggle("is-active", j === k); });
     $$("button", dotsEl).forEach(function (b, j) { b.classList.toggle("is-active", j === k); });
-    if (current) current.textContent = pad(k + 1);
     chapters.forEach(function (c, j) { c.classList.toggle("is-current", j === k); });
     if (silent) return;
     for (var j = 1; j <= chapters.length; j++) play(j, j === k + 1);
