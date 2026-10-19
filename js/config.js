@@ -64,6 +64,13 @@ window.CONFIG = {
     // { q: "Quais são as formas de pagamento?", a: "" }
   ],
 
+  // Alimentação no app. Prescrever dieta é exclusivo de nutricionista (Lei 8.234/91).
+  // Sem nutricionista cadastrado, o aluno vê só orientações gerais (calorias, macros e água).
+  // Com nutricionista parceiro, preencha nome e CRN para liberar as refeições aprovadas por ele.
+  app: {
+    nutricionista: { nome: "", crn: "" }
+  },
+
   // Site-app. Deixe em branco para usar o MODO DEMONSTRAÇÃO (dados salvos só no aparelho).
   // Para usar de verdade, crie um projeto no Supabase e cole aqui a URL e a chave pública (anon).
   supabase: {
