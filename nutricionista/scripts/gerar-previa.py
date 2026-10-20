@@ -81,8 +81,9 @@ area = BeautifulSoup('''
     o que foi feito, o <strong>Plano</strong> traz as opções e substituições aprovadas pelo André, e há contador de água, registro de peso,
     gráficos de progresso, calculadoras e mensagens.</p>
     <p>No painel, o André monta o plano com cálculo automático de calorias e macros (base de alimentos com medidas caseiras),
-    recebe sugestões de substituições equivalentes e só então ativa o plano no app do paciente.</p>
-    <div class="demo-links"><a class="btn btn--primary" href="#cliente">Ver a área do cliente</a><a class="btn" href="#andre">Ver o painel do André</a></div>
+    recebe sugestões de substituições equivalentes e só então ativa o plano no app do paciente. O painel de
+    <strong>Acompanhamento</strong> mostra quem está em dia, com dificuldade ou sem progresso, e o chat permite responder a cada registro do diário.</p>
+    <div class="demo-links"><a class="btn btn--primary" href="#cliente">Ver a área do cliente</a><a class="btn" href="#andre">Ver o painel do André</a><a class="btn" href="#andre/acompanhamento">Ver o Acompanhamento</a></div>
     <p class="muted small" style="margin-top:12px">Nesta prévia, as duas telas funcionam como demonstração e guardam os dados só no seu navegador. Na versão publicada, cada cliente entra com login e senha e só vê os próprios dados.</p>
   </div>
 </section>''', 'html.parser')

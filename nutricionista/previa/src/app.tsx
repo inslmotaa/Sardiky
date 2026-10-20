@@ -12,8 +12,13 @@ import { Calculators, type EnergyToSave } from '@/components/nutri/Calculators'
 import { LineChart } from '@/components/LineChart'
 import { TACO_FOODS } from '@/db/foods-taco'
 import { buildDemoPlans } from '@/db/demo-plans'
-import { countItems, dayForWeekday, normalizePlan, planContentSchema, type PlanContent } from '@/lib/plan'
+import { countItems, dayForWeekday, normalizePlan, optionTotals, planContentSchema, sortedMeals, type DiaryItem, type PlanContent } from '@/lib/plan'
 import { mifflin, tdee, waterGoalMl, fmt } from '@/lib/nutricao'
+import { DiaryDay, type DiaryEntryView, type DiaryMeal } from '@/components/nutri/DiaryDay'
+import { ChatThread, type ChatMessage } from '@/components/nutri/ChatThread'
+import { QuickMessage } from '@/components/nutri/QuickMessage'
+import { AdherenceBars } from '@/components/AdherenceBars'
+import { adherence, ADHERENCE_LABEL, classify, streak, weeklyAdherence, type AdherenceClass } from '@/lib/acompanhamento'
 
 /* ------------------------------ dados ------------------------------ */
 
@@ -44,12 +49,16 @@ type Client = {
   published: Published[]
   logs: Record<string, Record<string, MealLog>>
   water: Record<string, number>
-  diary: { id: string; date: string; time: string; meal: string; foods: string; adherence: string; notes: string }[]
+  diary: Entry[]
+  messages: Msg[]
+  goals: { id: string; title: string; done: boolean }[]
   nextAppointment: string
 }
+type Entry = DiaryEntryView & { date: string; mealKey: string | null }
+type Msg = { id: string; fromPatient: boolean; body: string; at: string; read: boolean; diaryId?: string | null }
 type Store = { clients: Client[]; current: string }
 
-const KEY = 'andre-farion-demo-v2'
+const KEY = 'andre-farion-demo-v3'
 const today = () => {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -61,13 +70,42 @@ const addDays = (s: string, n: number) => {
 const fmtDay = (s: string) => s.slice(0, 10).split('-').reverse().join('/')
 const uid = () => Math.random().toString(36).slice(2, 10)
 
+const nowLabel = () => new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', ' às')
+
 function seed(): Store {
-  const { beatrizPlan, beatrizV1, lucasPlan } = buildDemoPlans((name) => {
+  const { beatrizPlan, beatrizV1, lucasPlan, vegetarianoPlan } = buildDemoPlans((name) => {
     const f = FOODS.find((x) => x.name.startsWith(name))!
     return { id: f.id, name: f.name, group: f.group, per100: f.per100 }
   })
   const t = today()
   const bmrB = mifflin('F', 75.1, 165, 35)
+  // Mesmos padrões do banco de demonstração: Beatriz “em dia”, Helena “com dificuldade”.
+  const bDay = beatrizPlan.days[0]
+  const hDay = vegetarianoPlan.days[0]
+  const bLogs: Client['logs'] = {}
+  const hLogs: Client['logs'] = {}
+  const bWater: Client['water'] = {}
+  for (let d = -13; d <= 0; d++) {
+    const date = addDays(t, d)
+    bDay.meals.forEach((m, i) => {
+      if (d === 0 && i > 0) return
+      const status = (d + i) % 9 === 0 ? 'parcial' : (d * 3 + i) % 13 === 0 ? null : d === -1 && i === 2 ? 'outra' : 'feita'
+      if (status) (bLogs[date] ??= {})[`${bDay.id}:${m.id}`] = { status, optionId: m.options[0].id }
+    })
+    bWater[date] = d === 0 ? 750 : 1750 + ((d * 250) % 750)
+    if (d >= -12 && d <= -1)
+      hDay.meals.forEach((m, i) => {
+        const status = i < 2 ? (d % 3 === 0 && i === 1 ? null : 'feita') : i === 2 && d % 2 === 0 ? 'parcial' : null
+        if (status) (hLogs[date] ??= {})[`${hDay.id}:${m.id}`] = { status, optionId: m.options[0].id }
+      })
+  }
+  const item = (name: string, grams: number): DiaryItem => {
+    const f = FOODS.find((x) => x.name.startsWith(name))!
+    return { foodId: f.id, name: f.name, grams, per100: f.per100 }
+  }
+  const entry = (e: Partial<Entry> & Pick<Entry, 'date' | 'time' | 'meal' | 'foods'>): Entry => ({
+    id: uid(), mealKey: null, choice: null, items: [], hunger: null, satiety: null, mood: null, notes: null, photoUrl: null, comment: null, ...e,
+  })
   return {
     current: 'beatriz',
     clients: [
@@ -86,10 +124,57 @@ function seed(): Store {
           { version: 1, date: addDays(t, -150), title: 'Plano alimentar — reeducação', content: beatrizV1 },
           { version: 2, date: addDays(t, -30), title: 'Plano alimentar — reeducação', content: beatrizPlan },
         ],
-        logs: { [t]: { [`${beatrizPlan.days[0].id}:${beatrizPlan.days[0].meals[0].id}`]: { status: 'feita', optionId: beatrizPlan.days[0].meals[0].options[0].id } } },
-        water: { [t]: 750 },
-        diary: [{ id: uid(), date: addDays(t, -1), time: '17:30', meal: 'Lanche da tarde', foods: 'Salgado assado e refrigerante zero', adherence: 'nao', notes: 'Reunião longa, fiquei muito tempo sem comer.' }],
+        logs: bLogs,
+        water: bWater,
+        diary: [
+          entry({
+            date: addDays(t, -1),
+            time: '17:30',
+            meal: 'Lanche da tarde',
+            mealKey: `${bDay.id}:${bDay.meals[2].id}`,
+            choice: 'nao_seguiu',
+            foods: 'Biscoito e suco na reunião',
+            items: [item('Biscoito cream cracker', 30), item('Suco de laranja natural', 200)],
+            hunger: 5,
+            satiety: 2,
+            mood: 2,
+            notes: 'Reunião longa, fiquei muito tempo sem comer.',
+            comment: 'Tudo bem! Que tal deixar uma fruta na bolsa para dias de reunião?',
+          }),
+          entry({ date: t, time: '07:10', meal: 'Café da manhã', mealKey: `${bDay.id}:${bDay.meals[0].id}`, choice: 'total', foods: 'Segui o plano', hunger: 3, satiety: 4, mood: 4 }),
+        ],
+        messages: [
+          { id: uid(), fromPatient: false, body: 'Nesta fase, foque em não pular o lanche da tarde: ele ajuda a chegar ao jantar com menos fome.', at: `${fmtDay(addDays(t, -29))} às 09:00`, read: true },
+          { id: uid(), fromPatient: true, body: 'Posso trocar o iogurte por kefir no lanche?', at: `${fmtDay(addDays(t, -2))} às 18:20`, read: true },
+          { id: uid(), fromPatient: false, body: 'Pode sim! Use a mesma quantidade (1 pote, 170 g).', at: `${fmtDay(addDays(t, -2))} às 19:05`, read: true },
+        ],
+        goals: [
+          { id: uid(), title: 'Reduzir a circunferência da cintura', done: false },
+          { id: uid(), title: 'Beber 2 litros de água por dia', done: true },
+        ],
         nextAppointment: `${fmtDay(addDays(t, 5))} às 09:00`,
+      },
+      {
+        id: 'helena',
+        name: 'Helena Teste',
+        objective: 'Alimentação na menopausa',
+        sex: 'F',
+        age: 48,
+        heightCm: 160,
+        weights: [{ date: addDays(t, -10), value: 68.3 }],
+        features: { ...ALL_ON },
+        energyTarget: null,
+        draft: null,
+        published: [{ version: 1, date: addDays(t, -20), title: 'Plano alimentar — vegetariano', content: vegetarianoPlan }],
+        logs: hLogs,
+        water: {},
+        diary: [],
+        messages: [
+          { id: uid(), fromPatient: false, body: 'Oi, Helena! Como estão os jantares desta semana?', at: `${fmtDay(addDays(t, -3))} às 10:00`, read: true },
+          { id: uid(), fromPatient: true, body: 'Estou chegando tarde e acabo pulando o jantar.', at: `${fmtDay(addDays(t, -3))} às 20:40`, read: true },
+        ],
+        goals: [],
+        nextAppointment: `${fmtDay(addDays(t, 12))} às 14:00`,
       },
       {
         id: 'lucas',
@@ -106,10 +191,54 @@ function seed(): Store {
         logs: {},
         water: {},
         diary: [],
+        messages: [],
+        goals: [],
         nextAppointment: `${fmtDay(addDays(t, 9))} às 16:00`,
       },
     ],
   }
+}
+
+/** Adesão de um cliente (mesmo cálculo do sistema): últimos 7 dias completos. */
+function adherenceOf(c: Client) {
+  const cur = c.published[c.published.length - 1]
+  const plan = cur ? normalizePlan(cur.content) : null
+  const logs = Object.entries(c.logs).flatMap(([date, m]) => Object.values(m).map((l) => ({ date, status: l.status })))
+  const t = today()
+  const start = c.published[0]?.date ?? null
+  const a7 = adherence(plan, logs, addDays(t, -7), addDays(t, -1), start)
+  const dates = [...logs.map((l) => l.date), ...c.diary.map((d) => d.date), ...Object.entries(c.water).filter(([, ml]) => ml > 0).map(([d]) => d)]
+  const last = dates.length ? dates.reduce((m, d) => (d > m ? d : m)) : null
+  return { plan, pct: a7?.pct ?? null, klass: classify(a7?.pct ?? null), streak: streak(dates, t), last, weekly: weeklyAdherence(plan, logs, addDays(t, -1), 6, start) }
+}
+
+function chatView(c: Client, viewer: 'patient' | 'team'): ChatMessage[] {
+  return c.messages.map((m) => {
+    const d = m.diaryId ? c.diary.find((x) => x.id === m.diaryId) : undefined
+    return {
+      id: m.id,
+      mine: viewer === 'patient' ? m.fromPatient : !m.fromPatient,
+      author: m.fromPatient ? (viewer === 'patient' ? 'Você' : c.name) : 'André Farion',
+      body: m.body,
+      at: m.at,
+      attachment: null,
+      diary: d ? { meal: d.meal, date: fmtDay(d.date), photoUrl: null, foods: d.foods } : null,
+      guidance: false,
+      automatic: false,
+      read: m.read,
+    }
+  })
+}
+
+/** Envio de mensagem na prévia (texto; anexos e áudio funcionam no sistema publicado). */
+const sendMessage = (clientId: string, fromPatient: boolean) => async (_: unknown, fd: FormData) => {
+  const body = String(fd.get('body') ?? '').trim()
+  if (!body) return { error: 'Escreva a mensagem. (Na prévia, anexos e áudio não são guardados.)' }
+  commit((st) => {
+    const c = clientOf(st, clientId)
+    c.messages.push({ id: uid(), fromPatient, body: body.replace(/\{nome\}/g, c.name.split(' ')[0]), at: nowLabel(), read: false })
+  })
+  return { ok: true, message: 'Mensagem enviada.' }
 }
 
 /* ------------------------------ armazenamento ------------------------------ */
@@ -285,7 +414,7 @@ function ClientArea({ tab }: { tab: string }) {
                 <TodayView
                   key={c.id}
                   data={data}
-                  links={{ plan: '#cliente/plano', chat: '#cliente/mais', diary: '#cliente/diario', progress: '#cliente/progresso' }}
+                  links={{ plan: '#cliente/plano', chat: '#cliente/mensagens', diary: '#cliente/diario', progress: '#cliente/progresso' }}
                   actions={{
                     setMeal: async (key, optionId, status) =>
                       commit((st) => {
@@ -336,6 +465,50 @@ function ClientArea({ tab }: { tab: string }) {
                   <h1>Seu progresso</h1>
                 </div>
               </div>
+              {(() => {
+                const a = adherenceOf(c)
+                return a.plan ? (
+                  <section className="card">
+                    <h2 style={{ fontSize: '1.15rem' }}>Constância</h2>
+                    <div className="stat-row" style={{ marginBottom: 12 }}>
+                      <div className="stat">
+                        <strong>{a.pct != null ? `${a.pct}%` : '—'}</strong>
+                        <span>das refeições do plano feitas nos últimos 7 dias (até ontem)</span>
+                      </div>
+                      <div className="stat">
+                        <strong>
+                          {a.streak} {a.streak === 1 ? 'dia' : 'dias'}
+                        </strong>
+                        <span>seguidos registrando</span>
+                      </div>
+                    </div>
+                    <AdherenceBars weeks={a.weekly} good={80} />
+                  </section>
+                ) : null
+              })()}
+              {c.goals.length > 0 && (
+                <section className="card">
+                  <h2 style={{ fontSize: '1.15rem' }}>Metas</h2>
+                  <ul className="list">
+                    {c.goals.map((g) => (
+                      <li key={g.id}>
+                        <button
+                          type="button"
+                          className="goal-check"
+                          role="checkbox"
+                          aria-checked={g.done}
+                          onClick={() => commit((st) => void (clientOf(st, c.id).goals.find((x) => x.id === g.id)!.done = !g.done))}
+                        >
+                          <span className="goal-check__box" aria-hidden>
+                            {g.done ? '✓' : ''}
+                          </span>
+                          <span className="goal-check__text">{g.title}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
               <section className="card">
                 <h3>Peso (kg)</h3>
                 <LineChart title="Peso" unit="kg" points={c.weights.map((w) => ({ date: w.date, value: w.value, source: 'profissional' as const }))} />
@@ -348,10 +521,21 @@ function ClientArea({ tab }: { tab: string }) {
             </div>
           )}
 
+          {tab === 'mensagens' && f.chat && <ClientChat client={c} />}
+
           {tab === 'mais' && (
             <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 680 }}>
               <h1>Mais</h1>
               <ul className="card list mais-list" style={{ padding: 0 }}>
+                {f.chat && (
+                  <li style={{ padding: 0 }}>
+                    <a href="#cliente/mensagens">
+                      <span>
+                        Mensagens<span className="small muted" style={{ display: 'block', fontWeight: 400 }}>Converse com o André</span>
+                      </span>
+                    </a>
+                  </li>
+                )}
                 {f.calculadoras && (
                   <li style={{ padding: 0 }}>
                     <a href="#cliente/calculadoras">
@@ -369,7 +553,7 @@ function ClientArea({ tab }: { tab: string }) {
                   </a>
                 </li>
               </ul>
-              <p className="small muted">Mensagens, agenda e perfil funcionam no sistema publicado.</p>
+              <p className="small muted">Agenda, notificações, fotos de evolução e perfil funcionam no sistema publicado.</p>
             </div>
           )}
 
@@ -422,77 +606,135 @@ function WeightForm({ clientId }: { clientId: string }) {
   )
 }
 
+const CHOICE_STATUS: Record<string, MealLog['status']> = { total: 'feita', parcial: 'parcial', nao_seguiu: 'outra' }
+
 function Diary({ client }: { client: Client }) {
-  const [foods, setFoods] = useState('')
-  const [meal, setMeal] = useState('Almoço')
-  const [adh, setAdh] = useState('total')
-  const ADH: Record<string, [string, string]> = { total: ['Segui o plano', 'badge--ok'], parcial: ['Segui em parte', 'badge--warn'], nao: ['Comi outra coisa', 'badge--plain'] }
+  const t = today()
+  const cur = client.published[client.published.length - 1]
+  const content = cur ? normalizePlan(cur.content) : null
+  const day = content ? dayForWeekday(content, new Date().getDay()) : null
+  const f = client.features
+  const meals: DiaryMeal[] = day
+    ? sortedMeals(day).map((m) => {
+        const key = `${day.id}:${m.id}`
+        const log = client.logs[t]?.[key]
+        const opt = m.options.find((o) => o.id === log?.optionId) ?? m.options[0]
+        const e = client.diary.find((x) => x.date === t && x.mealKey === key)
+        const fromToday: DiaryEntryView | null =
+          log && log.status !== 'pulada'
+            ? { id: `log-${key}`, time: '', meal: m.name, foods: 'Marcada na tela Hoje', choice: log.status === 'feita' ? 'total' : log.status === 'parcial' ? 'parcial' : 'nao_seguiu', items: [], hunger: null, satiety: null, mood: null, notes: null, photoUrl: null, comment: null }
+            : null
+        return { key, name: m.name, time: m.time, optionId: opt.id, summary: opt.items.map((i) => i.name.split(',')[0]).join(' · '), planned: content!.mode === 'calculado' ? optionTotals(opt) : null, entry: e ?? fromToday }
+      })
+    : []
+  const keys = new Set(meals.map((m) => m.key))
+  const extras = client.diary.filter((x) => x.date === t && (!x.mealKey || !keys.has(x.mealKey)))
+  const now = new Date()
+  const history = Array.from({ length: 7 }, (_, i) => addDays(t, -i - 1)).map((d) => ({
+    d,
+    n: Object.keys(client.logs[d] ?? {}).length + client.diary.filter((x) => x.date === d && !x.mealKey).length,
+  }))
+
+  const action = async (_: unknown, fd: FormData) => {
+    const mealKey = String(fd.get('mealKey') ?? '') || null
+    const choice = (String(fd.get('choice') ?? '') || null) as Entry['choice']
+    const raw = JSON.parse(String(fd.get('items') || '[]')) as { foodId: string; name: string; grams: number }[]
+    const items: DiaryItem[] = raw.map((i) => {
+      const food = FOODS.find((x) => x.id === i.foodId)
+      return { foodId: i.foodId, name: food?.name ?? i.name, grams: Math.round(i.grams), per100: food?.per100 ?? null }
+    })
+    const foodsText = String(fd.get('foods') ?? '').trim()
+    if (mealKey && !choice) return { error: 'Conte como foi: segui o plano, segui em parte ou comi outra coisa.' }
+    if ((choice === 'nao_seguiu' || !mealKey) && !items.length && !foodsText) return { error: 'Adicione os alimentos ou uma descrição. (Na prévia, a foto não é guardada.)' }
+    const num = (k: string) => (fd.get(k) ? Number(fd.get(k)) : null)
+    const e: Entry = {
+      id: uid(),
+      date: t,
+      time: String(fd.get('time') ?? '12:00'),
+      meal: String(fd.get('meal') ?? 'Registro'),
+      mealKey,
+      choice,
+      items,
+      foods: foodsText || (items.length ? items.map((i) => `${i.name} (${i.grams} g)`).join(', ') : choice === 'total' ? 'Segui o plano' : 'Segui o plano em parte'),
+      hunger: num('hunger'),
+      satiety: num('satiety'),
+      mood: num('mood'),
+      notes: String(fd.get('notes') ?? '').trim() || null,
+      photoUrl: null,
+      comment: null,
+    }
+    commit((st) => {
+      const c = clientOf(st, client.id)
+      if (mealKey) c.diary = c.diary.filter((x) => !(x.date === t && x.mealKey === mealKey))
+      c.diary.push(e)
+      if (mealKey && choice) (c.logs[t] ??= {})[mealKey] = { status: CHOICE_STATUS[choice], optionId: String(fd.get('optionId') ?? '') || null }
+    })
+    const kind = choice === 'total' ? 'Que bom! ' : choice === 'parcial' ? 'Tudo certo, cada passo conta. ' : choice === 'nao_seguiu' ? 'Obrigado por contar. Amanhã é um novo dia. ' : ''
+    return { ok: true, message: `${kind}Registro salvo no seu diário.` }
+  }
+
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px' }}>
-      <h1>Diário alimentar</h1>
+      <div className="page-head">
+        <div>
+          <h1>Diário alimentar</h1>
+          <p>Conte como foi cada refeição. Não existe registro “certo” — o importante é ser sincero.</p>
+        </div>
+      </div>
+      {!day && <p className="empty">Seu nutricionista ainda está montando seu plano. Enquanto isso, registre em “Fora do plano”.</p>}
+      <DiaryDay
+        key={client.id}
+        date={t}
+        nowTime={`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`}
+        meals={meals}
+        extras={extras}
+        foods={FOODS}
+        action={action}
+        onDelete={async (id) => commit((st) => void (clientOf(st, client.id).diary = clientOf(st, client.id).diary.filter((x) => x.id !== id)))}
+        show={{ kcal: f.calorias, macros: f.macros }}
+        photoNote="Na prévia a foto não é guardada; no sistema publicado ela fica visível só para você e para o André."
+      />
       <section className="card">
-        <form
-          className="stack"
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (!foods.trim()) return
-            const d = new Date()
-            commit((st) =>
-              clientOf(st, client.id).diary.push({ id: uid(), date: today(), time: `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`, meal, foods: foods.trim(), adherence: adh, notes: '' }),
-            )
-            setFoods('')
-          }}
-        >
-          <div className="form-grid">
-            <div className="field">
-              <label htmlFor="d-meal">Refeição</label>
-              <select id="d-meal" value={meal} onChange={(e) => setMeal(e.target.value)}>
-                {['Café da manhã', 'Lanche da manhã', 'Almoço', 'Lanche da tarde', 'Jantar', 'Ceia'].map((m) => (
-                  <option key={m}>{m}</option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="d-adh">Como foi?</label>
-              <select id="d-adh" value={adh} onChange={(e) => setAdh(e.target.value)}>
-                <option value="total">Segui o plano</option>
-                <option value="parcial">Segui em parte</option>
-                <option value="nao">Comi outra coisa</option>
-              </select>
-            </div>
-          </div>
-          <div className="field">
-            <label htmlFor="d-foods">O que você comeu?</label>
-            <textarea id="d-foods" rows={2} value={foods} onChange={(e) => setFoods(e.target.value)} />
-          </div>
-          <div>
-            <button className="btn btn--primary" type="submit">
-              Salvar registro
-            </button>
-          </div>
-        </form>
+        <h2 style={{ fontSize: '1.1rem' }}>Últimos dias</h2>
+        <ul className="day-history">
+          {history.map((h) => (
+            <li key={h.d}>
+              <a href="#cliente/diario">
+                <span>{fmtDay(h.d)}</span>
+                <span className="muted small">{h.n === 0 ? 'sem registros' : `${h.n} ${h.n === 1 ? 'registro' : 'registros'}`}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
       </section>
-      <ul className="card list">
-        {[...client.diary].reverse().map((d) => (
-          <li key={d.id}>
-            <div className="row row--between">
-              <strong>
-                {fmtDay(d.date)} · {d.time} · {d.meal}
-              </strong>
-              <span className={`badge ${ADH[d.adherence]?.[1] ?? 'badge--plain'}`}>{ADH[d.adherence]?.[0]}</span>
-            </div>
-            <div>{d.foods}</div>
-            {d.notes && <div className="small muted">“{d.notes}”</div>}
-          </li>
-        ))}
-      </ul>
+    </div>
+  )
+}
+
+function ClientChat({ client }: { client: Client }) {
+  useEffect(() => {
+    if (client.messages.some((m) => !m.fromPatient && !m.read))
+      commit((st) => clientOf(st, client.id).messages.forEach((m) => !m.fromPatient && (m.read = true)))
+  }, [client])
+  return (
+    <div className="stack" style={{ ['--gap' as string]: '16px' }}>
+      <div className="page-head">
+        <div>
+          <h1>Mensagens</h1>
+          <p>Tire dúvidas sobre o seu plano. Atendimento pelo chat: seg a sex, das 08:00 às 18:00.</p>
+        </div>
+      </div>
+      <section className="card">
+        <ChatThread messages={chatView(client, 'patient')} action={sendMessage(client.id, true)} emptyText="Nenhuma mensagem ainda. Envie sua primeira dúvida abaixo." />
+      </section>
+      <p className="small muted">Na prévia, as mensagens ficam neste navegador. Abra o painel do André (Acompanhamento → nome do cliente) para responder.</p>
     </div>
   )
 }
 
 /* ------------------------------ painel do André ------------------------------ */
 
-function AndreArea({ page }: { page?: string; extra?: string }) {
+function AndreArea({ page, extra }: { page?: string; extra?: string }) {
   const s = useStore()
   const [name, setName] = useState('')
   const [objective, setObjective] = useState('')
@@ -512,6 +754,9 @@ function AndreArea({ page }: { page?: string; extra?: string }) {
           <nav className="row" style={{ gap: 6 }}>
             <a className="btn btn--sm" href="#andre">
               Clientes
+            </a>
+            <a className="btn btn--sm" href="#andre/acompanhamento">
+              Acompanhamento
             </a>
             <a className="btn btn--sm" href="#andre/calculadoras">
               Calculadoras
@@ -577,6 +822,8 @@ function AndreArea({ page }: { page?: string; extra?: string }) {
                           logs: {},
                           water: {},
                           diary: [],
+                          messages: [],
+                          goals: [],
                           nextAppointment: `${fmtDay(addDays(today(), 7))} às 10:00`,
                         }),
                       )
@@ -617,10 +864,152 @@ function AndreArea({ page }: { page?: string; extra?: string }) {
             </div>
           )}
 
-          {page && page !== 'calculadoras' && <ClientPlanEditor clientId={page} />}
+          {page === 'acompanhamento' && <Tracking />}
+          {page === 'conversa' && extra && <TeamChat clientId={extra} />}
+          {page && !['calculadoras', 'acompanhamento', 'conversa'].includes(page) && <ClientPlanEditor clientId={page} />}
         </div>
       </main>
     </>
+  )
+}
+
+const TONE: Record<AdherenceClass, string> = { em_dia: 'badge--ok', dificuldade: 'badge--warn', sem_progresso: 'badge--danger' }
+
+function Tracking() {
+  const s = useStore()
+  const rows = s.clients.map((c) => ({ c, a: adherenceOf(c) }))
+  const order: AdherenceClass[] = ['dificuldade', 'sem_progresso', 'em_dia']
+  rows.sort((x, y) => order.indexOf(x.a.klass) - order.indexOf(y.a.klass))
+  return (
+    <div className="stack" style={{ ['--gap' as string]: '18px' }}>
+      <div className="page-head">
+        <div>
+          <h1>Acompanhamento</h1>
+          <p>Clientes pela adesão nos últimos 7 dias completos: em dia (≥ 80% das refeições feitas), com dificuldade (40–79%) e sem progresso (&lt; 40% ou sem registro).</p>
+        </div>
+      </div>
+      <div className="stat-row">
+        {order.map((k) => (
+          <div key={k} className="stat">
+            <strong>{rows.filter((r) => r.a.klass === k).length}</strong>
+            <span>
+              <span className={`badge ${TONE[k]}`}>{ADHERENCE_LABEL[k]}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Situação</th>
+              <th className="num">Adesão (7 dias)</th>
+              <th>Último registro</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(({ c, a }) => (
+              <tr key={c.id}>
+                <td>
+                  <a href={`#andre/conversa/${c.id}`}>
+                    <strong>{c.name}</strong>
+                  </a>
+                  <div className="small muted">{c.objective}</div>
+                  {!a.plan && <div className="small muted">Sem plano ativo</div>}
+                </td>
+                <td>
+                  <span className={`badge ${TONE[a.klass]}`}>{ADHERENCE_LABEL[a.klass]}</span>
+                </td>
+                <td className="num">
+                  {a.pct != null ? (
+                    <span className="adh-cell">
+                      <span className="adh-cell__track" aria-hidden>
+                        <span style={{ width: `${a.pct}%` }} />
+                      </span>
+                      {a.pct}%
+                    </span>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+                <td>{a.last ? fmtDay(a.last) : <span className="muted">nunca</span>}</td>
+                <td>
+                  <QuickMessage name={c.name} action={sendMessage(c.id, false)} replies={['Ótima escolha!', 'Vamos ajustar isso no retorno.', 'Obrigado por registrar, {nome}! Continue assim.']} whatsapp={null} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
+function TeamChat({ clientId }: { clientId: string }) {
+  const s = useStore()
+  const c = clientOf(s, clientId)
+  const a = adherenceOf(c)
+  useEffect(() => {
+    if (c.messages.some((m) => m.fromPatient && !m.read)) commit((st) => clientOf(st, c.id).messages.forEach((m) => m.fromPatient && (m.read = true)))
+  }, [c])
+  return (
+    <div className="stack" style={{ ['--gap' as string]: '18px' }}>
+      <div className="page-head">
+        <div>
+          <nav className="breadcrumb">
+            <a href="#andre/acompanhamento">Acompanhamento</a>
+          </nav>
+          <h1>{c.name}</h1>
+          <p>
+            <span className={`badge ${TONE[a.klass]}`}>{ADHERENCE_LABEL[a.klass]}</span> · adesão {a.pct != null ? `${a.pct}%` : '—'} · sequência de {a.streak} {a.streak === 1 ? 'dia' : 'dias'}
+          </p>
+        </div>
+        <a className="btn" href={`#andre/${c.id}`}>
+          Plano alimentar
+        </a>
+      </div>
+      <div className="grid-2" style={{ alignItems: 'start' }}>
+        <section className="card">
+          <h2 style={{ fontSize: '1.1rem' }}>Conversa</h2>
+          <ChatThread messages={chatView(c, 'team')} action={sendMessage(c.id, false)} quickReplies={['Ótima escolha!', 'Vamos ajustar isso no retorno.']} placeholder="Responder" emptyText="Nenhuma mensagem." />
+        </section>
+        <section className="card">
+          <h2 style={{ fontSize: '1.1rem' }}>Diário recente</h2>
+          {c.diary.length === 0 ? (
+            <p className="muted">Sem registros no diário.</p>
+          ) : (
+            <ul className="list">
+              {[...c.diary].reverse().slice(0, 8).map((d) => (
+                <li key={d.id}>
+                  <strong>
+                    {fmtDay(d.date)} · {d.meal}
+                  </strong>
+                  <div>{d.foods}</div>
+                  <form
+                    className="row"
+                    style={{ marginTop: 6 }}
+                    onSubmit={(e) => {
+                      e.preventDefault()
+                      const input = e.currentTarget.elements.namedItem('reply') as HTMLInputElement
+                      if (!input.value.trim()) return
+                      commit((st) => clientOf(st, c.id).messages.push({ id: uid(), fromPatient: false, body: input.value.trim(), at: nowLabel(), read: false, diaryId: d.id }))
+                      input.value = ''
+                    }}
+                  >
+                    <input name="reply" placeholder="Responder no chat" aria-label={`Responder sobre ${d.meal}`} style={{ flex: 1, minWidth: 160 }} />
+                    <button className="btn btn--sm" type="submit">
+                      Responder no chat
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </div>
   )
 }
 

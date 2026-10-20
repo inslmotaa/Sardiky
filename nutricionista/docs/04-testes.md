@@ -22,6 +22,8 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Permissões | administrador pode tudo; equipe só o liberado e nunca configurações; paciente sem permissões de equipe |
 | Arquivos e exportação | tipo detectado pelo conteúdo (HTML disfarçado é recusado); CSV protegido contra fórmulas |
 | Cálculos nutricionais | Mifflin F 70 kg/165 cm/30 anos = 1.420,25 kcal e ×1,55 = 2.201,4; IMC 70/1,65 = 25,7 (sobrepeso; Lipschitz a partir de 60 anos); faixa de peso saudável; Harris-Benedict, Katch-McArdle, Cunningham; macros por % e g/kg; água por ml/kg; 150 g de alimento com 128 kcal/100 g = 192 kcal; medida caseira ↔ gramas; cru ↔ cozido; substituições sugeridas dentro de ±10% e no mesmo grupo; busca tolerante a acentos e erros de digitação; plural de medidas |
+| Composição corporal | Siri; Jackson-Pollock 3 dobras (homem e mulher, dobras certas por sexo); Jackson-Pollock 7 dobras; Durnin-Womersley com coeficiente por faixa etária; dobra faltando não calcula; massa magra |
+| Adesão ao plano | feita = 1, parcial = ½; dias antes do plano não contam; dias da semana com números diferentes de refeições; limites configuráveis; sequência de dias; adesão semanal |
 | Validação | formulários configuráveis (obrigatórios, opções inválidas, campos desconhecidos descartados); plano alimentar v2 (dias, opções, itens calculados) e conversão de planos antigos; valores em reais; telefones |
 
 ### Ponta a ponta (`tests/e2e`)
@@ -45,11 +47,21 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Calculadoras | IMC 25,7 (sobrepeso) e Mifflin 1.420,25 / 2.201,4 kcal na tela |
 | Recursos por paciente | ao desligar calorias e macros, nenhum valor em kcal aparece no plano do paciente |
 | Site | ordem dos botões da abertura, link da anamnese, seção de planos, atalhos `/entrar`, `/app`, `/painel` |
+| Acompanhamento | Beatriz “em dia”, Helena “com dificuldade”, Lucas “sem progresso”; mudar os limites reclassifica |
+| Diário | “comi outra coisa” com alimento da base (150 g = 192 kcal), humor; nutricionista responde no chat citando o registro |
+| Avaliação | dobras de Jackson-Pollock 3 calculadas no servidor: 25,4% (mulher, 35 anos, soma 63 mm) |
+| Fotos de evolução | paciente envia; nutricionista vê; outro paciente recebe 404 |
+| Chat ao vivo | mensagem do nutricionista aparece sem recarregar; o nutricionista vê “lida” |
+| Plano em até 5 s | ao ativar uma nova versão, a tela aberta do paciente mostra o novo plano em menos de 5 segundos, sem recarregar |
+| Sem internet | depois do primeiro acesso, o plano abre com o aparelho off-line |
+| PDF e metas | PDF do plano (paciente só o próprio); paciente marca meta como concluída |
+| Tarefa agendada | `/api/cron` roda os lembretes com o segredo |
 | Portabilidade | exportação JSON do próprio paciente sem notas clínicas internas |
 
 ## Revisão manual recomendada antes da produção
 
 - Navegar com leitor de tela (NVDA/VoiceOver) nas telas de agendamento e plano alimentar.
-- Testar em um celular Android e um iPhone reais (câmera no envio de foto do diário).
+- Testar em um celular Android e um iPhone reais (câmera no envio de foto do diário, gravação de áudio no chat, instalação na tela inicial).
+- Notificações push: ativar em um Android (Chrome) e em um iPhone com o app instalado (iOS 16.4+) e conferir lembretes de refeição e água com a tarefa agendada rodando a cada 5 minutos. O envio real depende dos serviços de push dos navegadores e não roda nos testes automáticos.
 - Rodar uma varredura de vulnerabilidades (ex.: OWASP ZAP) contra o ambiente de homologação.
 - `npm audit` periodicamente e atualização de dependências.

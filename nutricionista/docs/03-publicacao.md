@@ -13,6 +13,7 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
    - `DOMAIN`: o domínio do site
    - `DB_PASSWORD` e `CRON_SECRET`: valores longos e aleatórios (`openssl rand -base64 32`)
    - `RESEND_API_KEY` e `EMAIL_FROM`: para e-mails (opcional, mas necessário para lembretes e recuperação de senha por e-mail)
+   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT`: notificações push no celular (gere com `npx web-push generate-vapid-keys`; guarde a chave privada em segredo e não troque depois, ou os aparelhos precisam ativar de novo)
 5. **Subir** — `docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build`
    - O Caddy emite o certificado HTTPS automaticamente.
    - As migrações do banco rodam a cada início da aplicação.
@@ -54,7 +55,7 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
 |---|---|---|
 | Aplicação | Render, Railway ou Fly.io | Exige disco persistente para uploads, ou trocar `src/lib/storage.ts` por um driver S3 (Cloudflare R2, Supabase Storage). |
 | Banco | Neon, Supabase ou RDS | Planos gratuitos servem para teste; em produção use plano com backup automático. |
-| Tarefas | Cron do provedor | Chamar `/api/cron` de hora em hora com o cabeçalho `Authorization: Bearer CRON_SECRET`. |
+| Tarefas | Cron do provedor | Chamar `/api/cron` a cada 5 minutos (lembretes de refeição e água) com o cabeçalho `Authorization: Bearer CRON_SECRET`. |
 
 Na Vercel o plano gratuito é para uso não comercial e não há disco persistente; só use com armazenamento S3 e plano pago.
 

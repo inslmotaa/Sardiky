@@ -24,8 +24,8 @@ Construída sobre o site e o sistema que já existiam (nada foi refeito do zero)
 - **Tabela de alimentos:** os valores da base inicial precisam ser conferidos com a TACO oficial; a base completa (≈600 itens) e IBGE/USDA ainda não foram importadas.
 - **Supabase e RLS no banco:** mantivemos PostgreSQL + Next.js; o isolamento é feito no servidor e testado. RLS no banco pode ser adicionado como segunda camada.
 - **Login com Google e link mágico por e-mail.**
-- **PWA instalável com plano disponível sem internet e notificações push** (lembretes de refeição e água) — previsto para a Fase 2.
+- ~~PWA instalável, plano sem internet e notificações push~~ — entregue na Fase 2.
 - **Modo escuro.**
-- **Plano aparecer “em até 5 s” sem recarregar:** hoje aparece ao abrir ou atualizar a tela; atualização em tempo real fica para a Fase 2.
+- ~~Plano aparecer “em até 5 s” sem recarregar~~ — entregue na Fase 2.
 - **Vários nutricionistas, cada um vendo só os próprios pacientes** (hoje há um nutricionista e a equipe).
-- **Lighthouse:** pontuação de desempenho e acessibilidade ainda não medida em ambiente publicado.
+- **Lighthouse:** medido na Fase 2 no build local (desempenho 92–96, acessibilidade 98–100; ver `07-fase-2.md`); falta medir no ambiente publicado.

@@ -6,7 +6,7 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 
 - Senhas com **scrypt** (N=2¹⁷, r=8, p=1 — parâmetros recomendados pela OWASP) e sal aleatório; nunca em texto puro.
 - Sessão por cookie `httpOnly`, `SameSite=Lax` e `Secure` em produção; no banco fica só o **hash** do token. Validade de 7 dias com renovação enquanto o usuário usa o sistema.
-- Bloqueio de 15 minutos após 5 senhas erradas; limite de tentativas por IP; mensagem de erro genérica (não revela se o e-mail existe).
+- Bloqueio de 15 minutos após 5 senhas erradas; limite de tentativas **erradas** por rede (IP) — logins corretos de várias pessoas na mesma rede não são bloqueados; mensagem de erro genérica (não revela se o e-mail existe).
 - Recuperação de senha e primeiro acesso por **links de uso único**, guardados como hash, com validade (1 h para redefinição, 7 dias para convites). Redefinir a senha encerra as sessões abertas.
 - A equipe nunca define nem vê a senha do paciente.
 
@@ -21,6 +21,8 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 - Cada Server Action e rota verifica permissão no servidor (não basta esconder botões).
 - Arquivos ficam fora da pasta pública e só são entregues por `/arquivos/[id]` após checagem; recursos de outro paciente respondem 404 (não revelam existência).
 - Notas clínicas são privadas da equipe clínica e não entram na exportação automática do paciente.
+- **Fotos de evolução**, fotos de pratos e anexos do chat seguem a mesma regra: só o próprio paciente e a equipe com permissão clínica; outro paciente recebe 404 (há teste automático para isso). Respostas com `Cache-Control: private, no-store`.
+- O paciente só exclui as fotos que ele mesmo enviou; exclusões ficam na auditoria.
 
 ## Proteções da aplicação
 
@@ -30,11 +32,19 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 - Uploads: até 5 MB, tipo verificado pelo **conteúdo** (JPG, PNG, WebP, PDF), nome aleatório, servidos com `Content-Security-Policy: sandbox`.
 - Exportações CSV protegidas contra injeção de fórmulas.
 - Campo-isca e limite de envios nos formulários públicos contra robôs.
-- Nenhuma chave secreta é enviada ao navegador; segredos ficam em variáveis de ambiente (`.env` não é versionado).
+- Nenhuma chave secreta é enviada ao navegador; segredos ficam em variáveis de ambiente (`.env` não é versionado). No push, só a chave **pública** VAPID vai para o navegador.
+- Microfone liberado apenas para o próprio site (áudio curto do chat), via `Permissions-Policy`.
+
+## App instalável e dados no aparelho
+
+- O service worker guarda **somente as telas do paciente** (Hoje, Plano, Diário, Progresso, Mais) para abrir sem internet; nada do painel do nutricionista é guardado.
+- Ao **sair da conta** e ao abrir a tela de login, as telas guardadas são apagadas do aparelho, para outra pessoa no mesmo celular não ver os dados.
+- Arquivos (fotos, PDFs) não ficam no armazenamento off-line.
+- Notificações push trazem textos curtos (nome da refeição, “nova mensagem”), sem dados clínicos detalhados, porque aparecem na tela bloqueada. O paciente escolhe cada tipo e o horário de silêncio.
 
 ## Registro de atividades (auditoria)
 
-Ficam registrados com data, usuário e IP: logins (inclusive falhos), visualização de prontuário e de planos, criação/edição de pacientes (campos alterados, sem o conteúdo), avaliações, notas, documentos, publicação de planos, mudanças de agenda, permissões, exportações e solicitações LGPD. Consulte em **Painel → Privacidade e auditoria**.
+Ficam registrados com data, usuário e IP: logins (inclusive falhos), visualização de prontuário e de planos, download do PDF do plano, envio e exclusão de fotos de evolução, ativação de notificações, respostas a registros do diário, criação/edição de pacientes (campos alterados, sem o conteúdo), avaliações, notas, documentos, publicação de planos, mudanças de agenda, permissões, exportações e solicitações LGPD. Consulte em **Painel → Privacidade e auditoria**.
 
 ## LGPD na prática
 
