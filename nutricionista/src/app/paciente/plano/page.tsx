@@ -28,5 +28,10 @@ export default async function PatientPlanPage() {
       </>
     )
   }
-  return <PlanPage plan={current} history={history} features={features} weekday={weekday} />
+  const prescriptions = await db
+    .select()
+    .from(schema.prescriptions)
+    .where(and(eq(schema.prescriptions.patientId, user.patientId), eq(schema.prescriptions.active, true)))
+    .orderBy(desc(schema.prescriptions.createdAt))
+  return <PlanPage plan={current} history={history} features={features} weekday={weekday} prescriptions={prescriptions} />
 }

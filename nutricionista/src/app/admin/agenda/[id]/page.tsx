@@ -3,19 +3,13 @@ import { notFound } from 'next/navigation'
 import { asc, eq, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { assertPatientAccess } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtTime, zonedParts } from '@/lib/time'
 import { money, whatsappLink, renderWaText } from '@/lib/format'
 import { uuid } from '@/lib/validation'
-import {
-  cancelAppointment,
-  confirmAppointment,
-  linkAppointmentPatient,
-  rescheduleAppointment,
-  setAppointmentOutcome,
-  updateAppointmentDetails,
-} from '@/actions/admin/appointments'
+import { cancelAppointment, confirmAppointment, generateMeetingLink, linkAppointmentPatient, rescheduleAppointment, setAppointmentOutcome, updateAppointmentDetails } from '@/actions/admin/appointments'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
 
@@ -27,6 +21,7 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
   const s = await getSettings()
   const [a] = await db.select().from(schema.appointments).where(eq(schema.appointments.id, id))
   if (!a) notFound()
+  await assertPatientAccess(user, a.patientId).catch(() => notFound())
   const patients = a.patientId
     ? []
     : await db.select({ id: schema.patients.id, name: schema.patients.fullName, email: schema.patients.email }).from(schema.patients).where(isNull(schema.patients.anonymizedAt)).orderBy(asc(schema.patients.fullName))
@@ -123,6 +118,26 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
                 <dd>{a.cancelReason}</dd>
               </>
             )}
+            <dt>Presença</dt>
+            <dd>{a.patientConfirmedAt ? `Confirmada pelo paciente em ${fmtDateTime(a.patientConfirmedAt, s.timezone)}` : 'Ainda não confirmada pelo paciente'}</dd>
+            {a.rescheduleRequestedAt && (
+              <>
+                <dt>Remarcação</dt>
+                <dd>
+                  <span className="badge badge--warn">Pedida em {fmtDateTime(a.rescheduleRequestedAt, s.timezone)}</span>
+                  {a.rescheduleNote && <div className="small">“{a.rescheduleNote}”</div>}
+                </dd>
+              </>
+            )}
+            {a.ratedAt && (
+              <>
+                <dt>Avaliação</dt>
+                <dd>
+                  <span aria-label={`${a.rating} de 5 estrelas`}>{'★'.repeat(a.rating ?? 0)}</span>
+                  {a.ratingComment && <div className="small">“{a.ratingComment}”</div>}
+                </dd>
+              </>
+            )}
           </dl>
         </section>
 
@@ -156,12 +171,26 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
         </section>
       </div>
 
+      {a.modality === 'online' && (
+        <div className="row no-print">
+          {a.meetingUrl && (
+            <a className="btn btn--primary btn--sm" href={a.meetingUrl} target="_blank" rel="noopener noreferrer">
+              Abrir videochamada
+            </a>
+          )}
+          <form action={generateMeetingLink.bind(null, a.id)}>
+            <button type="submit" className="btn btn--sm">
+              {a.meetingUrl ? 'Gerar novo link (Jitsi)' : 'Gerar link da videochamada (Jitsi)'}
+            </button>
+          </form>
+        </div>
+      )}
       <section className="card">
         <h2 style={{ fontSize: '1.1rem' }}>Detalhes internos</h2>
         <ActionForm action={updateAppointmentDetails} className="stack">
           <input type="hidden" name="id" value={a.id} />
           {a.modality === 'online' && (
-            <Field label="Link da videochamada" name="meetingUrl" hint="Cole o link da sala (Google Meet, Zoom, Jitsi…). O paciente vê o botão na área dele após a confirmação.">
+            <Field label="Link da videochamada" name="meetingUrl" hint="Gerado automaticamente no Jitsi Meet ao confirmar; você também pode colar um link do Google Meet ou Zoom. O paciente vê o botão após a confirmação.">
               <input name="meetingUrl" type="url" defaultValue={a.meetingUrl ?? ''} placeholder="https://" />
             </Field>
           )}

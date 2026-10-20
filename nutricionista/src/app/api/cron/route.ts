@@ -50,6 +50,30 @@ export async function GET(req: Request) {
         reminders++
       }
     }
+    // Lembrete 2 horas antes (com o link da videochamada, se for on-line).
+    const soon = await db
+      .select()
+      .from(schema.appointments)
+      .where(
+        and(
+          eq(schema.appointments.status, 'confirmada'),
+          isNull(schema.appointments.reminder2hSentAt),
+          gte(schema.appointments.startAt, now),
+          lt(schema.appointments.startAt, new Date(now.getTime() + 2 * 3_600_000 + 15 * 60_000)),
+        ),
+      )
+    for (const a of soon) {
+      const p = zonedParts(a.startAt, s.timezone)
+      const ok = await sendEmail(
+        a.contactEmail,
+        'Sua consulta é daqui a pouco',
+        `Olá, ${a.contactName.split(' ')[0]}! Lembrete: sua consulta (${a.serviceName}) é hoje às ${p.time}.${a.modality === 'online' && a.meetingUrl ? `\nLink da videochamada: ${a.meetingUrl}` : s.address ? `\nEndereço: ${s.address}` : ''}`,
+      )
+      if (ok) {
+        await db.update(schema.appointments).set({ reminder2hSentAt: new Date() }).where(eq(schema.appointments.id, a.id))
+        reminders++
+      }
+    }
   }
 
   // A limpeza roda no máximo uma vez por hora.

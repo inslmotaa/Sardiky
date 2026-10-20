@@ -103,6 +103,8 @@ export const users = pgTable(
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     /** Primeiro acesso concluído (boas-vindas, notificações e anamnese). */
     onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
+    /** Nutricionista da equipe que vê apenas os pacientes sob sua responsabilidade. */
+    ownPatientsOnly: boolean('own_patients_only').notNull().default(false),
     notificationPrefs: jsonb('notification_prefs').$type<NotificationPrefs>().notNull().default(DEFAULT_NOTIFICATION_PREFS),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -177,6 +179,13 @@ export const settings = pgTable('settings', {
   anamneseUrl: text('anamnese_url'),
   /** Meta padrão de água: ml por kg de peso corporal. */
   waterMlPerKg: integer('water_ml_per_kg').notNull().default(35),
+  /** Assinatura que vai no rodapé do PDF do plano (texto e imagem opcional). */
+  signatureText: text('signature_text'),
+  signatureFileId: uuid('signature_file_id'),
+  /** Refeições e horários que um plano em branco já traz. */
+  defaultMeals: jsonb('default_meals').$type<{ name: string; time: string }[]>().notNull().default([]),
+  /** Modelo de anamnese nativa enviado automaticamente a cada novo paciente. */
+  autoAnamnesisTemplateId: uuid('auto_anamnesis_template_id'),
   /** Limites do painel de Acompanhamento (% de refeições feitas nos últimos 7 dias). */
   adherenceGood: integer('adherence_good').notNull().default(80),
   adherenceLow: integer('adherence_low').notNull().default(40),
@@ -271,6 +280,10 @@ export const patients = pgTable(
     energy: jsonb('energy').$type<EnergyCalc | null>(),
     anamnesisReceivedAt: timestamp('anamnesis_received_at', { withTimezone: true }),
     anamnesisNotes: text('anamnesis_notes'),
+    /** Restrições alimentares (lactose, glúten, vegetariano…): geram alerta no editor de planos. */
+    restrictions: jsonb('restrictions').$type<string[]>().notNull().default([]),
+    /** Nutricionista responsável (equipe com vários nutricionistas). */
+    nutritionistId: uuid('nutritionist_id').references(() => users.id, { onDelete: 'set null' }),
     status: patientStatusEnum('status').notNull().default('ativo'),
     stage: text('stage').notNull().default('Avaliação inicial'),
     followUpDays: integer('follow_up_days'),
@@ -306,6 +319,15 @@ export const appointments = pgTable(
     code: text('code').notNull(),
     rescheduledFromId: uuid('rescheduled_from_id'),
     reminderSentAt: timestamp('reminder_sent_at', { withTimezone: true }),
+    reminder2hSentAt: timestamp('reminder_2h_sent_at', { withTimezone: true }),
+    /** O paciente confirmou presença pelo app. */
+    patientConfirmedAt: timestamp('patient_confirmed_at', { withTimezone: true }),
+    rescheduleRequestedAt: timestamp('reschedule_requested_at', { withTimezone: true }),
+    rescheduleNote: text('reschedule_note'),
+    /** Avaliação da consulta pelo paciente (1 a 5 estrelas). */
+    rating: smallint('rating'),
+    ratingComment: text('rating_comment'),
+    ratedAt: timestamp('rated_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -499,6 +521,8 @@ export const formAssignments = pgTable(
     answers: jsonb('answers').$type<FormAnswers>(),
     dueDate: date('due_date'),
     answeredAt: timestamp('answered_at', { withTimezone: true }),
+    /** nativa (preenchida no app) ou externa (recebida pelo webhook do Google Forms/Tally). */
+    source: text('source').notNull().default('nativa'),
     createdAt: createdAt(),
   },
   (t) => [index('form_assignments_patient_idx').on(t.patientId)],
@@ -647,6 +671,65 @@ export const progressPhotos = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('progress_photos_patient_idx').on(t.patientId, t.date)],
+)
+
+/* ------------------------------------------------------------------ */
+/* Receitas, materiais e prescrições                                   */
+/* ------------------------------------------------------------------ */
+
+export type RecipeIngredient = { foodId: string | null; name: string; grams: number; per100: { kcal: number; protein: number; carbs: number; fat: number; fiber: number } | null }
+
+export const recipes = pgTable('recipes', {
+  id: id(),
+  title: text('title').notNull(),
+  photoFileId: uuid('photo_file_id'),
+  ingredients: jsonb('ingredients').$type<RecipeIngredient[]>().notNull().default([]),
+  /** Peso final pronto (g) e número de porções: nutrientes por porção e por 100 g. */
+  finalWeightG: numeric('final_weight_g', { mode: 'number' }),
+  portions: integer('portions').notNull().default(1),
+  prepMinutes: integer('prep_minutes'),
+  instructions: text('instructions').notNull().default(''),
+  tags: jsonb('tags').$type<string[]>().notNull().default([]),
+  /** Aparece na biblioteca de receitas de todos os pacientes (além das vinculadas ao plano). */
+  visibleToAll: boolean('visible_to_all').notNull().default(true),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+})
+
+export const materials = pgTable('materials', {
+  id: id(),
+  title: text('title').notNull(),
+  kind: text('kind').notNull(), // ebook | video | guia | link
+  description: text('description').notNull().default(''),
+  url: text('url'),
+  fileId: uuid('file_id'),
+  /** todos | pacientes (lista em patientIds) */
+  audience: text('audience').notNull().default('todos'),
+  patientIds: jsonb('patient_ids').$type<string[]>().notNull().default([]),
+  active: boolean('active').notNull().default(true),
+  createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+  createdAt: createdAt(),
+})
+
+export const prescriptions = pgTable(
+  'prescriptions',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    type: text('type').notNull(), // suplemento | fitoterapico | exame
+    name: text('name').notNull(),
+    dose: text('dose'),
+    schedule: text('schedule'),
+    duration: text('duration'),
+    notes: text('notes'),
+    active: boolean('active').notNull().default(true),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('prescriptions_patient_idx').on(t.patientId)],
 )
 
 /* ------------------------------------------------------------------ */

@@ -4,7 +4,7 @@ import { Field } from './form'
 export const STAGES = ['Avaliação inicial', 'Acompanhamento', 'Manutenção', 'Reavaliação']
 
 /** Campos do cadastro (somente o necessário para o atendimento). */
-export function PatientFormFields({ p }: { p?: typeof schema.patients.$inferSelect }) {
+export function PatientFormFields({ p, nutritionists = [] }: { p?: typeof schema.patients.$inferSelect; nutritionists?: { id: string; name: string }[] }) {
   return (
     <>
       <div className="form-grid">
@@ -30,6 +30,18 @@ export function PatientFormFields({ p }: { p?: typeof schema.patients.$inferSele
         <Field label="Altura (cm)" name="heightCm">
           <input name="heightCm" inputMode="decimal" defaultValue={p?.heightCm ?? ''} />
         </Field>
+        {nutritionists.length > 1 && (
+          <Field label="Nutricionista responsável" name="nutritionistId" hint="Nutricionistas marcados como “só os próprios pacientes” veem apenas os seus.">
+            <select name="nutritionistId" defaultValue={p?.nutritionistId ?? ''}>
+              <option value="">Sem responsável definido</option>
+              {nutritionists.map((n) => (
+                <option key={n.id} value={n.id}>
+                  {n.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+        )}
         <Field label="Situação" name="status">
           <select name="status" defaultValue={p?.status ?? 'ativo'}>
             <option value="ativo">Ativo</option>

@@ -3454,3 +3454,138 @@ kbd {
   z-index: 20;
   margin: 0;
 }
+
+/* ------------------------------ formulários ------------------------------ */
+
+.form-section {
+  border-top: 2px solid var(--brand);
+  padding-top: 12px;
+  margin-top: 8px;
+}
+.form-section h2 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+.scale-input {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.scale-input label {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+}
+.scale-input input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  cursor: pointer;
+}
+.scale-input label:has(input:checked) {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.scale-input label:has(input:focus-visible) {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.stars label span {
+  font-size: 1.4rem;
+  color: var(--line-strong);
+}
+.stars label:has(input:checked) {
+  background: var(--surface);
+  border-color: var(--macro-carbs);
+}
+.stars label:has(input:checked) span,
+.stars label:has(~ label input:checked) span {
+  color: var(--macro-carbs);
+}
+
+/* ------------------------------ receitas e materiais ------------------------------ */
+
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.recipe-card {
+  display: grid;
+  gap: 6px;
+  text-decoration: none;
+  color: inherit;
+  align-content: start;
+}
+.recipe-card img,
+.recipe-card__ph {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  display: grid;
+  place-items: center;
+  font-size: 2rem;
+}
+.recipe-card:hover {
+  border-color: var(--brand);
+}
+.recipe-photo {
+  width: min(360px, 100%);
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 14px;
+}
+.chip--on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+.recipe-steps {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+.material-list li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.shopping {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.shopping li label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 2px;
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  min-height: 44px;
+}
+.shopping__name {
+  flex: 1;
+  min-width: 0;
+}
+.shopping__qty {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: right;
+}
+.shopping label.is-done .shopping__name {
+  text-decoration: line-through;
+  color: var(--muted);
+}

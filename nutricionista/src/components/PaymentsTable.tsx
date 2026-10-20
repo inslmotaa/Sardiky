@@ -1,13 +1,13 @@
 import type { schema } from '@/db'
-import { fmtDay } from '@/lib/time'
-import { money } from '@/lib/format'
+import { fmtDay, todayIn } from '@/lib/time'
+import { money, whatsappLink } from '@/lib/format'
 import { markPaymentPaid, setPaymentStatus } from '@/actions/admin/finance'
 import { ActionForm, SubmitButton } from './form'
 import { StatusBadge, Empty } from './ui'
 
-type Row = { pay: typeof schema.payments.$inferSelect; name: string | null }
+type Row = { pay: typeof schema.payments.$inferSelect; name: string | null; phone?: string | null }
 
-export function PaymentsTable({ rows, showPatient = true }: { rows: Row[]; showPatient?: boolean }) {
+export function PaymentsTable({ rows, showPatient = true, today = todayIn() }: { rows: Row[]; showPatient?: boolean; today?: string }) {
   if (rows.length === 0) return <Empty>Nenhum lançamento.</Empty>
   return (
     <div className="table-wrap">
@@ -24,7 +24,16 @@ export function PaymentsTable({ rows, showPatient = true }: { rows: Row[]; showP
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ pay: p, name }) => (
+          {rows.map(({ pay: p, name, phone }) => {
+            const overdue = p.status === 'pendente' && !!p.dueDate && p.dueDate < today
+            const wa =
+              p.status === 'pendente' && phone
+                ? whatsappLink(
+                    phone.length <= 11 ? `55${phone}` : phone,
+                    `Olá, ${(name ?? '').split(' ')[0]}! Passando para lembrar do pagamento de “${p.description}” (${money(p.amountCents - p.discountCents)})${p.dueDate ? `, com vencimento em ${fmtDay(p.dueDate)}` : ''}. Qualquer dúvida, estou à disposição.`,
+                  )
+                : null
+            return (
             <tr key={p.id}>
               <td>
                 {p.description}
@@ -40,7 +49,14 @@ export function PaymentsTable({ rows, showPatient = true }: { rows: Row[]; showP
                 {p.discountCents > 0 && <div className="small muted" style={{ textDecoration: 'line-through' }}>{money(p.amountCents)}</div>}
               </td>
               <td>
-                <StatusBadge status={p.status} />
+                {overdue ? <span className="badge badge--danger">Atrasado</span> : <StatusBadge status={p.status} />}
+                {wa && (
+                  <div>
+                    <a className="small" href={wa} target="_blank" rel="noopener noreferrer">
+                      Cobrar pelo WhatsApp
+                    </a>
+                  </div>
+                )}
               </td>
               <td>
                 {p.source === 'provedor' ? (
@@ -88,7 +104,8 @@ export function PaymentsTable({ rows, showPatient = true }: { rows: Row[]; showP
                 )}
               </td>
             </tr>
-          ))}
+            )
+          })}
         </tbody>
       </table>
     </div>

@@ -1,6 +1,7 @@
-import { asc, isNull } from 'drizzle-orm'
+import { and, asc, eq, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { isRestricted } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { loadFoods } from '@/lib/foods'
 import { getSettings } from '@/lib/settings'
@@ -16,7 +17,11 @@ export default async function AdminCalculators() {
   const today = todayIn(s.timezone)
   const [foods, patients, weights] = await Promise.all([
     loadFoods(),
-    db.select().from(schema.patients).where(isNull(schema.patients.anonymizedAt)).orderBy(asc(schema.patients.fullName)),
+    db
+      .select()
+      .from(schema.patients)
+      .where(and(isNull(schema.patients.anonymizedAt), isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined))
+      .orderBy(asc(schema.patients.fullName)),
     db.select({ patientId: schema.measurements.patientId, date: schema.measurements.date, weightKg: schema.measurements.weightKg }).from(schema.measurements).orderBy(asc(schema.measurements.date)),
   ])
   const lastWeight = new Map<string, number>()

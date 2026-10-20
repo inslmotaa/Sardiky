@@ -1,4 +1,4 @@
-import { and, asc, inArray } from 'drizzle-orm'
+import { and, asc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can, STAFF_PERMISSIONS } from '@/lib/auth/permissions'
@@ -15,6 +15,7 @@ import {
   saveSchedule,
   saveService,
   saveChatSettings,
+  saveClinicalSettings,
   saveTemplates,
   toggleTestimonial,
   updateStaff,
@@ -28,6 +29,7 @@ const SECTIONS = [
   { key: 'horarios', label: 'Horários e agendamento', perm: 'config' },
   { key: 'mensagens', label: 'Mensagens', perm: 'config' },
   { key: 'chat', label: 'Chat', perm: 'config' },
+  { key: 'planos', label: 'Planos, anamnese e PDF', perm: 'config' },
   { key: 'site', label: 'Depoimentos e dúvidas', perm: 'site' },
   { key: 'equipe', label: 'Equipe e permissões', perm: 'config' },
   { key: 'integracoes', label: 'Integrações', perm: 'config' },
@@ -50,6 +52,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       {sec.key === 'horarios' && <ScheduleSection s={s} />}
       {sec.key === 'mensagens' && <TemplatesSection s={s} />}
       {sec.key === 'chat' && <ChatSection s={s} />}
+      {sec.key === 'planos' && <ClinicalSection s={s} />}
       {sec.key === 'site' && <SiteSection />}
       {sec.key === 'equipe' && <TeamSection tz={s.timezone} />}
       {sec.key === 'integracoes' && <IntegrationsSection />}
@@ -297,6 +300,55 @@ async function ScheduleSection({ s }: { s: S }) {
   )
 }
 
+async function ClinicalSection({ s }: { s: S }) {
+  const templates = await db.select({ id: schema.formTemplates.id, title: schema.formTemplates.title, kind: schema.formTemplates.kind }).from(schema.formTemplates).where(eq(schema.formTemplates.active, true))
+  return (
+    <section className="card">
+      <ActionForm action={saveClinicalSettings} className="stack">
+        <Field label="Refeições padrão dos planos novos (uma por linha: nome e horário)" name="defaultMeals" hint="Ex.: Café da manhã 07:00. Um plano “em branco” já começa com essas refeições.">
+          <textarea name="defaultMeals" rows={6} defaultValue={s.defaultMeals.map((m) => `${m.name} ${m.time}`).join('\n')} />
+        </Field>
+        <Field label="Anamnese enviada automaticamente a cada paciente novo" name="autoAnamnesisTemplateId" hint="Modelos criados em Formulários. Com o link externo (Google Forms) configurado no Perfil, os dois convivem.">
+          <select name="autoAnamnesisTemplateId" defaultValue={s.autoAnamnesisTemplateId ?? ''}>
+            <option value="">Não enviar automaticamente</option>
+            {templates
+              .filter((t) => t.kind === 'anamnese')
+              .map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.title}
+                </option>
+              ))}
+          </select>
+        </Field>
+        <fieldset>
+          <legend>Assinatura no PDF do plano</legend>
+          <Field label="Texto abaixo da assinatura (opcional)" name="signatureText" hint="Ex.: Nutricionista — CRN-0 00000 · contato@…">
+            <input name="signatureText" maxLength={300} defaultValue={s.signatureText ?? ''} />
+          </Field>
+          <Field label="Imagem da assinatura (PNG ou JPG, fundo branco ou transparente)" name="signature">
+            <input type="file" name="signature" accept="image/png,image/jpeg" />
+          </Field>
+          {s.signatureFileId && (
+            <div className="row" style={{ alignItems: 'center' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/arquivos/${s.signatureFileId}`} alt="Assinatura atual" style={{ maxHeight: 56, background: '#fff', border: '1px solid var(--line)', borderRadius: 8, padding: 4 }} />
+              <label className="check">
+                <input type="checkbox" name="removeSignature" /> Remover imagem
+              </label>
+            </div>
+          )}
+        </fieldset>
+        <p className="small muted" style={{ margin: 0 }}>
+          Logo, cor da marca, nome e registro profissional ficam em “Perfil e identidade” e também aparecem no PDF.
+        </p>
+        <div>
+          <SubmitButton>Salvar</SubmitButton>
+        </div>
+      </ActionForm>
+    </section>
+  )
+}
+
 function ChatSection({ s }: { s: S }) {
   const h = s.chatHours
   return (
@@ -517,6 +569,9 @@ async function TeamSection({ tz }: { tz: string }) {
               <label className="check">
                 <input type="checkbox" name="isActive" defaultChecked={u.isActive} /> Acesso ativo
               </label>
+              <label className="check">
+                <input type="checkbox" name="ownPatientsOnly" defaultChecked={u.ownPatientsOnly} /> Nutricionista: vê só os próprios pacientes (ficha, planos, diário, chat, acompanhamento e agenda)
+              </label>
               <div>
                 <SubmitButton className="btn btn--sm btn--primary">Salvar permissões</SubmitButton>
               </div>
@@ -544,6 +599,9 @@ async function TeamSection({ tz }: { tz: string }) {
                 </label>
               ))}
             </div>
+            <label className="check">
+              <input type="checkbox" name="ownPatientsOnly" /> Nutricionista: vê só os próprios pacientes
+            </label>
           </fieldset>
           <div>
             <SubmitButton>Gerar convite</SubmitButton>

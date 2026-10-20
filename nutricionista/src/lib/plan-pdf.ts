@@ -46,6 +46,11 @@ type Opts = {
   showKcal: boolean
   showMacros: boolean
   contact: string | null
+  prescriptions?: { type: string; name: string; dose: string | null; schedule: string | null; duration: string | null }[]
+  /** Assinatura no fim do plano: texto e imagem (PNG/JPG) opcionais. */
+  signature?: { text: string | null; image: { bytes: Uint8Array; mime: string } | null }
+  /** Logo do consultório no cabeçalho (PNG/JPG). */
+  logo?: { bytes: Uint8Array; mime: string } | null
 }
 
 export async function planPdf(plan: PlanContent, o: Opts) {
@@ -106,6 +111,15 @@ export async function planPdf(plan: PlanContent, o: Opts) {
   }
 
   newPage()
+  if (o.logo) {
+    try {
+      const img = o.logo.mime === 'image/png' ? await doc.embedPng(o.logo.bytes) : await doc.embedJpg(o.logo.bytes)
+      const k = Math.min(56 / img.width, 56 / img.height)
+      page.drawImage(img, { x: A4.w - M - img.width * k, y: A4.h - M - img.height * k + 6, width: img.width * k, height: img.height * k })
+    } catch {
+      // Formato de imagem não suportado: segue sem logo.
+    }
+  }
   // Cabeçalho: profissional e registro.
   text(o.professionalName, { font: bold, size: 16, color: brand })
   text([o.professionalTitle, o.registry].filter(Boolean).join(' · '), { size: 10, color: muted })
@@ -165,6 +179,38 @@ export async function planPdf(plan: PlanContent, o: Opts) {
     y -= 10
     text('Orientações gerais', { font: bold, size: 13, color: brand })
     text(plan.guidance, { size: 10 })
+  }
+
+  if (o.prescriptions?.length) {
+    ensure(50)
+    y -= 10
+    text('Suplementos e exames', { font: bold, size: 13, color: brand })
+    const label: Record<string, string> = { suplemento: 'Suplemento', fitoterapico: 'Fitoterápico', exame: 'Exame' }
+    for (const p of o.prescriptions) {
+      text(`•  ${p.name} (${label[p.type] ?? p.type})`, { size: 10, x: M + 6 })
+      const det = [p.dose, p.schedule, p.duration].filter(Boolean).join(' · ')
+      if (det) text(det, { size: 9, color: muted, x: M + 18 })
+    }
+  }
+
+  if (o.signature) {
+    ensure(110)
+    y -= 26
+    if (o.signature.image) {
+      try {
+        const img = o.signature.image.mime === 'image/png' ? await doc.embedPng(o.signature.image.bytes) : await doc.embedJpg(o.signature.image.bytes)
+        const scaleK = Math.min(160 / img.width, 56 / img.height, 1)
+        page.drawImage(img, { x: M, y: y - img.height * scaleK, width: img.width * scaleK, height: img.height * scaleK })
+        y -= img.height * scaleK + 4
+      } catch {
+        // Imagem em formato não suportado: segue só com o texto.
+      }
+    }
+    page.drawLine({ start: { x: M, y: y - 2 }, end: { x: M + 200, y: y - 2 }, thickness: 0.6, color: ink })
+    y -= 8
+    text(o.professionalName, { font: bold, size: 10 })
+    text([o.professionalTitle, o.registry].filter(Boolean).join(' · '), { size: 9, color: muted })
+    if (o.signature.text) text(o.signature.text, { size: 9, color: muted })
   }
 
   // Rodapé em todas as páginas.

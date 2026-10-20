@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireTeam } from '@/lib/auth/session'
+import { isRestricted } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { trackingBoard } from '@/lib/tracking'
@@ -21,7 +22,7 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
   const sp = await searchParams
   const s = await getSettings()
   const today = todayIn(s.timezone)
-  const rows = await trackingBoard(today, s.timezone, { good: s.adherenceGood, low: s.adherenceLow })
+  const rows = await trackingBoard(today, s.timezone, { good: s.adherenceGood, low: s.adherenceLow }, isRestricted(user) ? user.id : null)
   const group = (ORDER as string[]).includes(sp.grupo ?? '') ? (sp.grupo as AdherenceClass) : null
   const counts = Object.fromEntries(ORDER.map((k) => [k, rows.filter((r) => r.klass === k).length])) as Record<AdherenceClass, number>
   const shown = rows

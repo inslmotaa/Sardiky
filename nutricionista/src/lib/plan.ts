@@ -88,11 +88,19 @@ export type PlanContent = z.infer<typeof planContentSchema>
 
 export const uid = () => Math.random().toString(36).slice(2, 10)
 
-export const emptyPlan = (): PlanContent => ({
+/** Plano em branco; `meals` traz as refeições padrão do consultório (nome e horário). */
+export const emptyPlan = (meals: { name: string; time: string }[] = []): PlanContent => ({
   v: 2,
   mode: 'calculado',
   targets: { kcal: null, protein: null, carbs: null, fat: null, fiber: null },
-  days: [{ id: uid(), label: 'Todos os dias', weekdays: [], meals: [] }],
+  days: [
+    {
+      id: uid(),
+      label: 'Todos os dias',
+      weekdays: [],
+      meals: meals.map((m) => ({ id: uid(), name: m.name, time: m.time, notes: '', options: [{ id: uid(), label: 'Opção 1', items: [] }] })),
+    },
+  ],
   guidance: '',
 })
 

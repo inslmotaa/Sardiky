@@ -6,6 +6,8 @@ import { and, eq, max } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { getCurrentUser } from '@/lib/auth/session'
+import { assertPatientAccess } from '@/lib/team-access'
 import { audit } from '@/lib/audit'
 import { failure, UserError, type ActionState } from '@/lib/action'
 import { notifyUser, sendEmail } from '@/lib/notify'
@@ -18,6 +20,8 @@ async function planOrThrow(id: string) {
   if (!uuid.safeParse(id).success) throw new UserError('Plano inválido.')
   const [p] = await db.select().from(schema.mealPlans).where(eq(schema.mealPlans.id, id))
   if (!p) throw new UserError('Plano não encontrado.')
+  const user = await getCurrentUser()
+  if (user) await assertPatientAccess(user, p.patientId)
   return p
 }
 
@@ -44,7 +48,8 @@ export async function createPlan(_: ActionState, fd: FormData): Promise<ActionSt
     const asTemplate = parsed.data.template === 'on'
     const patientId = asTemplate ? null : parsed.data.patientId || null
     if (!asTemplate && (!patientId || !uuid.safeParse(patientId).success)) return { error: 'Escolha o paciente.' }
-    let content = emptyPlan()
+    await assertPatientAccess(user, patientId)
+    let content = emptyPlan((await getSettings()).defaultMeals)
     if (parsed.data.sourceId) {
       const src = await planOrThrow(parsed.data.sourceId)
       content = normalizePlan(src.content)

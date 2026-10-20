@@ -29,6 +29,7 @@ import {
   type Substitution,
 } from '@/lib/plan'
 import { FoodPicker, type FoodPickerHandle } from './nutri/FoodPicker'
+import { RESTRICTIONS, restrictionAlerts, type RestrictionKey } from '@/lib/restricoes'
 import { KcalRing, MacroBars, NutriInline } from './nutri/MacroBars'
 import { PatientPlan } from './nutri/PatientPlan'
 
@@ -49,7 +50,7 @@ type Props = {
   validUntil: string | null
   isTemplate: boolean
   foods: EditorFood[]
-  patient?: { name: string; weightKg: number | null; energyTarget: number | null }
+  patient?: { name: string; weightKg: number | null; energyTarget: number | null; restrictions?: string[] }
 }
 
 const MEAL_PRESETS: [string, string][] = [
@@ -352,6 +353,11 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
         )}
       </section>
 
+      {!!patient?.restrictions?.length && (
+        <p className="alert alert--warn small" style={{ margin: 0 }}>
+          <strong>Restrições do paciente:</strong> {patient.restrictions.map((r) => RESTRICTIONS[r as RestrictionKey]?.label ?? r).join(', ')}. Alimentos que conflitam aparecem com ⚠.
+        </p>
+      )}
       <div className="plan-editor">
         {/* -------------------------- refeições -------------------------- */}
         <div className="stack" style={{ ['--gap' as string]: '16px' }}>
@@ -375,6 +381,7 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
               mealAt={mealAt}
               optAt={optAt}
               dIdx={dIdx}
+              restrictions={patient?.restrictions ?? []}
             />
           ))}
 
@@ -624,10 +631,12 @@ type MealEditorProps = {
   mealAt: (c: PlanContent, mi: number) => PlanMeal
   optAt: (c: PlanContent, mi: number) => PlanMeal['options'][number]
   dIdx: number
+  restrictions: string[]
 }
 
 function MealEditor(p: MealEditorProps) {
   const { meal, mi, calc, update, mealAt, optAt } = p
+  const [pickAlert, setPickAlert] = useState<string | null>(null)
   const opt = meal.options[p.optIndex]
   const sub = optionTotals(opt)
   const editItem = (ii: number, fn: (it: PlanItem) => void) =>
@@ -768,6 +777,7 @@ function MealEditor(p: MealEditorProps) {
                 <div className="item-name">
                   {it.name}
                   <div>{n && <NutriInline n={n} />}</div>
+                  <RestrictionBadges name={it.name} group={it.group} restrictions={p.restrictions} />
                 </div>
               ) : (
                 <div className="field">
@@ -1018,17 +1028,25 @@ function MealEditor(p: MealEditorProps) {
           foods={p.foods}
           label={`Adicionar alimento em ${meal.name}`}
           placeholder={calc ? '+ Adicionar alimento (busca)' : '+ Adicionar alimento'}
-          onPick={(f) =>
+          onPick={(f) => {
+            const food = p.foodById.get(f.id)!
+            const alerts = restrictionAlerts(food, p.restrictions)
+            setPickAlert(alerts.length ? `Atenção: “${food.name}” conflita com a restrição do paciente (${alerts.join(', ')}). Confirme se é isso mesmo.` : null)
             update((c) => {
-              optAt(c, mi).items.push(itemFromFood(p.foodById.get(f.id)!))
+              optAt(c, mi).items.push(itemFromFood(food))
             })
-          }
+          }}
           onFreeText={(text) =>
             update((c) => {
               optAt(c, mi).items.push({ id: uid(), foodId: null, name: text, group: '', per100: null, grams: null, measure: null, text: '', notes: '', locked: false, subs: [] })
             })
           }
         />
+        {pickAlert && (
+          <p className="alert alert--warn small" role="alert" style={{ margin: '8px 0 0' }}>
+            {pickAlert}
+          </p>
+        )}
       </div>
 
       <div className="row" style={{ gap: 8 }}>
@@ -1121,6 +1139,19 @@ function Suggestions({
           </div>
         )
       })}
+    </div>
+  )
+}
+
+/** Selo de alerta quando o alimento fere uma restrição do paciente (vinda da anamnese ou da ficha). */
+function RestrictionBadges({ name, group, restrictions }: { name: string; group: string; restrictions: string[] }) {
+  const alerts = restrictions.length ? restrictionAlerts({ name, group }, restrictions) : []
+  if (!alerts.length) return null
+  return (
+    <div>
+      <span className="badge badge--danger" title="Restrição registrada na ficha do paciente">
+        ⚠ Restrição: {alerts.join(', ')}
+      </span>
     </div>
   )
 }

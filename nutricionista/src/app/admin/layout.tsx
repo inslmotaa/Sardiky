@@ -4,6 +4,7 @@ import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
+import { isRestricted } from '@/lib/team-access'
 import { logout } from '@/actions/auth'
 import { Brand } from '@/components/Brand'
 import { PwaClient } from '@/components/pwa'
@@ -35,7 +36,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       ? db
           .select({ n: count() })
           .from(schema.messages)
-          .where(and(eq(schema.messages.fromPatient, true), isNull(schema.messages.readAt)))
+          .innerJoin(schema.patients, eq(schema.patients.id, schema.messages.patientId))
+          .where(and(eq(schema.messages.fromPatient, true), isNull(schema.messages.readAt), isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined))
       : Promise.resolve([{ n: 0 }]),
     db.select({ n: count() }).from(schema.leads).where(eq(schema.leads.status, 'novo')),
   ])
@@ -51,6 +53,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: '/admin/mensagens', label: 'Mensagens', icon: <IconChat />, count: unread.n, show: can(user, 'clinico') },
         { href: '/admin/planos', label: 'Planos alimentares', icon: <IconPlate />, show: can(user, 'clinico') },
         { href: '/admin/alimentos', label: 'Alimentos', icon: <IconBook />, show: can(user, 'clinico') },
+        { href: '/admin/receitas', label: 'Receitas', icon: <IconPlate />, show: can(user, 'clinico') },
+        { href: '/admin/materiais', label: 'Materiais', icon: <IconBook />, show: can(user, 'clinico') },
         { href: '/admin/calculadoras', label: 'Calculadoras', icon: <IconChart />, show: can(user, 'clinico') },
         { href: '/admin/formularios', label: 'Formulários', icon: <IconForm />, show: can(user, 'clinico') },
       ],

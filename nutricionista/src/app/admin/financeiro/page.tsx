@@ -33,7 +33,7 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
 
   const [rows, pendingRows, monthly, packages, patients] = await Promise.all([
     db
-      .select({ pay: schema.payments, name: schema.patients.fullName })
+      .select({ pay: schema.payments, name: schema.patients.fullName, phone: schema.patients.phone })
       .from(schema.payments)
       .leftJoin(schema.patients, eq(schema.patients.id, schema.payments.patientId))
       .where(

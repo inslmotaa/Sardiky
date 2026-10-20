@@ -6,9 +6,11 @@ import { z } from 'zod'
 import { db, schema } from '@/db'
 import { DEFAULT_FEATURES, type AppFeatures } from '@/db/schema'
 import { requireTeam } from '@/lib/auth/session'
+import { assertPatientAccess } from '@/lib/team-access'
 import { audit } from '@/lib/audit'
 import { failure, formObject, zodErrors, type ActionState } from '@/lib/action'
 import { BMR_FORMULAS, normalize } from '@/lib/nutricao'
+import { RESTRICTIONS } from '@/lib/restricoes'
 import { getSettings } from '@/lib/settings'
 import { todayIn } from '@/lib/time'
 import { checkbox, optNum, optStr, str, uuid } from '@/lib/validation'
@@ -29,6 +31,7 @@ export async function saveEnergy(patientId: string, e: z.input<typeof energySche
   try {
     const user = await requireTeam('clinico')
     if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    await assertPatientAccess(user, patientId)
     const parsed = energySchema.safeParse(e)
     if (!parsed.success) return { error: 'Valores fora da faixa esperada. Revise os dados.' }
     const s = await getSettings()
@@ -51,11 +54,29 @@ export async function setPatientFeatures(patientId: string, _: ActionState, fd: 
   try {
     const user = await requireTeam('clinico')
     if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    await assertPatientAccess(user, patientId)
     const features = Object.fromEntries((Object.keys(DEFAULT_FEATURES) as (keyof AppFeatures)[]).map((k) => [k, fd.get(k) === 'on'])) as AppFeatures
     await db.update(schema.patients).set({ features, updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
     await audit(user, 'recursos_app_alterados', 'paciente', { entityId: patientId, patientId, details: features })
     revalidatePath(`/admin/pacientes/${patientId}`)
     return { ok: true, message: 'Recursos do app atualizados.' }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+/* --------------------------- restrições alimentares --------------------------- */
+
+export async function setRestrictions(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
+  try {
+    const user = await requireTeam('clinico')
+    if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    await assertPatientAccess(user, patientId)
+    const restrictions = fd.getAll('restriction').map(String).filter((k) => k in RESTRICTIONS)
+    await db.update(schema.patients).set({ restrictions, updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
+    await audit(user, 'restricoes_alteradas', 'paciente', { entityId: patientId, patientId, details: { restricoes: restrictions } })
+    revalidatePath(`/admin/pacientes/${patientId}`)
+    return { ok: true, message: restrictions.length ? 'Restrições salvas. O editor de planos vai alertar os alimentos que conflitam.' : 'Sem restrições registradas.' }
   } catch (err) {
     return failure(err)
   }
@@ -67,6 +88,7 @@ export async function setAnamnesis(patientId: string, _: ActionState, fd: FormDa
   try {
     const user = await requireTeam('clinico')
     if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    await assertPatientAccess(user, patientId)
     const received = fd.get('received') === 'on'
     const notes = String(fd.get('notes') ?? '').trim().slice(0, 20000) || null
     const [p] = await db.select({ at: schema.patients.anamnesisReceivedAt }).from(schema.patients).where(eq(schema.patients.id, patientId))

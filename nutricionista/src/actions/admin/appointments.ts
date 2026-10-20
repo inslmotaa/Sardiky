@@ -13,7 +13,9 @@ import { newCode } from '@/lib/auth/tokens'
 import { notifyUser, renderTemplate, sendEmail } from '@/lib/notify'
 import { fitsWorkingHours } from '@/lib/scheduling'
 import { getSettings, getWorkingHours } from '@/lib/settings'
-import { fmtDay, zonedParts, zonedToUtc } from '@/lib/time'
+import { addDays, fmtDay, zonedParts, zonedToUtc } from '@/lib/time'
+import { jitsiRoom, nationalHolidays } from '@/lib/feriados'
+import { randomBytes } from 'node:crypto'
 import { day, email, optStr, phone, str, time, uuid } from '@/lib/validation'
 
 async function loadAppointment(id: string) {
@@ -48,11 +50,19 @@ function refresh(id?: string) {
   if (id) revalidatePath(`/admin/agenda/${id}`)
 }
 
+/** Consulta on-line confirmada sem link: cria uma sala no Jitsi Meet (gratuito, sem conta). */
+async function meetingFor(a: { modality: string; meetingUrl: string | null }) {
+  if (a.modality !== 'online' || a.meetingUrl) return a.meetingUrl
+  const s = await getSettings()
+  return jitsiRoom(s.professionalName, randomBytes(6).toString('hex'))
+}
+
 export async function confirmAppointment(id: string): Promise<void> {
   const user = await requireTeam('agenda')
   const a = await loadAppointment(id)
   if (a.status !== 'pendente') return
-  await db.update(schema.appointments).set({ status: 'confirmada', updatedAt: new Date() }).where(eq(schema.appointments.id, id))
+  const meetingUrl = await meetingFor(a)
+  await db.update(schema.appointments).set({ status: 'confirmada', meetingUrl, updatedAt: new Date() }).where(eq(schema.appointments.id, id))
   await tellPatient(a, 'confirmacao')
   await audit(user, 'consulta_confirmada', 'consulta', { entityId: id, patientId: a.patientId })
   refresh(id)
@@ -233,6 +243,7 @@ export async function createAppointmentAdmin(_: ActionState, fd: FormData): Prom
           contactPhone: contact.phone,
           isReturning: Boolean(contact.patientId),
           internalNotes: d.internalNotes,
+          meetingUrl: d.status === 'confirmada' ? await meetingFor({ modality: d.modality, meetingUrl: null }) : null,
           source: 'admin',
           code: newCode(),
         })
@@ -245,6 +256,43 @@ export async function createAppointmentAdmin(_: ActionState, fd: FormData): Prom
     return failure(err)
   }
   redirect(`/admin/agenda/${id}`)
+}
+
+/** Gera (ou troca) o link da videochamada da consulta. */
+export async function generateMeetingLink(id: string): Promise<void> {
+  const user = await requireTeam('agenda')
+  const a = await loadAppointment(id)
+  const s = await getSettings()
+  const meetingUrl = jitsiRoom(s.professionalName, randomBytes(6).toString('hex'))
+  await db.update(schema.appointments).set({ meetingUrl, updatedAt: new Date() }).where(eq(schema.appointments.id, a.id))
+  await audit(user, 'videochamada_gerada', 'consulta', { entityId: a.id, patientId: a.patientId })
+  refresh(a.id)
+}
+
+/** Bloqueia na agenda os feriados nacionais do ano (e, se marcado, os pontos facultativos). */
+export async function importHolidays(_: ActionState, fd: FormData): Promise<ActionState> {
+  const parsed = z.object({ year: z.coerce.number().int().min(2024).max(2100), optional: z.string().optional() }).safeParse(formObject(fd))
+  if (!parsed.success) return { error: 'Ano inválido.' }
+  try {
+    const user = await requireTeam('agenda')
+    const s = await getSettings()
+    const existing = await db.select({ startAt: schema.timeBlocks.startAt, reason: schema.timeBlocks.reason }).from(schema.timeBlocks)
+    let added = 0
+    for (const h of nationalHolidays(parsed.data.year)) {
+      if (h.optional && parsed.data.optional !== 'on') continue
+      const startAt = zonedToUtc(h.date, '00:00', s.timezone)
+      const endAt = zonedToUtc(addDays(h.date, 1), '00:00', s.timezone)
+      const reason = `Feriado: ${h.name}`
+      if (existing.some((e) => e.startAt.getTime() === startAt.getTime() && e.reason === reason)) continue
+      await db.insert(schema.timeBlocks).values({ startAt, endAt, reason, createdBy: user.id })
+      added++
+    }
+    await audit(user, 'feriados_importados', 'agenda', { details: { ano: parsed.data.year, quantidade: added } })
+    refresh()
+    return { ok: true, message: added ? `${added} feriados de ${parsed.data.year} bloqueados na agenda.` : `Os feriados de ${parsed.data.year} já estavam bloqueados.` }
+  } catch (err) {
+    return failure(err)
+  }
 }
 
 const blockSchema = z.object({ day, start: time, endDay: day, end: time, reason: optStr(200) })

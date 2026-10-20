@@ -11,7 +11,9 @@ import { parseAnswers } from '@/lib/forms'
 import { notifyTeam } from '@/lib/team'
 import { getSettings } from '@/lib/settings'
 import { currentPublishedPlan, featuresOf } from '@/lib/patient-context'
-import { saveUpload, CHAT_TYPES, IMAGE_TYPES } from '@/lib/storage'
+import { saveUpload, CHAT_TYPES, DOC_TYPES, IMAGE_TYPES } from '@/lib/storage'
+import { applyAnamnesis } from '@/lib/anamnese'
+import { PRIVACY_VERSION } from '@/lib/constants'
 import { chatFileTitle } from '@/lib/format'
 import { postMessage } from '@/lib/chat'
 import { pushToTeam } from '@/lib/push'
@@ -252,7 +254,7 @@ export async function addOwnProgressPhotos(_: ActionState, fd: FormData): Promis
   try {
     const r = await saveProgressPhotos(user.patientId, user.id, date.data, fd)
     if ('error' in r) return { error: r.error }
-    await notifyTeam('clinico', 'Novas fotos de evolução', user.name, `/admin/pacientes/${user.patientId}?aba=evolucao`)
+    await notifyTeam('clinico', 'Novas fotos de evolução', user.name, `/admin/pacientes/${user.patientId}?aba=evolucao`, user.patientId)
     await audit(user, 'fotos_evolucao_enviadas', 'foto', { patientId: user.patientId, details: { quantidade: r.saved } })
     revalidatePath('/paciente/evolucao')
     return { ok: true, message: r.saved === 1 ? 'Foto salva.' : `${r.saved} fotos salvas.` }
@@ -277,7 +279,7 @@ export async function toggleOwnGoal(id: string) {
   if (!g || g.status === 'cancelada') return
   const done = g.status !== 'concluida'
   await db.update(schema.goals).set({ status: done ? 'concluida' : 'ativa', completedAt: done ? new Date() : null }).where(eq(schema.goals.id, g.id))
-  if (done) await notifyTeam('clinico', 'Meta concluída pelo paciente', `${user.name} · ${g.title}`, `/admin/pacientes/${user.patientId}?aba=metas`)
+  if (done) await notifyTeam('clinico', 'Meta concluída pelo paciente', `${user.name} · ${g.title}`, `/admin/pacientes/${user.patientId}?aba=metas`, user.patientId)
   revalidatePath('/paciente/evolucao')
 }
 
@@ -299,17 +301,38 @@ export async function submitForm(assignmentId: string, _: ActionState, fd: FormD
   if (!a) return { error: 'Formulário não encontrado.' }
   if (a.answeredAt) return { error: 'Este formulário já foi enviado.' }
   const { answers, errors } = parseAnswers(a.fields, fd)
+  // Anamnese: consentimento explícito para dados de saúde (registrado com versão e data) antes do envio.
+  const needsConsent =
+    a.kind === 'anamnese' &&
+    !(await db.select({ id: schema.consents.id }).from(schema.consents).where(and(eq(schema.consents.patientId, user.patientId), eq(schema.consents.kind, 'anamnese_dados_saude'))))
+      .length
+  if (needsConsent && fd.get('lgpd_consent') !== 'on') errors.lgpd = 'É necessário autorizar o uso dos dados de saúde'
   if (Object.keys(errors).length) {
-    return { error: 'Revise as respostas destacadas.', fieldErrors: Object.fromEntries(Object.entries(errors).map(([k, v]) => [`f_${k}`, v])) }
+    return { error: 'Revise as respostas destacadas.', fieldErrors: Object.fromEntries(Object.entries(errors).map(([k, v]) => [k === 'lgpd' ? 'lgpd_consent' : `f_${k}`, v])) }
   }
   try {
+    // Exames enviados nos campos de arquivo: pasta privada, visíveis ao paciente e à equipe clínica.
+    for (const f of a.fields.filter((x) => x.type === 'file')) {
+      const file = fd.get(`f_${f.id}`)
+      if (!(file instanceof File) || file.size === 0) continue
+      if (!rateLimit(`upload:${user.id}`, 30, 3_600_000)) throw new UserError('Limite de envios atingido. Tente mais tarde.')
+      const saved = await saveUpload(file, DOC_TYPES)
+      if ('error' in saved) return { fieldErrors: { [`f_${f.id}`]: saved.error! }, error: saved.error }
+      const [row] = await db
+        .insert(schema.files)
+        .values({ patientId: user.patientId, uploadedBy: user.id, kind: 'exame', title: `${f.label}`.slice(0, 120), mime: saved.mime, size: saved.size, storageKey: saved.key, visibleToPatient: true })
+        .returning({ id: schema.files.id })
+      answers[f.id] = row.id
+    }
+    if (needsConsent) await db.insert(schema.consents).values({ userId: user.id, patientId: user.patientId, kind: 'anamnese_dados_saude', version: PRIVACY_VERSION })
     await db.update(schema.formAssignments).set({ answers, answeredAt: new Date() }).where(eq(schema.formAssignments.id, a.id))
+    if (a.kind === 'anamnese' || a.fields.some((f) => f.mapsTo)) await applyAnamnesis(user.patientId, a.fields, answers)
     if (a.kind === 'consentimento') {
       await db.insert(schema.consents).values({ userId: user.id, patientId: user.patientId, kind: `termo:${a.title}`.slice(0, 80), version: a.id })
     }
-    await notifyTeam('clinico', a.kind === 'anamnese' ? 'Anamnese recebida' : 'Formulário respondido', `${user.name} · ${a.title}`, `/admin/pacientes/${user.patientId}?aba=formularios`)
+    await notifyTeam('clinico', a.kind === 'anamnese' ? 'Anamnese recebida' : 'Formulário respondido', `${user.name} · ${a.title}`, `/admin/pacientes/${user.patientId}?aba=formularios`, user.patientId)
     if (a.kind === 'anamnese') {
-      await pushToTeam('clinico', { title: 'Anamnese recebida', body: user.name, url: `/admin/pacientes/${user.patientId}?aba=formularios` })
+      await pushToTeam('clinico', { title: 'Anamnese recebida', body: user.name, url: `/admin/pacientes/${user.patientId}?aba=formularios` }, user.patientId)
       const s = await getSettings()
       if (s.contactEmail) await sendEmail(s.contactEmail, `Anamnese recebida: ${user.name}`, `${user.name} enviou a anamnese pelo app. Veja as respostas no painel, na ficha do paciente.`)
     }
@@ -343,10 +366,69 @@ export async function cancelOwnAppointment(_: ActionState, fd: FormData): Promis
     .update(schema.appointments)
     .set({ status: 'cancelada', cancelReason: reason ? `Cancelada pelo paciente: ${reason}` : 'Cancelada pelo paciente', updatedAt: new Date() })
     .where(eq(schema.appointments.id, a.id))
-  await notifyTeam('agenda', 'Consulta cancelada pelo paciente', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`)
+  await notifyTeam('agenda', 'Consulta cancelada pelo paciente', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
   await audit(user, 'consulta_cancelada', 'consulta', { entityId: a.id, patientId: user.patientId })
   revalidatePath('/paciente/consultas')
   return { ok: true, message: 'Consulta cancelada. O horário foi liberado.' }
+}
+
+/** O paciente confirma presença numa consulta confirmada pelo consultório. */
+export async function confirmPresence(id: string): Promise<void> {
+  const user = await requirePatient()
+  if (!uuid.safeParse(id).success) return
+  const [a] = await db
+    .select()
+    .from(schema.appointments)
+    .where(and(eq(schema.appointments.id, id), eq(schema.appointments.patientId, user.patientId)))
+  if (!a || a.status !== 'confirmada' || a.startAt < new Date()) return
+  await db.update(schema.appointments).set({ patientConfirmedAt: new Date(), updatedAt: new Date() }).where(eq(schema.appointments.id, a.id))
+  const s = await getSettings()
+  await notifyTeam('agenda', 'Paciente confirmou presença', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
+  await audit(user, 'presenca_confirmada', 'consulta', { entityId: a.id, patientId: user.patientId })
+  revalidatePath('/paciente/consultas')
+}
+
+/** Pedido de remarcação: o consultório recebe o aviso e combina o novo horário. */
+export async function requestReschedule(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requirePatient()
+  const parsed = z.object({ id: uuid, note: optStr(500) }).safeParse(formObject(fd))
+  if (!parsed.success) return { error: 'Consulta inválida.' }
+  const [a] = await db
+    .select()
+    .from(schema.appointments)
+    .where(and(eq(schema.appointments.id, parsed.data.id), eq(schema.appointments.patientId, user.patientId)))
+  if (!a || !['pendente', 'confirmada'].includes(a.status) || a.startAt < new Date()) return { error: 'Esta consulta não pode ser remarcada.' }
+  await db
+    .update(schema.appointments)
+    .set({ rescheduleRequestedAt: new Date(), rescheduleNote: parsed.data.note, updatedAt: new Date() })
+    .where(eq(schema.appointments.id, a.id))
+  const s = await getSettings()
+  await notifyTeam('agenda', 'Pedido de remarcação', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}${parsed.data.note ? ` · ${parsed.data.note}` : ''}`, `/admin/agenda/${a.id}`, user.patientId)
+  await pushToTeam('agenda', { title: 'Pedido de remarcação', body: `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, url: `/admin/agenda/${a.id}` }, user.patientId)
+  await audit(user, 'remarcacao_pedida', 'consulta', { entityId: a.id, patientId: user.patientId })
+  revalidatePath('/paciente/consultas')
+  return { ok: true, message: 'Pedido enviado. O consultório vai entrar em contato para combinar o novo horário.' }
+}
+
+/** Avaliação da consulta realizada (1 a 5 estrelas e comentário opcional). */
+export async function rateAppointment(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requirePatient()
+  const parsed = z.object({ id: uuid, rating: int(1, 5), comment: optStr(1000) }).safeParse(formObject(fd))
+  if (!parsed.success) return { fieldErrors: { rating: 'Escolha de 1 a 5 estrelas' }, error: 'Escolha de 1 a 5 estrelas.' }
+  const [a] = await db
+    .select()
+    .from(schema.appointments)
+    .where(and(eq(schema.appointments.id, parsed.data.id), eq(schema.appointments.patientId, user.patientId)))
+  if (!a || a.status !== 'realizada') return { error: 'Só é possível avaliar consultas realizadas.' }
+  if (a.ratedAt) return { error: 'Esta consulta já foi avaliada. Obrigado!' }
+  await db
+    .update(schema.appointments)
+    .set({ rating: parsed.data.rating, ratingComment: parsed.data.comment, ratedAt: new Date() })
+    .where(eq(schema.appointments.id, a.id))
+  await notifyTeam('agenda', `Nova avaliação de consulta: ${'★'.repeat(parsed.data.rating)}`, user.name, `/admin/agenda/${a.id}`, user.patientId)
+  await audit(user, 'consulta_avaliada', 'consulta', { entityId: a.id, patientId: user.patientId, details: { nota: parsed.data.rating } })
+  revalidatePath('/paciente/consultas')
+  return { ok: true, message: 'Obrigado pela avaliação!' }
 }
 
 /* -------------------------------- LGPD -------------------------------- */

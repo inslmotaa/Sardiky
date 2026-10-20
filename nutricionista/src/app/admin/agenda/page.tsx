@@ -1,7 +1,8 @@
 import Link from 'next/link'
-import { and, asc, desc, eq, gt, gte, lt } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, gte, inArray, isNull, lt, or } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { visiblePatientIds } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import {
@@ -24,7 +25,7 @@ import {
   zonedToUtc,
 } from '@/lib/time'
 import { STATUS_LABEL } from '@/lib/format'
-import { createBlock, deleteBlock } from '@/actions/admin/appointments'
+import { createBlock, deleteBlock, importHolidays } from '@/actions/admin/appointments'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge, Empty } from '@/components/ui'
 
@@ -33,6 +34,7 @@ type View = 'dia' | 'semana' | 'mes' | 'lista'
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
   const user = await requireTeam()
+  const own = await visiblePatientIds(user)
   if (!can(user, 'agenda')) return <NoAccess />
   const s = await getSettings()
   const tz = s.timezone
@@ -64,7 +66,15 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     db
       .select()
       .from(schema.appointments)
-      .where(and(gte(schema.appointments.startAt, fromUtc), lt(schema.appointments.startAt, toUtc), status ? eq(schema.appointments.status, status as 'pendente') : undefined))
+      .where(
+        and(
+          gte(schema.appointments.startAt, fromUtc),
+          lt(schema.appointments.startAt, toUtc),
+          status ? eq(schema.appointments.status, status as 'pendente') : undefined,
+          // Nutricionista com pacientes próprios: só as consultas dos seus pacientes (e pedidos novos, ainda sem cadastro).
+          own ? or(isNull(schema.appointments.patientId), own.length ? inArray(schema.appointments.patientId, own) : undefined) : undefined,
+        ),
+      )
       .orderBy(view === 'lista' && !status ? desc(schema.appointments.startAt) : asc(schema.appointments.startAt)),
     db.select().from(schema.timeBlocks).where(and(lt(schema.timeBlocks.startAt, toUtc), gt(schema.timeBlocks.endAt, fromUtc))).orderBy(asc(schema.timeBlocks.startAt)),
   ])
@@ -301,6 +311,23 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
               <SubmitButton>Bloquear</SubmitButton>
             </div>
           </ActionForm>
+        </div>
+      </details>
+      <details className="disclosure">
+        <summary>Feriados nacionais</summary>
+        <div>
+          <ActionForm action={importHolidays} className="row">
+            <Field label="Ano" name="year">
+              <input name="year" type="number" min={2024} max={2100} defaultValue={date.slice(0, 4)} style={{ width: 110 }} />
+            </Field>
+            <label className="check" style={{ alignSelf: 'flex-end', paddingBottom: 10 }}>
+              <input type="checkbox" name="optional" /> Incluir Carnaval e Corpus Christi (ponto facultativo)
+            </label>
+            <div style={{ alignSelf: 'flex-end' }}>
+              <SubmitButton>Bloquear feriados</SubmitButton>
+            </div>
+          </ActionForm>
+          <p className="small muted">Bloqueia o dia inteiro de cada feriado nacional. Feriados estaduais e municipais podem ser bloqueados acima, um a um.</p>
         </div>
       </details>
     </div>

@@ -3,6 +3,7 @@ import { db, schema } from '@/db'
 import { getCurrentUser } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { uuid } from '@/lib/validation'
+import { assertPatientAccess } from '@/lib/team-access'
 
 export const dynamic = 'force-dynamic'
 
@@ -39,6 +40,7 @@ export async function GET(req: Request) {
   if (!can(user, 'clinico')) return Response.json({ sig: 'x' }, { headers })
   const p = new URL(req.url).searchParams.get('p')
   if (p && uuid.safeParse(p).success) {
+    if (!(await assertPatientAccess(user, p).then(() => true, () => false))) return Response.json({ sig: 'x' }, { headers })
     const [[msg], [diary], [readSig]] = await Promise.all([
       db.select({ last: max(schema.messages.createdAt), n: count() }).from(schema.messages).where(eq(schema.messages.patientId, p)),
       db.select({ last: max(schema.diaryEntries.createdAt), n: count() }).from(schema.diaryEntries).where(eq(schema.diaryEntries.patientId, p)),

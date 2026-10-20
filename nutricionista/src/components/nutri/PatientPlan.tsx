@@ -15,10 +15,13 @@ export function PatientPlan({
   content,
   features = { calorias: true, macros: true },
   weekday,
+  recipeBase = '/paciente/receitas/',
 }: {
   content: PlanContent
   features?: ViewFeatures
   weekday?: number
+  /** Início do link da receita vinculada ao item (o item aponta para “r:<id>”). */
+  recipeBase?: string
 }) {
   const initialDay = weekday != null ? dayForWeekday(content, weekday) : content.days[0]
   const [dayId, setDayId] = useState(initialDay?.id ?? '')
@@ -95,7 +98,15 @@ export function PatientPlan({
                 return (
                   <li key={it.id}>
                     <div className="food">
-                      <span className="food__name">{it.name}</span>
+                      <span className="food__name">
+                        {it.foodId?.startsWith('r:') ? (
+                          <a href={`${recipeBase}${it.foodId.slice(2)}`}>
+                            {it.name.replace(/^Receita: /, '')} <span className="small">· ver receita</span>
+                          </a>
+                        ) : (
+                          it.name
+                        )}
+                      </span>
                       <span className="food__qty">{quantityLabel(it)}</span>
                     </div>
                     {it.notes && <div className="small muted">{it.notes}</div>}

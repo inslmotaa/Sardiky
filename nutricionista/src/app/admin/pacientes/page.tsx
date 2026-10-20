@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { and, asc, eq, ilike, isNull, or, sql } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { isRestricted } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { fmtDay, todayIn, zonedParts } from '@/lib/time'
@@ -30,6 +31,7 @@ export default async function PatientsPage({ searchParams }: { searchParams: Pro
       .where(
         and(
           isNull(schema.patients.anonymizedAt),
+          isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined,
           status ? eq(schema.patients.status, status) : undefined,
           stage ? eq(schema.patients.stage, stage) : undefined,
           q ? or(ilike(schema.patients.fullName, like), ilike(schema.patients.email, like), ilike(schema.patients.phone, like)) : undefined,

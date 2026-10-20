@@ -8,8 +8,18 @@ export const FIELD_TYPES = {
   select: 'Lista de opções',
   radio: 'Escolha única',
   checkbox: 'Múltipla escolha',
+  scale: 'Escala de 1 a 5',
+  file: 'Envio de arquivo (exame)',
   consent: 'Aceite (termo)',
+  section: 'Título de seção (não é pergunta)',
 } as const
+
+/** Para onde a resposta é levada na ficha do paciente. */
+export const FIELD_MAPS = {
+  restricoes: 'Restrições alimentares (gera alerta no editor de planos)',
+  objetivo: 'Objetivo do paciente',
+} as const
+export type FieldMap = keyof typeof FIELD_MAPS
 
 export type FieldType = keyof typeof FIELD_TYPES
 
@@ -20,6 +30,7 @@ export const formFieldSchema = z.object({
   required: z.boolean().default(false),
   options: z.array(z.string().trim().min(1).max(120)).max(30).default([]),
   help: z.string().trim().max(500).default(''),
+  mapsTo: z.enum(['restricoes', 'objetivo']).nullable().optional(),
 })
 
 export const formFieldsSchema = z.array(formFieldSchema).min(1, 'Inclua ao menos uma pergunta').max(80)
@@ -47,6 +58,15 @@ export function parseAnswers(fields: FormField[], data: FormData) {
   const errors: Record<string, string> = {}
   for (const f of fields) {
     const key = `f_${f.id}`
+    if (f.type === 'section') continue
+    if (f.type === 'file') {
+      // O arquivo é salvo pela ação (fora deste módulo puro); aqui só a obrigatoriedade.
+      const file = data.get(key)
+      const has = typeof file === 'object' && file !== null && 'size' in file && (file as File).size > 0
+      if (f.required && !has) errors[f.id] = 'Envie o arquivo'
+      answers[f.id] = ''
+      continue
+    }
     if (f.type === 'checkbox') {
       const values = data
         .getAll(key)
@@ -70,6 +90,7 @@ export function parseAnswers(fields: FormField[], data: FormData) {
     }
     if (raw.length > 5000) errors[f.id] = 'Resposta muito longa'
     if (f.type === 'number' && Number.isNaN(Number(raw.replace(',', '.')))) errors[f.id] = 'Informe um número'
+    if (f.type === 'scale' && !/^[1-5]$/.test(raw)) errors[f.id] = 'Escolha de 1 a 5'
     if (f.type === 'date' && !/^\d{4}-\d{2}-\d{2}$/.test(raw)) errors[f.id] = 'Data inválida'
     if ((f.type === 'select' || f.type === 'radio') && !f.options.includes(raw)) errors[f.id] = 'Opção inválida'
     answers[f.id] = raw
@@ -80,6 +101,8 @@ export function parseAnswers(fields: FormField[], data: FormData) {
 export function formatAnswer(field: FormField, value: FormAnswers[string] | undefined) {
   if (value === undefined || value === '') return '—'
   if (typeof value === 'boolean') return value ? 'Aceito' : 'Não aceito'
+  if (field.type === 'scale') return `${value} de 5`
+  if (field.type === 'file') return value ? 'Arquivo enviado' : '—'
   if (Array.isArray(value)) return value.length ? value.join(', ') : '—'
   if (field.type === 'date') {
     const [y, m, d] = value.split('-')

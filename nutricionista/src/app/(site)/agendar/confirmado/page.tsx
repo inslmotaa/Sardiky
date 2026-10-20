@@ -58,6 +58,17 @@ export default async function ConfirmedPage({ searchParams }: { searchParams: Pr
                 Envio automático de e-mails e lembretes ainda não configurado neste consultório.
               </p>
             )}
+            {s.anamneseUrl && (
+              <div className="card card--soft card--flat">
+                <strong>Próximo passo: a anamnese</strong>
+                <p className="small" style={{ margin: '4px 0 10px' }}>
+                  Responder antes da consulta deixa o atendimento mais completo: são perguntas sobre sua rotina, saúde e preferências.
+                </p>
+                <a href={s.anamneseUrl} className="btn btn--primary" target="_blank" rel="noopener noreferrer">
+                  Preencher anamnese
+                </a>
+              </div>
+            )}
             <div className="row">
               {wa && (
                 <a href={wa} className="btn btn--whatsapp" target="_blank" rel="noopener noreferrer">

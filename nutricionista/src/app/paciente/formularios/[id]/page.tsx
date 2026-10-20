@@ -18,6 +18,9 @@ export default async function FillFormPage({ params }: { params: Promise<{ id: s
     .from(schema.formAssignments)
     .where(and(eq(schema.formAssignments.id, id), eq(schema.formAssignments.patientId, user.patientId)))
   if (!a) notFound()
+  const consented =
+    a.kind !== 'anamnese' ||
+    (await db.select({ id: schema.consents.id }).from(schema.consents).where(and(eq(schema.consents.patientId, user.patientId), eq(schema.consents.kind, 'anamnese_dados_saude')))).length > 0
   return (
     <div className="stack" style={{ maxWidth: 760 }}>
       <PageHead
@@ -25,7 +28,15 @@ export default async function FillFormPage({ params }: { params: Promise<{ id: s
         crumbs={[{ href: '/paciente/formularios', label: 'Formulários' }]}
         subtitle={a.answeredAt ? 'Respostas enviadas.' : a.dueDate ? `Prazo: ${fmtDay(a.dueDate)}` : undefined}
       />
-      <div className="card">{a.answeredAt ? <FormAnswersView assignment={a} /> : <FormFill fields={a.fields} action={submitForm.bind(null, a.id)} />}</div>
+      <div className="card">{a.answeredAt ? <FormAnswersView assignment={a} /> : <FormFill
+            fields={a.fields}
+            action={submitForm.bind(null, a.id)}
+            consentText={
+              consented
+                ? undefined
+                : 'Autorizo o uso dos meus dados de saúde informados nesta anamnese exclusivamente para o meu acompanhamento nutricional, conforme a Política de Privacidade. Posso revogar esta autorização a qualquer momento.'
+            }
+          />}</div>
     </div>
   )
 }

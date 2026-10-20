@@ -13,6 +13,7 @@ import { addDays, todayIn, zonedToUtc } from '../lib/time'
 import { newCode } from '../lib/auth/tokens'
 import { normalize, bmr as calcBmr, tdee as calcTdee, bodyFatFromSkinfolds, leanMass as leanMassOf } from '../lib/nutricao'
 import { buildDemoPlans } from './demo-plans'
+import { jitsiRoom } from '../lib/feriados'
 import { TACO_FOODS } from './foods-taco'
 import type { FormField } from '../lib/forms'
 
@@ -43,7 +44,7 @@ async function main() {
   console.log('Limpando dados…')
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
-      form_templates, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, meal_plans, household_measures, foods, measurements, goals, leads,
+      form_templates, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, foods, measurements, goals, leads,
       appointments, patients, packages, faqs, testimonials, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
@@ -79,6 +80,13 @@ async function main() {
     privacyContact: 'privacidade@example.com',
     anamneseUrl: 'https://forms.gle/8EkK8XcNE35ydHYKA',
     waterMlPerKg: 35,
+    defaultMeals: [
+      { name: 'Café da manhã', time: '07:00' },
+      { name: 'Almoço', time: '12:30' },
+      { name: 'Lanche da tarde', time: '16:00' },
+      { name: 'Jantar', time: '19:30' },
+    ],
+    signatureText: 'Nutricionista · atendimento presencial e on-line',
     quickReplies: ['Ótima escolha!', 'Vamos ajustar isso no retorno.', 'Obrigado por registrar, {nome}! Continue assim.', 'Tudo bem, amanhã é um novo dia.'],
     chatHours: { start: '08:00', end: '18:00', weekdays: [1, 2, 3, 4, 5] },
     chatAutoReply: 'Oi! Recebi sua mensagem e respondo no próximo horário de atendimento (segunda a sexta, 8h às 18h). Em caso de urgência, procure um serviço de saúde.',
@@ -221,7 +229,7 @@ async function main() {
     hashPassword(PASSWORDS.staff),
     hashPassword(PASSWORDS.patient),
   ])
-  const [admin, , uBeatriz, uLucas, uHelena] = await db
+  const [admin, , uBeatriz, uLucas, uHelena, nutri2] = await db
     .insert(s.users)
     .values([
       { email: 'nutri@example.com', name: 'André Farion', role: 'admin', passwordHash: adminHash },
@@ -235,6 +243,15 @@ async function main() {
       { email: 'paciente@example.com', name: 'Beatriz Exemplo', role: 'patient', passwordHash: patientHash, onboardedAt: at(-150, '20:00') },
       { email: 'lucas@example.com', name: 'Lucas Fictício', role: 'patient', passwordHash: patientHash, onboardedAt: at(-24, '20:00') },
       { email: 'helena@example.com', name: 'Helena Teste', role: 'patient', passwordHash: patientHash, onboardedAt: at(-20, '20:00') },
+      // Segunda nutricionista da equipe: vê só os próprios pacientes (Helena).
+      {
+        email: 'nutri2@example.com',
+        name: 'Carla Nutricionista (exemplo)',
+        role: 'staff',
+        passwordHash: staffHash,
+        permissions: ['clinico', 'agenda', 'cadastro'],
+        ownPatientsOnly: true,
+      },
     ])
     .returning()
 
@@ -250,6 +267,8 @@ async function main() {
         objective: 'Reeducação alimentar e melhora da disposição',
         sex: 'F',
         heightCm: 165,
+        restrictions: ['lactose'],
+        nutritionistId: admin.id,
         anamnesisReceivedAt: at(-151, '20:00'),
         status: 'ativo',
         stage: 'Acompanhamento',
@@ -265,6 +284,7 @@ async function main() {
         objective: 'Performance em corrida de rua',
         sex: 'M',
         heightCm: 178,
+        nutritionistId: admin.id,
         status: 'ativo',
         stage: 'Avaliação inicial',
         followUpDays: 21,
@@ -284,6 +304,8 @@ async function main() {
       },
       {
         userId: uHelena.id,
+        nutritionistId: nutri2.id,
+        restrictions: ['vegetariano'],
         fullName: 'Helena Teste',
         email: 'helena@example.com',
         phone: '11900000004',
@@ -357,7 +379,7 @@ async function main() {
 
   await db.insert(s.appointments).values([
     appt(helena, svcReturn, 0, '14:00', 'confirmada'),
-    appt(lucas, svcReturn, 0, '16:00', 'confirmada', { modality: 'online', meetingUrl: 'https://meet.example.com/demo' }),
+    appt(lucas, svcReturn, 0, '16:00', 'confirmada', { modality: 'online', meetingUrl: jitsiRoom('André Farion', 'demo0a1b2c') }),
     appt(beatriz, svcReturn, wd(5), '09:00', 'confirmada'),
     appt(null, svcFirst, wd(2), '10:00', 'pendente', {
       contactName: 'Interessada Exemplo',
@@ -635,15 +657,35 @@ async function main() {
   ])
 
   /* ---------------------------- formulários ---------------------------- */
+  // Modelo inicial de anamnese (seções da especificação). Os ids das perguntas antigas foram mantidos.
+  const F = (id: string, label: string, type: FormField['type'], extra: Partial<FormField> = {}): FormField => ({ id, label, type, required: false, options: [], help: '', ...extra })
   const anamnese: FormField[] = [
-    { id: 'objetivo', label: 'Qual é o seu principal objetivo com o acompanhamento?', type: 'textarea', required: true, options: [], help: '' },
-    { id: 'saude', label: 'Possui alguma condição de saúde diagnosticada?', type: 'textarea', required: false, options: [], help: 'Ex.: diabetes, hipertensão, alergias.' },
-    { id: 'medicamentos', label: 'Usa medicamentos ou suplementos? Quais?', type: 'textarea', required: false, options: [], help: '' },
-    { id: 'restricoes', label: 'Restrições alimentares', type: 'checkbox', required: false, options: ['Lactose', 'Glúten', 'Vegetariano(a)', 'Vegano(a)', 'Frutos do mar', 'Nenhuma'], help: '' },
-    { id: 'refeicoes', label: 'Quantas refeições você faz por dia?', type: 'select', required: true, options: ['1 a 2', '3', '4', '5 ou mais'], help: '' },
-    { id: 'agua', label: 'Quantos litros de água bebe por dia (aprox.)?', type: 'number', required: false, options: [], help: '' },
-    { id: 'atividade', label: 'Pratica atividade física?', type: 'radio', required: true, options: ['Não', '1 a 2 vezes/semana', '3 a 4 vezes/semana', '5 ou mais vezes/semana'], help: '' },
-    { id: 'sono', label: 'Como avalia seu sono?', type: 'radio', required: false, options: ['Ruim', 'Regular', 'Bom'], help: '' },
+    F('sec_objetivo', 'Objetivo', 'section'),
+    F('objetivo', 'Qual é o seu principal objetivo com o acompanhamento?', 'textarea', { required: true, mapsTo: 'objetivo' }),
+    F('sec_saude', 'Saúde', 'section', { help: 'Doenças, medicamentos, alergias e exames.' }),
+    F('saude', 'Possui alguma condição de saúde diagnosticada?', 'textarea', { help: 'Ex.: diabetes, hipertensão, hipotireoidismo.' }),
+    F('medicamentos', 'Usa medicamentos ou suplementos? Quais?', 'textarea'),
+    F('restricoes', 'Restrições, alergias e intolerâncias alimentares', 'checkbox', {
+      options: ['Lactose', 'Glúten', 'Vegetariano(a)', 'Vegano(a)', 'Frutos do mar', 'Ovo', 'Amendoim', 'Castanhas e oleaginosas', 'Soja', 'Nenhuma'],
+      mapsTo: 'restricoes',
+    }),
+    F('exames', 'Exames recentes (opcional)', 'file', { help: 'PDF ou foto do resultado.' }),
+    F('intestino', 'Como funciona seu intestino?', 'radio', { options: ['Todos os dias', 'Dia sim, dia não', 'Menos de 3 vezes por semana', 'Varia muito'] }),
+    F('sec_rotina', 'Rotina', 'section'),
+    F('refeicoes', 'Quantas refeições você faz por dia?', 'select', { required: true, options: ['1 a 2', '3', '4', '5 ou mais'] }),
+    F('horarios', 'Horários de acordar, trabalho/estudo e dormir', 'textarea'),
+    F('quem_cozinha', 'Quem cozinha na sua casa?', 'radio', { options: ['Eu', 'Outra pessoa da casa', 'Como fora quase sempre', 'Delivery / congelados'] }),
+    F('orcamento', 'Orçamento para alimentação', 'radio', { options: ['Apertado', 'Médio', 'Confortável'] }),
+    F('sono', 'Como avalia seu sono?', 'radio', { options: ['Ruim', 'Regular', 'Bom'] }),
+    F('atividade', 'Pratica atividade física?', 'radio', { required: true, options: ['Não', '1 a 2 vezes/semana', '3 a 4 vezes/semana', '5 ou mais vezes/semana'] }),
+    F('agua', 'Quantos litros de água bebe por dia (aprox.)?', 'number'),
+    F('alcool', 'Consumo de bebida alcoólica', 'radio', { options: ['Não bebo', 'Socialmente', 'Toda semana', 'Quase todo dia'] }),
+    F('sec_alimentacao', 'Alimentação', 'section'),
+    F('preferencias', 'Alimentos de que mais gosta', 'textarea'),
+    F('aversoes', 'Alimentos de que não gosta', 'textarea'),
+    F('recordatorio', 'Recordatório 24 h: o que você comeu e bebeu ontem, do café ao jantar?', 'textarea'),
+    F('fome', 'Como costuma ser sua fome ao longo do dia?', 'scale', { options: ['Pouca fome', 'Muita fome'] }),
+    F('frequencia', 'Com que frequência come frutas e verduras?', 'radio', { options: ['Todo dia', 'Algumas vezes por semana', 'Raramente'] }),
   ]
   const acompanhamento: FormField[] = [
     { id: 'adesao', label: 'Como foi a adesão ao plano nas últimas semanas?', type: 'radio', required: true, options: ['Segui quase tudo', 'Segui em parte', 'Tive muita dificuldade'], help: '' },
@@ -668,7 +710,7 @@ async function main() {
   const [tAnamnese, tAcomp, tTermo] = await db
     .insert(s.formTemplates)
     .values([
-      { title: 'Anamnese nutricional', kind: 'anamnese', description: 'Informações essenciais para a primeira consulta.', fields: anamnese },
+      { title: 'Anamnese nutricional', kind: 'anamnese', description: 'Objetivo, saúde, rotina e alimentação. Leva cerca de 10 minutos.', fields: anamnese },
       { title: 'Questionário de acompanhamento', kind: 'acompanhamento', description: 'Preencha entre as consultas.', fields: acompanhamento },
       { title: 'Termo de consentimento', kind: 'consentimento', description: 'Autorização para tratamento de dados de saúde.', fields: termo },
       { title: 'Questionário pré-consulta', kind: 'pre_consulta', description: 'Enviado antes da primeira consulta.', fields: preConsulta },
@@ -707,6 +749,68 @@ async function main() {
   ])
 
   /* ----------------------------- financeiro ---------------------------- */
+  /* ---------------- receitas, materiais, prescrições e anamnese ---------------- */
+  await db.update(s.settings).set({ autoAnamnesisTemplateId: tAnamnese.id }).where(eq(s.settings.id, 1))
+  const ing = (name: string, grams: number) => {
+    const f = foodRows.find((r) => r.name.startsWith(name))!
+    return { foodId: f.id, name: f.name, grams, per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber } }
+  }
+  await db.insert(s.recipes).values([
+    {
+      title: 'Panqueca de banana e aveia',
+      ingredients: [ing('Banana prata', 100), ing('Aveia em flocos', 30), ing('Ovo de galinha, inteiro, cozido', 50)],
+      finalWeightG: 160,
+      portions: 1,
+      prepMinutes: 10,
+      tags: ['café da manhã', 'sem lactose', 'vegetariana'],
+      instructions: '1. Amasse a banana com um garfo.\n2. Misture o ovo e a aveia até formar uma massa.\n3. Doure em frigideira antiaderente, 2 a 3 minutos de cada lado.\n4. Sirva com canela, se quiser.',
+      createdBy: admin.id,
+    },
+    {
+      title: 'Salada de grão-de-bico',
+      ingredients: [ing('Grão-de-bico', 160), ing('Tomate', 120), ing('Cenoura', 60), ing('Azeite de oliva', 10)],
+      portions: 2,
+      prepMinutes: 15,
+      tags: ['vegana', 'sem glúten', 'sem lactose', 'congelável'],
+      instructions: '1. Pique o tomate e rale a cenoura.\n2. Misture com o grão-de-bico cozido.\n3. Tempere com o azeite, limão, sal e cheiro-verde.',
+      createdBy: admin.id,
+    },
+    {
+      title: 'Omelete de legumes',
+      ingredients: [ing('Ovo de galinha, inteiro, cozido', 100), ing('Tomate', 40), ing('Abobrinha italiana', 40), ing('Azeite de oliva', 4)],
+      finalWeightG: 170,
+      portions: 1,
+      prepMinutes: 12,
+      tags: ['low carb', 'sem glúten', 'sem lactose'],
+      instructions: '1. Bata os ovos com uma pitada de sal.\n2. Refogue os legumes picados no azeite por 3 minutos.\n3. Junte os ovos, tampe e cozinhe em fogo baixo até firmar.',
+      visibleToAll: true,
+      createdBy: admin.id,
+    },
+  ])
+  await db.insert(s.materials).values([
+    {
+      title: 'Guia Alimentar para a População Brasileira',
+      kind: 'guia',
+      description: 'Publicação do Ministério da Saúde com os princípios de uma alimentação adequada e saudável.',
+      url: 'https://www.gov.br/saude/pt-br/assuntos/saude-brasil/publicacoes-para-promocao-a-saude/guia_alimentar_populacao_brasileira_2ed.pdf/view',
+      audience: 'todos',
+      createdBy: admin.id,
+    },
+    {
+      title: 'Como montar o prato do dia a dia',
+      kind: 'video',
+      description: 'Vídeo curto (exemplo): metade do prato com verduras e legumes, um quarto de proteína e um quarto de carboidrato.',
+      url: 'https://www.youtube.com/results?search_query=como+montar+um+prato+saudavel',
+      audience: 'pacientes',
+      patientIds: [beatriz.id],
+      createdBy: admin.id,
+    },
+  ])
+  await db.insert(s.prescriptions).values([
+    { patientId: beatriz.id, type: 'suplemento', name: 'Vitamina D3', dose: '2.000 UI', schedule: 'No almoço', duration: '90 dias', createdBy: admin.id },
+    { patientId: beatriz.id, type: 'exame', name: 'Hemograma, ferritina e vitamina D', notes: 'Trazer no próximo retorno.', createdBy: admin.id },
+  ])
+
   await db.insert(s.payments).values([
     ...pastAppts
       .filter((a) => a.status === 'realizada')
@@ -721,7 +825,7 @@ async function main() {
         createdBy: admin.id,
       })),
     { patientId: lucas.id, description: 'Pacote trimestral', amountCents: 49000, discountCents: 4900, discountReason: 'Pagamento à vista', status: 'pendente', dueDate: day(7), createdBy: admin.id },
-    { patientId: helena.id, description: 'Retorno', amountCents: 15000, status: 'pendente', dueDate: day(0), createdBy: admin.id },
+    { patientId: helena.id, description: 'Retorno', amountCents: 15000, status: 'pendente', dueDate: day(-5), createdBy: admin.id },
   ])
 
   /* ------------------------ interessados (leads) ----------------------- */
@@ -743,6 +847,7 @@ async function main() {
   console.log(`  Paciente:      paciente@example.com / ${PASSWORDS.patient}`)
   console.log(`  Paciente 2:    lucas@example.com / ${PASSWORDS.patient}`)
   console.log(`  Paciente 3:    helena@example.com / ${PASSWORDS.patient}`)
+  console.log(`  Nutricionista 2 (só os próprios pacientes): nutri2@example.com / ${PASSWORDS.staff}`)
 }
 
 await main()

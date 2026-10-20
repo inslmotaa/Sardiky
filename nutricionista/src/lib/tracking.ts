@@ -23,11 +23,12 @@ export type TrackingRow = {
  * Painel de Acompanhamento: pacientes ativos classificados pela adesão dos últimos 7 dias
  * (consultas em lote, sem uma ida ao banco por paciente).
  */
-export async function trackingBoard(today: string, tz: string, t: AdherenceThresholds): Promise<TrackingRow[]> {
+/** `onlyNutritionist`: limita aos pacientes de um nutricionista (equipe com pacientes próprios). */
+export async function trackingBoard(today: string, tz: string, t: AdherenceThresholds, onlyNutritionist?: string | null): Promise<TrackingRow[]> {
   const patients = await db
     .select()
     .from(schema.patients)
-    .where(and(eq(schema.patients.status, 'ativo'), isNull(schema.patients.anonymizedAt)))
+    .where(and(eq(schema.patients.status, 'ativo'), isNull(schema.patients.anonymizedAt), onlyNutritionist ? eq(schema.patients.nutritionistId, onlyNutritionist) : undefined))
     .orderBy(asc(schema.patients.fullName))
   if (!patients.length) return []
   const ids = patients.map((p) => p.id)

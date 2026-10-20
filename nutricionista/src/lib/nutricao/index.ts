@@ -24,6 +24,7 @@ export const FOOD_GROUPS: Record<string, string> = {
   acucares: 'Açúcares e doces',
   bebidas: 'Bebidas',
   outros: 'Outros',
+  receitas: 'Receitas',
 }
 
 /** Macro principal de cada grupo, usado na equivalência por macronutriente. */
@@ -38,6 +39,7 @@ export const GROUP_MAIN_MACRO: Record<string, MacroKey | 'kcal'> = {
   acucares: 'carbs',
   bebidas: 'kcal',
   outros: 'kcal',
+  receitas: 'kcal',
 }
 
 /* ------------------------------ números e texto ------------------------------ */

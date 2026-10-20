@@ -3,6 +3,8 @@ import { db, schema } from '@/db'
 import { getCurrentUser } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { readUpload } from '@/lib/storage'
+import { assertPatientAccess } from '@/lib/team-access'
+import { materialsForPatient } from '@/lib/patient-content'
 import { uuid } from '@/lib/validation'
 
 /**
@@ -18,10 +20,16 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
 
   if (!file.isPublic) {
     const user = await getCurrentUser()
-    const allowed =
+    let allowed =
       !!user &&
       ((user.role === 'patient' && file.patientId !== null && file.patientId === user.patientId && file.visibleToPatient) ||
         (user.role !== 'patient' && can(user, 'clinico')))
+    // Nutricionista com pacientes próprios: só arquivos dos seus pacientes.
+    if (allowed && user && user.role !== 'patient' && file.patientId) allowed = await assertPatientAccess(user, file.patientId).then(() => true, () => false)
+    // Material educativo: liberado para todos os pacientes ou para os escolhidos.
+    if (!allowed && user?.role === 'patient' && user.patientId && file.kind === 'material') {
+      allowed = (await materialsForPatient(user.patientId)).some((m) => m.fileId === file.id)
+    }
     // Fotos de evolução: nunca públicas, só o próprio paciente e a equipe clínica (regra acima).
     // 404 em vez de 403: não revela a existência do arquivo.
     if (!allowed) return new Response('Não encontrado', { status: 404 })

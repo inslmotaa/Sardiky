@@ -17,7 +17,7 @@ export async function FinanceTab({ patient }: { patient: typeof schema.patients.
         <span className="badge badge--ok">Pago: {money(paid)}</span>
         <span className="badge badge--warn">Pendente: {money(open)}</span>
       </div>
-      <PaymentsTable rows={rows.map((pay) => ({ pay, name: patient.fullName }))} showPatient={false} />
+      <PaymentsTable rows={rows.map((pay) => ({ pay, name: patient.fullName, phone: patient.phone }))} showPatient={false} />
       <details className="disclosure">
         <summary>Novo lançamento</summary>
         <div>

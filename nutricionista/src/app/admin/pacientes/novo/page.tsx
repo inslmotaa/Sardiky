@@ -4,6 +4,7 @@ import { createPatient } from '@/actions/admin/patients'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead } from '@/components/ui'
 import { PatientFormFields } from '@/components/PatientFormFields'
+import { nutritionistOptions } from '@/lib/team-access'
 
 export default async function NewPatientPage() {
   const user = await requireTeam()
@@ -13,7 +14,7 @@ export default async function NewPatientPage() {
       <PageHead title="Novo paciente" crumbs={[{ href: '/admin/pacientes', label: 'Pacientes' }]} subtitle="Depois de salvar, você pode liberar o acesso à área do paciente." />
       <div className="card">
         <ActionForm action={createPatient} className="stack">
-          <PatientFormFields />
+          <PatientFormFields nutritionists={await nutritionistOptions()} />
           <div>
             <SubmitButton>Cadastrar paciente</SubmitButton>
           </div>

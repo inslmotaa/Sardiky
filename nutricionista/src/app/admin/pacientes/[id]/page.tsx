@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { canSeePatient } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { audit } from '@/lib/audit'
 import { getSettings } from '@/lib/settings'
@@ -17,6 +18,7 @@ import { PlansTab } from './_tabs/plans'
 import { DiaryTab } from './_tabs/diary'
 import { FormsTab } from './_tabs/forms'
 import { GoalsTab } from './_tabs/goals'
+import { PrescriptionsTab } from './_tabs/prescriptions'
 import { NotesTab } from './_tabs/notes'
 import { DocumentsTab } from './_tabs/documents'
 import { MessagesTab } from './_tabs/messages'
@@ -30,6 +32,7 @@ const TABS = [
   { key: 'diario', label: 'Diário', perm: 'clinico' },
   { key: 'formularios', label: 'Anamnese e formulários', perm: 'clinico' },
   { key: 'metas', label: 'Metas', perm: 'clinico' },
+  { key: 'prescricoes', label: 'Prescrições', perm: 'clinico' },
   { key: 'notas', label: 'Notas clínicas', perm: 'clinico' },
   { key: 'documentos', label: 'Documentos', perm: 'clinico' },
   { key: 'mensagens', label: 'Mensagens', perm: 'clinico' },
@@ -43,7 +46,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
   if (!can(user, 'cadastro') && !can(user, 'clinico')) return <NoAccess />
   if (!uuid.safeParse(id).success) notFound()
   const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, id))
-  if (!p || p.anonymizedAt) notFound()
+  if (!p || p.anonymizedAt || !canSeePatient(user, p)) notFound()
   const s = await getSettings()
 
   const visible = TABS.filter((t) => (t.perm === 'cadastro' ? can(user, 'cadastro') || can(user, 'clinico') : t.perm === 'financeiro' ? s.financeEnabled && can(user, 'financeiro') : can(user, t.perm)))
@@ -95,6 +98,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
       {tab.key === 'diario' && <DiaryTab patient={p} />}
       {tab.key === 'formularios' && <FormsTab patient={p} view={sp.ver} />}
       {tab.key === 'metas' && <GoalsTab patient={p} />}
+      {tab.key === 'prescricoes' && <PrescriptionsTab patient={p} />}
       {tab.key === 'notas' && <NotesTab patient={p} />}
       {tab.key === 'documentos' && <DocumentsTab patient={p} />}
       {tab.key === 'mensagens' && <MessagesTab patient={p} />}

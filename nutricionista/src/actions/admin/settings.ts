@@ -286,7 +286,10 @@ export async function inviteStaff(_: ActionState, fd: FormData): Promise<ActionS
     const user = await requireTeam('config')
     const [exists] = await db.select().from(schema.users).where(eq(schema.users.email, parsed.data.email))
     if (exists) return { fieldErrors: { email: 'E-mail já cadastrado' }, error: 'Já existe um usuário com este e-mail.' }
-    const [u] = await db.insert(schema.users).values({ ...parsed.data, role: 'staff', permissions }).returning({ id: schema.users.id })
+    const [u] = await db
+      .insert(schema.users)
+      .values({ ...parsed.data, role: 'staff', permissions, ownPatientsOnly: fd.get('ownPatientsOnly') === 'on' })
+      .returning({ id: schema.users.id })
     const token = newToken()
     await db.insert(schema.authTokens).values({ id: hashToken(token), userId: u.id, type: 'convite', expiresAt: new Date(Date.now() + 3 * 86_400_000) })
     const url = `${process.env.APP_URL ?? 'http://localhost:3000'}/redefinir-senha?token=${token}`
@@ -305,9 +308,13 @@ export async function updateStaff(id: string, _: ActionState, fd: FormData): Pro
   try {
     const user = await requireTeam('config')
     if (!uuid.safeParse(id).success) return { error: 'Usuário inválido.' }
-    await db.update(schema.users).set({ permissions, isActive: active, updatedAt: new Date() }).where(and(eq(schema.users.id, id), eq(schema.users.role, 'staff')))
+    const ownPatientsOnly = fd.get('ownPatientsOnly') === 'on'
+    await db
+      .update(schema.users)
+      .set({ permissions, isActive: active, ownPatientsOnly, updatedAt: new Date() })
+      .where(and(eq(schema.users.id, id), eq(schema.users.role, 'staff')))
     if (!active) await db.delete(schema.sessions).where(eq(schema.sessions.userId, id))
-    await audit(user, 'permissoes_alteradas', 'usuario', { entityId: id, details: { permissions, ativo: active } })
+    await audit(user, 'permissoes_alteradas', 'usuario', { entityId: id, details: { permissions, ativo: active, soPacientesProprios: ownPatientsOnly } })
     revalidatePath('/admin/configuracoes')
     return { ok: true, message: 'Permissões atualizadas.' }
   } catch (err) {
@@ -383,6 +390,53 @@ export async function saveChatSettings(_: ActionState, fd: FormData): Promise<Ac
     await audit(user, 'chat_configurado', 'configuracoes')
     revalidatePath('/admin/configuracoes')
     return { ok: true, message: 'Configurações do chat salvas.' }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+/* ------------------------- planos, anamnese e assinatura ------------------------- */
+
+/** Refeições padrão dos planos novos, anamnese automática e assinatura do PDF. */
+export async function saveClinicalSettings(_: ActionState, fd: FormData): Promise<ActionState> {
+  const meals: { name: string; time: string }[] = []
+  for (const raw of lines(String(fd.get('defaultMeals') ?? ''))) {
+    const m = /^(.+?)\s+(\d{1,2})[:h](\d{2})$/i.exec(raw)
+    if (!m) return { fieldErrors: { defaultMeals: `Use “Nome HH:MM” em cada linha (ex.: Café da manhã 07:00). Linha: ${raw}` }, error: 'Revise as refeições padrão.' }
+    const time = `${m[2].padStart(2, '0')}:${m[3]}`
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) return { fieldErrors: { defaultMeals: `Horário inválido em: ${raw}` }, error: 'Revise as refeições padrão.' }
+    meals.push({ name: m[1].trim().slice(0, 60), time })
+  }
+  if (meals.length > 10) return { fieldErrors: { defaultMeals: 'No máximo 10 refeições' }, error: 'No máximo 10 refeições.' }
+  const tpl = String(fd.get('autoAnamnesisTemplateId') ?? '')
+  const signatureText = String(fd.get('signatureText') ?? '').trim().slice(0, 300) || null
+  try {
+    const user = await requireTeam('config')
+    let signatureFileId: string | undefined
+    const file = fd.get('signature')
+    if (file instanceof File && file.size > 0) {
+      const saved = await saveUpload(file, ['image/png', 'image/jpeg'])
+      if ('error' in saved) return { fieldErrors: { signature: 'Use PNG ou JPG até 5 MB' }, error: saved.error }
+      const [f] = await db
+        .insert(schema.files)
+        .values({ uploadedBy: user.id, kind: 'assinatura', title: 'Assinatura', mime: saved.mime, size: saved.size, storageKey: saved.key })
+        .returning({ id: schema.files.id })
+      signatureFileId = f.id
+    }
+    await db
+      .update(schema.settings)
+      .set({
+        defaultMeals: meals,
+        autoAnamnesisTemplateId: uuid.safeParse(tpl).success ? tpl : null,
+        signatureText,
+        ...(signatureFileId ? { signatureFileId } : {}),
+        ...(fd.get('removeSignature') === 'on' ? { signatureFileId: null } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.settings.id, 1))
+    await audit(user, 'configuracoes_planos', 'configuracoes')
+    revalidatePath('/admin/configuracoes')
+    return { ok: true, message: 'Configurações salvas.' }
   } catch (err) {
     return failure(err)
   }

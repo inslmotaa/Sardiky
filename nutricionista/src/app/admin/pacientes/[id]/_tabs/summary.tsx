@@ -5,9 +5,11 @@ import type { CurrentUser } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtDay } from '@/lib/time'
 import { invitePatient, revokePatientAccess, updatePatient } from '@/actions/admin/patients'
-import { setPatientFeatures } from '@/actions/admin/nutrition'
+import { setPatientFeatures, setRestrictions } from '@/actions/admin/nutrition'
 import { DEFAULT_FEATURES, type AppFeatures } from '@/db/schema'
 import { BMR_FORMULAS, fmt } from '@/lib/nutricao'
+import { RESTRICTIONS } from '@/lib/restricoes'
+import { nutritionistOptions } from '@/lib/team-access'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { PatientFormFields } from '@/components/PatientFormFields'
 
@@ -41,7 +43,7 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
         <h2 style={{ fontSize: '1.1rem' }}>Dados cadastrais</h2>
         {editable ? (
           <ActionForm action={updatePatient.bind(null, p.id)} className="stack">
-            <PatientFormFields p={p} />
+            <PatientFormFields p={p} nutritionists={await nutritionistOptions()} />
             <div>
               <SubmitButton>Salvar alterações</SubmitButton>
             </div>
@@ -98,6 +100,24 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
           </div>
         )}
       </section>
+      {can(user, 'clinico') && (
+        <section className="card">
+          <h2 style={{ fontSize: '1.1rem' }}>Restrições alimentares</h2>
+          <p className="small muted">Preenchidas automaticamente pela anamnese (perguntas marcadas para “levar à ficha”) e ajustáveis aqui. O editor de planos alerta os alimentos que conflitam.</p>
+          <ActionForm action={setRestrictions.bind(null, p.id)} className="stack">
+            <div className="choice-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
+              {Object.entries(RESTRICTIONS).map(([k, r]) => (
+                <label key={k} className="check">
+                  <input type="checkbox" name="restriction" value={k} defaultChecked={(p.restrictions ?? []).includes(k)} /> {r.label}
+                </label>
+              ))}
+            </div>
+            <div>
+              <SubmitButton className="btn btn--sm">Salvar restrições</SubmitButton>
+            </div>
+          </ActionForm>
+        </section>
+      )}
       {can(user, 'clinico') && (
         <section className="card">
           <h2 style={{ fontSize: '1.1rem' }}>Recursos do app do paciente</h2>

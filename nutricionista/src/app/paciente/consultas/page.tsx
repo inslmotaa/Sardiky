@@ -4,7 +4,7 @@ import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
-import { cancelOwnAppointment } from '@/actions/patient'
+import { cancelOwnAppointment, confirmPresence, rateAppointment, requestReschedule } from '@/actions/patient'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { PageHead, StatusBadge, Empty } from '@/components/ui'
 
@@ -15,6 +15,7 @@ export default async function PatientAppointments() {
   const now = Date.now()
   const upcoming = list.filter((a) => a.startAt.getTime() >= now && ['pendente', 'confirmada'].includes(a.status)).reverse()
   const past = list.filter((a) => !upcoming.includes(a))
+  const toRate = past.filter((a) => a.status === 'realizada' && !a.ratedAt)
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <PageHead
@@ -46,6 +47,36 @@ export default async function PatientAppointments() {
                     </a>
                   )}
                 </div>
+                <div className="row" style={{ marginTop: 10, gap: 8 }}>
+                  {a.status === 'confirmada' &&
+                    (a.patientConfirmedAt ? (
+                      <span className="badge badge--ok">Presença confirmada</span>
+                    ) : (
+                      <form action={confirmPresence.bind(null, a.id)}>
+                        <button type="submit" className="btn btn--sm btn--primary">
+                          Confirmar presença
+                        </button>
+                      </form>
+                    ))}
+                  {a.rescheduleRequestedAt && <span className="badge badge--warn">Remarcação pedida — aguarde o contato</span>}
+                </div>
+                {!a.rescheduleRequestedAt && (
+                  <details className="disclosure" style={{ marginTop: 12 }}>
+                    <summary>Pedir remarcação</summary>
+                    <div>
+                      <ActionForm action={requestReschedule} className="stack">
+                        <input type="hidden" name="id" value={a.id} />
+                        <label className="field">
+                          <span className="field__label">Melhores dias e horários para você (opcional)</span>
+                          <input name="note" maxLength={500} placeholder="Ex.: terças ou quintas depois das 17h" />
+                        </label>
+                        <div>
+                          <SubmitButton className="btn btn--sm">Enviar pedido</SubmitButton>
+                        </div>
+                      </ActionForm>
+                    </div>
+                  </details>
+                )}
                 <details className="disclosure" style={{ marginTop: 12 }}>
                   <summary>Cancelar esta consulta</summary>
                   <div>
@@ -71,6 +102,35 @@ export default async function PatientAppointments() {
           </div>
         )}
       </section>
+      {toRate.length > 0 && (
+        <section className="card">
+          <h2 style={{ fontSize: '1.15rem' }}>Como foi a sua última consulta?</h2>
+          <p className="muted small">Sua avaliação ajuda o consultório a melhorar. Ela não é publicada no site.</p>
+          <ActionForm action={rateAppointment} className="stack">
+            <input type="hidden" name="id" value={toRate[0].id} />
+            <fieldset>
+              <legend>
+                {toRate[0].serviceName} · {fmtDateTime(toRate[0].startAt, s.timezone)}
+              </legend>
+              <div className="scale-input stars" role="radiogroup" aria-label="Nota de 1 a 5 estrelas">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <label key={n} title={`${n} ${n === 1 ? 'estrela' : 'estrelas'}`}>
+                    <input type="radio" name="rating" value={n} aria-label={`${n} ${n === 1 ? 'estrela' : 'estrelas'}`} />
+                    <span aria-hidden>★</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <label className="field">
+              <span className="field__label">Comentário (opcional)</span>
+              <textarea name="comment" rows={2} maxLength={1000} />
+            </label>
+            <div>
+              <SubmitButton>Enviar avaliação</SubmitButton>
+            </div>
+          </ActionForm>
+        </section>
+      )}
       <section>
         <h2 style={{ fontSize: '1.15rem' }}>Histórico</h2>
         {past.length === 0 ? (
@@ -84,6 +144,7 @@ export default async function PatientAppointments() {
                   <th>Serviço</th>
                   <th>Modalidade</th>
                   <th>Situação</th>
+                  <th>Sua avaliação</th>
                 </tr>
               </thead>
               <tbody>
@@ -95,6 +156,7 @@ export default async function PatientAppointments() {
                     <td>
                       <StatusBadge status={a.status} />
                     </td>
+                    <td aria-label={a.rating ? `${a.rating} de 5 estrelas` : 'sem avaliação'}>{a.rating ? '★'.repeat(a.rating) : '—'}</td>
                   </tr>
                 ))}
               </tbody>

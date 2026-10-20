@@ -31,7 +31,7 @@ export default async function FoodsPage({ searchParams }: { searchParams: Promis
           <span className="field__label">Grupo</span>
           <select name="grupo" defaultValue={group}>
             <option value="">Todos</option>
-            {Object.entries(FOOD_GROUPS).map(([k, v]) => (
+            {Object.entries(FOOD_GROUPS).filter(([k]) => k !== 'receitas').map(([k, v]) => (
               <option key={k} value={k}>
                 {v}
               </option>
@@ -129,7 +129,7 @@ export default async function FoodsPage({ searchParams }: { searchParams: Promis
             </Field>
             <Field label="Grupo" name="group">
               <select name="group" defaultValue="outros">
-                {Object.entries(FOOD_GROUPS).map(([k, v]) => (
+                {Object.entries(FOOD_GROUPS).filter(([k]) => k !== 'receitas').map(([k, v]) => (
                   <option key={k} value={k}>
                     {v}
                   </option>

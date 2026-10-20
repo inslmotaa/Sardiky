@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { desc, eq, sql } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { isRestricted } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
@@ -25,6 +26,7 @@ export default async function InboxPage() {
     })
     .from(schema.messages)
     .innerJoin(schema.patients, eq(schema.patients.id, schema.messages.patientId))
+    .where(isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined)
     .groupBy(schema.patients.id, schema.patients.fullName)
     .orderBy(desc(sql`max(${schema.messages.createdAt})`))
   return (

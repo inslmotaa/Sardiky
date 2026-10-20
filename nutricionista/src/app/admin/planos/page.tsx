@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { and, asc, desc, eq, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { isRestricted } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { planSources } from '@/lib/plan-sources'
@@ -19,11 +20,15 @@ export default async function PlansPage() {
       .select({ p: schema.mealPlans, name: schema.patients.fullName })
       .from(schema.mealPlans)
       .innerJoin(schema.patients, eq(schema.patients.id, schema.mealPlans.patientId))
-      .where(eq(schema.mealPlans.isTemplate, false))
+      .where(and(eq(schema.mealPlans.isTemplate, false), isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined))
       .orderBy(desc(schema.mealPlans.updatedAt))
       .limit(100),
     db.select().from(schema.mealPlans).where(eq(schema.mealPlans.isTemplate, true)).orderBy(asc(schema.mealPlans.title)),
-    db.select({ id: schema.patients.id, name: schema.patients.fullName }).from(schema.patients).where(and(isNull(schema.patients.anonymizedAt))).orderBy(asc(schema.patients.fullName)),
+    db
+      .select({ id: schema.patients.id, name: schema.patients.fullName })
+      .from(schema.patients)
+      .where(and(isNull(schema.patients.anonymizedAt), isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined))
+      .orderBy(asc(schema.patients.fullName)),
     planSources(),
   ])
   const drafts = plans.filter((x) => x.p.status === 'rascunho')

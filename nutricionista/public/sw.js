@@ -6,12 +6,12 @@
  * - Ao sair da conta, as telas guardadas são apagadas.
  * - Recebe as notificações push (lembretes de refeição, água, plano novo, mensagens).
  */
-const VERSION = 'v1'
+const VERSION = 'v2'
 const PAGES = `paciente-paginas-${VERSION}`
 const ASSETS = `estaticos-${VERSION}`
 const OFFLINE = '/offline.html'
 const PRECACHE = [OFFLINE, '/icons/icon-192.png', '/icons/badge-96.png', '/icon.svg']
-const PATIENT_PAGES = /^\/paciente(\/(plano(\/(?!pdf)[\w-]+)?|diario|evolucao|mais|calculadoras))?\/?$/
+const PATIENT_PAGES = /^\/paciente(\/(plano(\/(?!pdf)[\w-]+)?|diario|evolucao|mais|calculadoras|compras|receitas(\/[\w-]+)?))?\/?$/
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

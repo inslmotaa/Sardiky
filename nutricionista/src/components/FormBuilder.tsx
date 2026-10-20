@@ -2,7 +2,7 @@
 
 import { startTransition, useActionState, useState } from 'react'
 import type { ActionState } from '@/lib/action'
-import { FIELD_TYPES, FORM_KINDS, type FieldType, type FormField } from '@/lib/forms'
+import { FIELD_MAPS, FIELD_TYPES, FORM_KINDS, type FieldMap, type FieldType, type FormField } from '@/lib/forms'
 
 const slug = (s: string) =>
   s
@@ -109,6 +109,25 @@ export function FormBuilder({
               ✕
             </button>
           </div>
+          {f.type === 'scale' && (
+            <div className="form-grid">
+              <input aria-label="Rótulo do 1" placeholder="Rótulo do 1 (ex.: pouca fome)" value={f.options[0] ?? ''} onChange={(e) => set(i, { options: [e.target.value, f.options[1] ?? ''] })} maxLength={60} />
+              <input aria-label="Rótulo do 5" placeholder="Rótulo do 5 (ex.: muita fome)" value={f.options[1] ?? ''} onChange={(e) => set(i, { options: [f.options[0] ?? '', e.target.value] })} maxLength={60} />
+            </div>
+          )}
+          {['checkbox', 'text', 'textarea', 'radio', 'select'].includes(f.type) && (
+            <div className="field">
+              <label htmlFor={`fb-${i}-map`}>Levar a resposta para a ficha</label>
+              <select id={`fb-${i}-map`} value={f.mapsTo ?? ''} onChange={(e) => set(i, { mapsTo: (e.target.value || null) as FieldMap | null })}>
+                <option value="">Não</option>
+                {Object.entries(FIELD_MAPS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           {['select', 'radio', 'checkbox'].includes(f.type) && (
             <div className="field">
               <label htmlFor={`fb-${i}-opts`}>Opções (uma por linha)</label>

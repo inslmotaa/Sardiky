@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { and, asc, count, desc, eq, gte, inArray, isNull, lt, lte, sql, sum } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { isRestricted } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { addDays, capitalize, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfMonth, todayIn, zonedToUtc } from '@/lib/time'
@@ -21,7 +22,13 @@ export default async function AdminHome() {
   const clinical = can(user, 'clinico')
   const cadastro = can(user, 'cadastro') || clinical
   const finance = s.financeEnabled && can(user, 'financeiro')
-  const board = clinical ? await trackingBoard(today, tz, { good: s.adherenceGood, low: s.adherenceLow }) : null
+  const overdue = finance
+    ? ((await db
+        .select({ n: count() })
+        .from(schema.payments)
+        .where(and(eq(schema.payments.status, 'pendente'), lt(schema.payments.dueDate, today))))[0]?.n ?? 0)
+    : 0
+  const board = clinical ? await trackingBoard(today, tz, { good: s.adherenceGood, low: s.adherenceLow }, isRestricted(user) ? user.id : null) : null
   const tracking = board
     ? {
         // Só faz sentido cobrar registro de quem já tem acesso ao app e plano ativo.
@@ -152,6 +159,7 @@ export default async function AdminHome() {
         {agenda && <Stat value={pending.length} label="Aguardando confirmação" href="/admin/agenda?status=pendente" />}
         {finance && <Stat value={money(Number(monthPaid.v ?? 0))} label="Recebido no mês (registrado)" href="/admin/financeiro" />}
         {finance && <Stat value={money(Number(openAmount.v ?? 0))} label="Valores pendentes" href="/admin/financeiro?status=pendente" />}
+        {finance && overdue > 0 && <Stat value={overdue} label="Pagamentos atrasados" href="/admin/financeiro?status=pendente" />}
       </div>
 
       {agenda && (

@@ -80,13 +80,10 @@ export async function pushToUser(userId: string, kind: PushKind, payload: PushPa
   return sent
 }
 
-/** Push para a equipe com a permissão indicada. */
-export async function pushToTeam(perm: Permission, payload: PushPayload) {
-  const team = await db
-    .select()
-    .from(schema.users)
-    .where(and(inArray(schema.users.role, ['admin', 'staff']), eq(schema.users.isActive, true)))
-  for (const u of team) if (can(u, perm)) await pushToUser(u.id, 'equipe', payload)
+/** Push para a equipe com a permissão indicada (respeitando nutricionistas com pacientes próprios). */
+export async function pushToTeam(perm: Permission, payload: PushPayload, patientId?: string | null) {
+  const { teamFor } = await import('./team')
+  for (const u of await teamFor(perm, patientId)) await pushToUser(u.id, 'equipe', payload)
 }
 
 /** Registra o envio de um lembrete; devolve false se ele já tinha sido enviado (evita duplicar). */

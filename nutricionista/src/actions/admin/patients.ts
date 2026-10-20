@@ -6,6 +6,8 @@ import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { getCurrentUser } from '@/lib/auth/session'
+import { canSeePatient, isRestricted } from '@/lib/team-access'
 import { audit } from '@/lib/audit'
 import { failure, formObject, UserError, zodErrors, type ActionState } from '@/lib/action'
 import { hashToken, newToken } from '@/lib/auth/tokens'
@@ -13,6 +15,7 @@ import { notifyUser, sendEmail } from '@/lib/notify'
 import { getSettings } from '@/lib/settings'
 import { CHAT_TYPES, deleteUpload, DOC_TYPES, saveUpload } from '@/lib/storage'
 import { postMessage } from '@/lib/chat'
+import { assignTemplate } from '@/lib/anamnese'
 import { deletePhoto, saveProgressPhotos } from '@/lib/photos'
 import { pushToUser } from '@/lib/push'
 import { ageFrom, todayIn } from '@/lib/time'
@@ -27,6 +30,9 @@ async function patientOrThrow(id: string) {
   if (!uuid.safeParse(id).success) throw new UserError('Paciente inválido.')
   const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, id))
   if (!p || p.anonymizedAt) throw new UserError('Paciente não encontrado.')
+  // Nutricionista com “só os próprios pacientes” não age sobre pacientes de outros.
+  const user = await getCurrentUser()
+  if (user && !canSeePatient(user, p)) throw new UserError('Paciente não encontrado.')
   return p
 }
 
@@ -48,6 +54,11 @@ const patientSchema = z.object({
   heightCm: optNum(50, 250),
   objective: optStr(500),
   status: z.enum(['ativo', 'pausado', 'inativo', 'alta']),
+  nutritionistId: z
+    .string()
+    .optional()
+    .transform((v) => v || null)
+    .refine((v) => v === null || uuid.safeParse(v).success, 'Escolha da lista'),
   stage: str(80, 'Informe a etapa'),
   followUpDays: z
     .string()
@@ -67,7 +78,12 @@ export async function createPatient(_: ActionState, fd: FormData): Promise<Actio
       const [dup] = await db.select({ id: schema.patients.id }).from(schema.patients).where(eq(schema.patients.email, parsed.data.email))
       if (dup) return { fieldErrors: { email: 'Já existe um paciente com este e-mail' }, error: 'E-mail já cadastrado.' }
     }
+    // Nutricionista com pacientes próprios: o paciente que ele cadastra fica sob sua responsabilidade.
+    if (isRestricted(user)) parsed.data.nutritionistId = user.id
     const [p] = await db.insert(schema.patients).values(parsed.data).returning({ id: schema.patients.id })
+    // Anamnese nativa automática para cada paciente novo (se configurada).
+    const s = await getSettings()
+    if (s.autoAnamnesisTemplateId) await assignTemplate(p.id, s.autoAnamnesisTemplateId)
     id = p.id
     await audit(user, 'paciente_criado', 'paciente', { entityId: id, patientId: id })
   } catch (err) {
@@ -82,6 +98,7 @@ export async function updatePatient(id: string, _: ActionState, fd: FormData): P
   try {
     const user = await requireTeam('cadastro')
     const before = await patientOrThrow(id)
+    if (isRestricted(user)) parsed.data.nutritionistId = user.id
     await db.update(schema.patients).set({ ...parsed.data, updatedAt: new Date() }).where(eq(schema.patients.id, id))
     if (before.userId && parsed.data.fullName !== before.fullName) {
       await db.update(schema.users).set({ name: parsed.data.fullName }).where(eq(schema.users.id, before.userId))

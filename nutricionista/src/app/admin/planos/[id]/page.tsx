@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { and, asc, desc, eq, isNull, ne } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
+import { assertPatientAccess } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { audit } from '@/lib/audit'
@@ -12,6 +13,7 @@ import { deletePlanDraft, newPlanVersion, savePlan, savePlanAsTemplate, setPlanH
 import { PlanEditor } from '@/components/PlanEditor'
 import { PatientPlan } from '@/components/nutri/PatientPlan'
 import { loadFoods } from '@/lib/foods'
+import { loadRecipes, recipesAsFoods } from '@/lib/recipes'
 import { normalizePlan } from '@/lib/plan'
 import { measurementsOf, latest } from '@/lib/patient-data'
 import { NewPlanForm } from '@/components/NewPlanForm'
@@ -26,6 +28,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   const s = await getSettings()
   const [plan] = await db.select().from(schema.mealPlans).where(eq(schema.mealPlans.id, id))
   if (!plan) notFound()
+  await assertPatientAccess(user, plan.patientId).catch(() => notFound())
   const [patient] = plan.patientId ? await db.select().from(schema.patients).where(eq(schema.patients.id, plan.patientId)) : []
   const versions = plan.patientId
     ? await db.select().from(schema.mealPlans).where(eq(schema.mealPlans.patientId, plan.patientId)).orderBy(desc(schema.mealPlans.version))
@@ -44,7 +47,8 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     .orderBy(asc(schema.patients.fullName))
   if (patient) await audit(user, 'plano_visualizado', 'plano', { entityId: plan.id, patientId: patient.id })
   const content = normalizePlan(plan.content)
-  const foods = plan.status === 'rascunho' ? await loadFoods() : []
+  // Receitas entram no editor como alimentos do grupo “Receitas” (medida: porção).
+  const foods = plan.status === 'rascunho' ? [...(await loadFoods()), ...recipesAsFoods(await loadRecipes())] : []
   const weight = patient ? latest(await measurementsOf(patient.id), 'weightKg') : null
 
   const crumbs = patient
@@ -106,7 +110,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
             action={savePlan.bind(null, plan.id)}
             initial={content}
             foods={foods}
-            patient={patient ? { name: patient.fullName, weightKg: weight?.value ?? null, energyTarget: patient.energy?.targetKcal ?? null } : undefined}
+            patient={patient ? { name: patient.fullName, weightKg: weight?.value ?? null, energyTarget: patient.energy?.targetKcal ?? null, restrictions: patient.restrictions ?? [] } : undefined}
             title={plan.title}
             validFrom={plan.validFrom}
             validUntil={plan.validUntil}
@@ -125,7 +129,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
               </form>
             </div>
           )}
-          <PatientPlan content={content} />
+          <PatientPlan content={content} recipeBase="/admin/receitas/" />
         </>
       )}
 
