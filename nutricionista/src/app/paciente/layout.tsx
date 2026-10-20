@@ -7,6 +7,9 @@ import { completeOnboarding } from '@/actions/patient'
 import { Brand } from '@/components/Brand'
 import { CloseOnNavigate, NavLinks } from '@/components/NavLinks'
 import { Onboarding } from '@/components/nutri/Onboarding'
+import { LiveUpdates, LogoutForm, PushToggle, PwaClient } from '@/components/pwa'
+import { removePushSubscription, savePushSubscription } from '@/actions/push'
+import { vapidKeys } from '@/lib/push'
 import { IconBook, IconChart, IconHome, IconPlate, IconSettings } from '@/components/icons'
 
 export const metadata: Metadata = { title: 'Área do paciente', robots: { index: false } }
@@ -45,11 +48,11 @@ export default async function PatientLayout({ children }: { children: React.Reac
             <NavLinks items={main} />
           </nav>
           <div className="row" style={{ gap: 8 }}>
-            <form action={logout} className="no-print">
+            <LogoutForm action={logout}>
               <button className="btn btn--sm" type="submit">
                 Sair
               </button>
-            </form>
+            </LogoutForm>
             <div className="no-print" style={{ display: 'contents' }}>
               <CloseOnNavigate>
                 <summary aria-label="Mais opções">Menu</summary>
@@ -61,6 +64,8 @@ export default async function PatientLayout({ children }: { children: React.Reac
           </div>
         </div>
       </header>
+      <PwaClient offlineText="Você está sem internet. Mostrando a última versão salva neste aparelho." />
+      <LiveUpdates scope="paciente" planToast="Seu plano alimentar foi atualizado." />
       <main id="conteudo" className="patient-main">
         <div className="container">{children}</div>
       </main>
@@ -77,6 +82,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
           anamneseUrl={s.anamneseUrl}
           anamnesisDone={Boolean(patient.anamnesisReceivedAt)}
           onFinish={completeOnboarding}
+          pushToggle={<PushToggle publicKey={vapidKeys()?.publicKey ?? null} subscribe={savePushSubscription} unsubscribe={removePushSubscription} />}
         />
       )}
     </>

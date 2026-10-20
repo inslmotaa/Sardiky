@@ -90,7 +90,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
       <Tabs current={tab.key} items={visible.map((t) => ({ key: t.key, label: t.label, href: `/admin/pacientes/${p.id}?aba=${t.key}` }))} />
       {tab.key === 'resumo' && <SummaryTab patient={p} user={user} />}
       {tab.key === 'consultas' && <AppointmentsTab patient={p} />}
-      {tab.key === 'evolucao' && <EvolutionTab patient={p} compare={{ a: sp.a, b: sp.b }} />}
+      {tab.key === 'evolucao' && <EvolutionTab patient={p} compare={{ a: sp.a, b: sp.b }} viewerId={user.id} />}
       {tab.key === 'planos' && <PlansTab patient={p} />}
       {tab.key === 'diario' && <DiaryTab patient={p} />}
       {tab.key === 'formularios' && <FormsTab patient={p} view={sp.ver} />}

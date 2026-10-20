@@ -30,7 +30,14 @@ export function PlanPage({
             {plan.validUntil && ` até ${fmtDay(plan.validUntil)}`}
           </>
         }
-        actions={<PrintButton />}
+        actions={
+          <>
+            <a className="btn btn--primary" href={isCurrent ? '/paciente/plano/pdf' : `/paciente/plano/pdf?id=${plan.id}`} download>
+              Baixar PDF
+            </a>
+            <PrintButton label="Imprimir" />
+          </>
+        }
       />
       {!isCurrent && (
         <p className="alert alert--warn">

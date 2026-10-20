@@ -14,6 +14,7 @@ import {
   saveProfile,
   saveSchedule,
   saveService,
+  saveChatSettings,
   saveTemplates,
   toggleTestimonial,
   updateStaff,
@@ -26,6 +27,7 @@ const SECTIONS = [
   { key: 'servicos', label: 'Serviços e valores', perm: 'config' },
   { key: 'horarios', label: 'Horários e agendamento', perm: 'config' },
   { key: 'mensagens', label: 'Mensagens', perm: 'config' },
+  { key: 'chat', label: 'Chat', perm: 'config' },
   { key: 'site', label: 'Depoimentos e dúvidas', perm: 'site' },
   { key: 'equipe', label: 'Equipe e permissões', perm: 'config' },
   { key: 'integracoes', label: 'Integrações', perm: 'config' },
@@ -47,6 +49,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       {sec.key === 'servicos' && <ServicesSection />}
       {sec.key === 'horarios' && <ScheduleSection s={s} />}
       {sec.key === 'mensagens' && <TemplatesSection s={s} />}
+      {sec.key === 'chat' && <ChatSection s={s} />}
       {sec.key === 'site' && <SiteSection />}
       {sec.key === 'equipe' && <TeamSection tz={s.timezone} />}
       {sec.key === 'integracoes' && <IntegrationsSection />}
@@ -294,6 +297,49 @@ async function ScheduleSection({ s }: { s: S }) {
   )
 }
 
+function ChatSection({ s }: { s: S }) {
+  const h = s.chatHours
+  return (
+    <section className="card">
+      <ActionForm action={saveChatSettings} className="stack">
+        <Field label="Respostas rápidas (uma por linha)" name="quickReplies" hint="Aparecem como atalhos no chat e no painel de Acompanhamento. Use {nome} para o primeiro nome do paciente.">
+          <textarea name="quickReplies" rows={5} defaultValue={s.quickReplies.join('\n')} />
+        </Field>
+        <fieldset>
+          <legend>Horário de atendimento do chat</legend>
+          <div className="row" style={{ gap: 10 }}>
+            {[1, 2, 3, 4, 5, 6, 0].map((d) => (
+              <label key={d} className="check">
+                <input type="checkbox" name="chatDays" value={d} defaultChecked={h ? h.weekdays.includes(d) : d >= 1 && d <= 5} /> {weekdayName(d)}
+              </label>
+            ))}
+          </div>
+          <div className="form-grid" style={{ marginTop: 10 }}>
+            <Field label="Das" name="chatStart" hint="Deixe em branco para não limitar o horário.">
+              <input type="time" name="chatStart" defaultValue={h?.start ?? ''} />
+            </Field>
+            <Field label="Até" name="chatEnd">
+              <input type="time" name="chatEnd" defaultValue={h?.end ?? ''} />
+            </Field>
+          </div>
+        </fieldset>
+        <Field label="Resposta automática fora do horário" name="chatAutoReply" hint="Enviada no máximo uma vez a cada 12 horas por paciente.">
+          <textarea
+            name="chatAutoReply"
+            rows={2}
+            maxLength={500}
+            defaultValue={s.chatAutoReply ?? ''}
+            placeholder="Oi! Recebi sua mensagem e respondo no próximo horário de atendimento. Em caso de urgência, procure um serviço de saúde."
+          />
+        </Field>
+        <div>
+          <SubmitButton>Salvar chat</SubmitButton>
+        </div>
+      </ActionForm>
+    </section>
+  )
+}
+
 function TemplatesSection({ s }: { s: S }) {
   const email = integrationStatus().email
   return (
@@ -513,7 +559,8 @@ function IntegrationsSection() {
   const rows: [string, boolean, string][] = [
     ['Banco de dados PostgreSQL', Boolean(process.env.DATABASE_URL), process.env.DATABASE_URL ? 'Conectado via DATABASE_URL.' : 'Usando banco embutido de desenvolvimento (PGlite). Em produção, configure DATABASE_URL.'],
     ['E-mail transacional (Resend)', st.email, st.email ? 'Confirmações, convites e redefinição de senha são enviados por e-mail.' : 'Não configurado: nenhum e-mail é enviado. Defina RESEND_API_KEY e EMAIL_FROM.'],
-    ['Lembretes automáticos', st.email && st.cron, st.cron ? 'Rota /api/cron protegida por CRON_SECRET. Agende uma chamada diária.' : 'Não configurado. Defina CRON_SECRET e agende /api/cron (requer e-mail).'],
+    ['Tarefa agendada (lembretes)', st.cron, st.cron ? 'Rota /api/cron protegida por CRON_SECRET. Chame a cada 5 minutos (lembretes de refeição, água e consultas).' : 'Não configurada. Defina CRON_SECRET e agende /api/cron a cada 5 minutos.'],
+    ['Notificações push', st.push, st.push ? (process.env.VAPID_PUBLIC_KEY ? 'Chaves VAPID configuradas.' : 'Usando chaves locais de desenvolvimento. Em produção, defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT (npx web-push generate-vapid-keys).') : 'Não configurado. Defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT.'],
     ['WhatsApp (envio automático)', st.whatsappApi, 'Não implementado. Hoje o sistema abre conversas no WhatsApp com a mensagem pronta (envio manual).'],
     ['Pagamentos on-line', st.payments, 'Não implementado. O financeiro registra lançamentos internos.'],
     ['Videoconferência', st.video, 'Não integrado. Cole o link da sala (Meet, Zoom, Jitsi) na consulta on-line.'],

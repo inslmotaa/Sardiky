@@ -181,6 +181,42 @@ export function mealCount(plan: PlanContent) {
   return plan.days[0]?.meals.length ?? 0
 }
 
+/* ------------------------------ consumo registrado ------------------------------ */
+
+/** Alimento registrado no diário quando o paciente comeu outra coisa. */
+export type DiaryItem = { foodId: string | null; name: string; grams: number; per100: Nutrients | null }
+
+/** Quanto de cada refeição do plano conta como consumido: feita 1, parcial ½, pulada ou outra coisa 0. */
+export const LOG_FACTOR: Record<string, number> = { feita: 1, parcial: 0.5, pulada: 0, outra: 0 }
+
+export function findMeal(plan: PlanContent, mealKey: string) {
+  const [dayId, mealId] = mealKey.split(':')
+  const day = plan.days.find((d) => d.id === dayId)
+  const meal = day?.meals.find((m) => m.id === mealId)
+  return day && meal ? { day, meal } : null
+}
+
+/** Nutrientes de uma refeição do plano marcada pelo paciente. */
+export function loggedNutrients(plan: PlanContent, log: { mealKey: string; optionId: string | null; status: string }): Nutrients {
+  const found = findMeal(plan, log.mealKey)
+  if (!found) return ZERO
+  const opt = found.meal.options.find((o) => o.id === log.optionId) ?? found.meal.options[0]
+  return times(optionTotals(opt), LOG_FACTOR[log.status] ?? 0)
+}
+
+export function itemsNutrients(items: DiaryItem[]): Nutrients {
+  return sum(items.map((i) => (i.per100 ? scale(i.per100, i.grams) : ZERO)))
+}
+
+/** Consumo do dia: refeições do plano marcadas + alimentos registrados no diário. */
+export function consumedOn(plans: Map<string, PlanContent>, logs: { planId: string | null; mealKey: string; optionId: string | null; status: string }[], entries: { items: DiaryItem[] }[]) {
+  const fromPlan = logs.map((l) => {
+    const plan = l.planId ? plans.get(l.planId) : undefined
+    return plan ? loggedNutrients(plan, l) : ZERO
+  })
+  return sum([...fromPlan, ...entries.map((e) => itemsNutrients(e.items))])
+}
+
 /** Texto da quantidade de um item: "100 g · 4 colheres de sopa". */
 export function quantityLabel(it: Pick<PlanItem, 'grams' | 'measure' | 'text'>) {
   const parts: string[] = []

@@ -14,11 +14,47 @@ import {
   uniqueIndex,
   serial,
 } from 'drizzle-orm/pg-core'
-import type { PlanContent } from '@/lib/plan'
+import type { DiaryItem, PlanContent } from '@/lib/plan'
 import type { FormField, FormAnswers } from '@/lib/forms'
+import type { Skinfolds } from '@/lib/nutricao'
 
 export type AppFeatures = { diario: boolean; peso: boolean; chat: boolean; calorias: boolean; macros: boolean; calculadoras: boolean; agua: boolean }
 export const DEFAULT_FEATURES: AppFeatures = { diario: true, peso: true, chat: true, calorias: true, macros: true, calculadoras: true, agua: true }
+/** Preferências de notificação do paciente (cada tipo liga/desliga) e horário de silêncio. */
+export type NotificationPrefs = {
+  refeicoes: boolean
+  agua: boolean
+  plano: boolean
+  mensagens: boolean
+  consultas: boolean
+  lembretes: boolean
+  pesagem: boolean
+  /** Horário de silêncio (HH:MM); nada é enviado entre início e fim. */
+  quietStart: string
+  quietEnd: string
+  /** Lembrete de água a cada N horas dentro da janela. */
+  waterEveryH: number
+  waterStart: string
+  waterEnd: string
+}
+export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
+  refeicoes: true,
+  agua: true,
+  plano: true,
+  mensagens: true,
+  consultas: true,
+  lembretes: true,
+  pesagem: true,
+  quietStart: '22:00',
+  quietEnd: '07:00',
+  waterEveryH: 2,
+  waterStart: '08:00',
+  waterEnd: '20:00',
+}
+export type { Skinfolds }
+export type Bioimpedance = { fatPct?: number; muscleKg?: number; waterPct?: number; visceral?: number; bmrKcal?: number }
+export type ChatHours = { start: string; end: string; weekdays: number[] }
+
 export type EnergyCalc = { formula: string; factor: number; bmr: number; tdee: number; targetKcal: number; adjust: number; adjustUnit: 'kcal' | 'pct'; date: string }
 
 const id = () => uuid('id').primaryKey().defaultRandom()
@@ -67,6 +103,7 @@ export const users = pgTable(
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
     /** Primeiro acesso concluído (boas-vindas, notificações e anamnese). */
     onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
+    notificationPrefs: jsonb('notification_prefs').$type<NotificationPrefs>().notNull().default(DEFAULT_NOTIFICATION_PREFS),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -140,6 +177,14 @@ export const settings = pgTable('settings', {
   anamneseUrl: text('anamnese_url'),
   /** Meta padrão de água: ml por kg de peso corporal. */
   waterMlPerKg: integer('water_ml_per_kg').notNull().default(35),
+  /** Limites do painel de Acompanhamento (% de refeições feitas nos últimos 7 dias). */
+  adherenceGood: integer('adherence_good').notNull().default(80),
+  adherenceLow: integer('adherence_low').notNull().default(40),
+  /** Respostas rápidas do chat. */
+  quickReplies: jsonb('quick_replies').$type<string[]>().notNull().default([]),
+  /** Horário de atendimento do chat; fora dele o paciente recebe a resposta automática. */
+  chatHours: jsonb('chat_hours').$type<ChatHours | null>(),
+  chatAutoReply: text('chat_auto_reply'),
   templates: jsonb('templates').$type<MessageTemplates>().notNull(),
   updatedAt: updatedAt(),
 })
@@ -296,6 +341,7 @@ export const goals = pgTable('goals', {
   unit: text('unit'),
   dueDate: date('due_date'),
   status: text('status').notNull().default('ativa'),
+  completedAt: timestamp('completed_at', { withTimezone: true }),
   createdAt: createdAt(),
 })
 
@@ -319,6 +365,13 @@ export const measurements = pgTable(
     armCm: numeric('arm_cm', { mode: 'number' }),
     thighCm: numeric('thigh_cm', { mode: 'number' }),
     chestCm: numeric('chest_cm', { mode: 'number' }),
+    abdomenCm: numeric('abdomen_cm', { mode: 'number' }),
+    calfCm: numeric('calf_cm', { mode: 'number' }),
+    /** Dobras cutâneas em mm e protocolo usado (jp3, jp7, durnin). */
+    skinfolds: jsonb('skinfolds').$type<Skinfolds>(),
+    skinfoldProtocol: text('skinfold_protocol'),
+    bioimpedance: jsonb('bioimpedance').$type<Bioimpedance>(),
+    leanMassKg: numeric('lean_mass_kg', { mode: 'number' }),
     extra: jsonb('extra').$type<ExtraIndicator[]>().notNull().default([]),
     notes: text('notes'),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
@@ -368,8 +421,14 @@ export const diaryEntries = pgTable(
     hunger: smallint('hunger'),
     satiety: smallint('satiety'),
     adherence: adherenceEnum('adherence'),
+    /** Refeição do plano a que o registro se refere (diaId:refeicaoId). */
+    mealKey: text('meal_key'),
+    /** Alimentos da base com quantidade, quando o paciente comeu outra coisa. */
+    items: jsonb('items').$type<DiaryItem[]>().notNull().default([]),
+    mood: smallint('mood'),
     notes: text('notes'),
     professionalComment: text('professional_comment'),
+    commentedAt: timestamp('commented_at', { withTimezone: true }),
     createdAt: createdAt(),
   },
   (t) => [index('diary_patient_idx').on(t.patientId, t.date)],
@@ -387,6 +446,11 @@ export const messages = pgTable(
     /** Orientação destacada no painel do paciente. */
     isGuidance: boolean('is_guidance').notNull().default(false),
     body: text('body').notNull(),
+    attachmentFileId: uuid('attachment_file_id'),
+    /** Resposta a um registro do diário (foto do prato). */
+    diaryEntryId: uuid('diary_entry_id'),
+    /** Resposta automática fora do horário de atendimento. */
+    automatic: boolean('automatic').notNull().default(false),
     readAt: timestamp('read_at', { withTimezone: true }),
     createdAt: createdAt(),
   },
@@ -564,6 +628,61 @@ export const waterLogs = pgTable(
     updatedAt: updatedAt(),
   },
   (t) => [uniqueIndex('water_logs_unique').on(t.patientId, t.date)],
+)
+
+/** Fotos de evolução (frente, lado, costas): privadas, só paciente e nutricionista. */
+export const progressPhotos = pgTable(
+  'progress_photos',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    date: date('date').notNull(),
+    angle: text('angle').notNull(), // frente | lado | costas
+    fileId: uuid('file_id')
+      .notNull()
+      .references(() => files.id, { onDelete: 'cascade' }),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('progress_photos_patient_idx').on(t.patientId, t.date)],
+)
+
+/* ------------------------------------------------------------------ */
+/* Notificações push                                                    */
+/* ------------------------------------------------------------------ */
+
+export const pushSubscriptions = pgTable(
+  'push_subscriptions',
+  {
+    id: id(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    endpoint: text('endpoint').notNull(),
+    p256dh: text('p256dh').notNull(),
+    auth: text('auth').notNull(),
+    userAgent: text('user_agent'),
+    createdAt: createdAt(),
+    lastSuccessAt: timestamp('last_success_at', { withTimezone: true }),
+  },
+  (t) => [uniqueIndex('push_endpoint_idx').on(t.endpoint), index('push_user_idx').on(t.userId)],
+)
+
+/** Lembretes já enviados (evita repetir o mesmo lembrete quando a tarefa agendada roda de novo). */
+export const reminderLog = pgTable(
+  'reminder_log',
+  {
+    id: id(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    kind: text('kind').notNull(),
+    key: text('key').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('reminder_log_unique').on(t.userId, t.kind, t.key)],
 )
 
 /* ------------------------------------------------------------------ */

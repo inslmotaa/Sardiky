@@ -17,6 +17,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description: s.bio.slice(0, 160),
     applicationName: s.professionalName,
     robots: { index: true, follow: true },
+    // App instalável: ícone na tela inicial do iPhone e barra de status integrada.
+    appleWebApp: { capable: true, title: s.professionalName.split(' ').slice(0, 2).join(' '), statusBarStyle: 'default' },
+    icons: { icon: '/icon.svg', apple: '/icons/apple-touch-icon.png' },
   }
 }
 

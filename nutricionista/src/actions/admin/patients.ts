@@ -11,11 +11,15 @@ import { failure, formObject, UserError, zodErrors, type ActionState } from '@/l
 import { hashToken, newToken } from '@/lib/auth/tokens'
 import { notifyUser, sendEmail } from '@/lib/notify'
 import { getSettings } from '@/lib/settings'
-import { deleteUpload, DOC_TYPES, saveUpload } from '@/lib/storage'
-import { todayIn } from '@/lib/time'
+import { CHAT_TYPES, deleteUpload, DOC_TYPES, saveUpload } from '@/lib/storage'
+import { postMessage } from '@/lib/chat'
+import { deletePhoto, saveProgressPhotos } from '@/lib/photos'
+import { pushToUser } from '@/lib/push'
+import { ageFrom, todayIn } from '@/lib/time'
 import { day, int, optDay, optEmail, optNum, optStr, str, uuid } from '@/lib/validation'
-import { onlyDigits, whatsappLink } from '@/lib/format'
-import type { ExtraIndicator } from '@/db/schema'
+import { chatFileTitle, onlyDigits, whatsappLink } from '@/lib/format'
+import type { Bioimpedance, ExtraIndicator, Skinfolds } from '@/db/schema'
+import { BODY_FAT_PROTOCOLS, bodyFatFromSkinfolds, leanMass, protocolSites, SKINFOLDS, type SkinfoldKey } from '@/lib/nutricao'
 
 const patientPath = (id: string, tab?: string) => `/admin/pacientes/${id}${tab ? `?aba=${tab}` : ''}`
 
@@ -154,17 +158,40 @@ const measurementSchema = z.object({
   bodyFatMethod: optStr(80),
   waistCm: optNum(30, 250),
   hipCm: optNum(30, 250),
+  abdomenCm: optNum(30, 250),
   armCm: optNum(10, 80),
   thighCm: optNum(20, 120),
+  calfCm: optNum(15, 80),
   chestCm: optNum(40, 200),
+  skinfoldProtocol: z.enum(['', 'jp3', 'jp7', 'durnin']).optional().transform((v) => (v ? v : null)),
   notes: optStr(1000),
+})
+
+const foldNum = optNum(1, 80)
+const biaSchema = z.object({
+  fatPct: optNum(2, 75),
+  muscleKg: optNum(5, 150),
+  waterPct: optNum(20, 80),
+  visceral: optNum(1, 60),
+  bmrKcal: optNum(500, 6000),
 })
 
 export async function addMeasurement(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
   const parsed = measurementSchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
-  const d = parsed.data
-  if (d.bodyFatPct != null && !d.bodyFatMethod) return { fieldErrors: { bodyFatMethod: 'Informe o método usado' }, error: 'Informe o método do percentual de gordura.' }
+  const { skinfoldProtocol, ...d } = parsed.data
+
+  // Dobras cutâneas (campos sk_<dobra>, em mm).
+  const folds: Skinfolds = {}
+  for (const k of Object.keys(SKINFOLDS) as SkinfoldKey[]) {
+    const v = foldNum.safeParse(fd.get(`sk_${k}`) ?? undefined)
+    if (!v.success) return { fieldErrors: { [`sk_${k}`]: v.error.issues[0].message }, error: `Dobra ${SKINFOLDS[k].toLowerCase()}: use um valor entre 1 e 80 mm.` }
+    if (v.data != null) folds[k] = v.data
+  }
+  const bia = biaSchema.safeParse(Object.fromEntries(Object.keys(biaSchema.shape).map((k) => [k, fd.get(`bia_${k}`) ?? undefined])))
+  if (!bia.success) return { error: 'Revise os valores da bioimpedância.' }
+  const bioimpedance = Object.fromEntries(Object.entries(bia.data).filter(([, v]) => v != null)) as Bioimpedance
+
   // Indicadores extras: pares extraLabel_N / extraValue_N / extraUnit_N.
   const extra: ExtraIndicator[] = []
   for (let i = 0; i < 5; i++) {
@@ -172,15 +199,49 @@ export async function addMeasurement(patientId: string, _: ActionState, fd: Form
     const value = Number(String(fd.get(`extraValue_${i}`) ?? '').replace(',', '.'))
     if (label && Number.isFinite(value)) extra.push({ label, value, unit: String(fd.get(`extraUnit_${i}`) ?? '').trim().slice(0, 15) })
   }
-  const values = [d.weightKg, d.heightCm, d.bodyFatPct, d.waistCm, d.hipCm, d.armCm, d.thighCm, d.chestCm]
-  if (values.every((v) => v == null) && extra.length === 0) return { error: 'Informe ao menos uma medida.' }
   try {
     const user = await requireTeam('clinico')
-    await patientOrThrow(patientId)
-    await db.insert(schema.measurements).values({ ...d, patientId, source: 'profissional', extra, createdBy: user.id })
+    const p = await patientOrThrow(patientId)
+
+    // % de gordura: protocolo de dobras (calculado aqui, nunca vindo do navegador) > bioimpedância > valor informado.
+    if (skinfoldProtocol) {
+      const age = ageFrom(p.birthDate, d.date) ?? null
+      if (p.sex !== 'F' && p.sex !== 'M') return { error: 'Para calcular o percentual por dobras, informe o sexo no cadastro do paciente.' }
+      if (age == null) return { error: 'Para calcular o percentual por dobras, informe a data de nascimento no cadastro do paciente.' }
+      const r = bodyFatFromSkinfolds(skinfoldProtocol, p.sex, age, folds)
+      if (!r) {
+        const missing = protocolSites(skinfoldProtocol, p.sex).filter((k) => !folds[k]).map((k) => SKINFOLDS[k].toLowerCase())
+        return { error: `Faltam dobras para ${BODY_FAT_PROTOCOLS[skinfoldProtocol]}: ${missing.join(', ')}.` }
+      }
+      d.bodyFatPct = Math.round(r.pct * 10) / 10
+      d.bodyFatMethod = `${BODY_FAT_PROTOCOLS[skinfoldProtocol]} + Siri`
+    } else if (d.bodyFatPct == null && bioimpedance.fatPct != null) {
+      d.bodyFatPct = bioimpedance.fatPct
+      d.bodyFatMethod = 'Bioimpedância'
+    }
+    if (d.bodyFatPct != null && !d.bodyFatMethod) return { fieldErrors: { bodyFatMethod: 'Informe o método usado' }, error: 'Informe o método do percentual de gordura.' }
+
+    const values = [d.weightKg, d.heightCm, d.bodyFatPct, d.waistCm, d.hipCm, d.abdomenCm, d.armCm, d.thighCm, d.calfCm, d.chestCm]
+    if (values.every((v) => v == null) && extra.length === 0 && Object.keys(folds).length === 0 && Object.keys(bioimpedance).length === 0)
+      return { error: 'Informe ao menos uma medida.' }
+
+    const leanMassKg = d.weightKg != null && d.bodyFatPct != null ? Math.round(leanMass(d.weightKg, d.bodyFatPct) * 10) / 10 : null
+    await db.insert(schema.measurements).values({
+      ...d,
+      patientId,
+      source: 'profissional',
+      extra,
+      skinfolds: Object.keys(folds).length ? folds : null,
+      skinfoldProtocol,
+      bioimpedance: Object.keys(bioimpedance).length ? bioimpedance : null,
+      leanMassKg,
+      createdBy: user.id,
+    })
+    if (d.heightCm != null && d.heightCm !== p.heightCm) await db.update(schema.patients).set({ heightCm: d.heightCm }).where(eq(schema.patients.id, patientId))
     await audit(user, 'avaliacao_registrada', 'avaliacao', { patientId })
     revalidatePath(patientPath(patientId, 'evolucao'))
-    return { ok: true, message: 'Avaliação registrada.' }
+    const fatMsg = skinfoldProtocol && d.bodyFatPct != null ? ` Gordura corporal calculada: ${String(d.bodyFatPct).replace('.', ',')}%.` : ''
+    return { ok: true, message: `Avaliação registrada.${fatMsg}` }
   } catch (err) {
     return failure(err)
   }
@@ -194,13 +255,38 @@ export async function deleteMeasurement(patientId: string, id: string): Promise<
   revalidatePath(patientPath(patientId, 'evolucao'))
 }
 
+/* --------------------------- fotos de evolução --------------------------- */
+
+export async function addProgressPhotos(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
+  const date = day.safeParse(fd.get('date'))
+  if (!date.success) return { fieldErrors: { date: 'Data inválida' }, error: 'Revise a data.' }
+  try {
+    const user = await requireTeam('clinico')
+    await patientOrThrow(patientId)
+    const r = await saveProgressPhotos(patientId, user.id, date.data, fd)
+    if ('error' in r) return { error: r.error }
+    await audit(user, 'fotos_evolucao_enviadas', 'foto', { patientId, details: { quantidade: r.saved } })
+    revalidatePath(patientPath(patientId, 'evolucao'))
+    return { ok: true, message: r.saved === 1 ? 'Foto salva.' : `${r.saved} fotos salvas.` }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+export async function deleteProgressPhoto(patientId: string, id: string) {
+  const user = await requireTeam('clinico')
+  if (!uuid.safeParse(id).success) return
+  if (await deletePhoto(patientId, id)) await audit(user, 'foto_evolucao_excluida', 'foto', { entityId: id, patientId })
+  revalidatePath(patientPath(patientId, 'evolucao'))
+}
+
 /* -------------------------------- metas -------------------------------- */
 
 const goalSchema = z.object({
   title: str(160, 'Descreva a meta'),
   description: optStr(500),
   metric: z
-    .enum(['', 'weightKg', 'waistCm', 'hipCm', 'bodyFatPct', 'armCm', 'thighCm', 'chestCm'])
+    .enum(['', 'weightKg', 'waistCm', 'hipCm', 'bodyFatPct', 'leanMassKg', 'abdomenCm', 'armCm', 'thighCm', 'calfCm', 'chestCm'])
     .optional()
     .transform((v) => v || null),
   startValue: optNum(0, 500),
@@ -229,7 +315,10 @@ export async function addGoal(patientId: string, _: ActionState, fd: FormData): 
 export async function setGoalStatus(patientId: string, id: string, status: 'ativa' | 'concluida' | 'cancelada'): Promise<void> {
   const user = await requireTeam('clinico')
   if (!uuid.safeParse(id).success) return
-  await db.update(schema.goals).set({ status }).where(and(eq(schema.goals.id, id), eq(schema.goals.patientId, patientId)))
+  await db
+    .update(schema.goals)
+    .set({ status, completedAt: status === 'concluida' ? new Date() : null })
+    .where(and(eq(schema.goals.id, id), eq(schema.goals.patientId, patientId)))
   await audit(user, `meta_${status}`, 'meta', { entityId: id, patientId })
   revalidatePath(patientPath(patientId, 'metas'))
 }
@@ -306,16 +395,26 @@ export async function deleteDocument(patientId: string, id: string): Promise<voi
 /* ------------------------------ mensagens ------------------------------ */
 
 export async function sendTeamMessage(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
-  const parsed = str(5000, 'Escreva a mensagem').safeParse(fd.get('body'))
-  if (!parsed.success) return { fieldErrors: { body: parsed.error.issues[0].message }, error: parsed.error.issues[0].message }
+  const file = fd.get('attachment')
+  const hasFile = file instanceof File && file.size > 0
+  const body = String(fd.get('body') ?? '').trim()
+  if (!body && !hasFile) return { fieldErrors: { body: 'Escreva a mensagem' }, error: 'Escreva a mensagem ou anexe um arquivo.' }
+  if (body.length > 5000) return { fieldErrors: { body: 'Texto muito longo' }, error: 'Mensagem muito longa.' }
   try {
     const user = await requireTeam('clinico')
     const p = await patientOrThrow(patientId)
-    const isGuidance = fd.get('guidance') === 'on'
-    await db.insert(schema.messages).values({ patientId, senderId: user.id, fromPatient: false, isGuidance, body: parsed.data })
-    // Ao responder, as mensagens do paciente contam como lidas.
-    await db.update(schema.messages).set({ readAt: new Date() }).where(and(eq(schema.messages.patientId, patientId), eq(schema.messages.fromPatient, true)))
-    if (p.userId) await notifyUser(p.userId, isGuidance ? 'Nova orientação do nutricionista' : 'Nova mensagem do nutricionista', undefined, '/paciente/mensagens')
+    let attachmentFileId: string | null = null
+    if (hasFile) {
+      const saved = await saveUpload(file, CHAT_TYPES)
+      if ('error' in saved) return { fieldErrors: { attachment: saved.error! }, error: saved.error }
+      const [f] = await db
+        .insert(schema.files)
+        .values({ patientId, uploadedBy: user.id, kind: 'anexo_chat', title: chatFileTitle(saved.mime), mime: saved.mime, size: saved.size, storageKey: saved.key, visibleToPatient: true })
+        .returning({ id: schema.files.id })
+      attachmentFileId = f.id
+    }
+    const diaryEntryId = uuid.safeParse(fd.get('diaryEntryId')).success ? String(fd.get('diaryEntryId')) : null
+    await postMessage({ patientId, senderId: user.id, fromPatient: false, body, attachmentFileId, diaryEntryId, isGuidance: fd.get('guidance') === 'on', senderName: user.name })
     revalidatePath(patientPath(patientId, 'mensagens'))
     revalidatePath('/admin/mensagens')
     return { ok: true, message: p.userId ? 'Mensagem enviada.' : 'Mensagem registrada. O paciente ainda não tem acesso à área exclusiva.' }
@@ -344,17 +443,28 @@ export async function assignForm(patientId: string, _: ActionState, fd: FormData
   }
 }
 
+/** Comenta um registro do diário (aparece no próprio registro) ou responde no chat, citando o registro. */
 export async function commentDiary(patientId: string, entryId: string, fd: FormData): Promise<void> {
   const user = await requireTeam('clinico')
-  const comment = String(fd.get('comment') ?? '').trim().slice(0, 500)
+  const comment = String(fd.get('comment') ?? '').trim().slice(0, 1000)
   if (!comment || !uuid.safeParse(entryId).success) return
-  await db
-    .update(schema.diaryEntries)
-    .set({ professionalComment: comment })
+  const [entry] = await db
+    .select({ id: schema.diaryEntries.id, meal: schema.diaryEntries.meal })
+    .from(schema.diaryEntries)
     .where(and(eq(schema.diaryEntries.id, entryId), eq(schema.diaryEntries.patientId, patientId)))
+  if (!entry) return
   const p = await patientOrThrow(patientId)
-  if (p.userId) await notifyUser(p.userId, 'O nutricionista comentou seu diário', comment.slice(0, 80), '/paciente/diario')
-  await audit(user, 'diario_comentado', 'diario', { entityId: entryId, patientId })
+  if (fd.get('intent') === 'chat') {
+    await postMessage({ patientId, senderId: user.id, fromPatient: false, body: comment, diaryEntryId: entry.id, senderName: user.name })
+    await audit(user, 'diario_respondido_chat', 'diario', { entityId: entryId, patientId })
+  } else {
+    await db.update(schema.diaryEntries).set({ professionalComment: comment, commentedAt: new Date() }).where(eq(schema.diaryEntries.id, entry.id))
+    if (p.userId) {
+      await notifyUser(p.userId, 'O nutricionista comentou seu diário', comment.slice(0, 80), '/paciente/diario')
+      await pushToUser(p.userId, 'mensagens', { title: `Comentário no seu diário (${entry.meal})`, body: comment.slice(0, 90), url: '/paciente/diario' })
+    }
+    await audit(user, 'diario_comentado', 'diario', { entityId: entryId, patientId })
+  }
   revalidatePath(patientPath(patientId, 'diario'))
 }
 

@@ -6,6 +6,7 @@ import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { logout } from '@/actions/auth'
 import { Brand } from '@/components/Brand'
+import { PwaClient } from '@/components/pwa'
 import { CloseOnNavigate, NavLinks, type NavItem } from '@/components/NavLinks'
 import {
   IconBook,
@@ -46,6 +47,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: '/admin', label: 'Início', icon: <IconHome />, exact: true, show: true },
         { href: '/admin/agenda', label: 'Agenda', icon: <IconCalendar />, count: pendingAppts.n, show: can(user, 'agenda') },
         { href: '/admin/pacientes', label: 'Pacientes', icon: <IconUsers />, show: can(user, 'cadastro') || can(user, 'clinico') },
+        { href: '/admin/acompanhamento', label: 'Acompanhamento', icon: <IconChart />, show: can(user, 'clinico') },
         { href: '/admin/mensagens', label: 'Mensagens', icon: <IconChat />, count: unread.n, show: can(user, 'clinico') },
         { href: '/admin/planos', label: 'Planos alimentares', icon: <IconPlate />, show: can(user, 'clinico') },
         { href: '/admin/alimentos', label: 'Alimentos', icon: <IconBook />, show: can(user, 'clinico') },
@@ -123,6 +125,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <main id="conteudo" className="main">
           <div className="main__inner">{children}</div>
         </main>
+        <PwaClient offlineText="Sem conexão com a internet. As alterações não serão salvas até a conexão voltar." />
       </div>
     </div>
   )

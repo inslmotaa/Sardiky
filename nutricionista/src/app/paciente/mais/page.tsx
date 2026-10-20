@@ -15,6 +15,7 @@ export default async function MorePage() {
     ['/paciente/consultas', 'Agenda', 'Próximas consultas, cancelamento e histórico'],
     ['/paciente/formularios', 'Anamnese e questionários', 'Formulários enviados pelo nutricionista'],
     ...(p.features.calculadoras ? ([['/paciente/calculadoras', 'Calculadoras', 'Porções, IMC, água e mais']] as [string, string, string][]) : []),
+    ['/paciente/notificacoes', 'Notificações', 'Lembretes de refeição e água, horário de silêncio'],
     ['/paciente/meus-dados', 'Perfil e privacidade', 'Dados cadastrais, senha, exportação e LGPD'],
   ]
   return (

@@ -29,6 +29,7 @@ export async function GoalsTab({ patient }: { patient: typeof schema.patients.$i
                       {g.startValue != null && `de ${num(g.startValue)} `}para {num(g.targetValue)} {g.unit} {g.dueDate && `· até ${fmtDay(g.dueDate)}`}
                     </div>
                   )}
+                  {g.completedAt && <div className="small muted">Concluída em {fmtDay(g.completedAt.toISOString().slice(0, 10))}</div>}
                   {p != null && (
                     <div className="progress" style={{ margin: '6px 0' }}>
                       <span style={{ width: `${p}%` }} />
@@ -79,6 +80,8 @@ export async function GoalsTab({ patient }: { patient: typeof schema.patients.$i
               <option value="waistCm">Cintura (cm)</option>
               <option value="hipCm">Quadril (cm)</option>
               <option value="bodyFatPct">Gordura corporal (%)</option>
+              <option value="leanMassKg">Massa magra (kg)</option>
+              <option value="abdomenCm">Abdômen (cm)</option>
             </select>
           </Field>
           <div className="form-grid form-grid--3">

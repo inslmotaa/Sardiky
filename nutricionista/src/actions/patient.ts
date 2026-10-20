@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { and, eq, isNull } from 'drizzle-orm'
+import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
@@ -11,69 +11,153 @@ import { parseAnswers } from '@/lib/forms'
 import { notifyTeam } from '@/lib/team'
 import { getSettings } from '@/lib/settings'
 import { currentPublishedPlan, featuresOf } from '@/lib/patient-context'
-import { saveUpload, IMAGE_TYPES } from '@/lib/storage'
+import { saveUpload, CHAT_TYPES, IMAGE_TYPES } from '@/lib/storage'
+import { chatFileTitle } from '@/lib/format'
+import { postMessage } from '@/lib/chat'
+import { pushToTeam } from '@/lib/push'
+import { sendEmail } from '@/lib/notify'
+import { deletePhoto, saveProgressPhotos } from '@/lib/photos'
 import { rateLimit } from '@/lib/rate-limit'
-import { fmtDateTime, todayIn } from '@/lib/time'
+import { addDays, fmtDateTime, todayIn } from '@/lib/time'
+import type { DiaryItem } from '@/lib/plan'
 import { day, int, optNum, optStr, str, time, uuid } from '@/lib/validation'
 
 /* ------------------------------ diário ------------------------------ */
 
+const DIARY_CHOICES = { total: 'feita', parcial: 'parcial', nao_seguiu: 'outra' } as const
+const scale5 = z.union([z.literal(''), int(1, 5)]).optional()
+
 const diarySchema = z.object({
   date: day,
   time,
+  mealKey: z
+    .string()
+    .optional()
+    .transform((v) => v || null)
+    .refine((v) => v === null || /^[\w-]{1,40}:[\w-]{1,40}$/.test(v), 'Refeição inválida'),
+  optionId: optStr(40),
   meal: str(60, 'Escolha a refeição'),
-  foods: str(1000, 'Descreva o que consumiu'),
-  quantity: optStr(300),
-  hunger: z.union([z.literal(''), int(1, 5)]).optional(),
-  satiety: z.union([z.literal(''), int(1, 5)]).optional(),
-  adherence: z.enum(['total', 'parcial', 'nao_seguiu']).optional().or(z.literal('')),
+  choice: z.enum(['', 'total', 'parcial', 'nao_seguiu']).optional().transform((v) => v || null),
+  foods: optStr(1000),
+  hunger: scale5,
+  satiety: scale5,
+  mood: scale5,
   notes: optStr(1000),
 })
+const diaryItemsSchema = z
+  .array(z.object({ foodId: z.uuid().nullable(), name: z.string().trim().min(1).max(160), grams: z.number().positive().max(3000) }))
+  .max(20, 'No máximo 20 alimentos por registro')
 
-export async function addDiaryEntry(_: ActionState, fd: FormData): Promise<ActionState> {
+/** Guarda uma imagem enviada pelo paciente em pasta privada. */
+async function savePatientImage(user: { id: string; patientId: string }, file: File, kind: string, title: string) {
+  if (!rateLimit(`upload:${user.id}`, 30, 3_600_000)) throw new UserError('Limite de envios atingido. Tente mais tarde.')
+  const saved = await saveUpload(file, IMAGE_TYPES)
+  if ('error' in saved) return { error: saved.error! }
+  const [f] = await db
+    .insert(schema.files)
+    .values({ patientId: user.patientId, uploadedBy: user.id, kind, title, mime: saved.mime, size: saved.size, storageKey: saved.key, visibleToPatient: true })
+    .returning({ id: schema.files.id })
+  return { id: f.id }
+}
+
+/**
+ * Registro do diário. Para uma refeição do plano: “segui o plano”, “segui em parte” ou “comi outra coisa”
+ * (alimentos da base com quantidade e/ou foto). Também marca a refeição na tela Hoje.
+ */
+export async function saveDiaryMeal(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
   if (!(await featuresOf(user.patientId)).diario) return { error: 'O diário está desativado para a sua conta.' }
   const parsed = diarySchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
   const d = parsed.data
-  if (d.date > todayIn()) return { fieldErrors: { date: 'Não é possível registrar datas futuras' }, error: 'Revise a data.' }
+  let rawItems: unknown = []
   try {
+    rawItems = JSON.parse(String(fd.get('items') || '[]'))
+  } catch {
+    return { error: 'Lista de alimentos inválida.' }
+  }
+  const itemsParsed = diaryItemsSchema.safeParse(rawItems)
+  if (!itemsParsed.success) return { error: itemsParsed.error.issues[0].message }
+  const s = await getSettings()
+  const today = todayIn(s.timezone)
+  if (d.date > today) return { fieldErrors: { date: 'Não é possível registrar datas futuras' }, error: 'Revise a data.' }
+  if (d.date < addDays(today, -30)) return { fieldErrors: { date: 'Registre dias dos últimos 30 dias' }, error: 'Revise a data.' }
+  if (d.mealKey && !d.choice) return { fieldErrors: { choice: 'Escolha uma opção' }, error: 'Conte como foi: segui o plano, segui em parte ou comi outra coisa.' }
+  const photo = fd.get('photo')
+  const hasPhoto = photo instanceof File && photo.size > 0
+  if ((d.choice === 'nao_seguiu' || !d.mealKey) && itemsParsed.data.length === 0 && !d.foods && !hasPhoto)
+    return { fieldErrors: { foods: 'Descreva o que comeu' }, error: 'Adicione os alimentos, uma descrição ou uma foto do prato.' }
+
+  try {
+    // Nutrientes sempre vêm da base do servidor, nunca do navegador.
+    const ids = itemsParsed.data.map((i) => i.foodId).filter((v): v is string => !!v)
+    const foodRows = ids.length ? await db.select().from(schema.foods).where(inArray(schema.foods.id, ids)) : []
+    const items: DiaryItem[] = itemsParsed.data.map((i) => {
+      const f = foodRows.find((r) => r.id === i.foodId)
+      return f
+        ? { foodId: f.id, name: f.name, grams: Math.round(i.grams), per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber } }
+        : { foodId: null, name: i.name, grams: Math.round(i.grams), per100: null }
+    })
+    const foodsText =
+      d.foods ??
+      (items.length
+        ? items.map((i) => `${i.name} (${i.grams} g)`).join(', ')
+        : d.choice === 'total'
+          ? 'Segui o plano'
+          : d.choice === 'parcial'
+            ? 'Segui o plano em parte'
+            : 'Foto do prato')
+
     let photoFileId: string | null = null
-    const photo = fd.get('photo')
-    if (photo instanceof File && photo.size > 0) {
-      if (!rateLimit(`upload:${user.id}`, 30, 3_600_000)) throw new UserError('Limite de envios atingido. Tente mais tarde.')
-      const saved = await saveUpload(photo, IMAGE_TYPES)
+    if (hasPhoto) {
+      const saved = await savePatientImage(user, photo, 'foto_refeicao', `Refeição ${d.meal} ${d.date}`)
       if ('error' in saved) return { fieldErrors: { photo: saved.error! }, error: saved.error }
-      const [f] = await db
-        .insert(schema.files)
-        .values({
-          patientId: user.patientId,
-          uploadedBy: user.id,
-          kind: 'foto_refeicao',
-          title: `Refeição ${d.meal} ${d.date}`,
-          mime: saved.mime,
-          size: saved.size,
-          storageKey: saved.key,
-          visibleToPatient: true,
-        })
-        .returning({ id: schema.files.id })
-      photoFileId = f.id
+      photoFileId = saved.id
     }
-    await db.insert(schema.diaryEntries).values({
+    const values = {
       patientId: user.patientId,
       date: d.date,
       time: d.time,
       meal: d.meal,
-      foods: d.foods,
-      quantity: d.quantity,
+      mealKey: d.mealKey,
+      foods: foodsText,
+      items,
       hunger: d.hunger ? Number(d.hunger) : null,
       satiety: d.satiety ? Number(d.satiety) : null,
-      adherence: d.adherence || null,
+      mood: d.mood ? Number(d.mood) : null,
+      adherence: d.choice,
       notes: d.notes,
-      photoFileId,
-    })
+    }
+    // Uma refeição do plano tem um único registro por dia: registrar de novo atualiza.
+    const [existing] = d.mealKey
+      ? await db
+          .select({ id: schema.diaryEntries.id, photoFileId: schema.diaryEntries.photoFileId })
+          .from(schema.diaryEntries)
+          .where(and(eq(schema.diaryEntries.patientId, user.patientId), eq(schema.diaryEntries.date, d.date), eq(schema.diaryEntries.mealKey, d.mealKey)))
+      : []
+    if (existing) {
+      await db
+        .update(schema.diaryEntries)
+        .set({ ...values, photoFileId: photoFileId ?? existing.photoFileId })
+        .where(eq(schema.diaryEntries.id, existing.id))
+    } else {
+      await db.insert(schema.diaryEntries).values({ ...values, photoFileId })
+    }
+
+    if (d.mealKey && d.choice) {
+      const plan = await currentPublishedPlan(user.patientId)
+      if (plan) {
+        const status = DIARY_CHOICES[d.choice]
+        await db
+          .insert(schema.mealLogs)
+          .values({ patientId: user.patientId, date: d.date, planId: plan.id, mealKey: d.mealKey, optionId: d.optionId, status })
+          .onConflictDoUpdate({ target: [schema.mealLogs.patientId, schema.mealLogs.date, schema.mealLogs.mealKey], set: { status, optionId: d.optionId, planId: plan.id } })
+      }
+    }
     revalidatePath('/paciente/diario')
-    return { ok: true, message: 'Registro salvo no seu diário.' }
+    revalidatePath('/paciente')
+    const kind = d.choice === 'total' ? 'Que bom! ' : d.choice === 'parcial' ? 'Tudo certo, cada passo conta. ' : d.choice === 'nao_seguiu' ? 'Obrigado por contar. Amanhã é um novo dia. ' : ''
+    return { ok: true, message: `${kind}Registro salvo no seu diário.` }
   } catch (err) {
     return failure(err)
   }
@@ -131,17 +215,70 @@ export async function addSelfMeasurement(_: ActionState, fd: FormData): Promise<
 export async function sendPatientMessage(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
   if (!(await featuresOf(user.patientId)).chat) return { error: 'As mensagens estão desativadas para a sua conta.' }
-  const parsed = str(3000, 'Escreva sua mensagem').safeParse(fd.get('body'))
-  if (!parsed.success) return { fieldErrors: { body: parsed.error.issues[0].message }, error: parsed.error.issues[0].message }
+  const file = fd.get('attachment')
+  const hasFile = file instanceof File && file.size > 0
+  const body = String(fd.get('body') ?? '').trim()
+  if (!body && !hasFile) return { fieldErrors: { body: 'Escreva sua mensagem' }, error: 'Escreva sua mensagem ou anexe um arquivo.' }
+  if (body.length > 3000) return { fieldErrors: { body: 'Texto muito longo' }, error: 'Mensagem muito longa.' }
   if (!rateLimit(`msg:${user.id}`, 30, 3_600_000)) return { error: 'Muitas mensagens em pouco tempo. Aguarde um pouco.' }
   try {
-    await db.insert(schema.messages).values({ patientId: user.patientId, senderId: user.id, fromPatient: true, body: parsed.data })
-    await notifyTeam('clinico', 'Nova mensagem de paciente', user.name, `/admin/pacientes/${user.patientId}?aba=mensagens`)
+    let attachmentFileId: string | null = null
+    if (hasFile) {
+      if (!rateLimit(`upload:${user.id}`, 30, 3_600_000)) throw new UserError('Limite de envios atingido. Tente mais tarde.')
+      const saved = await saveUpload(file, CHAT_TYPES)
+      if ('error' in saved) return { fieldErrors: { attachment: saved.error! }, error: saved.error }
+      const [f] = await db
+        .insert(schema.files)
+        .values({ patientId: user.patientId, uploadedBy: user.id, kind: 'anexo_chat', title: chatFileTitle(saved.mime), mime: saved.mime, size: saved.size, storageKey: saved.key, visibleToPatient: true })
+        .returning({ id: schema.files.id })
+      attachmentFileId = f.id
+    }
+    await postMessage({ patientId: user.patientId, senderId: user.id, fromPatient: true, body, attachmentFileId, senderName: user.name })
     revalidatePath('/paciente/mensagens')
-    return { ok: true, message: 'Mensagem enviada. O retorno acontece em horário de atendimento.' }
+    return { ok: true }
   } catch (err) {
     return failure(err)
   }
+}
+
+/* --------------------------- fotos de evolução --------------------------- */
+
+export async function addOwnProgressPhotos(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requirePatient()
+  const date = day.safeParse(fd.get('date'))
+  const s = await getSettings()
+  if (!date.success || date.data > todayIn(s.timezone)) return { fieldErrors: { date: 'Data inválida' }, error: 'Revise a data.' }
+  if (!rateLimit(`upload:${user.id}`, 30, 3_600_000)) return { error: 'Limite de envios atingido. Tente mais tarde.' }
+  try {
+    const r = await saveProgressPhotos(user.patientId, user.id, date.data, fd)
+    if ('error' in r) return { error: r.error }
+    await notifyTeam('clinico', 'Novas fotos de evolução', user.name, `/admin/pacientes/${user.patientId}?aba=evolucao`)
+    await audit(user, 'fotos_evolucao_enviadas', 'foto', { patientId: user.patientId, details: { quantidade: r.saved } })
+    revalidatePath('/paciente/evolucao')
+    return { ok: true, message: r.saved === 1 ? 'Foto salva.' : `${r.saved} fotos salvas.` }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+export async function deleteOwnProgressPhoto(id: string) {
+  const user = await requirePatient()
+  if (!uuid.safeParse(id).success) return
+  // O paciente só exclui as fotos que ele mesmo enviou.
+  if (await deletePhoto(user.patientId, id, user.id)) await audit(user, 'foto_evolucao_excluida', 'foto', { entityId: id, patientId: user.patientId })
+  revalidatePath('/paciente/evolucao')
+}
+
+/** O paciente marca (ou desmarca) uma meta como concluída. */
+export async function toggleOwnGoal(id: string) {
+  const user = await requirePatient()
+  if (!uuid.safeParse(id).success) return
+  const [g] = await db.select().from(schema.goals).where(and(eq(schema.goals.id, id), eq(schema.goals.patientId, user.patientId)))
+  if (!g || g.status === 'cancelada') return
+  const done = g.status !== 'concluida'
+  await db.update(schema.goals).set({ status: done ? 'concluida' : 'ativa', completedAt: done ? new Date() : null }).where(eq(schema.goals.id, g.id))
+  if (done) await notifyTeam('clinico', 'Meta concluída pelo paciente', `${user.name} · ${g.title}`, `/admin/pacientes/${user.patientId}?aba=metas`)
+  revalidatePath('/paciente/evolucao')
 }
 
 export async function markNotificationsRead() {
@@ -170,7 +307,12 @@ export async function submitForm(assignmentId: string, _: ActionState, fd: FormD
     if (a.kind === 'consentimento') {
       await db.insert(schema.consents).values({ userId: user.id, patientId: user.patientId, kind: `termo:${a.title}`.slice(0, 80), version: a.id })
     }
-    await notifyTeam('clinico', 'Formulário respondido', `${user.name} · ${a.title}`, `/admin/pacientes/${user.patientId}?aba=formularios`)
+    await notifyTeam('clinico', a.kind === 'anamnese' ? 'Anamnese recebida' : 'Formulário respondido', `${user.name} · ${a.title}`, `/admin/pacientes/${user.patientId}?aba=formularios`)
+    if (a.kind === 'anamnese') {
+      await pushToTeam('clinico', { title: 'Anamnese recebida', body: user.name, url: `/admin/pacientes/${user.patientId}?aba=formularios` })
+      const s = await getSettings()
+      if (s.contactEmail) await sendEmail(s.contactEmail, `Anamnese recebida: ${user.name}`, `${user.name} enviou a anamnese pelo app. Veja as respostas no painel, na ficha do paciente.`)
+    }
     await audit(user, 'formulario_respondido', 'formulario', { entityId: a.id, patientId: user.patientId })
     revalidatePath('/paciente/formularios')
     revalidatePath('/paciente')

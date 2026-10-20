@@ -132,5 +132,44 @@ export function buildDemoPlans(resolve: (name: string) => ResolvedFood) {
     guidance: 'Nos dias de treino longo, reforce a hidratação e faça o pré-treino cerca de 1 hora antes.',
   })
 
-  return { beatrizPlan, beatrizV1, lucasPlan }
+  // Modelos iniciais extras (pontos de partida; ajuste sempre ao paciente).
+  const vegetarianoPlan = withTargets({
+    v: 2,
+    mode: 'calculado',
+    targets: { kcal: null, protein: null, carbs: null, fat: null, fiber: null },
+    days: [
+      {
+        id: uid(),
+        label: 'Todos os dias',
+        weekdays: [],
+        meals: [
+          meal('Café da manhã', '07:30', [[item('Pão de forma integral', 50), item('Queijo minas frescal', 30, { subs: ['Requeijão cremoso'] }), item('Banana prata', 60, { subs: ['Mamão papaia', 'Morango'] })]]),
+          meal('Almoço', '12:30', [
+            [
+              item('Alface crespa', 40),
+              item('Tomate', 100),
+              item('Arroz, integral', 100, { subs: ['Batata-doce', 'Mandioca'] }),
+              item('Lentilha', 120, { subs: ['Grão-de-bico', 'Feijão carioca'] }),
+              item('Ovo de galinha, inteiro, cozido', 50),
+              item('Azeite de oliva', 8, { locked: true }),
+            ],
+          ]),
+          meal('Lanche da tarde', '16:00', [[item('Iogurte natural', 170), item('Aveia em flocos', 20), item('Castanha-do-brasil', 8)]]),
+          meal('Jantar', '19:30', [[item('Cuscuz de milho', 120, { subs: ['Batata-doce'] }), item('Grão-de-bico', 80, { subs: ['Lentilha'] }), item('Abobrinha italiana', 80), item('Azeite de oliva', 8, { locked: true })]]),
+        ],
+      },
+    ],
+    guidance: 'Modelo ovolactovegetariano: combine leguminosas e cereais nas principais refeições. Avalie B12, ferro e zinco com o paciente.',
+  })
+  const emagrecimentoDay = reeducacaoDay()
+  emagrecimentoDay.meals = emagrecimentoDay.meals.map((m) => ({ ...m, options: m.options.slice(0, 1) }))
+  const emagrecimentoPlan = withTargets({
+    v: 2,
+    mode: 'calculado',
+    targets: { kcal: null, protein: null, carbs: null, fat: null, fiber: null },
+    days: [emagrecimentoDay],
+    guidance: 'Modelo de déficit calórico moderado. Ajuste as porções à meta calculada para o paciente.',
+  })
+
+  return { beatrizPlan, beatrizV1, lucasPlan, vegetarianoPlan, emagrecimentoPlan }
 }

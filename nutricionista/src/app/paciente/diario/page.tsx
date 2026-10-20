@@ -1,105 +1,96 @@
-import { and, desc, eq, gte } from 'drizzle-orm'
-import { db, schema } from '@/db'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { requirePatient } from '@/lib/auth/session'
 import { featuresOf } from '@/lib/patient-context'
-import { redirect } from 'next/navigation'
 import { getSettings } from '@/lib/settings'
-import { addDays, todayIn, zonedParts } from '@/lib/time'
-import { addDiaryEntry, deleteDiaryEntry } from '@/actions/patient'
-import { ActionForm, Field, SubmitButton } from '@/components/form'
-import { PageHead, Empty } from '@/components/ui'
-import { DiaryList } from '@/components/DiaryList'
+import { loadDiaryDay } from '@/lib/diary'
+import { loadFoods } from '@/lib/foods'
+import { addDays, capitalize, fmtDay, fmtDayLong, isValidDay, todayIn, zonedParts } from '@/lib/time'
+import { fmt } from '@/lib/nutricao'
+import { deleteDiaryEntry, saveDiaryMeal } from '@/actions/patient'
+import { DiaryDay } from '@/components/nutri/DiaryDay'
+import { KcalRing, MacroBars } from '@/components/nutri/MacroBars'
+import { PageHead } from '@/components/ui'
 
-const MEALS = ['Café da manhã', 'Lanche da manhã', 'Almoço', 'Lanche da tarde', 'Jantar', 'Ceia', 'Outro']
-
-export default async function DiaryPage() {
+export default async function DiaryPage({ searchParams }: { searchParams: Promise<{ data?: string }> }) {
   const user = await requirePatient()
-  if (!(await featuresOf(user.patientId)).diario) redirect('/paciente')
+  const f = await featuresOf(user.patientId)
+  if (!f.diario) redirect('/paciente')
   const s = await getSettings()
   const today = todayIn(s.timezone)
-  const entries = await db
-    .select()
-    .from(schema.diaryEntries)
-    .where(and(eq(schema.diaryEntries.patientId, user.patientId), gte(schema.diaryEntries.date, addDays(today, -30))))
-    .orderBy(desc(schema.diaryEntries.date), desc(schema.diaryEntries.time))
-  const now = zonedParts(new Date(), s.timezone).time
+  const sp = await searchParams
+  const date = sp.data && isValidDay(sp.data) && sp.data <= today && sp.data >= addDays(today, -30) ? sp.data : today
+  const [d, foods] = await Promise.all([loadDiaryDay(user.patientId, date), loadFoods()])
+  const show = { kcal: f.calorias, macros: f.macros }
+  const isToday = date === today
 
   return (
-    <div className="stack" style={{ ['--gap' as string]: '20px' }}>
-      <PageHead title="Diário alimentar" subtitle="Registre o que comeu, como se sentiu e se conseguiu seguir o plano. Não existe registro “certo” — o importante é ser sincero." />
+    <div className="stack" style={{ ['--gap' as string]: '18px' }}>
+      <PageHead title="Diário alimentar" subtitle="Conte como foi cada refeição. Não existe registro “certo” — o importante é ser sincero." />
+
+      <nav className="day-nav card" aria-label="Escolher o dia">
+        <Link className="btn btn--sm" href={`/paciente/diario?data=${addDays(date, -1)}`} aria-label="Dia anterior">
+          ‹
+        </Link>
+        <strong>{isToday ? 'Hoje' : capitalize(fmtDayLong(date))}</strong>
+        {isToday ? (
+          <span className="btn btn--sm" aria-hidden style={{ visibility: 'hidden' }}>
+            ›
+          </span>
+        ) : (
+          <Link className="btn btn--sm" href={`/paciente/diario?data=${addDays(date, 1)}`} aria-label="Próximo dia">
+            ›
+          </Link>
+        )}
+      </nav>
+
+      {(show.kcal || show.macros) && d.planned && (
+        <section className="card today-totals" aria-label="Consumido no dia">
+          <div className="row" style={{ alignItems: 'center', gap: 20 }}>
+            {show.kcal && <KcalRing value={d.consumed.kcal} target={d.targets?.kcal ?? d.planned.kcal} label="kcal registradas" />}
+            {show.macros && (
+              <div style={{ flex: '1 1 220px' }}>
+                <MacroBars value={d.consumed} target={{ protein: d.targets?.protein ?? d.planned.protein, carbs: d.targets?.carbs ?? d.planned.carbs, fat: d.targets?.fat ?? d.planned.fat }} />
+              </div>
+            )}
+          </div>
+          <p className="small muted" style={{ margin: '8px 0 0' }}>
+            Soma das refeições do plano marcadas (parcial conta metade) e dos alimentos registrados fora do plano.
+          </p>
+        </section>
+      )}
+
+      {!d.day && (
+        <p className="empty">Seu nutricionista ainda está montando seu plano. Enquanto isso, você já pode registrar o que comeu em “Fora do plano”.</p>
+      )}
+
+      <DiaryDay
+        date={date}
+        nowTime={isToday ? zonedParts(new Date(), s.timezone).time : '12:00'}
+        meals={d.meals}
+        extras={d.extras}
+        foods={foods.map((x) => ({ id: x.id, name: x.name, group: x.group, per100: x.per100, measures: x.measures }))}
+        action={saveDiaryMeal}
+        onDelete={deleteDiaryEntry}
+        show={show}
+        photoNote="A foto fica visível só para você e para o seu nutricionista."
+      />
 
       <section className="card">
-        <h2 style={{ fontSize: '1.15rem' }}>Novo registro</h2>
-        <ActionForm action={addDiaryEntry} className="stack" resetOnSuccess>
-          <div className="form-grid form-grid--3">
-            <Field label="Refeição" name="meal" required>
-              <select name="meal" defaultValue="">
-                <option value="" disabled>
-                  Selecione
-                </option>
-                {MEALS.map((m) => (
-                  <option key={m}>{m}</option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Data" name="date" required>
-              <input type="date" name="date" defaultValue={today} max={today} />
-            </Field>
-            <Field label="Horário" name="time" required>
-              <input type="time" name="time" defaultValue={now} />
-            </Field>
-          </div>
-          <Field label="O que você comeu e bebeu?" name="foods" required>
-            <textarea name="foods" rows={2} maxLength={1000} placeholder="Ex.: arroz, feijão, frango grelhado e salada" />
-          </Field>
-          <Field label="Quantidades aproximadas" name="quantity" hint="Use medidas caseiras: colheres, conchas, unidades…">
-            <input name="quantity" maxLength={300} />
-          </Field>
-          <div className="form-grid form-grid--3">
-            <Field label="Fome antes (1 a 5)" name="hunger">
-              <select name="hunger" defaultValue="">
-                <option value="">—</option>
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>
-                    {n} {n === 1 ? '(pouca)' : n === 5 ? '(muita)' : ''}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Saciedade depois (1 a 5)" name="satiety">
-              <select name="satiety" defaultValue="">
-                <option value="">—</option>
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>
-                    {n} {n === 1 ? '(pouca)' : n === 5 ? '(muita)' : ''}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Seguiu o plano?" name="adherence">
-              <select name="adherence" defaultValue="">
-                <option value="">—</option>
-                <option value="total">Sim</option>
-                <option value="parcial">Em parte</option>
-                <option value="nao_seguiu">Não</option>
-              </select>
-            </Field>
-          </div>
-          <Field label="Observações" name="notes" hint="Rotina, dificuldades, como se sentiu…">
-            <textarea name="notes" rows={2} maxLength={1000} />
-          </Field>
-          <Field label="Foto da refeição (opcional)" name="photo" hint="JPG, PNG ou WebP, até 5 MB. Visível apenas para você e para o nutricionista.">
-            <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" capture="environment" />
-          </Field>
-          <div>
-            <SubmitButton>Salvar registro</SubmitButton>
-          </div>
-        </ActionForm>
-      </section>
-
-      <section>
-        <h2 style={{ fontSize: '1.15rem' }}>Últimos 30 dias</h2>
-        {entries.length === 0 ? <Empty>Nenhum registro ainda.</Empty> : <DiaryList entries={entries} onDelete={deleteDiaryEntry} />}
+        <h2 style={{ fontSize: '1.1rem' }}>Últimos dias</h2>
+        <ul className="day-history">
+          {d.history.map((h) => (
+            <li key={h.date}>
+              <Link href={`/paciente/diario?data=${h.date}`} aria-current={h.date === date ? 'page' : undefined}>
+                <span>{h.date === today ? 'Hoje' : fmtDay(h.date)}</span>
+                <span className="muted small">
+                  {h.records === 0 ? 'sem registros' : `${h.records} ${h.records === 1 ? 'registro' : 'registros'}`}
+                  {show.kcal && h.kcal > 0 && ` · ${fmt(h.kcal, 0)} kcal`}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   )

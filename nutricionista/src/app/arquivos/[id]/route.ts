@@ -22,13 +22,14 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       !!user &&
       ((user.role === 'patient' && file.patientId !== null && file.patientId === user.patientId && file.visibleToPatient) ||
         (user.role !== 'patient' && can(user, 'clinico')))
+    // Fotos de evolução: nunca públicas, só o próprio paciente e a equipe clínica (regra acima).
     // 404 em vez de 403: não revela a existência do arquivo.
     if (!allowed) return new Response('Não encontrado', { status: 404 })
   }
 
   const body = await readUpload(file.storageKey).catch(() => null)
   if (!body) return new Response('Arquivo indisponível', { status: 410 })
-  const inline = file.mime.startsWith('image/') || file.mime === 'application/pdf'
+  const inline = file.mime.startsWith('image/') || file.mime.startsWith('audio/') || file.mime === 'application/pdf'
   return new Response(new Uint8Array(body), {
     headers: {
       'Content-Type': file.mime,

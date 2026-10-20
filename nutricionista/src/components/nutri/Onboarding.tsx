@@ -1,12 +1,27 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, type ReactNode } from 'react'
 
 /**
  * Primeiro acesso em 3 telas: boas-vindas, notificações e anamnese.
  * `onFinish` marca o onboarding como concluído (Server Action no sistema).
  */
-export function Onboarding({ firstName, professional, anamneseUrl, anamnesisDone, onFinish }: { firstName: string; professional: string; anamneseUrl: string | null; anamnesisDone: boolean; onFinish: () => Promise<void> }) {
+export function Onboarding({
+  firstName,
+  professional,
+  anamneseUrl,
+  anamnesisDone,
+  onFinish,
+  pushToggle,
+}: {
+  firstName: string
+  professional: string
+  anamneseUrl: string | null
+  anamnesisDone: boolean
+  onFinish: () => Promise<void>
+  /** Botão que ativa o push neste aparelho (no sistema); sem ele, só pede a permissão. */
+  pushToggle?: ReactNode
+}) {
   const [step, setStep] = useState(0)
   const [notif, setNotif] = useState<string | null>(null)
   const [pending, start] = useTransition()
@@ -26,8 +41,10 @@ export function Onboarding({ firstName, professional, anamneseUrl, anamnesisDone
     </>,
     <>
       <h2>Lembretes</h2>
-      <p>Você pode receber lembretes dos horários das refeições e da água. Você controla isso a qualquer momento nas configurações do celular.</p>
+      <p>Você pode receber lembretes dos horários das refeições e da água, e um aviso quando o plano ou uma mensagem chegar. Você escolhe o que receber em Mais → Notificações.</p>
+      {pushToggle}
       {notif && <p className="small">{notif}</p>}
+      {!pushToggle && (
       <button
         type="button"
         className="btn"
@@ -39,6 +56,7 @@ export function Onboarding({ firstName, professional, anamneseUrl, anamnesisDone
       >
         Permitir notificações
       </button>
+      )}
     </>,
     <>
       <h2>Sua anamnese</h2>

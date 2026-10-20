@@ -11,7 +11,7 @@ import * as s from './schema'
 import { hashPassword } from '../lib/auth/password'
 import { addDays, todayIn, zonedToUtc } from '../lib/time'
 import { newCode } from '../lib/auth/tokens'
-import { normalize, bmr as calcBmr, tdee as calcTdee } from '../lib/nutricao'
+import { normalize, bmr as calcBmr, tdee as calcTdee, bodyFatFromSkinfolds, leanMass as leanMassOf } from '../lib/nutricao'
 import { buildDemoPlans } from './demo-plans'
 import { TACO_FOODS } from './foods-taco'
 import type { FormField } from '../lib/forms'
@@ -43,7 +43,7 @@ async function main() {
   console.log('Limpando dados…')
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
-      form_templates, notifications, messages, diary_entries, meal_logs, water_logs, meal_plans, household_measures, foods, measurements, goals, leads,
+      form_templates, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, meal_plans, household_measures, foods, measurements, goals, leads,
       appointments, patients, packages, faqs, testimonials, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
@@ -79,6 +79,9 @@ async function main() {
     privacyContact: 'privacidade@example.com',
     anamneseUrl: 'https://forms.gle/8EkK8XcNE35ydHYKA',
     waterMlPerKg: 35,
+    quickReplies: ['Ótima escolha!', 'Vamos ajustar isso no retorno.', 'Obrigado por registrar, {nome}! Continue assim.', 'Tudo bem, amanhã é um novo dia.'],
+    chatHours: { start: '08:00', end: '18:00', weekdays: [1, 2, 3, 4, 5] },
+    chatAutoReply: 'Oi! Recebi sua mensagem e respondo no próximo horário de atendimento (segunda a sexta, 8h às 18h). Em caso de urgência, procure um serviço de saúde.',
     timezone: TZ,
     slotStepMinutes: 30,
     bufferMinutes: 10,
@@ -218,7 +221,7 @@ async function main() {
     hashPassword(PASSWORDS.staff),
     hashPassword(PASSWORDS.patient),
   ])
-  const [admin, , uBeatriz, uLucas] = await db
+  const [admin, , uBeatriz, uLucas, uHelena] = await db
     .insert(s.users)
     .values([
       { email: 'nutri@example.com', name: 'André Farion', role: 'admin', passwordHash: adminHash },
@@ -231,6 +234,7 @@ async function main() {
       },
       { email: 'paciente@example.com', name: 'Beatriz Exemplo', role: 'patient', passwordHash: patientHash, onboardedAt: at(-150, '20:00') },
       { email: 'lucas@example.com', name: 'Lucas Fictício', role: 'patient', passwordHash: patientHash, onboardedAt: at(-24, '20:00') },
+      { email: 'helena@example.com', name: 'Helena Teste', role: 'patient', passwordHash: patientHash, onboardedAt: at(-20, '20:00') },
     ])
     .returning()
 
@@ -279,6 +283,7 @@ async function main() {
         followUpDays: 60,
       },
       {
+        userId: uHelena.id,
         fullName: 'Helena Teste',
         email: 'helena@example.com',
         phone: '11900000004',
@@ -297,6 +302,7 @@ async function main() {
   await db.insert(s.consents).values([
     { userId: uBeatriz.id, patientId: beatriz.id, kind: 'tratamento_dados_saude', version: '2026-10' },
     { userId: uLucas.id, patientId: lucas.id, kind: 'tratamento_dados_saude', version: '2026-10' },
+    { userId: uHelena.id, patientId: helena.id, kind: 'tratamento_dados_saude', version: '2026-10' },
   ])
 
   /* ------------------------------ consultas ---------------------------- */
@@ -379,6 +385,8 @@ async function main() {
   })
 
   /* ------------------------------ evolução ----------------------------- */
+  const lucasFolds = { peitoral: 8, axilarMedia: 10, triceps: 9, subescapular: 12, abdominal: 16, suprailiaca: 11, coxa: 13 }
+  const lucasFat = bodyFatFromSkinfolds('jp7', 'M', 29, lucasFolds)!
   const weights = [78.4, 77.3, 76.6, 75.9, 75.1]
   const waists = [86, 84.5, 83.5, 82, 81]
   const fats = [31.5, 30.6, 29.9, 29.1, 28.4]
@@ -395,6 +403,9 @@ async function main() {
       hipCm: 104 - i * 0.8,
       armCm: 30 - i * 0.2,
       thighCm: 58 - i * 0.4,
+      abdomenCm: 92 - i * 1.1,
+      leanMassKg: Math.round(leanMassOf(w, fats[i]) * 10) / 10,
+      bioimpedance: { fatPct: fats[i], waterPct: 49 + i * 0.4, visceral: 7 - (i > 2 ? 1 : 0) },
       extra: [{ label: 'Circunferência do pescoço', value: 33 - i * 0.2, unit: 'cm' }],
       createdBy: admin.id,
     })),
@@ -407,9 +418,15 @@ async function main() {
       source: 'profissional' as const,
       weightKg: 71.2,
       heightCm: 178,
-      bodyFatPct: 14.2,
-      bodyFatMethod: 'Dobras cutâneas (7 dobras)',
+      bodyFatPct: Math.round(lucasFat.pct * 10) / 10,
+      bodyFatMethod: 'Jackson-Pollock 7 dobras + Siri',
+      skinfolds: lucasFolds,
+      skinfoldProtocol: 'jp7',
+      leanMassKg: Math.round(leanMassOf(71.2, lucasFat.pct) * 10) / 10,
       waistCm: 78,
+      hipCm: 94,
+      abdomenCm: 80,
+      calfCm: 37,
       createdBy: admin.id,
     },
     { patientId: helena.id, date: day(wd(-10)), source: 'profissional' as const, weightKg: 68.3, heightCm: 160, waistCm: 84, createdBy: admin.id },
@@ -457,7 +474,7 @@ async function main() {
   )
 
   /* --------------------------- planos alimentares ---------------------- */
-  const { beatrizPlan, beatrizV1, lucasPlan } = buildDemoPlans((name) => {
+  const { beatrizPlan, beatrizV1, lucasPlan, vegetarianoPlan, emagrecimentoPlan } = buildDemoPlans((name) => {
     const row = foodRows.find((r) => r.name.startsWith(name))
     if (!row) throw new Error(`Alimento não encontrado no seed: ${name}`)
     return { id: row.id, name: row.name, group: row.group, per100: { kcal: row.kcal, protein: row.protein, carbs: row.carbs, fat: row.fat, fiber: row.fiber } }
@@ -498,6 +515,8 @@ async function main() {
     { patientId: lucas.id, title: 'Plano para treinos de corrida', status: 'rascunho', version: 1, content: lucasPlan, createdBy: admin.id },
     { isTemplate: true, title: 'Modelo — Reeducação alimentar (4 refeições)', status: 'rascunho', version: 1, content: beatrizPlan, createdBy: admin.id },
     { isTemplate: true, title: 'Modelo — Treino e descanso', status: 'rascunho', version: 1, content: lucasPlan, createdBy: admin.id },
+    { isTemplate: true, title: 'Modelo — Vegetariano', status: 'rascunho', version: 1, content: vegetarianoPlan, createdBy: admin.id },
+    { isTemplate: true, title: 'Modelo — Emagrecimento (uma opção por refeição)', status: 'rascunho', version: 1, content: emagrecimentoPlan, createdBy: admin.id },
   ])
 
   // Gasto energético calculado na última consulta (Mifflin-St Jeor, atividade leve, déficit de 400 kcal).
@@ -508,13 +527,50 @@ async function main() {
     .set({ energy: { formula: 'mifflin', factor: 1.375, bmr: bmrB, tdee: tdeeB, targetKcal: Math.round(tdeeB - 400), adjust: -400, adjustUnit: 'kcal', date: day(-30) } })
     .where(eq(s.patients.id, beatriz.id))
 
-  // Acompanhamento de hoje: café da manhã feito e um pouco de água.
-  const breakfast = beatrizPlan.days[0].meals[0]
-  await db.insert(s.mealLogs).values({ patientId: beatriz.id, date: day(0), planId: beatrizCurrent.id, mealKey: `${beatrizPlan.days[0].id}:${breakfast.id}`, optionId: breakfast.options[0].id, status: 'feita' })
-  await db.insert(s.waterLogs).values({ patientId: beatriz.id, date: day(0), ml: 750 })
+  const [helenaPlan] = await db
+    .insert(s.mealPlans)
+    .values({
+      patientId: helena.id,
+      title: 'Plano alimentar — vegetariano',
+      status: 'publicado',
+      version: 1,
+      content: vegetarianoPlan,
+      validFrom: day(-20),
+      validUntil: day(40),
+      publishedAt: at(-20, '18:00'),
+      publishedBy: admin.id,
+      createdBy: admin.id,
+    })
+    .returning()
+
+  // Histórico de 14 dias para o Acompanhamento (padrões fixos, sem aleatoriedade):
+  // Beatriz “em dia” (quase todas as refeições), Helena “com dificuldade” (cerca de metade).
+  const bDay = beatrizPlan.days[0]
+  const hDay = vegetarianoPlan.days[0]
+  const logRows: (typeof s.mealLogs.$inferInsert)[] = []
+  const waterRows: (typeof s.waterLogs.$inferInsert)[] = []
+  for (let d = -13; d <= 0; d++) {
+    bDay.meals.forEach((m, i) => {
+      if (d === 0 && i > 0) return // hoje: só o café da manhã
+      const status = (d + i) % 9 === 0 ? 'parcial' : (d * 3 + i) % 13 === 0 ? null : d === -1 && i === 2 ? 'outra' : 'feita'
+      if (status) logRows.push({ patientId: beatriz.id, date: day(d), planId: beatrizCurrent.id, mealKey: `${bDay.id}:${m.id}`, optionId: m.options[0].id, status })
+    })
+    waterRows.push({ patientId: beatriz.id, date: day(d), ml: d === 0 ? 750 : 1750 + ((d * 250) % 750) })
+    if (d >= -12 && d <= -1)
+      hDay.meals.forEach((m, i) => {
+        const status = i < 2 ? (d % 3 === 0 && i === 1 ? null : 'feita') : i === 2 && d % 2 === 0 ? 'parcial' : null
+        if (status) logRows.push({ patientId: helena.id, date: day(d), planId: helenaPlan.id, mealKey: `${hDay.id}:${m.id}`, optionId: m.options[0].id, status })
+      })
+  }
+  await db.insert(s.mealLogs).values(logRows)
+  await db.insert(s.waterLogs).values(waterRows)
 
 
   /* ------------------------------ diário ------------------------------- */
+  const diaryItem = (name: string, grams: number) => {
+    const f = foodRows.find((r) => r.name.startsWith(name))!
+    return { foodId: f.id, name: f.name, grams, per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber } }
+  }
   await db.insert(s.diaryEntries).values([
     {
       patientId: beatriz.id,
@@ -544,14 +600,27 @@ async function main() {
       date: day(-1),
       time: '17:30',
       meal: 'Lanche da tarde',
-      foods: 'Salgado assado e refrigerante zero',
-      quantity: '1 unidade',
+      mealKey: `${bDay.id}:${bDay.meals[2].id}`,
+      foods: 'Biscoito e suco na reunião',
+      items: [diaryItem('Biscoito cream cracker', 30), diaryItem('Suco de laranja natural', 200)],
       hunger: 5,
       satiety: 2,
+      mood: 2,
       adherence: 'nao_seguiu',
       notes: 'Reunião longa, fiquei muito tempo sem comer.',
     },
-    { patientId: beatriz.id, date: day(0), time: '07:10', meal: 'Café da manhã', foods: 'Cuscuz com ovo e banana', quantity: '1 xícara, 2 ovos', hunger: 3, satiety: 4, adherence: 'total' },
+    {
+      patientId: beatriz.id,
+      date: day(0),
+      time: '07:10',
+      meal: 'Café da manhã',
+      mealKey: `${bDay.id}:${bDay.meals[0].id}`,
+      foods: 'Segui o plano',
+      hunger: 3,
+      satiety: 4,
+      mood: 4,
+      adherence: 'total',
+    },
   ])
 
   /* ----------------------------- mensagens ----------------------------- */
@@ -560,6 +629,8 @@ async function main() {
     { patientId: beatriz.id, senderId: uBeatriz.id, fromPatient: true, body: 'Posso trocar o iogurte por kefir no lanche?', createdAt: at(-2, '18:20'), readAt: at(-2, '19:00') },
     { patientId: beatriz.id, senderId: admin.id, fromPatient: false, body: 'Pode sim! Use a mesma quantidade (1 pote, 170 g).', createdAt: at(-2, '19:05'), readAt: at(-1, '08:00') },
     { patientId: beatriz.id, senderId: uBeatriz.id, fromPatient: true, body: 'Ontem tive dificuldade com o lanche por causa de uma reunião. Alguma sugestão prática?', createdAt: at(0, '08:10') },
+    { patientId: helena.id, senderId: admin.id, fromPatient: false, body: 'Oi, Helena! Como estão os jantares desta semana?', createdAt: at(-3, '10:00'), readAt: at(-3, '12:30') },
+    { patientId: helena.id, senderId: uHelena.id, fromPatient: true, body: 'Estou chegando tarde e acabo pulando o jantar.', createdAt: at(-3, '20:40'), readAt: at(-2, '09:00') },
     { patientId: lucas.id, senderId: admin.id, fromPatient: false, isGuidance: true, body: 'Seu plano está em revisão. Enquanto isso, mantenha a hidratação nos treinos longos.', createdAt: at(-20, '10:00') },
   ])
 
@@ -671,6 +742,7 @@ async function main() {
   console.log(`  Equipe:        recepcao@example.com / ${PASSWORDS.staff}`)
   console.log(`  Paciente:      paciente@example.com / ${PASSWORDS.patient}`)
   console.log(`  Paciente 2:    lucas@example.com / ${PASSWORDS.patient}`)
+  console.log(`  Paciente 3:    helena@example.com / ${PASSWORDS.patient}`)
 }
 
 await main()

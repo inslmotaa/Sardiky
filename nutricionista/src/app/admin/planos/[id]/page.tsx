@@ -8,14 +8,14 @@ import { getSettings } from '@/lib/settings'
 import { audit } from '@/lib/audit'
 import { fmtDateTime, fmtDay } from '@/lib/time'
 import { uuid } from '@/lib/validation'
-import { deletePlanDraft, newPlanVersion, savePlan, setPlanHistoryVisibility } from '@/actions/admin/plans'
+import { deletePlanDraft, newPlanVersion, savePlan, savePlanAsTemplate, setPlanHistoryVisibility } from '@/actions/admin/plans'
 import { PlanEditor } from '@/components/PlanEditor'
 import { PatientPlan } from '@/components/nutri/PatientPlan'
 import { loadFoods } from '@/lib/foods'
 import { normalizePlan } from '@/lib/plan'
 import { measurementsOf, latest } from '@/lib/patient-data'
 import { NewPlanForm } from '@/components/NewPlanForm'
-import { PrintButton } from '@/components/form'
+import { ActionForm, Field, PrintButton, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
 
 export default async function PlanPage({ params }: { params: Promise<{ id: string }> }) {
@@ -80,7 +80,10 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         }
         actions={
           <>
-            {plan.status !== 'rascunho' && <PrintButton label="Imprimir / PDF" />}
+            <a className="btn" href={`/admin/planos/${plan.id}/pdf`} download>
+              Baixar PDF
+            </a>
+            {plan.status !== 'rascunho' && <PrintButton label="Imprimir" />}
             {plan.status !== 'rascunho' && plan.patientId && (
               <form action={newPlanVersion.bind(null, plan.id)}>
                 <button type="submit" className="btn btn--primary">
@@ -138,6 +141,20 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
                 </li>
               ))}
             </ul>
+          </section>
+        )}
+        {!plan.isTemplate && (
+          <section className="card">
+            <h2 style={{ fontSize: '1.05rem' }}>Salvar como modelo</h2>
+            <p className="muted small">Guarda uma cópia sem os dados do paciente, para reutilizar com outros pacientes.</p>
+            <ActionForm action={savePlanAsTemplate.bind(null, plan.id)} className="stack">
+              <Field label="Nome do modelo" name="templateTitle">
+                <input name="templateTitle" maxLength={160} defaultValue={`Modelo — ${plan.title}`} />
+              </Field>
+              <div>
+                <SubmitButton className="btn">Salvar como modelo</SubmitButton>
+              </div>
+            </ActionForm>
           </section>
         )}
         <section className="card">

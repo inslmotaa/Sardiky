@@ -3,7 +3,11 @@ import { featuresOf } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { goalsOf, measurementsOf } from '@/lib/patient-data'
 import { todayIn } from '@/lib/time'
-import { addSelfMeasurement } from '@/actions/patient'
+import { addOwnProgressPhotos, addSelfMeasurement, deleteOwnProgressPhoto, toggleOwnGoal } from '@/actions/patient'
+import { adherenceSummary } from '@/lib/diary'
+import { photosOf } from '@/lib/photos'
+import { AdherenceBars } from '@/components/AdherenceBars'
+import { ProgressPhotos } from '@/components/nutri/ProgressPhotos'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { Evolution } from '@/components/Evolution'
 import { PageHead } from '@/components/ui'
@@ -13,12 +17,52 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
   const user = await requirePatient()
   const features = await featuresOf(user.patientId)
   const s = await getSettings()
-  const [rows, goals] = await Promise.all([measurementsOf(user.patientId), goalsOf(user.patientId)])
   const today = todayIn(s.timezone)
+  const [rows, goals, summary, photos] = await Promise.all([
+    measurementsOf(user.patientId),
+    goalsOf(user.patientId),
+    adherenceSummary(user.patientId, today, s.timezone, { good: s.adherenceGood, low: s.adherenceLow }),
+    photosOf(user.patientId, user.id, false),
+  ])
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <PageHead title="Seu progresso" subtitle="Pontos cheios são medições feitas pelo nutricionista; pontos vazados são valores informados por você." />
-      <Evolution rows={rows} goals={goals} compare={sp} basePath="/paciente/evolucao" />
+      {summary.hasPlan && (
+        <section className="card" aria-labelledby="adesao">
+          <h2 id="adesao" style={{ fontSize: '1.15rem' }}>
+            Constância
+          </h2>
+          <div className="stat-row" style={{ marginBottom: 12 }}>
+            <div className="stat">
+              <strong>{summary.pct7 != null ? `${summary.pct7}%` : '—'}</strong>
+              <span>das refeições do plano feitas nos últimos 7 dias</span>
+            </div>
+            <div className="stat">
+              <strong>
+                {summary.streak} {summary.streak === 1 ? 'dia' : 'dias'}
+              </strong>
+              <span>seguidos registrando</span>
+            </div>
+          </div>
+          <AdherenceBars weeks={summary.weekly} good={s.adherenceGood} />
+          <p className="small muted" style={{ margin: '6px 0 0' }}>
+            {summary.pct7 != null && summary.pct7 >= s.adherenceGood
+              ? 'Você está mantendo uma ótima constância. Continue assim!'
+              : 'Cada refeição registrada conta. Se a semana foi difícil, tudo bem — amanhã é um novo dia.'}
+          </p>
+        </section>
+      )}
+      <Evolution rows={rows} goals={goals} compare={sp} basePath="/paciente/evolucao" onToggleGoal={toggleOwnGoal} />
+      <section className="card" id="fotos">
+        <h2 style={{ fontSize: '1.15rem' }}>Fotos de evolução</h2>
+        <ProgressPhotos
+          photos={photos}
+          upload={addOwnProgressPhotos}
+          onDelete={deleteOwnProgressPhoto}
+          today={today}
+          privacyNote="Suas fotos são privadas: só você e o seu nutricionista podem vê-las."
+        />
+      </section>
       {features.peso && (
       <section className="card" id="registrar">
         <h2 style={{ fontSize: '1.15rem' }}>Registrar uma medida em casa</h2>

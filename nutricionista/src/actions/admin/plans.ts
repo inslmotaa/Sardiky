@@ -8,7 +8,9 @@ import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { audit } from '@/lib/audit'
 import { failure, UserError, type ActionState } from '@/lib/action'
-import { notifyUser } from '@/lib/notify'
+import { notifyUser, sendEmail } from '@/lib/notify'
+import { getSettings } from '@/lib/settings'
+import { pushToUser } from '@/lib/push'
 import { countItems, emptyPlan, normalizePlan, planContentSchema } from '@/lib/plan'
 import { optDay, str, uuid } from '@/lib/validation'
 
@@ -118,8 +120,23 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
         .set({ status: 'publicado', publishedAt: new Date(), publishedBy: user.id, updatedAt: new Date() })
         .where(eq(schema.mealPlans.id, plan.id))
     })
-    const [p] = await db.select({ userId: schema.patients.userId }).from(schema.patients).where(eq(schema.patients.id, plan.patientId))
+    const [p] = await db
+      .select({ userId: schema.patients.userId, email: schema.patients.email, name: schema.patients.fullName })
+      .from(schema.patients)
+      .where(eq(schema.patients.id, plan.patientId))
     await notifyUser(p?.userId, 'Seu plano alimentar foi atualizado', meta.data.title, '/paciente/plano')
+    if (p?.userId) {
+      // Push imediato (a tela aberta do paciente também atualiza sozinha em poucos segundos).
+      await pushToUser(p.userId, 'plano', { title: 'Seu plano alimentar foi atualizado', body: meta.data.title, url: '/paciente/plano', tag: 'plano' })
+      if (p.email) {
+        const s = await getSettings()
+        await sendEmail(
+          p.email,
+          'Seu plano alimentar foi atualizado',
+          `Olá, ${p.name.split(' ')[0]}!\n\n${s.professionalName} ativou uma nova versão do seu plano alimentar (“${meta.data.title}”).\nAbra a área do paciente para ver: ${process.env.APP_URL ?? 'http://localhost:3000'}/paciente/plano\n`,
+        )
+      }
+    }
     await audit(user, 'plano_publicado', 'plano', { entityId: plan.id, patientId: plan.patientId, details: { versao: plan.version } })
     refresh(plan)
     return { ok: true, message: 'Plano publicado na área do paciente.' }
@@ -173,4 +190,23 @@ export async function deletePlanDraft(planId: string): Promise<void> {
   await audit(user, 'plano_rascunho_excluido', 'plano', { entityId: plan.id, patientId: plan.patientId })
   refresh(plan)
   redirect(plan.patientId ? `/admin/pacientes/${plan.patientId}?aba=planos` : '/admin/planos')
+}
+
+/** Salva uma cópia do plano como modelo reutilizável (sem dados do paciente). */
+export async function savePlanAsTemplate(planId: string, _: ActionState, fd: FormData): Promise<ActionState> {
+  const title = str(160, 'Dê um nome ao modelo').safeParse(fd.get('templateTitle'))
+  if (!title.success) return { fieldErrors: { templateTitle: title.error.issues[0].message }, error: title.error.issues[0].message }
+  try {
+    const user = await requireTeam('clinico')
+    const plan = await planOrThrow(planId)
+    const [row] = await db
+      .insert(schema.mealPlans)
+      .values({ patientId: null, isTemplate: true, title: title.data, status: 'rascunho', version: 1, content: normalizePlan(plan.content), createdBy: user.id })
+      .returning({ id: schema.mealPlans.id })
+    await audit(user, 'modelo_criado_de_plano', 'plano', { entityId: row.id, details: { origem: plan.id } })
+    revalidatePath('/admin/planos')
+    return { ok: true, message: `Modelo “${title.data}” salvo. Ele aparece em “Começar a partir de” ao criar planos.` }
+  } catch (err) {
+    return failure(err)
+  }
 }

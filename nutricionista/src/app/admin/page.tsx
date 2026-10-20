@@ -6,6 +6,7 @@ import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { addDays, capitalize, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfMonth, todayIn, zonedToUtc } from '@/lib/time'
 import { money } from '@/lib/format'
+import { trackingBoard } from '@/lib/tracking'
 import { PageHead, Stat, StatusBadge } from '@/components/ui'
 
 export default async function AdminHome() {
@@ -20,6 +21,14 @@ export default async function AdminHome() {
   const clinical = can(user, 'clinico')
   const cadastro = can(user, 'cadastro') || clinical
   const finance = s.financeEnabled && can(user, 'financeiro')
+  const board = clinical ? await trackingBoard(today, tz, { good: s.adherenceGood, low: s.adherenceLow }) : null
+  const tracking = board
+    ? {
+        // Só faz sentido cobrar registro de quem já tem acesso ao app e plano ativo.
+        inactive: board.filter((r) => r.hasAccess && r.hasPlan && (r.daysWithout == null || r.daysWithout >= 3)),
+        struggling: board.filter((r) => r.klass === 'dificuldade').length,
+      }
+    : null
 
   const [[active], [newPatients], todayAppts, upcoming, pending, followUp, forms, unread, [monthPaid], [openAmount]] = await Promise.all([
     db.select({ n: count() }).from(schema.patients).where(and(eq(schema.patients.status, 'ativo'), isNull(schema.patients.anonymizedAt))),
@@ -101,6 +110,40 @@ export default async function AdminHome() {
           </>
         }
       />
+
+      {clinical && tracking && (tracking.inactive.length > 0 || tracking.struggling > 0) && (
+        <section className="card card--soft" aria-label="Alertas de acompanhamento">
+          <div className="card__head">
+            <h2 style={{ fontSize: '1.05rem' }}>Acompanhamento</h2>
+            <Link href="/admin/acompanhamento" className="small">
+              Abrir painel
+            </Link>
+          </div>
+          <ul className="list">
+            {tracking.inactive.length > 0 && (
+              <li>
+                <strong>
+                  {tracking.inactive.length} {tracking.inactive.length === 1 ? 'paciente sem registrar' : 'pacientes sem registrar'} há 3 dias ou mais:
+                </strong>{' '}
+                {tracking.inactive.slice(0, 6).map((r, i) => (
+                  <span key={r.id}>
+                    {i > 0 && ', '}
+                    <Link href={`/admin/pacientes/${r.id}?aba=diario`}>{r.name}</Link>
+                  </span>
+                ))}
+                {tracking.inactive.length > 6 && '…'}
+              </li>
+            )}
+            {tracking.struggling > 0 && (
+              <li>
+                <Link href="/admin/acompanhamento?grupo=dificuldade">
+                  {tracking.struggling} {tracking.struggling === 1 ? 'paciente com dificuldade' : 'pacientes com dificuldade'} na última semana
+                </Link>
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
 
       <div className="grid-4">
         <Stat value={active.n} label="Pacientes ativos" href={cadastro ? '/admin/pacientes?status=ativo' : undefined} />

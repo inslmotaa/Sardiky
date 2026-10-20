@@ -61,8 +61,11 @@ export const METRICS = {
   waistCm: { label: 'Cintura', unit: 'cm' },
   hipCm: { label: 'Quadril', unit: 'cm' },
   bodyFatPct: { label: 'Gordura corporal', unit: '%' },
+  leanMassKg: { label: 'Massa magra', unit: 'kg' },
+  abdomenCm: { label: 'Abdômen', unit: 'cm' },
   armCm: { label: 'Braço', unit: 'cm' },
   thighCm: { label: 'Coxa', unit: 'cm' },
+  calfCm: { label: 'Panturrilha', unit: 'cm' },
   chestCm: { label: 'Tórax', unit: 'cm' },
 } as const
 export type MetricKey = keyof typeof METRICS

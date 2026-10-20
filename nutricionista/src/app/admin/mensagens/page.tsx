@@ -6,6 +6,9 @@ import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
 import { NoAccess, PageHead, Empty } from '@/components/ui'
+import { LiveUpdates, PushToggle } from '@/components/pwa'
+import { removePushSubscription, savePushSubscription } from '@/actions/push'
+import { vapidKeys } from '@/lib/push'
 
 export default async function InboxPage() {
   const user = await requireTeam()
@@ -27,6 +30,11 @@ export default async function InboxPage() {
   return (
     <div className="stack">
       <PageHead title="Mensagens" subtitle="Conversas com pacientes. Responda pelo prontuário de cada um." />
+      <LiveUpdates scope="" intervalMs={8000} />
+      <section className="card row row--between" style={{ alignItems: 'center' }}>
+        <strong className="small">Avisos de novas mensagens neste aparelho</strong>
+        <PushToggle compact publicKey={vapidKeys()?.publicKey ?? null} subscribe={savePushSubscription} unsubscribe={removePushSubscription} />
+      </section>
       {threads.length === 0 ? (
         <Empty>Nenhuma conversa ainda.</Empty>
       ) : (

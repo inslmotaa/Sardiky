@@ -2,10 +2,10 @@
 
 import { startTransition, useOptimistic, useState, type ReactNode } from 'react'
 import { optionTotals, quantityLabel, sortedMeals, type PlanDay, type PlanMeal } from '@/lib/plan'
-import { fmt, sum, times, ZERO } from '@/lib/nutricao'
+import { fmt, sum, times, ZERO, type Nutrients } from '@/lib/nutricao'
 import { KcalRing, MacroBars, NutriInline } from './MacroBars'
 
-export type MealLog = { status: 'feita' | 'parcial' | 'pulada'; optionId: string | null }
+export type MealLog = { status: 'feita' | 'parcial' | 'pulada' | 'outra'; optionId: string | null }
 
 export type TodayData = {
   firstName: string
@@ -21,6 +21,8 @@ export type TodayData = {
   nextAppointment: { when: string; label: string; meetingUrl: string | null } | null
   guidance: string | null
   lastWeight: { value: number; date: string } | null
+  /** Alimentos registrados no diário hoje fora do plano (“comi outra coisa”). */
+  extraConsumed?: Nutrients
 }
 
 export type TodayActions = {
@@ -28,9 +30,9 @@ export type TodayActions = {
   water: (delta: number) => Promise<void>
 }
 
-const STATUS_LABEL = { feita: 'Feita', parcial: 'Parcial', pulada: 'Pulada' } as const
-const STATUS_TONE = { feita: 'badge--ok', parcial: 'badge--warn', pulada: 'badge--plain' } as const
-const FACTOR = { feita: 1, parcial: 0.5, pulada: 0 } as const
+const STATUS_LABEL = { feita: 'Feita', parcial: 'Parcial', pulada: 'Pulada', outra: 'Outra coisa' } as const
+const STATUS_TONE = { feita: 'badge--ok', parcial: 'badge--warn', pulada: 'badge--plain', outra: 'badge--plain' } as const
+const FACTOR = { feita: 1, parcial: 0.5, pulada: 0, outra: 0 } as const
 
 /**
  * Tela “Hoje”: em até dois toques o paciente sabe o que comer agora.
@@ -52,12 +54,13 @@ export function TodayView({ data, actions, links, weightForm }: { data: TodayDat
   const optionOf = (m: PlanMeal) => m.options.find((o) => o.id === (logs[keyOf(m)]?.optionId ?? chosen[m.id])) ?? m.options[0]
 
   const planned = sum(meals.map((m) => optionTotals(optionOf(m))))
-  const consumed = sum(
-    meals.map((m) => {
+  const consumed = sum([
+    ...meals.map((m) => {
       const log = logs[keyOf(m)]
       return log ? times(optionTotals(optionOf(m)), FACTOR[log.status]) : ZERO
     }),
-  )
+    data.extraConsumed ?? ZERO,
+  ])
   const pending = meals.filter((m) => !logs[keyOf(m)])
   const next = pending.find((m) => !m.time || m.time >= minus(data.nowTime, 60)) ?? pending[0] ?? null
   const allDone = meals.length > 0 && pending.length === 0

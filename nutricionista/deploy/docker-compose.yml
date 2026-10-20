@@ -49,7 +49,7 @@ services:
     depends_on: [app]
     environment:
       CRON_SECRET: ${CRON_SECRET}
-    entrypoint: ['sh', '-c', 'while true; do sleep 3600; curl -fsS -H "Authorization: Bearer $$CRON_SECRET" http://app:3000/api/cron || true; done']
+    entrypoint: ['sh', '-c', 'while true; do sleep 300; curl -fsS -H "Authorization: Bearer $$CRON_SECRET" http://app:3000/api/cron || true; done']
 
   # Cópia diária do banco e dos arquivos, mantendo 14 dias. Envie ./backups para fora do servidor (ver docs).
   backup:

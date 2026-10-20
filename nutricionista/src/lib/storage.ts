@@ -42,3 +42,5 @@ export async function deleteUpload(key: string) {
 
 export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 export const DOC_TYPES = [...IMAGE_TYPES, 'application/pdf']
+export const AUDIO_TYPES = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg']
+export const CHAT_TYPES = [...DOC_TYPES, ...AUDIO_TYPES]

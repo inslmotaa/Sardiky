@@ -15,6 +15,13 @@
       "when": 1792522331789,
       "tag": "0001_fase1_nutricao",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792526734286,
+      "tag": "0002_fase2_acompanhamento",
+      "breakpoints": true
     }
   ]
 }

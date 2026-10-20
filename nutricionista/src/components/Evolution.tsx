@@ -2,6 +2,7 @@ import type { schema } from '@/db'
 import { fmtDay } from '@/lib/time'
 import { num } from '@/lib/format'
 import { bmi, goalProgress, METRICS, series, type MetricKey } from '@/lib/patient-data'
+import { SKINFOLDS, type SkinfoldKey } from '@/lib/nutricao'
 import { LineChart } from './LineChart'
 import { SourceBadge, StatusBadge } from './ui'
 
@@ -9,7 +10,20 @@ type M = typeof schema.measurements.$inferSelect
 type G = typeof schema.goals.$inferSelect
 
 /** Gráficos (um por medida), metas, comparação e histórico. Compartilhado entre paciente e painel. */
-export function Evolution({ rows, goals, compare, basePath }: { rows: M[]; goals: G[]; compare: { a?: string; b?: string }; basePath: string }) {
+export function Evolution({
+  rows,
+  goals,
+  compare,
+  basePath,
+  onToggleGoal,
+}: {
+  rows: M[]
+  goals: G[]
+  compare: { a?: string; b?: string }
+  basePath: string
+  /** Na área do paciente: marcar/desmarcar meta como concluída. */
+  onToggleGoal?: (id: string) => Promise<void>
+}) {
   const goalFor = (k: MetricKey) => goals.find((g) => g.status === 'ativa' && g.metric === k)?.targetValue ?? null
   const charts = (Object.keys(METRICS) as MetricKey[]).filter((k) => series(rows, k).length > 0)
   const pro = rows.filter((r) => r.source === 'profissional')
@@ -49,7 +63,18 @@ export function Evolution({ rows, goals, compare, basePath }: { rows: M[]; goals
               return (
                 <li key={g.id}>
                   <div className="row row--between">
-                    <strong>{g.title}</strong>
+                    {onToggleGoal && g.status !== 'cancelada' ? (
+                      <form action={onToggleGoal.bind(null, g.id)}>
+                        <button type="submit" className="goal-check" role="checkbox" aria-checked={g.status === 'concluida'}>
+                          <span className="goal-check__box" aria-hidden>
+                            {g.status === 'concluida' ? '✓' : ''}
+                          </span>
+                          <span className="goal-check__text">{g.title}</span>
+                        </button>
+                      </form>
+                    ) : (
+                      <strong>{g.title}</strong>
+                    )}
                     <StatusBadge status={g.status} label={g.status === 'ativa' ? 'Em andamento' : undefined} />
                   </div>
                   {g.description && <div className="small muted">{g.description}</div>}
@@ -129,6 +154,12 @@ export function Evolution({ rows, goals, compare, basePath }: { rows: M[]; goals
                     )
                   })}
                 <tr>
+                  <td>Relação cintura-quadril</td>
+                  <td className="num">{A.waistCm && A.hipCm ? num(A.waistCm / A.hipCm, 2) : '—'}</td>
+                  <td className="num">{B.waistCm && B.hipCm ? num(B.waistCm / B.hipCm, 2) : '—'}</td>
+                  <td className="num">—</td>
+                </tr>
+                <tr>
                   <td>IMC (calculado)</td>
                   <td className="num">{num(bmi(A.weightKg, A.heightCm))}</td>
                   <td className="num">{num(bmi(B.weightKg, B.heightCm))}</td>
@@ -155,7 +186,8 @@ export function Evolution({ rows, goals, compare, basePath }: { rows: M[]; goals
                 <th className="num">Cintura</th>
                 <th className="num">Quadril</th>
                 <th className="num">Gordura</th>
-                <th>Observações</th>
+                <th className="num">Massa magra</th>
+                <th>Dobras e observações</th>
               </tr>
             </thead>
             <tbody>
@@ -172,7 +204,30 @@ export function Evolution({ rows, goals, compare, basePath }: { rows: M[]; goals
                     {r.bodyFatPct != null ? `${num(r.bodyFatPct)}%` : '—'}
                     {r.bodyFatMethod && <div className="small muted">{r.bodyFatMethod}</div>}
                   </td>
+                  <td className="num">{r.leanMassKg != null ? `${num(r.leanMassKg)} kg` : '—'}</td>
                   <td className="small">
+                    {r.skinfolds && Object.keys(r.skinfolds).length > 0 && (
+                      <div>
+                        {Object.entries(r.skinfolds)
+                          .map(([k, v]) => `${SKINFOLDS[k as SkinfoldKey] ?? k} ${num(v)}`)
+                          .join(' · ')}{' '}
+                        mm
+                      </div>
+                    )}
+                    {r.bioimpedance && Object.keys(r.bioimpedance).length > 0 && (
+                      <div>
+                        Bioimpedância:{' '}
+                        {[
+                          r.bioimpedance.fatPct != null && `gordura ${num(r.bioimpedance.fatPct)}%`,
+                          r.bioimpedance.muscleKg != null && `músculo ${num(r.bioimpedance.muscleKg)} kg`,
+                          r.bioimpedance.waterPct != null && `água ${num(r.bioimpedance.waterPct)}%`,
+                          r.bioimpedance.visceral != null && `visceral ${num(r.bioimpedance.visceral)}`,
+                          r.bioimpedance.bmrKcal != null && `TMB ${num(r.bioimpedance.bmrKcal, 0)} kcal`,
+                        ]
+                          .filter(Boolean)
+                          .join(' · ')}
+                      </div>
+                    )}
                     {r.notes}
                     {r.extra.map((x) => (
                       <div key={x.label}>

@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { login } from '@/actions/auth'
 import { getCurrentUser } from '@/lib/auth/session'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
+import { ClearCacheOnMount } from '@/components/pwa'
 
 export const metadata: Metadata = { title: 'Entrar', robots: { index: false } }
 
@@ -13,6 +14,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   if (user) redirect(user.role === 'patient' ? '/paciente' : '/admin')
   return (
     <div className="card stack">
+      <ClearCacheOnMount />
       <div>
         <h1 style={{ fontSize: '1.6rem' }}>Entrar</h1>
         <p className="muted" style={{ margin: 0 }}>

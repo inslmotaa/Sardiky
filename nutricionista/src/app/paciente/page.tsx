@@ -5,7 +5,7 @@ import { requirePatient } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
 import { currentPublishedPlan, getPatient } from '@/lib/patient-context'
 import { latest, measurementsOf, nextAppointment } from '@/lib/patient-data'
-import { dayForWeekday, normalizePlan } from '@/lib/plan'
+import { dayForWeekday, itemsNutrients, normalizePlan } from '@/lib/plan'
 import { waterGoalMl } from '@/lib/nutricao'
 import { capitalize, fmtDateTime, fmtDay, fmtDayLong, todayIn, weekdayOf, zonedParts } from '@/lib/time'
 import { changeWater, markNotificationsRead, quickWeight, setMealStatus } from '@/actions/patient'
@@ -17,7 +17,7 @@ export default async function PatientToday() {
   const s = await getSettings()
   const patient = await getPatient(user.patientId)
   const today = todayIn(s.timezone)
-  const [plan, rows, next, notes, guidanceMsg, logs, water] = await Promise.all([
+  const [plan, rows, next, notes, guidanceMsg, logs, water, diaryToday] = await Promise.all([
     currentPublishedPlan(user.patientId),
     measurementsOf(user.patientId),
     nextAppointment(user.patientId),
@@ -35,6 +35,10 @@ export default async function PatientToday() {
       .limit(1),
     db.select().from(schema.mealLogs).where(and(eq(schema.mealLogs.patientId, user.patientId), eq(schema.mealLogs.date, today))),
     db.select().from(schema.waterLogs).where(and(eq(schema.waterLogs.patientId, user.patientId), eq(schema.waterLogs.date, today))),
+    db
+      .select({ items: schema.diaryEntries.items })
+      .from(schema.diaryEntries)
+      .where(and(eq(schema.diaryEntries.patientId, user.patientId), eq(schema.diaryEntries.date, today))),
   ])
   const content = plan ? normalizePlan(plan.content) : null
   const day = content ? dayForWeekday(content, weekdayOf(today)) : null
@@ -63,6 +67,7 @@ export default async function PatientToday() {
       : null,
     guidance: guidanceMsg[0]?.body ?? null,
     lastWeight: weight ? { value: weight.value, date: fmtDay(weight.date) } : null,
+    extraConsumed: itemsNutrients(diaryToday.flatMap((e) => e.items ?? [])),
   }
 
   return (

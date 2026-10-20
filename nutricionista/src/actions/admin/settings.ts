@@ -332,3 +332,58 @@ export async function deleteLead(id: string): Promise<void> {
   await audit(user, 'interessado_excluido', 'interessado', { entityId: id })
   revalidatePath('/admin/interessados')
 }
+
+/* ------------------------- acompanhamento e chat ------------------------- */
+
+const trackingSchema = z.object({ adherenceGood: int(10, 100), adherenceLow: int(0, 99) })
+
+/** Limites do painel de Acompanhamento (% de refeições feitas nos últimos 7 dias). */
+export async function saveTrackingSettings(_: ActionState, fd: FormData): Promise<ActionState> {
+  const parsed = trackingSchema.safeParse(formObject(fd))
+  if (!parsed.success) return zodErrors(parsed.error)
+  if (parsed.data.adherenceLow >= parsed.data.adherenceGood) return { fieldErrors: { adherenceLow: 'Use um valor menor que o de “em dia”' }, error: 'O limite de “com dificuldade” precisa ser menor que o de “em dia”.' }
+  try {
+    const user = await requireTeam('clinico')
+    await db.update(schema.settings).set({ ...parsed.data, updatedAt: new Date() }).where(eq(schema.settings.id, 1))
+    await audit(user, 'acompanhamento_limites', 'configuracoes', { details: parsed.data })
+    revalidatePath('/admin/acompanhamento')
+    return { ok: true, message: 'Limites atualizados.' }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+const chatSchema = z.object({
+  quickReplies: optStr(3000),
+  chatAutoReply: optStr(500),
+  chatStart: z.union([z.literal(''), time]).optional(),
+  chatEnd: z.union([z.literal(''), time]).optional(),
+})
+
+/** Respostas rápidas, horário de atendimento do chat e resposta automática fora dele. */
+export async function saveChatSettings(_: ActionState, fd: FormData): Promise<ActionState> {
+  const parsed = chatSchema.safeParse(formObject(fd))
+  if (!parsed.success) return zodErrors(parsed.error)
+  const d = parsed.data
+  const weekdays = fd.getAll('chatDays').map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6)
+  const hasHours = !!d.chatStart && !!d.chatEnd
+  if (hasHours && d.chatStart! >= d.chatEnd!) return { fieldErrors: { chatEnd: 'O fim precisa ser depois do início' }, error: 'Revise o horário de atendimento.' }
+  if (hasHours && weekdays.length === 0) return { error: 'Escolha ao menos um dia de atendimento.' }
+  try {
+    const user = await requireTeam('config')
+    await db
+      .update(schema.settings)
+      .set({
+        quickReplies: lines(d.quickReplies).map((l) => l.slice(0, 300)).slice(0, 20),
+        chatAutoReply: d.chatAutoReply,
+        chatHours: hasHours ? { start: d.chatStart!, end: d.chatEnd!, weekdays } : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.settings.id, 1))
+    await audit(user, 'chat_configurado', 'configuracoes')
+    revalidatePath('/admin/configuracoes')
+    return { ok: true, message: 'Configurações do chat salvas.' }
+  } catch (err) {
+    return failure(err)
+  }
+}

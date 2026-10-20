@@ -273,6 +273,78 @@ export function waistRisk(waistCm: number, sex: Sex) {
 /** Massa magra = peso × (1 − %G ÷ 100) */
 export const leanMass = (weightKg: number, bodyFatPct: number) => weightKg * (1 - bodyFatPct / 100)
 
+/* ------------------------------ dobras cutâneas ------------------------------ */
+
+export const SKINFOLDS = {
+  peitoral: 'Peitoral',
+  axilarMedia: 'Axilar média',
+  triceps: 'Tríceps',
+  biceps: 'Bíceps',
+  subescapular: 'Subescapular',
+  abdominal: 'Abdominal',
+  suprailiaca: 'Suprailíaca',
+  coxa: 'Coxa',
+  panturrilha: 'Panturrilha',
+} as const
+export type SkinfoldKey = keyof typeof SKINFOLDS
+export type Skinfolds = Partial<Record<SkinfoldKey, number>>
+
+export const BODY_FAT_PROTOCOLS = {
+  jp3: 'Jackson-Pollock 3 dobras',
+  jp7: 'Jackson-Pollock 7 dobras',
+  durnin: 'Durnin-Womersley 4 dobras',
+} as const
+export type BodyFatProtocol = keyof typeof BODY_FAT_PROTOCOLS
+
+/** Dobras exigidas por protocolo (no JP3 dependem do sexo). */
+export function protocolSites(protocol: BodyFatProtocol, sex: Sex): SkinfoldKey[] {
+  if (protocol === 'jp3') return sex === 'M' ? ['peitoral', 'abdominal', 'coxa'] : ['triceps', 'suprailiaca', 'coxa']
+  if (protocol === 'jp7') return ['peitoral', 'axilarMedia', 'triceps', 'subescapular', 'abdominal', 'suprailiaca', 'coxa']
+  return ['biceps', 'triceps', 'subescapular', 'suprailiaca']
+}
+
+/** Coeficientes de Durnin-Womersley (1974): D = c − m × log10(Σ4 dobras). */
+const DURNIN: Record<Sex, [maxAge: number, c: number, m: number][]> = {
+  M: [
+    [19, 1.162, 0.063],
+    [29, 1.1631, 0.0632],
+    [39, 1.1422, 0.0544],
+    [49, 1.162, 0.07],
+    [Infinity, 1.1715, 0.0779],
+  ],
+  F: [
+    [19, 1.1549, 0.0678],
+    [29, 1.1599, 0.0717],
+    [39, 1.1423, 0.0632],
+    [49, 1.1333, 0.0612],
+    [Infinity, 1.1339, 0.0645],
+  ],
+}
+
+/** Densidade corporal pelo protocolo escolhido; null se faltar alguma dobra. */
+export function bodyDensity(protocol: BodyFatProtocol, sex: Sex, age: number, folds: Skinfolds): number | null {
+  const sites = protocolSites(protocol, sex)
+  if (sites.some((k) => !(Number(folds[k]) > 0))) return null
+  const s = sites.reduce((acc, k) => acc + Number(folds[k]), 0)
+  if (protocol === 'jp3')
+    return sex === 'M' ? 1.10938 - 0.0008267 * s + 0.0000016 * s * s - 0.0002574 * age : 1.0994921 - 0.0009929 * s + 0.0000023 * s * s - 0.0001392 * age
+  if (protocol === 'jp7')
+    return sex === 'M' ? 1.112 - 0.00043499 * s + 0.00000055 * s * s - 0.00028826 * age : 1.097 - 0.00046971 * s + 0.00000056 * s * s - 0.00012828 * age
+  const [, c, m] = DURNIN[sex].find(([max]) => age <= max)!
+  return c - m * Math.log10(s)
+}
+
+/** Equação de Siri: %G = (495 ÷ D) − 450 */
+export const siri = (density: number) => 495 / density - 450
+
+/** % de gordura, densidade e soma das dobras do protocolo. */
+export function bodyFatFromSkinfolds(protocol: BodyFatProtocol, sex: Sex, age: number, folds: Skinfolds) {
+  const density = bodyDensity(protocol, sex, age, folds)
+  if (density == null) return null
+  const sumMm = protocolSites(protocol, sex).reduce((acc, k) => acc + Number(folds[k]), 0)
+  return { density, pct: siri(density), sumMm }
+}
+
 /* ------------------------------ gasto energético ------------------------------ */
 
 export const BMR_FORMULAS = {

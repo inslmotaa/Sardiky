@@ -68,10 +68,18 @@ export const STATUS_LABEL: Record<string, string> = {
 export const ADHERENCE_LABEL: Record<string, string> = {
   total: 'Segui o plano',
   parcial: 'Segui em parte',
-  nao_seguiu: 'Não segui',
+  nao_seguiu: 'Comi outra coisa',
 }
 
 /** Preenche {variaveis} de um modelo de mensagem (sem dependências de servidor). */
 export function renderWaText(tpl: string, vars: Record<string, string>) {
   return tpl.replace(/\{(\w+)\}/g, (m, k: string) => vars[k] ?? m)
+}
+
+/** Nome amigável do anexo do chat pelo tipo do arquivo. */
+export function chatFileTitle(mime: string) {
+  if (mime.startsWith('audio/')) return 'Áudio'
+  if (mime.startsWith('image/')) return 'Foto'
+  if (mime === 'application/pdf') return 'Documento PDF'
+  return 'Anexo'
 }

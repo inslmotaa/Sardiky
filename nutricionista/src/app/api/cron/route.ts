@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto'
-import { and, eq, gte, inArray, isNull, lt, ne, or } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, isNull, lt, ne, or } from 'drizzle-orm'
+import { runReminders } from '@/lib/reminders'
 import { db, schema } from '@/db'
 import { audit } from '@/lib/audit'
 import { integrationStatus } from '@/lib/integrations'
@@ -8,10 +9,11 @@ import { getSettings } from '@/lib/settings'
 import { fmtDay, zonedParts } from '@/lib/time'
 
 /**
- * Tarefas periódicas — agende uma chamada diária (ou de hora em hora):
+ * Tarefas periódicas — agende uma chamada a cada 5 minutos:
  *   curl -H "Authorization: Bearer $CRON_SECRET" https://seusite/api/cron
- * 1. Lembretes de consultas confirmadas nas próximas 24 h (se o e-mail estiver configurado).
- * 2. Limpeza: sessões e links expirados; interessados não convertidos além do prazo de retenção.
+ * 1. Lembretes por push: refeições, água, pesagem semanal, pacientes parados há 3 dias, consultas em 24 h e 2 h.
+ * 2. Lembrete de consulta por e-mail na véspera (se o e-mail estiver configurado).
+ * 3. Limpeza (no máximo uma vez por hora): sessões e links expirados; interessados não convertidos além do prazo de retenção.
  */
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET
@@ -22,6 +24,7 @@ export async function GET(req: Request) {
   const s = await getSettings()
   const now = new Date()
   let reminders = 0
+  const push = await runReminders(now)
 
   if (integrationStatus().email) {
     const due = await db
@@ -49,6 +52,17 @@ export async function GET(req: Request) {
     }
   }
 
+  // A limpeza roda no máximo uma vez por hora.
+  const [lastRun] = await db
+    .select({ at: schema.auditLogs.createdAt })
+    .from(schema.auditLogs)
+    .where(eq(schema.auditLogs.action, 'tarefas_periodicas'))
+    .orderBy(desc(schema.auditLogs.createdAt))
+    .limit(1)
+  if (lastRun && now.getTime() - lastRun.at.getTime() < 55 * 60_000) {
+    return Response.json({ lembretesEmail: reminders, push })
+  }
+
   const sessions = await db.delete(schema.sessions).where(lt(schema.sessions.expiresAt, now)).returning({ id: schema.sessions.id })
   const tokens = await db
     .delete(schema.authTokens)
@@ -65,7 +79,7 @@ export async function GET(req: Request) {
     .where(and(inArray(schema.appointments.status, ['pendente']), lt(schema.appointments.startAt, now)))
     .returning({ id: schema.appointments.id })
 
-  const result = { lembretes: reminders, sessoesRemovidas: sessions.length, linksRemovidos: tokens.length, interessadosEliminados: leads.length, pedidosExpirados: stale.length }
+  const result = { lembretesEmail: reminders, push, sessoesRemovidas: sessions.length, linksRemovidos: tokens.length, interessadosEliminados: leads.length, pedidosExpirados: stale.length }
   await audit(null, 'tarefas_periodicas', 'sistema', { details: result })
   return Response.json(result)
 }
