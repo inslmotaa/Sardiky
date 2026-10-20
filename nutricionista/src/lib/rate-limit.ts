@@ -17,3 +17,9 @@ export function rateLimit(key: string, limit: number, windowMs: number) {
   b.count++
   return b.count <= limit
 }
+
+/** Já atingiu o limite? (não conta uma nova tentativa) */
+export function isLimited(key: string, limit: number) {
+  const b = buckets.get(key)
+  return !!b && b.reset >= Date.now() && b.count >= limit
+}

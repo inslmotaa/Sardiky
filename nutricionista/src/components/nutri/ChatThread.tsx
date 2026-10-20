@@ -48,7 +48,9 @@ export function ChatThread({
   const text = useRef<HTMLTextAreaElement>(null)
   const end = useRef<HTMLDivElement>(null)
   const audioUrl = useMemo(() => (audio ? URL.createObjectURL(audio) : null), [audio])
-  const canRecord = typeof window !== 'undefined' && 'MediaRecorder' in window && !!navigator.mediaDevices
+  // Só depois de montar: o servidor não sabe se o navegador grava áudio (evita diferença na hidratação).
+  const [canRecord, setCanRecord] = useState(false)
+  useEffect(() => setCanRecord('MediaRecorder' in window && !!navigator.mediaDevices), [])
 
   useEffect(() => {
     end.current?.scrollIntoView({ block: 'end' })

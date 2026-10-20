@@ -48,7 +48,7 @@ export async function DiaryTab({ patient }: { patient: typeof schema.patients.$i
       <div className="card row" style={{ gap: 12 }}>
         <span className={`badge ${TONE[summary.klass]}`}>{CLASS_LABEL[summary.klass]}</span>
         <span>
-          Adesão nos últimos 7 dias: <strong>{summary.pct7 != null ? `${summary.pct7}%` : '—'}</strong>
+          Adesão nos últimos 7 dias (até ontem): <strong>{summary.pct7 != null ? `${summary.pct7}%` : '—'}</strong>
         </span>
         <span className="muted">Sequência: {summary.streak} {summary.streak === 1 ? 'dia' : 'dias'}</span>
         <span className="muted">Último registro: {summary.lastRecord ? fmtDay(summary.lastRecord) : 'nunca'}</span>

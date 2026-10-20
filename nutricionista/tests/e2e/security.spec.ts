@@ -37,11 +37,11 @@ test('paciente não acessa o painel nem dados de outro paciente', async ({ page 
 
   // Lucas envia uma foto no diário (arquivo privado).
   await page.goto('/paciente/diario')
-  await page.locator('select[name=meal]').selectOption('Almoço')
-  await page.getByLabel('O que você comeu e bebeu?').fill('Arroz, feijão e frango')
+  await page.getByRole('button', { name: '+ Registrar algo fora do plano' }).click()
+  await page.getByLabel('Descreva com suas palavras (opcional)').fill('Arroz, feijão e frango')
   const png = Buffer.from('89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4890000000d49444154789c6360000002000154a24f5d0000000049454e44ae426082', 'hex')
-  await page.getByLabel('Foto da refeição (opcional)').setInputFiles({ name: 'prato.png', mimeType: 'image/png', buffer: png })
-  await page.getByRole('button', { name: 'Salvar registro' }).click()
+  await page.getByLabel('Foto do prato (opcional)').setInputFiles({ name: 'prato.png', mimeType: 'image/png', buffer: png })
+  await page.getByRole('button', { name: 'Salvar no diário' }).click()
   await expect(page.getByText('Registro salvo no seu diário.')).toBeVisible()
   const photoUrl = await page.locator('img[alt^="Foto:"]').first().getAttribute('src')
   expect(photoUrl).toMatch(/^\/arquivos\//)

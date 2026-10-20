@@ -11,7 +11,7 @@ import { audit } from '@/lib/audit'
 import { findValidToken } from '@/lib/auth/reset'
 import { PRIVACY_VERSION } from '@/lib/constants'
 import { sendEmail } from '@/lib/notify'
-import { rateLimit } from '@/lib/rate-limit'
+import { isLimited, rateLimit } from '@/lib/rate-limit'
 import type { ActionState } from '@/lib/action'
 import { email } from '@/lib/validation'
 
@@ -24,7 +24,9 @@ function safeNext(next: unknown, fallback: string) {
 
 export async function login(_: ActionState, fd: FormData): Promise<ActionState> {
   const ip = (await clientIp()) ?? 'local'
-  if (!rateLimit(`login:${ip}`, 20, 10 * 60_000)) {
+  // Só tentativas erradas contam: várias pessoas na mesma rede (consultório, família) podem entrar normalmente.
+  const ipKey = `login-falhou:${ip}`
+  if (isLimited(ipKey, 20)) {
     return { error: 'Muitas tentativas. Aguarde alguns minutos e tente novamente.' }
   }
   const parsed = z.object({ email, password: z.string().min(1).max(200) }).safeParse({
@@ -53,6 +55,7 @@ export async function login(_: ActionState, fd: FormData): Promise<ActionState> 
         .where(eq(schema.users.id, user.id))
       await audit({ id: user.id, name: user.name, role: user.role }, 'login_falhou', 'usuario', { entityId: user.id })
     }
+    rateLimit(ipKey, 20, 10 * 60_000)
     return generic
   }
 

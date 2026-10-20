@@ -35,7 +35,7 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
           <div className="stat-row" style={{ marginBottom: 12 }}>
             <div className="stat">
               <strong>{summary.pct7 != null ? `${summary.pct7}%` : '—'}</strong>
-              <span>das refeições do plano feitas nos últimos 7 dias</span>
+              <span>das refeições do plano feitas nos últimos 7 dias (até ontem)</span>
             </div>
             <div className="stat">
               <strong>

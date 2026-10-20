@@ -74,7 +74,7 @@ test('paciente registra medida, envia mensagem e responde formulário', async ({
   await expect(page.getByRole('cell', { name: '74,2' }).first()).toBeVisible()
 
   await page.goto('/paciente/mensagens')
-  await page.getByLabel('Sua mensagem').fill('Mensagem automática de teste')
+  await page.getByLabel('Mensagem', { exact: true }).fill('Mensagem automática de teste')
   await page.getByRole('button', { name: 'Enviar' }).click()
   await expect(page.locator('.bubble', { hasText: 'Mensagem automática de teste' })).toBeVisible()
 
@@ -101,12 +101,12 @@ test('paciente baixa os próprios dados (portabilidade)', async ({ page }) => {
 test('área do paciente e painel sem rolagem horizontal no celular', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 })
   await login(page, 'beatriz')
-  for (const path of ['/paciente', '/paciente/plano', '/paciente/diario', '/paciente/evolucao', '/paciente/mensagens', '/paciente/mais', '/paciente/calculadoras']) {
+  for (const path of ['/paciente', '/paciente/plano', '/paciente/diario', '/paciente/evolucao', '/paciente/mensagens', '/paciente/mais', '/paciente/calculadoras', '/paciente/notificacoes']) {
     await page.goto(path)
     await expectNoHorizontalScroll(page)
   }
   await login(page, 'admin')
-  for (const path of ['/admin', '/admin/agenda', '/admin/pacientes', '/admin/relatorios', '/admin/calculadoras']) {
+  for (const path of ['/admin', '/admin/agenda', '/admin/pacientes', '/admin/relatorios', '/admin/calculadoras', '/admin/acompanhamento', '/admin/mensagens']) {
     await page.goto(path)
     await expectNoHorizontalScroll(page)
   }

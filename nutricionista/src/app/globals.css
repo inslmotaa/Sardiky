@@ -3366,3 +3366,91 @@ kbd {
     animation: none;
   }
 }
+
+/* ------------------------------ chat ------------------------------ */
+
+.chat {
+  display: grid;
+  gap: 12px;
+}
+.chat .thread {
+  max-height: min(60vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.chat__composer {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.chat__composer textarea {
+  width: 100%;
+}
+.chat__composer .row {
+  flex-wrap: wrap;
+}
+.chat__attach {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+}
+.chat__attach input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+}
+.chat__attach:focus-within {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.bubble--auto {
+  background: var(--surface);
+  border: 1px dashed var(--line-strong);
+  color: var(--muted);
+}
+.bubble__quote {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 0.82rem;
+  padding: 6px 8px;
+  margin-bottom: 6px;
+  border-left: 3px solid var(--brand);
+  background: color-mix(in oklab, var(--brand) 6%, transparent);
+  border-radius: 8px;
+}
+.bubble__quote img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex: none;
+}
+.bubble__img img {
+  display: block;
+  max-width: min(260px, 100%);
+  border-radius: 10px;
+  margin-top: 6px;
+}
+.bubble__audio {
+  display: block;
+  width: min(260px, 100%);
+  margin-top: 6px;
+}
+.bubble__file {
+  display: inline-block;
+  margin-top: 6px;
+  font-weight: 600;
+}
+.bubble {
+  overflow-wrap: anywhere;
+}
+
+.diary-flash {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  margin: 0;
+}

@@ -92,8 +92,21 @@ export function DiaryDay({
   photoNote?: string
 }) {
   const [open, setOpen] = useState<{ key: string; choice: Choice | null } | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
+  const saved = (msg?: string) => {
+    setOpen(null)
+    if (msg) setFlash(msg)
+  }
   return (
     <div className="stack">
+      {flash && (
+        <p className="alert alert--ok diary-flash" role="status">
+          {flash}
+          <button type="button" className="link-btn small" onClick={() => setFlash(null)} style={{ marginLeft: 8 }}>
+            fechar
+          </button>
+        </p>
+      )}
       {meals.map((m) => (
         <section key={m.key} className="card diary-meal" aria-label={`Refeição ${m.name}`}>
           <div className="row row--between">
@@ -122,7 +135,7 @@ export function DiaryDay({
               action={action}
               show={show}
               photoNote={photoNote}
-              onClose={() => setOpen(null)}
+              onClose={saved}
             />
           ) : (
             <div className="choice-buttons" role="group" aria-label={`Como foi ${m.name}?`}>
@@ -151,7 +164,7 @@ export function DiaryDay({
           <EntrySummary key={e.id} e={e} show={show} onDelete={onDelete} title={`${e.time} · ${e.meal}`} />
         ))}
         {open?.key === 'extra' ? (
-          <EntryForm date={date} time={nowTime} meal={null} initial={null} choice={null} foods={foods} action={action} show={show} photoNote={photoNote} onClose={() => setOpen(null)} />
+          <EntryForm date={date} time={nowTime} meal={null} initial={null} choice={null} foods={foods} action={action} show={show} photoNote={photoNote} onClose={saved} />
         ) : (
           <div className="choice-buttons">
             <button type="button" className="btn btn--sm" onClick={() => setOpen({ key: 'extra', choice: null })}>
@@ -247,7 +260,7 @@ function EntryForm({
   action: Action
   show: { kcal: boolean; macros: boolean }
   photoNote?: string
-  onClose: () => void
+  onClose: (message?: string) => void
 }) {
   const [state, formAction, pending] = useActionState(action, {})
   const [choice, setChoice] = useState<Choice | null>(initialChoice)
@@ -260,7 +273,7 @@ function EntryForm({
   const [details, setDetails] = useState(!!initial && (initial.hunger || initial.satiety || initial.mood || initial.notes) ? true : false)
   const ref = useRef<HTMLFormElement>(null)
   useEffect(() => {
-    if (state.ok) onClose()
+    if (state.ok) onClose(state.message)
   }, [state, onClose])
 
   const other = !meal || choice === 'nao_seguiu'
@@ -408,7 +421,7 @@ function EntryForm({
         <button type="submit" className="btn btn--primary" disabled={pending || (!!meal && !choice)}>
           {pending ? 'Salvando…' : 'Salvar no diário'}
         </button>
-        <button type="button" className="btn btn--ghost" onClick={onClose}>
+        <button type="button" className="btn btn--ghost" onClick={() => onClose()}>
           Cancelar
         </button>
       </div>

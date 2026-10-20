@@ -32,7 +32,7 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
     <div className="stack" style={{ ['--gap' as string]: '18px' }}>
       <PageHead
         title="Acompanhamento"
-        subtitle={`Pacientes ativos pela adesão nos últimos 7 dias: em dia (≥ ${s.adherenceGood}% das refeições feitas), com dificuldade (${s.adherenceLow}–${s.adherenceGood - 1}%) e sem progresso (< ${s.adherenceLow}% ou sem registro).`}
+        subtitle={`Pacientes ativos pela adesão nos últimos 7 dias completos (até ontem): em dia (≥ ${s.adherenceGood}% das refeições feitas), com dificuldade (${s.adherenceLow}–${s.adherenceGood - 1}%) e sem progresso (< ${s.adherenceLow}% ou sem registro).`}
       />
       <div className="stat-row">
         {ORDER.map((k) => (

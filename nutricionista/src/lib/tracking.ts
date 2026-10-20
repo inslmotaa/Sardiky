@@ -31,7 +31,9 @@ export async function trackingBoard(today: string, tz: string, t: AdherenceThres
     .orderBy(asc(schema.patients.fullName))
   if (!patients.length) return []
   const ids = patients.map((p) => p.id)
-  const from7 = addDays(today, -6)
+  // Últimos 7 dias completos (ontem e os 6 anteriores): as refeições de hoje ainda podem acontecer.
+  const yesterday = addDays(today, -1)
+  const from7 = addDays(today, -7)
 
   const [plans, firstPub, logs, lastLog, lastDiary, lastWater, lastSelf, weights] = await Promise.all([
     db
@@ -86,7 +88,7 @@ export async function trackingBoard(today: string, tz: string, t: AdherenceThres
       plan,
       logs.filter((l) => l.patientId === p.id),
       from7,
-      today,
+      yesterday,
       startOf.get(p.id),
     )
     const w = weights.filter((x) => x.patientId === p.id && x.kg != null)

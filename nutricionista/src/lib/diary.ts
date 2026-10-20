@@ -134,7 +134,8 @@ export async function adherenceSummary(patientId: string, today: string, tz: str
       .where(and(eq(schema.waterLogs.patientId, patientId), gte(schema.waterLogs.date, from))),
   ])
   const content = plan ? normalizePlan(plan.content) : null
-  const a7 = adherence(content, logs, addDays(today, -6), today, start)
+  // Dias completos: hoje fica de fora porque as refeições do dia ainda podem acontecer.
+  const a7 = adherence(content, logs, addDays(today, -7), addDays(today, -1), start)
   const recordDates = [...logs.map((l) => l.date), ...entries.map((e) => e.date), ...water.filter((w) => w.ml > 0).map((w) => w.date)]
   const lastRecord = recordDates.length ? recordDates.reduce((m, d) => (d > m ? d : m)) : null
   return {
@@ -143,6 +144,6 @@ export async function adherenceSummary(patientId: string, today: string, tz: str
     klass: classify(a7?.pct ?? null, thresholds),
     streak: streak(recordDates, today),
     lastRecord,
-    weekly: weeklyAdherence(content, logs, today, weeks, start),
+    weekly: weeklyAdherence(content, logs, addDays(today, -1), weeks, start),
   }
 }
