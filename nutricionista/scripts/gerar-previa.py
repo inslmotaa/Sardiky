@@ -1,14 +1,18 @@
-# Gera previa/index.html (site público em arquivo único) a partir do servidor rodando em localhost:3100.
-# Uso: npm run build && ALLOW_PGLITE=1 npx next start -p 3100; salve / e /privacidade em D (home.html, priv.html); python3 scripts/gerar-previa.py
-import base64, re, subprocess, urllib.request
+# Gera previa/index.html: arquivo único que abre direto no navegador, com o site público
+# e a demonstração local da área do cliente e do painel do André (previa/src/demo.*).
+# Uso: npm run build && ALLOW_PGLITE=1 npx next start -p 3100   (em outro terminal)
+#      python3 scripts/gerar-previa.py
+import base64, os, re, urllib.request
 from bs4 import BeautifulSoup, Comment
 
 BASE = 'http://localhost:3100'
-D = '/tmp/claude-0/static'
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 get = lambda u: urllib.request.urlopen(BASE + u).read()
 
-home = BeautifulSoup(open(f'{D}/home.html', encoding='utf-8').read(), 'html.parser')
-priv = BeautifulSoup(open(f'{D}/priv.html', encoding='utf-8').read(), 'html.parser')
+home = BeautifulSoup(get('/').decode(), 'html.parser')
+priv = BeautifulSoup(get('/privacidade').decode(), 'html.parser')
+demo_css = open(os.path.join(ROOT, 'previa/src/demo.css'), encoding='utf-8').read()
+demo_js = open(os.path.join(ROOT, 'previa/src/demo.js'), encoding='utf-8').read()
 
 # ---- CSS com fontes embutidas ----
 css_href = home.find('link', rel='stylesheet')['href']
@@ -30,7 +34,7 @@ html_tag = home.find('html')
 if html_tag.get('id') == '__next_error__': del html_tag['id']
 
 head = home.head
-style = home.new_tag('style'); style.string = css; head.append(style)
+style = home.new_tag('style'); style.string = css + '\n' + demo_css; head.append(style)
 icon = home.new_tag('link', rel='icon', type='image/svg+xml',
     href='data:image/svg+xml;base64,' + base64.b64encode(get('/icon.svg')).decode())
 head.append(icon)
@@ -38,7 +42,8 @@ head.append(icon)
 # Faixa de aviso
 banner = home.select_one('.demo-banner')
 if banner:
-    banner.string = 'Prévia do site (arquivo estático). Agendamento on-line, área do paciente e painel funcionam na versão publicada com servidor. Registro, endereço, contatos e depoimentos são fictícios.'
+    banner.clear()
+    banner.append(BeautifulSoup('Prévia em arquivo único. Veja também a <a href="#cliente">área do cliente</a> e o <a href="#andre">painel do André</a> (demonstração local). Registro, endereço, contatos e depoimentos são fictícios.', 'html.parser'))
 
 # Links internos
 for a in home.find_all('a', href=True):
@@ -46,7 +51,7 @@ for a in home.find_all('a', href=True):
     if h.startswith('/#'): a['href'] = h[1:]
     elif h == '/': a['href'] = '#'
     elif h.startswith('/agendar'): a['href'] = '#'; a['data-agendar'] = '1'
-    elif h.startswith('/login'): a['href'] = '#area-do-paciente'
+    elif h.startswith('/login'): a['href'] = '#cliente'
     elif h.startswith('/privacidade'): a['href'] = '#privacidade'; a.attrs.pop('target', None)
 
 # Formulário de contato -> WhatsApp
@@ -64,7 +69,8 @@ area = BeautifulSoup('''
     <h2>Acompanhamento também entre as consultas</h2>
     <p>Pacientes em acompanhamento recebem acesso exclusivo, com login e senha, para consultar o plano alimentar com substituições,
     registrar o diário alimentar, acompanhar a evolução em gráficos, responder questionários e enviar mensagens ao nutricionista.</p>
-    <p class="muted small">Nesta prévia estática, o acesso não está disponível: ele funciona na versão publicada do sistema.</p>
+    <div class="demo-links"><a class="btn btn--primary" href="#cliente">Ver a área do cliente</a><a class="btn" href="#andre">Ver o painel do André</a></div>
+    <p class="muted small" style="margin-top:12px">Nesta prévia, as duas telas funcionam como demonstração e guardam os dados só no seu navegador. Na versão publicada, cada cliente entra com login e senha.</p>
   </div>
 </section>''', 'html.parser')
 main.append(area)
@@ -74,6 +80,13 @@ psec['class'] = ['section', 'section--alt']
 for a in psec.find_all('a', href=True):
     if a['href'].startswith('/'): a['href'] = '#'
 main.append(psec)
+
+# ---- separa o site das telas de demonstração ----
+site = home.new_tag('div', id='view-site')
+for child in list(home.body.contents):
+    site.append(child.extract())
+home.body.append(site)
+home.body.append(home.new_tag('div', id='view-app', hidden=''))
 
 # ---- script próprio (sem servidor) ----
 wa = home.select_one('.whatsapp-float')
@@ -102,7 +115,7 @@ script.string = r'''
   if (story) {
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     story.setAttribute('data-ready', 'true');
-    var words = ['complicado', 'restritivo', 'solitário', 'uma dieta da moda'], i = 0;
+    var words = ['complicado', 'restritivo', 'uma dieta da moda'], i = 0;
     var w = story.querySelector('.story-word__item');
     if (!reduce && w) setInterval(function () {
       i = (i + 1) %% words.length;
@@ -155,7 +168,9 @@ script.string = r'''
 })();
 ''' % (repr(wa_base).replace("'", '"'))
 home.body.append(script)
+demo = home.new_tag('script'); demo.string = demo_js
+home.body.append(demo)
 
 out = '<!doctype html>\n' + str(home).replace('<!DOCTYPE html>', '')
-open(f'{D}/index.html', 'w', encoding='utf-8').write(out)
+open(os.path.join(ROOT, 'previa/index.html'), 'w', encoding='utf-8').write(out)
 print(len(out))

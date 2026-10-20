@@ -1,0 +1,41 @@
+/* Estilos extras da demonstração local (área do cliente e painel do André). */
+.demo-bar {
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 0.85rem;
+  padding: 8px 0;
+}
+.demo-select {
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  width: auto;
+}
+.demo-appbar {
+  background: #1b2622;
+  padding: 12px 0;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.demo-appbar .brand {
+  color: #fff;
+}
+.demo-appbar .brand__sub {
+  color: #9fb0a9;
+}
+.meal__note {
+  margin: 0;
+  padding: 10px 18px;
+  border-top: 1px solid var(--line);
+}
+.sub-row {
+  padding-left: 14px;
+  border-left: 3px solid var(--line-strong);
+}
+.demo-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}

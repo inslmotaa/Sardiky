@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 
-const WORDS = ['complicado', 'restritivo', 'solitário', 'uma dieta da moda']
+const WORDS = ['complicado', 'restritivo', 'uma dieta da moda']
 
 const CHAPTERS = [
   {
@@ -103,12 +103,12 @@ export function StoryIntro({ name }: { name: string }) {
             Esta é a história de muita gente que chega ao consultório. Talvez seja a sua também.
           </p>
           <div className="row reveal" style={{ justifyContent: 'center' }}>
-            <a href="#historia" className="btn btn--primary btn--lg">
-              Conhecer a história
-            </a>
-            <Link href="/agendar" className="btn btn--lg">
+            <Link href="/agendar" className="btn btn--primary btn--lg">
               Agendar consulta
             </Link>
+            <a href="#historia" className="btn btn--lg">
+              Conhecer a história
+            </a>
           </div>
           <a href="#historia" className="story-scroll" aria-label="Rolar para a história">
             <span />

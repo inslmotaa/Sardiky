@@ -28,6 +28,10 @@ npm run dev     # abra http://localhost:3000
 
 `npm run setup` apaga e recria os dados de demonstração (ele se recusa a rodar em produção). Em desenvolvimento, o banco embutido e os arquivos enviados ficam em `~/.consultorio-nutri/` — fora do projeto, para o servidor não recarregar a página a cada gravação. Se o banco local for corrompido (por exemplo, ao fechar o servidor à força), apague essa pasta e rode `npm run setup` de novo.
 
+## Prévia em arquivo único
+
+`previa/index.html` abre direto no navegador (dois cliques, sem instalar nada). Traz o site público e uma **demonstração local** da área do cliente (`#cliente`) e do painel do André (`#andre`), onde ele cadastra clientes, monta as refeições e publica o plano. Nessa prévia os dados ficam só no navegador de quem abriu. Para regerar após mudanças: `npm run build`, `ALLOW_PGLITE=1 npx next start -p 3100` e `python3 scripts/gerar-previa.py`.
+
 ## O que é real e o que é demonstrativo
 
 | Funciona de verdade | Depende de configuração | Ainda não implementado (indicado na tela) |

@@ -15,6 +15,19 @@ function create(): Db {
   return drizzleLite(conn.client, { schema }) as unknown as Db
 }
 
-/** Conexão única por processo (evita abrir várias durante o hot reload). */
-export const db: Db = globalForDb.__db ?? (globalForDb.__db = create())
+function instance(): Db {
+  return globalForDb.__db ?? (globalForDb.__db = create())
+}
+
+/**
+ * Conexão única por processo, aberta só no primeiro uso. Assim o `next build`
+ * funciona sem banco configurado, e o hot reload não abre conexões repetidas.
+ */
+export const db = new Proxy({} as Db, {
+  get(_, prop) {
+    const target = instance()
+    const value = Reflect.get(target, prop, target)
+    return typeof value === 'function' ? value.bind(target) : value
+  },
+})
 export { schema }
