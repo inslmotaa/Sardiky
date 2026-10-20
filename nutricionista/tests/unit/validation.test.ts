@@ -36,14 +36,24 @@ describe('formulários configuráveis', () => {
 })
 
 describe('plano alimentar', () => {
+  const base = { v: 2, days: [{ id: 'd', label: 'Todos os dias', meals: [] as unknown[] }] }
   it('rejeita refeição sem nome e horário inválido', () => {
-    expect(planContentSchema.safeParse({ meals: [{ id: 'a', name: '', time: '7h', notes: '', items: [] }], guidance: '' }).success).toBe(false)
+    const bad = { ...base, days: [{ id: 'd', label: 'Todos', meals: [{ id: 'a', name: '', time: '7h', options: [{ id: 'o', items: [] }] }] }] }
+    expect(planContentSchema.safeParse(bad).success).toBe(false)
   })
-  it('aceita um plano bem formado', () => {
-    const r = planContentSchema.safeParse({
-      meals: [{ id: 'a', name: 'Almoço', time: '12:30', items: [{ id: 'i', food: 'Arroz', quantity: '100 g', householdMeasure: '4 colheres', substitutions: [{ food: 'Batata' }] }] }],
-    })
+  it('aceita um plano bem formado e preenche os padrões', () => {
+    const ok = {
+      ...base,
+      days: [{ id: 'd', label: 'Todos', meals: [{ id: 'a', name: 'Almoço', time: '12:30', options: [{ id: 'o', items: [{ id: 'i', name: 'Arroz', per100: { kcal: 128, protein: 2.5, carbs: 28.1, fat: 0.2, fiber: 1.6 }, grams: 100, subs: [{ name: 'Batata' }] }] }] }] }],
+    }
+    const r = planContentSchema.safeParse(ok)
     expect(r.success).toBe(true)
+    expect(r.data!.mode).toBe('calculado')
+    expect(r.data!.days[0].meals[0].options[0].label).toBe('Opção 1')
+  })
+  it('rejeita quantidades negativas', () => {
+    const neg = { ...base, days: [{ id: 'd', label: 'Todos', meals: [{ id: 'a', name: 'Almoço', time: '', options: [{ id: 'o', items: [{ id: 'i', name: 'Arroz', grams: -5 }] }] }] }] }
+    expect(planContentSchema.safeParse(neg).success).toBe(false)
   })
 })
 

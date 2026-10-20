@@ -10,7 +10,10 @@ import { fmtDateTime, fmtDay } from '@/lib/time'
 import { uuid } from '@/lib/validation'
 import { deletePlanDraft, newPlanVersion, savePlan, setPlanHistoryVisibility } from '@/actions/admin/plans'
 import { PlanEditor } from '@/components/PlanEditor'
-import { PlanView } from '@/components/PlanView'
+import { PatientPlan } from '@/components/nutri/PatientPlan'
+import { loadFoods } from '@/lib/foods'
+import { normalizePlan } from '@/lib/plan'
+import { measurementsOf, latest } from '@/lib/patient-data'
 import { NewPlanForm } from '@/components/NewPlanForm'
 import { PrintButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
@@ -40,6 +43,9 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
     .where(isNull(schema.patients.anonymizedAt))
     .orderBy(asc(schema.patients.fullName))
   if (patient) await audit(user, 'plano_visualizado', 'plano', { entityId: plan.id, patientId: patient.id })
+  const content = normalizePlan(plan.content)
+  const foods = plan.status === 'rascunho' ? await loadFoods() : []
+  const weight = patient ? latest(await measurementsOf(patient.id), 'weightKg') : null
 
   const crumbs = patient
     ? [
@@ -95,7 +101,9 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           </p>
           <PlanEditor
             action={savePlan.bind(null, plan.id)}
-            initial={plan.content}
+            initial={content}
+            foods={foods}
+            patient={patient ? { name: patient.fullName, weightKg: weight?.value ?? null, energyTarget: patient.energy?.targetKcal ?? null } : undefined}
             title={plan.title}
             validFrom={plan.validFrom}
             validUntil={plan.validUntil}
@@ -114,7 +122,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
               </form>
             </div>
           )}
-          <PlanView content={plan.content} />
+          <PatientPlan content={content} />
         </>
       )}
 

@@ -32,6 +32,16 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: '6mb' },
   },
+  // Endereços curtos equivalentes (documento de requisitos): /entrar, /app, /painel.
+  async redirects() {
+    return [
+      { source: '/entrar', destination: '/login', permanent: false },
+      { source: '/app', destination: '/paciente', permanent: false },
+      { source: '/app/:path*', destination: '/paciente/:path*', permanent: false },
+      { source: '/painel', destination: '/admin', permanent: false },
+      { source: '/painel/:path*', destination: '/admin/:path*', permanent: false },
+    ]
+  },
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }]
   },

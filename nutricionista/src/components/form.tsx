@@ -77,9 +77,16 @@ function FormMessage({ state }: { state: ActionState }) {
     )
   if (state.ok && state.message)
     return (
-      <p className="alert alert--ok" role="status" style={{ marginTop: 12 }}>
+      <div className="alert alert--ok" role="status" style={{ marginTop: 12, overflowWrap: 'anywhere' }}>
         {state.message}
-      </p>
+        {state.links?.map((l) => (
+          <div key={l.href} style={{ marginTop: 8 }}>
+            <a href={l.href} target="_blank" rel="noopener noreferrer" className="btn btn--whatsapp btn--sm">
+              {l.label}
+            </a>
+          </div>
+        ))}
+      </div>
     )
   return null
 }

@@ -35,6 +35,8 @@ Navegador (celular / computador)
 | Validação | Zod no servidor + atributos HTML no cliente | Toda entrada é revalidada no servidor, mesmo que o navegador seja contornado. |
 | Gráficos e PDF | SVG gerado no servidor; impressão do navegador | Sem bibliotecas pesadas; “Imprimir / salvar PDF” funciona em qualquer aparelho. |
 
+**Sobre a especificação da plataforma (Supabase, Tailwind):** a especificação sugeria Supabase e Tailwind. Mantivemos a base já construída (Next.js + PostgreSQL + CSS próprio), que entrega o mesmo resultado sem refazer o site: o PostgreSQL é o mesmo banco usado pelo Supabase, e o isolamento entre pacientes que o Supabase faria com RLS é garantido na camada de servidor — toda consulta do paciente usa o `patientId` da sessão, nunca um valor vindo do navegador, e há testes de ponta a ponta que tentam abrir dados de outro paciente. Se no futuro o André quiser o Supabase, o esquema migra diretamente e as políticas RLS podem ser adicionadas como segunda camada.
+
 Organização do código:
 
 ```
@@ -47,6 +49,8 @@ src/
   app/arquivos      entrega protegida de arquivos
   actions/          Server Actions (gravações) — sempre checam permissão
   lib/              regras de negócio, autenticação, agenda, auditoria
+  lib/nutricao      cálculos puros (porções, IMC, TMB/GET, macros, água, substituições), com testes
+  components/nutri  editor e app do paciente: Hoje, Plano, calculadoras, barras de macros
   components/       componentes de interface reutilizáveis
   db/               esquema, migrações e dados fictícios
 ```

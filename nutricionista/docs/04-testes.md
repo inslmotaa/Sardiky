@@ -21,7 +21,8 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Senhas e tokens | hash scrypt com sal aleatório, verificação, regra mínima; tokens guardados só como hash; códigos sem caracteres ambíguos |
 | Permissões | administrador pode tudo; equipe só o liberado e nunca configurações; paciente sem permissões de equipe |
 | Arquivos e exportação | tipo detectado pelo conteúdo (HTML disfarçado é recusado); CSV protegido contra fórmulas |
-| Validação | formulários configuráveis (obrigatórios, opções inválidas, campos desconhecidos descartados); plano alimentar; valores em reais; telefones |
+| Cálculos nutricionais | Mifflin F 70 kg/165 cm/30 anos = 1.420,25 kcal e ×1,55 = 2.201,4; IMC 70/1,65 = 25,7 (sobrepeso; Lipschitz a partir de 60 anos); faixa de peso saudável; Harris-Benedict, Katch-McArdle, Cunningham; macros por % e g/kg; água por ml/kg; 150 g de alimento com 128 kcal/100 g = 192 kcal; medida caseira ↔ gramas; cru ↔ cozido; substituições sugeridas dentro de ±10% e no mesmo grupo; busca tolerante a acentos e erros de digitação; plural de medidas |
+| Validação | formulários configuráveis (obrigatórios, opções inválidas, campos desconhecidos descartados); plano alimentar v2 (dias, opções, itens calculados) e conversão de planos antigos; valores em reais; telefones |
 
 ### Ponta a ponta (`tests/e2e`)
 
@@ -30,7 +31,7 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Site público | storytelling, nome do profissional, serviços, depoimento sem autorização **não** aparece |
 | Interessados | consentimento obrigatório; dados digitados não se perdem no erro; contato salvo |
 | Agendamento | 5 passos até a confirmação com código; **o mesmo horário deixa de ser oferecido** |
-| Responsividade | sem rolagem horizontal a 375 px em início, agendamento, login e privacidade |
+| Responsividade | sem rolagem horizontal a 360 px no site, no app do paciente e no painel |
 | Acesso | áreas privadas exigem login; exportação e CSV recusam anônimos; senha errada com mensagem genérica; cookie `httpOnly` e `SameSite=Lax` |
 | Isolamento | paciente não abre formulário nem foto de outro paciente (404) e é redirecionado ao tentar o painel; anônimo não baixa fotos |
 | Equipe | recepção sem permissão clínica não vê planos, notas clínicas nem mensagens |
@@ -39,6 +40,11 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Agenda | confirmação de pedido pendente |
 | Cadastro e convite | paciente criado, link de primeiro acesso gera senha, login funciona e o link não pode ser reutilizado |
 | Área do paciente | medida informada, mensagem enviada, formulário com validação e envio |
+| Editor com cálculo | 150 g de arroz = 192 kcal; trocar para 3 colheres de sopa recalcula (75 g, 96 kcal); sugestões dentro de ±10%; aprovar substituição; salvar rascunho |
+| Tela Hoje | água +250 ml persiste; refeição marcada como feita persiste; peso registrado |
+| Calculadoras | IMC 25,7 (sobrepeso) e Mifflin 1.420,25 / 2.201,4 kcal na tela |
+| Recursos por paciente | ao desligar calorias e macros, nenhum valor em kcal aparece no plano do paciente |
+| Site | ordem dos botões da abertura, link da anamnese, seção de planos, atalhos `/entrar`, `/app`, `/painel` |
 | Portabilidade | exportação JSON do próprio paciente sem notas clínicas internas |
 
 ## Revisão manual recomendada antes da produção

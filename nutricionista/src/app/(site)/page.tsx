@@ -12,7 +12,7 @@ const MODALITY: Record<string, string> = { presencial: 'Presencial', online: 'On
 
 export default async function HomePage() {
   const s = await getSettings()
-  const [services, testimonials, faqs] = await Promise.all([
+  const [services, testimonials, faqs, packages] = await Promise.all([
     db
       .select()
       .from(schema.services)
@@ -25,6 +25,7 @@ export default async function HomePage() {
       .where(and(eq(schema.testimonials.published, true), isNotNull(schema.testimonials.authorizedAt)))
       .orderBy(asc(schema.testimonials.sort)),
     db.select().from(schema.faqs).where(eq(schema.faqs.published, true)).orderBy(asc(schema.faqs.sort)),
+    db.select().from(schema.packages).where(eq(schema.packages.active, true)).orderBy(asc(schema.packages.priceCents)),
   ])
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de agendar uma consulta.')
 
@@ -47,8 +48,13 @@ export default async function HomePage() {
               <Link href="/agendar" className="btn btn--primary btn--lg">
                 Agendar consulta
               </Link>
+              {s.anamneseUrl && (
+                <a href={s.anamneseUrl} className="btn btn--lg" target="_blank" rel="noopener noreferrer">
+                  Preencher anamnese
+                </a>
+              )}
               {wa && (
-                <a href={wa} className="btn btn--lg" target="_blank" rel="noopener noreferrer">
+                <a href={wa} className="btn btn--lg btn--ghost" target="_blank" rel="noopener noreferrer">
                   <IconWhatsApp /> Falar no WhatsApp
                 </a>
               )}
@@ -145,6 +151,90 @@ export default async function HomePage() {
                 </Link>
               </article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------------------- PLANOS DE ACOMPANHAMENTO ---------------------- */}
+      {packages.length > 0 && (
+        <section className="section section--alt" id="planos">
+          <div className="container">
+            <div className="section__head">
+              <span className="eyebrow">Planos de acompanhamento</span>
+              <h2>Acompanhamento contínuo, não uma consulta isolada</h2>
+              <p className="muted">Todos os planos incluem o app do paciente com o plano alimentar, registro diário e mensagens.</p>
+            </div>
+            <div className="grid-3">
+              {packages.map((pk, i) => (
+                <article key={pk.id} className={`card service-card${i === 1 ? ' card--soft' : ''}`}>
+                  {i === 1 && <span className="badge badge--brand" style={{ alignSelf: 'flex-start' }}>Mais escolhido</span>}
+                  <h3 style={{ margin: 0 }}>{pk.name}</h3>
+                  <p className="muted" style={{ margin: 0 }}>
+                    {pk.description}
+                  </p>
+                  <div className="service-card__meta">
+                    <span>{pk.sessions} consultas</span>
+                    <span>·</span>
+                    <span>{pk.validityDays} dias de acompanhamento</span>
+                  </div>
+                  <div className="service-card__price">{money(pk.priceCents)}</div>
+                  <a
+                    href={whatsappLink(s.whatsapp, `Olá! Tenho interesse no plano ${pk.name}.`) ?? '/agendar'}
+                    className="btn btn--block btn--primary"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Quero este plano
+                  </a>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* --------------------------- O APP DO PACIENTE --------------------------- */}
+      <section className="section" id="app">
+        <div className="container grid-2" style={{ gap: 40, alignItems: 'center' }}>
+          <div>
+            <span className="eyebrow">O app do paciente</span>
+            <h2>Seu plano no celular, não preso na geladeira</h2>
+            <p>Em até dois toques você sabe o que comer agora. E o acompanhamento continua entre as consultas.</p>
+            <ul className="checklist">
+              <li>
+                <IconCheck /> Plano do dia por horário, com quantidades em gramas e medidas caseiras
+              </li>
+              <li>
+                <IconCheck /> Botão “Trocar” com substituições já calculadas pelo nutricionista
+              </li>
+              <li>
+                <IconCheck /> Registro das refeições, da água e do peso em segundos
+              </li>
+              <li>
+                <IconCheck /> Gráficos de evolução, metas e mensagens com o nutricionista
+              </li>
+            </ul>
+          </div>
+          <div className="card" aria-hidden style={{ maxWidth: 380, justifySelf: 'center', width: '100%' }}>
+            <span className="eyebrow">Agora</span>
+            <h3 style={{ margin: '0 0 8px' }}>Lanche da tarde · 16h</h3>
+            <ul className="list">
+              <li className="row row--between">
+                <span>Iogurte natural</span>
+                <span className="muted">1 pote · 170 g</span>
+              </li>
+              <li className="row row--between">
+                <span>Aveia em flocos</span>
+                <span className="muted">1 colher de sopa · 15 g</span>
+              </li>
+              <li className="row row--between">
+                <span>Banana prata</span>
+                <span className="muted">1 unidade média · 60 g</span>
+              </li>
+            </ul>
+            <span className="btn btn--primary btn--block" style={{ marginTop: 12 }}>
+              Marcar como feita
+            </span>
           </div>
         </div>
       </section>
@@ -246,6 +336,11 @@ export default async function HomePage() {
               <Link href="/agendar" className="btn btn--primary">
                 Ver horários disponíveis
               </Link>
+              {s.anamneseUrl && (
+                <a href={s.anamneseUrl} className="btn" target="_blank" rel="noopener noreferrer">
+                  Preencher anamnese
+                </a>
+              )}
               {wa && (
                 <a href={wa} className="btn btn--whatsapp" target="_blank" rel="noopener noreferrer">
                   <IconWhatsApp /> WhatsApp

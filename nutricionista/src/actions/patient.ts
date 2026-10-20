@@ -10,6 +10,7 @@ import { failure, formObject, UserError, zodErrors, type ActionState } from '@/l
 import { parseAnswers } from '@/lib/forms'
 import { notifyTeam } from '@/lib/team'
 import { getSettings } from '@/lib/settings'
+import { currentPublishedPlan, featuresOf } from '@/lib/patient-context'
 import { saveUpload, IMAGE_TYPES } from '@/lib/storage'
 import { rateLimit } from '@/lib/rate-limit'
 import { fmtDateTime, todayIn } from '@/lib/time'
@@ -31,6 +32,7 @@ const diarySchema = z.object({
 
 export async function addDiaryEntry(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).diario) return { error: 'O diário está desativado para a sua conta.' }
   const parsed = diarySchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
   const d = parsed.data
@@ -99,6 +101,7 @@ const selfMeasureSchema = z.object({
 
 export async function addSelfMeasurement(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).peso) return { error: 'O registro de medidas está desativado para a sua conta.' }
   const parsed = selfMeasureSchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
   const d = parsed.data
@@ -127,6 +130,7 @@ export async function addSelfMeasurement(_: ActionState, fd: FormData): Promise<
 
 export async function sendPatientMessage(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).chat) return { error: 'As mensagens estão desativadas para a sua conta.' }
   const parsed = str(3000, 'Escreva sua mensagem').safeParse(fd.get('body'))
   if (!parsed.success) return { fieldErrors: { body: parsed.error.issues[0].message }, error: parsed.error.issues[0].message }
   if (!rateLimit(`msg:${user.id}`, 30, 3_600_000)) return { error: 'Muitas mensagens em pouco tempo. Aguarde um pouco.' }
@@ -219,4 +223,65 @@ export async function createDataRequest(_: ActionState, fd: FormData): Promise<A
   await audit(user, 'lgpd_solicitacao', 'solicitacao', { patientId: user.patientId, details: { type: parsed.data.type } })
   revalidatePath('/paciente/meus-dados')
   return { ok: true, message: 'Solicitação registrada. Você receberá retorno no prazo legal.' }
+}
+
+/* --------------------------- Hoje: refeições, água e peso --------------------------- */
+
+const MEAL_STATUS = ['feita', 'parcial', 'pulada'] as const
+
+/** Marca (ou desmarca) uma refeição do plano ativo para hoje. */
+export async function setMealStatus(mealKey: string, optionId: string, status: string): Promise<void> {
+  const user = await requirePatient()
+  if (!/^[\w-]{1,40}:[\w-]{1,40}$/.test(mealKey) || optionId.length > 40) return
+  const plan = await currentPublishedPlan(user.patientId)
+  if (!plan) return
+  const s = await getSettings()
+  const date = todayIn(s.timezone)
+  const where = and(eq(schema.mealLogs.patientId, user.patientId), eq(schema.mealLogs.date, date), eq(schema.mealLogs.mealKey, mealKey))
+  if (!MEAL_STATUS.includes(status as (typeof MEAL_STATUS)[number])) {
+    await db.delete(schema.mealLogs).where(where)
+  } else {
+    await db
+      .insert(schema.mealLogs)
+      .values({ patientId: user.patientId, date, planId: plan.id, mealKey, optionId, status })
+      .onConflictDoUpdate({ target: [schema.mealLogs.patientId, schema.mealLogs.date, schema.mealLogs.mealKey], set: { status, optionId, planId: plan.id } })
+  }
+  revalidatePath('/paciente')
+}
+
+/** Soma (ou tira) água do dia, em ml. */
+export async function changeWater(delta: number): Promise<void> {
+  const user = await requirePatient()
+  if (!Number.isInteger(delta) || Math.abs(delta) > 1000) return
+  if (!(await featuresOf(user.patientId)).agua) return
+  const s = await getSettings()
+  const date = todayIn(s.timezone)
+  const [row] = await db
+    .select()
+    .from(schema.waterLogs)
+    .where(and(eq(schema.waterLogs.patientId, user.patientId), eq(schema.waterLogs.date, date)))
+  const ml = Math.max(0, Math.min(8000, (row?.ml ?? 0) + delta))
+  await db
+    .insert(schema.waterLogs)
+    .values({ patientId: user.patientId, date, ml })
+    .onConflictDoUpdate({ target: [schema.waterLogs.patientId, schema.waterLogs.date], set: { ml, updatedAt: new Date() } })
+  revalidatePath('/paciente')
+}
+
+export async function quickWeight(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).peso) return { error: 'Registro de peso desativado pelo nutricionista.' }
+  const kg = optNum(20, 350).safeParse(fd.get('weightKg') ?? '')
+  if (!kg.success || kg.data == null) return { fieldErrors: { weightKg: 'Informe o peso entre 20 e 350 kg' }, error: 'Peso inválido.' }
+  const s = await getSettings()
+  await db.insert(schema.measurements).values({ patientId: user.patientId, date: todayIn(s.timezone), source: 'paciente', weightKg: kg.data, createdBy: user.id })
+  revalidatePath('/paciente')
+  revalidatePath('/paciente/evolucao')
+  return { ok: true, message: 'Peso registrado. Obrigado por acompanhar!' }
+}
+
+export async function completeOnboarding(): Promise<void> {
+  const user = await requirePatient()
+  await db.update(schema.users).set({ onboardedAt: new Date() }).where(eq(schema.users.id, user.id))
+  revalidatePath('/paciente')
 }

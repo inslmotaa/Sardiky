@@ -14,7 +14,7 @@ import { getSettings } from '@/lib/settings'
 import { deleteUpload, DOC_TYPES, saveUpload } from '@/lib/storage'
 import { todayIn } from '@/lib/time'
 import { day, int, optDay, optEmail, optNum, optStr, str, uuid } from '@/lib/validation'
-import { onlyDigits } from '@/lib/format'
+import { onlyDigits, whatsappLink } from '@/lib/format'
 import type { ExtraIndicator } from '@/db/schema'
 
 const patientPath = (id: string, tab?: string) => `/admin/pacientes/${id}${tab ? `?aba=${tab}` : ''}`
@@ -37,6 +37,11 @@ const patientSchema = z.object({
     .transform((v) => (v ? onlyDigits(v) : null))
     .refine((v) => v === null || (v.length >= 10 && v.length <= 13), 'Telefone com DDD'),
   birthDate: optDay,
+  sex: z
+    .enum(['', 'F', 'M'])
+    .optional()
+    .transform((v) => v || null),
+  heightCm: optNum(50, 250),
   objective: optStr(500),
   status: z.enum(['ativo', 'pausado', 'inativo', 'alta']),
   stage: str(80, 'Informe a etapa'),
@@ -114,16 +119,15 @@ export async function invitePatient(id: string, _: ActionState): Promise<ActionS
     await db.insert(schema.authTokens).values({ id: hashToken(token), userId, type: 'convite', expiresAt: new Date(Date.now() + 7 * 86_400_000) })
     const url = `${process.env.APP_URL ?? 'http://localhost:3000'}/redefinir-senha?token=${token}`
     const s = await getSettings()
-    const sent = await sendEmail(
-      p.email,
-      'Seu acesso à área do paciente',
-      `Olá, ${p.fullName.split(' ')[0]}!\n\n${s.professionalName} liberou seu acesso à área do paciente. Crie sua senha neste link (válido por 7 dias):\n${url}`,
-    )
+    const inviteText = `Olá, ${p.fullName.split(' ')[0]}! ${s.professionalName} liberou seu acesso ao app do paciente. Crie sua senha neste link (válido por 7 dias): ${url}`
+    const sent = await sendEmail(p.email, 'Seu acesso à área do paciente', inviteText)
+    const wa = p.phone ? whatsappLink(p.phone.length <= 11 ? `55${p.phone}` : p.phone, inviteText) : null
     await audit(user, 'acesso_paciente_liberado', 'paciente', { entityId: p.id, patientId: p.id })
     revalidatePath(patientPath(p.id))
     return {
       ok: true,
       message: `${sent ? 'Convite enviado por e-mail. ' : ''}Link de primeiro acesso (válido por 7 dias, uso único — envie apenas ao paciente): ${url}`,
+      links: wa ? [{ href: wa, label: 'Enviar convite pelo WhatsApp' }] : undefined,
     }
   } catch (err) {
     return failure(err)

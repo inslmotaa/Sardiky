@@ -1,4 +1,5 @@
 import { requirePatient } from '@/lib/auth/session'
+import { featuresOf } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { goalsOf, measurementsOf } from '@/lib/patient-data'
 import { todayIn } from '@/lib/time'
@@ -10,13 +11,15 @@ import { PageHead } from '@/components/ui'
 export default async function EvolutionPage({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
   const sp = await searchParams
   const user = await requirePatient()
+  const features = await featuresOf(user.patientId)
   const s = await getSettings()
   const [rows, goals] = await Promise.all([measurementsOf(user.patientId), goalsOf(user.patientId)])
   const today = todayIn(s.timezone)
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
-      <PageHead title="Sua evolução" subtitle="Pontos cheios são medições feitas pelo nutricionista; pontos vazados são valores informados por você." />
+      <PageHead title="Seu progresso" subtitle="Pontos cheios são medições feitas pelo nutricionista; pontos vazados são valores informados por você." />
       <Evolution rows={rows} goals={goals} compare={sp} basePath="/paciente/evolucao" />
+      {features.peso && (
       <section className="card" id="registrar">
         <h2 style={{ fontSize: '1.15rem' }}>Registrar uma medida em casa</h2>
         <p className="muted small">
@@ -46,6 +49,7 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
           </div>
         </ActionForm>
       </section>
+      )}
     </div>
   )
 }

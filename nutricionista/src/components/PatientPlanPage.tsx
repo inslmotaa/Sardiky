@@ -1,16 +1,22 @@
 import Link from 'next/link'
 import type { schema } from '@/db'
 import { fmtDay } from '@/lib/time'
-import { PlanView } from './PlanView'
+import { PatientPlan } from './nutri/PatientPlan'
+import { normalizePlan } from '@/lib/plan'
+import type { AppFeatures } from '@/db/schema'
 import { PrintButton } from './form'
 import { PageHead } from './ui'
 
 export function PlanPage({
   plan,
   history,
+  features,
+  weekday,
 }: {
   plan: typeof schema.mealPlans.$inferSelect
   history: (typeof schema.mealPlans.$inferSelect)[]
+  features: AppFeatures
+  weekday: number
 }) {
   const isCurrent = plan.status === 'publicado'
   return (
@@ -34,7 +40,7 @@ export function PlanPage({
       <p className="muted small no-print" style={{ margin: 0 }}>
         Plano elaborado e revisado pelo nutricionista. Em caso de dúvida, use as mensagens — não altere quantidades por conta própria.
       </p>
-      <PlanView content={plan.content} />
+      <PatientPlan content={normalizePlan(plan.content)} features={features} weekday={weekday} />
       {history.length > 0 && (
         <section className="card no-print">
           <h2 style={{ fontSize: '1.1rem' }}>Versões anteriores</h2>

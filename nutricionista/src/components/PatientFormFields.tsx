@@ -20,6 +20,16 @@ export function PatientFormFields({ p }: { p?: typeof schema.patients.$inferSele
         <Field label="Data de nascimento" name="birthDate">
           <input type="date" name="birthDate" defaultValue={p?.birthDate ?? ''} />
         </Field>
+        <Field label="Sexo (para cálculos de gasto energético)" name="sex">
+          <select name="sex" defaultValue={p?.sex ?? ''}>
+            <option value="">Não informado</option>
+            <option value="F">Feminino</option>
+            <option value="M">Masculino</option>
+          </select>
+        </Field>
+        <Field label="Altura (cm)" name="heightCm">
+          <input name="heightCm" inputMode="decimal" defaultValue={p?.heightCm ?? ''} />
+        </Field>
         <Field label="Situação" name="status">
           <select name="status" defaultValue={p?.status ?? 'ativo'}>
             <option value="ativo">Ativo</option>

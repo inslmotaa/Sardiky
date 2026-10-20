@@ -6,6 +6,7 @@ export type ActionState = {
   message?: string
   error?: string
   fieldErrors?: Record<string, string>
+  links?: { href: string; label: string }[]
 }
 
 export const initialState: ActionState = {}

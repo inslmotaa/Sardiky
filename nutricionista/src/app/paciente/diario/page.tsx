@@ -1,6 +1,8 @@
 import { and, desc, eq, gte } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
+import { featuresOf } from '@/lib/patient-context'
+import { redirect } from 'next/navigation'
 import { getSettings } from '@/lib/settings'
 import { addDays, todayIn, zonedParts } from '@/lib/time'
 import { addDiaryEntry, deleteDiaryEntry } from '@/actions/patient'
@@ -12,6 +14,7 @@ const MEALS = ['Café da manhã', 'Lanche da manhã', 'Almoço', 'Lanche da tard
 
 export default async function DiaryPage() {
   const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).diario) redirect('/paciente')
   const s = await getSettings()
   const today = todayIn(s.timezone)
   const entries = await db

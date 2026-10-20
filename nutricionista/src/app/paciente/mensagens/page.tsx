@@ -1,6 +1,8 @@
 import { and, asc, eq, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
+import { featuresOf } from '@/lib/patient-context'
+import { redirect } from 'next/navigation'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
 import { whatsappLink } from '@/lib/format'
@@ -11,6 +13,7 @@ import { PageHead } from '@/components/ui'
 
 export default async function PatientMessages() {
   const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).chat) redirect('/paciente')
   const s = await getSettings()
   const msgs = await db.select().from(schema.messages).where(eq(schema.messages.patientId, user.patientId)).orderBy(asc(schema.messages.createdAt))
   // Abrir a conversa marca como lidas as mensagens do nutricionista.

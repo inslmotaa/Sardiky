@@ -51,6 +51,13 @@ const profileSchema = z.object({
     .refine((v) => v === null || /^https:\/\//.test(v), 'Use o link completo (https://…)'),
   contactEmail: optEmail,
   privacyContact: optStr(200),
+  anamneseUrl: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || null)
+    .refine((v) => v === null || /^https:\/\//.test(v), 'Use o link completo (https://…)'),
+  waterMlPerKg: z.coerce.number().int().min(20, 'Entre 20 e 60').max(60, 'Entre 20 e 60'),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida'),
   demoBanner: checkbox,
 })

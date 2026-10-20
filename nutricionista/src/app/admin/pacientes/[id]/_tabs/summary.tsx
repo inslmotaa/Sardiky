@@ -5,10 +5,23 @@ import type { CurrentUser } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtDay } from '@/lib/time'
 import { invitePatient, revokePatientAccess, updatePatient } from '@/actions/admin/patients'
+import { setPatientFeatures } from '@/actions/admin/nutrition'
+import { DEFAULT_FEATURES, type AppFeatures } from '@/db/schema'
+import { BMR_FORMULAS, fmt } from '@/lib/nutricao'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { PatientFormFields } from '@/components/PatientFormFields'
 
 type P = typeof schema.patients.$inferSelect
+
+const FEATURE_LABEL: Record<keyof AppFeatures, string> = {
+  diario: 'Diário alimentar',
+  peso: 'Registro de peso e medidas',
+  chat: 'Mensagens',
+  calorias: 'Calorias visíveis',
+  macros: 'Macros visíveis',
+  calculadoras: 'Calculadoras',
+  agua: 'Contador de água',
+}
 
 export async function SummaryTab({ patient: p, user }: { patient: P; user: CurrentUser }) {
   const s = await getSettings()
@@ -85,6 +98,53 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
           </div>
         )}
       </section>
+      {can(user, 'clinico') && (
+        <section className="card">
+          <h2 style={{ fontSize: '1.1rem' }}>Recursos do app do paciente</h2>
+          <p className="small muted">Ligue ou desligue por paciente. Ocultar calorias e macros ajuda quem tem relação difícil com números.</p>
+          <ActionForm action={setPatientFeatures.bind(null, p.id)} className="stack">
+            <div className="choice-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
+              {(Object.keys(DEFAULT_FEATURES) as (keyof AppFeatures)[]).map((k) => (
+                <label key={k} className="check">
+                  <input type="checkbox" name={k} defaultChecked={({ ...DEFAULT_FEATURES, ...p.features } as AppFeatures)[k]} /> {FEATURE_LABEL[k]}
+                </label>
+              ))}
+            </div>
+            <div>
+              <SubmitButton className="btn btn--sm btn--primary">Salvar recursos</SubmitButton>
+            </div>
+          </ActionForm>
+        </section>
+      )}
+      {can(user, 'clinico') && (
+        <section className="card">
+          <h2 style={{ fontSize: '1.1rem' }}>Gasto energético</h2>
+          {p.energy ? (
+            <dl className="kv">
+              <dt>Fórmula</dt>
+              <dd>{BMR_FORMULAS[p.energy.formula as keyof typeof BMR_FORMULAS] ?? p.energy.formula}</dd>
+              <dt>TMB</dt>
+              <dd>{fmt(p.energy.bmr, 0)} kcal</dd>
+              <dt>GET</dt>
+              <dd>
+                {fmt(p.energy.tdee, 0)} kcal (fator {fmt(p.energy.factor, 3)})
+              </dd>
+              <dt>Meta</dt>
+              <dd>
+                <strong>{fmt(p.energy.targetKcal, 0)} kcal/dia</strong> (ajuste {p.energy.adjust > 0 ? '+' : ''}
+                {fmt(p.energy.adjust, 0)} {p.energy.adjustUnit === 'pct' ? '%' : 'kcal'})
+              </dd>
+              <dt>Calculado em</dt>
+              <dd>{fmtDay(p.energy.date)}</dd>
+            </dl>
+          ) : (
+            <p className="muted small">Ainda não calculado.</p>
+          )}
+          <a href="/admin/calculadoras" className="btn btn--sm" style={{ marginTop: 10 }}>
+            Abrir calculadoras
+          </a>
+        </section>
+      )}
     </div>
   )
 }

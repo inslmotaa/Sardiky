@@ -4,14 +4,16 @@
  */
 import { drizzle as drizzlePg } from 'drizzle-orm/postgres-js'
 import { drizzle as drizzleLite } from 'drizzle-orm/pglite'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { createConnection } from './connection'
 import { loadEnv } from './env'
 import * as s from './schema'
 import { hashPassword } from '../lib/auth/password'
 import { addDays, todayIn, zonedToUtc } from '../lib/time'
 import { newCode } from '../lib/auth/tokens'
-import type { PlanContent } from '../lib/plan'
+import { normalize, bmr as calcBmr, tdee as calcTdee } from '../lib/nutricao'
+import { buildDemoPlans } from './demo-plans'
+import { TACO_FOODS } from './foods-taco'
 import type { FormField } from '../lib/forms'
 
 loadEnv()
@@ -41,7 +43,7 @@ async function main() {
   console.log('Limpando dados…')
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
-      form_templates, notifications, messages, diary_entries, meal_plans, measurements, goals, leads,
+      form_templates, notifications, messages, diary_entries, meal_logs, water_logs, meal_plans, household_measures, foods, measurements, goals, leads,
       appointments, patients, packages, faqs, testimonials, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
@@ -75,6 +77,8 @@ async function main() {
     instagram: 'https://instagram.com/',
     contactEmail: 'contato@example.com',
     privacyContact: 'privacidade@example.com',
+    anamneseUrl: 'https://forms.gle/8EkK8XcNE35ydHYKA',
+    waterMlPerKg: 35,
     timezone: TZ,
     slotStepMinutes: 30,
     bufferMinutes: 10,
@@ -225,8 +229,8 @@ async function main() {
         passwordHash: staffHash,
         permissions: ['agenda', 'cadastro', 'financeiro', 'site'],
       },
-      { email: 'paciente@example.com', name: 'Beatriz Exemplo', role: 'patient', passwordHash: patientHash },
-      { email: 'lucas@example.com', name: 'Lucas Fictício', role: 'patient', passwordHash: patientHash },
+      { email: 'paciente@example.com', name: 'Beatriz Exemplo', role: 'patient', passwordHash: patientHash, onboardedAt: at(-150, '20:00') },
+      { email: 'lucas@example.com', name: 'Lucas Fictício', role: 'patient', passwordHash: patientHash, onboardedAt: at(-24, '20:00') },
     ])
     .returning()
 
@@ -240,6 +244,9 @@ async function main() {
         phone: '11900000001',
         birthDate: '1991-04-12',
         objective: 'Reeducação alimentar e melhora da disposição',
+        sex: 'F',
+        heightCm: 165,
+        anamnesisReceivedAt: at(-151, '20:00'),
         status: 'ativo',
         stage: 'Acompanhamento',
         followUpDays: 30,
@@ -252,6 +259,8 @@ async function main() {
         phone: '11900000002',
         birthDate: '1996-09-30',
         objective: 'Performance em corrida de rua',
+        sex: 'M',
+        heightCm: 178,
         status: 'ativo',
         stage: 'Avaliação inicial',
         followUpDays: 21,
@@ -263,6 +272,8 @@ async function main() {
         phone: '11900000003',
         birthDate: '1985-01-20',
         objective: 'Controle de peso',
+        sex: 'M',
+        heightCm: 175,
         status: 'pausado',
         stage: 'Manutenção',
         followUpDays: 60,
@@ -273,6 +284,8 @@ async function main() {
         phone: '11900000004',
         birthDate: '1978-07-08',
         objective: 'Alimentação na menopausa',
+        sex: 'F',
+        heightCm: 160,
         status: 'ativo',
         stage: 'Acompanhamento',
         followUpDays: 30,
@@ -417,114 +430,37 @@ async function main() {
     { patientId: lucas.id, title: 'Ajustar a alimentação pré-treino', description: 'Testar as opções do plano antes dos treinos longos.' },
   ])
 
+  /* --------------------------- base de alimentos ---------------------- */
+  const foodRows = await db
+    .insert(s.foods)
+    .values(
+      TACO_FOODS.map((f) => ({
+        name: f.name,
+        search: normalize(f.name),
+        group: f.group,
+        source: 'TACO',
+        kcal: f.kcal,
+        protein: f.protein,
+        carbs: f.carbs,
+        fat: f.fat,
+        fiber: f.fiber,
+        sodium: f.sodium ?? null,
+        cookingFactor: f.cookingFactor ?? null,
+      })),
+    )
+    .returning()
+  await db.insert(s.householdMeasures).values(
+    TACO_FOODS.flatMap((f) => {
+      const row = foodRows.find((r) => r.name === f.name)!
+      return f.measures.map(([name, grams]) => ({ foodId: row.id, name, grams }))
+    }),
+  )
+
   /* --------------------------- planos alimentares ---------------------- */
-  const plan = (variant: 1 | 2): PlanContent => ({
-    guidance:
-      'Beba água ao longo do dia (meta combinada: 2 litros). Prefira preparações assadas, cozidas ou grelhadas. Mastigue devagar e faça as refeições sem telas sempre que possível.' +
-      (variant === 2 ? ' Nos dias de treino, antecipe o lanche da tarde para 1h antes do exercício.' : ''),
-    meals: [
-      {
-        id: 'm1',
-        name: 'Café da manhã',
-        time: '07:00',
-        notes: '',
-        items: [
-          {
-            id: 'i1',
-            food: 'Pão integral',
-            quantity: '50 g',
-            householdMeasure: '2 fatias',
-            notes: '',
-            substitutions: [
-              { food: 'Tapioca', quantity: '40 g', householdMeasure: '2 colheres de sopa de goma' },
-              { food: 'Cuscuz de milho', quantity: '80 g', householdMeasure: '1 xícara' },
-            ],
-          },
-          {
-            id: 'i2',
-            food: 'Ovo mexido',
-            quantity: '100 g',
-            householdMeasure: '2 unidades',
-            notes: 'Pouco óleo',
-            substitutions: [{ food: 'Queijo branco', quantity: '60 g', householdMeasure: '2 fatias' }],
-          },
-          {
-            id: 'i3',
-            food: 'Mamão',
-            quantity: '150 g',
-            householdMeasure: '1 fatia média',
-            notes: '',
-            substitutions: [{ food: 'Banana', quantity: '80 g', householdMeasure: '1 unidade' }],
-          },
-        ],
-      },
-      {
-        id: 'm2',
-        name: 'Almoço',
-        time: '12:30',
-        notes: 'Comece pela salada.',
-        items: [
-          { id: 'i4', food: 'Salada de folhas e legumes', quantity: 'à vontade', householdMeasure: 'meio prato', notes: '', substitutions: [] },
-          {
-            id: 'i5',
-            food: 'Arroz integral',
-            quantity: '100 g',
-            householdMeasure: '4 colheres de sopa',
-            notes: '',
-            substitutions: [
-              { food: 'Batata-doce', quantity: '150 g', householdMeasure: '1 unidade média' },
-              { food: 'Macarrão integral', quantity: '100 g', householdMeasure: '1 pegador' },
-            ],
-          },
-          { id: 'i6', food: 'Feijão', quantity: '80 g', householdMeasure: '1 concha pequena', notes: '', substitutions: [{ food: 'Lentilha', quantity: '80 g', householdMeasure: '1 concha pequena' }] },
-          {
-            id: 'i7',
-            food: 'Frango grelhado',
-            quantity: '120 g',
-            householdMeasure: '1 filé médio',
-            notes: '',
-            substitutions: [
-              { food: 'Peixe assado', quantity: '130 g', householdMeasure: '1 posta média' },
-              { food: 'Carne magra', quantity: '110 g', householdMeasure: '1 bife médio' },
-            ],
-          },
-        ],
-      },
-      {
-        id: 'm3',
-        name: 'Lanche da tarde',
-        time: variant === 2 ? '16:00' : '16:30',
-        notes: '',
-        items: [
-          {
-            id: 'i8',
-            food: 'Iogurte natural',
-            quantity: '170 g',
-            householdMeasure: '1 pote',
-            notes: '',
-            substitutions: [{ food: 'Leite com café', quantity: '200 ml', householdMeasure: '1 copo' }],
-          },
-          { id: 'i9', food: 'Aveia em flocos', quantity: '20 g', householdMeasure: '2 colheres de sopa', notes: '', substitutions: [] },
-        ],
-      },
-      {
-        id: 'm4',
-        name: 'Jantar',
-        time: '19:30',
-        notes: '',
-        items: [
-          {
-            id: 'i10',
-            food: 'Omelete com legumes',
-            quantity: '2 ovos',
-            householdMeasure: '1 unidade',
-            notes: '',
-            substitutions: [{ food: 'Sopa de legumes com frango', quantity: '400 ml', householdMeasure: '1 prato fundo' }],
-          },
-          { id: 'i11', food: 'Salada crua', quantity: 'à vontade', householdMeasure: '1 prato raso', notes: '', substitutions: [] },
-        ],
-      },
-    ],
+  const { beatrizPlan, beatrizV1, lucasPlan } = buildDemoPlans((name) => {
+    const row = foodRows.find((r) => r.name.startsWith(name))
+    if (!row) throw new Error(`Alimento não encontrado no seed: ${name}`)
+    return { id: row.id, name: row.name, group: row.group, per100: { kcal: row.kcal, protein: row.protein, carbs: row.carbs, fat: row.fat, fiber: row.fiber } }
   })
 
   const [v1] = await db
@@ -534,7 +470,7 @@ async function main() {
       title: 'Plano alimentar — reeducação',
       status: 'arquivado',
       version: 1,
-      content: plan(1),
+      content: beatrizV1,
       validFrom: day(-150),
       validUntil: day(-31),
       publishedAt: at(-150, '18:00'),
@@ -542,37 +478,41 @@ async function main() {
       createdBy: admin.id,
     })
     .returning()
-  await db.insert(s.mealPlans).values([
-    {
+  const [beatrizCurrent] = await db
+    .insert(s.mealPlans)
+    .values({
       patientId: beatriz.id,
       title: 'Plano alimentar — reeducação',
       status: 'publicado',
       version: 2,
       parentId: v1.id,
-      content: plan(2),
+      content: beatrizPlan,
       validFrom: day(-30),
       validUntil: day(30),
       publishedAt: at(-30, '18:00'),
       publishedBy: admin.id,
       createdBy: admin.id,
-    },
-    {
-      patientId: lucas.id,
-      title: 'Plano para treinos de corrida',
-      status: 'rascunho',
-      version: 1,
-      content: plan(2),
-      createdBy: admin.id,
-    },
-    {
-      isTemplate: true,
-      title: 'Modelo — reeducação alimentar (4 refeições)',
-      status: 'rascunho',
-      version: 1,
-      content: plan(1),
-      createdBy: admin.id,
-    },
+    })
+    .returning()
+  await db.insert(s.mealPlans).values([
+    { patientId: lucas.id, title: 'Plano para treinos de corrida', status: 'rascunho', version: 1, content: lucasPlan, createdBy: admin.id },
+    { isTemplate: true, title: 'Modelo — Reeducação alimentar (4 refeições)', status: 'rascunho', version: 1, content: beatrizPlan, createdBy: admin.id },
+    { isTemplate: true, title: 'Modelo — Treino e descanso', status: 'rascunho', version: 1, content: lucasPlan, createdBy: admin.id },
   ])
+
+  // Gasto energético calculado na última consulta (Mifflin-St Jeor, atividade leve, déficit de 400 kcal).
+  const bmrB = calcBmr('mifflin', { sex: 'F', weightKg: 75.1, heightCm: 165, age: 35 })!
+  const tdeeB = calcTdee(bmrB, 1.375)
+  await db
+    .update(s.patients)
+    .set({ energy: { formula: 'mifflin', factor: 1.375, bmr: bmrB, tdee: tdeeB, targetKcal: Math.round(tdeeB - 400), adjust: -400, adjustUnit: 'kcal', date: day(-30) } })
+    .where(eq(s.patients.id, beatriz.id))
+
+  // Acompanhamento de hoje: café da manhã feito e um pouco de água.
+  const breakfast = beatrizPlan.days[0].meals[0]
+  await db.insert(s.mealLogs).values({ patientId: beatriz.id, date: day(0), planId: beatrizCurrent.id, mealKey: `${beatrizPlan.days[0].id}:${breakfast.id}`, optionId: breakfast.options[0].id, status: 'feita' })
+  await db.insert(s.waterLogs).values({ patientId: beatriz.id, date: day(0), ml: 750 })
+
 
   /* ------------------------------ diário ------------------------------- */
   await db.insert(s.diaryEntries).values([

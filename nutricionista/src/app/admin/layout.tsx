@@ -8,7 +8,9 @@ import { logout } from '@/actions/auth'
 import { Brand } from '@/components/Brand'
 import { CloseOnNavigate, NavLinks, type NavItem } from '@/components/NavLinks'
 import {
+  IconBook,
   IconCalendar,
+  IconChart,
   IconChat,
   IconForm,
   IconHome,
@@ -46,6 +48,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: '/admin/pacientes', label: 'Pacientes', icon: <IconUsers />, show: can(user, 'cadastro') || can(user, 'clinico') },
         { href: '/admin/mensagens', label: 'Mensagens', icon: <IconChat />, count: unread.n, show: can(user, 'clinico') },
         { href: '/admin/planos', label: 'Planos alimentares', icon: <IconPlate />, show: can(user, 'clinico') },
+        { href: '/admin/alimentos', label: 'Alimentos', icon: <IconBook />, show: can(user, 'clinico') },
+        { href: '/admin/calculadoras', label: 'Calculadoras', icon: <IconChart />, show: can(user, 'clinico') },
         { href: '/admin/formularios', label: 'Formulários', icon: <IconForm />, show: can(user, 'clinico') },
       ],
     },

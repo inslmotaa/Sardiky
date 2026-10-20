@@ -10,12 +10,12 @@ test('nutricionista revisa e publica plano; paciente passa a vê-lo', async ({ p
   // Paciente ainda não vê o rascunho.
   // Publicar sem confirmar a revisão é bloqueado.
   page.once('dialog', (d) => d.accept())
-  await page.getByRole('button', { name: 'Publicar para o paciente' }).click()
+  await page.getByRole('button', { name: 'Ativar no app do paciente' }).click()
   await expect(page.getByText('Confirme que revisou o plano antes de publicar.')).toBeVisible()
 
   await page.getByLabel('Revisei e aprovo este plano').check()
   page.once('dialog', (d) => d.accept())
-  await page.getByRole('button', { name: 'Publicar para o paciente' }).click()
+  await page.getByRole('button', { name: 'Ativar no app do paciente' }).click()
   // Após publicar, a página passa a exibir a versão publicada (somente leitura).
   await expect(page.getByRole('button', { name: 'Criar nova versão' })).toBeVisible()
   await expect(page.locator('.page-head .badge').first()).toHaveText('Publicado')
@@ -23,6 +23,9 @@ test('nutricionista revisa e publica plano; paciente passa a vê-lo', async ({ p
   await login(page, 'lucas')
   await page.goto('/paciente/plano')
   await expect(page.getByRole('heading', { name: 'Plano para treinos de corrida' })).toBeVisible()
+  // Plano com dias diferentes (treino × descanso) e botão “Trocar” com as substituições.
+  await expect(page.getByRole('tab', { name: 'Dia de descanso' })).toBeVisible()
+  await page.getByRole('button', { name: /^Trocar/ }).first().click()
   await expect(page.getByText('Substituições autorizadas').first()).toBeVisible()
 })
 
@@ -96,14 +99,14 @@ test('paciente baixa os próprios dados (portabilidade)', async ({ page }) => {
 })
 
 test('área do paciente e painel sem rolagem horizontal no celular', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 800 })
+  await page.setViewportSize({ width: 360, height: 800 })
   await login(page, 'beatriz')
-  for (const path of ['/paciente', '/paciente/plano', '/paciente/diario', '/paciente/evolucao', '/paciente/mensagens']) {
+  for (const path of ['/paciente', '/paciente/plano', '/paciente/diario', '/paciente/evolucao', '/paciente/mensagens', '/paciente/mais', '/paciente/calculadoras']) {
     await page.goto(path)
     await expectNoHorizontalScroll(page)
   }
   await login(page, 'admin')
-  for (const path of ['/admin', '/admin/agenda', '/admin/pacientes', '/admin/relatorios']) {
+  for (const path of ['/admin', '/admin/agenda', '/admin/pacientes', '/admin/relatorios', '/admin/calculadoras']) {
     await page.goto(path)
     await expectNoHorizontalScroll(page)
   }

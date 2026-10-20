@@ -18,6 +18,7 @@ export type CurrentUser = {
   role: Role
   permissions: string[]
   patientId: string | null
+  onboarded: boolean
 }
 
 export async function clientIp() {
@@ -83,6 +84,7 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
     role: row.user.role,
     permissions: row.user.permissions,
     patientId: row.patientId,
+    onboarded: Boolean(row.user.onboardedAt),
   }
 })
 

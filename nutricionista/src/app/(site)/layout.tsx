@@ -7,8 +7,8 @@ import { IconInstagram, IconMail, IconWhatsApp } from '@/components/icons'
 const NAV = [
   { href: '/#sobre', label: 'Sobre' },
   { href: '/#servicos', label: 'Serviços' },
+  { href: '/#planos', label: 'Planos' },
   { href: '/#como-funciona', label: 'Como funciona' },
-  { href: '/#depoimentos', label: 'Depoimentos' },
   { href: '/#duvidas', label: 'Dúvidas' },
   { href: '/#contato', label: 'Contato' },
 ]

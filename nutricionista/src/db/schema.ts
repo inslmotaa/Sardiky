@@ -17,6 +17,10 @@ import {
 import type { PlanContent } from '@/lib/plan'
 import type { FormField, FormAnswers } from '@/lib/forms'
 
+export type AppFeatures = { diario: boolean; peso: boolean; chat: boolean; calorias: boolean; macros: boolean; calculadoras: boolean; agua: boolean }
+export const DEFAULT_FEATURES: AppFeatures = { diario: true, peso: true, chat: true, calorias: true, macros: true, calculadoras: true, agua: true }
+export type EnergyCalc = { formula: string; factor: number; bmr: number; tdee: number; targetKcal: number; adjust: number; adjustUnit: 'kcal' | 'pct'; date: string }
+
 const id = () => uuid('id').primaryKey().defaultRandom()
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 const updatedAt = () => timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
@@ -61,6 +65,8 @@ export const users = pgTable(
     failedLogins: integer('failed_logins').notNull().default(0),
     lockedUntil: timestamp('locked_until', { withTimezone: true }),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+    /** Primeiro acesso concluído (boas-vindas, notificações e anamnese). */
+    onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -130,6 +136,10 @@ export const settings = pgTable('settings', {
   /** Faixa "dados fictícios" no topo do site, enquanto o sistema estiver em demonstração. */
   demoBanner: boolean('demo_banner').notNull().default(true),
   leadRetentionDays: integer('lead_retention_days').notNull().default(180),
+  /** Formulário de anamnese externo (Google Forms, Typeform…). */
+  anamneseUrl: text('anamnese_url'),
+  /** Meta padrão de água: ml por kg de peso corporal. */
+  waterMlPerKg: integer('water_ml_per_kg').notNull().default(35),
   templates: jsonb('templates').$type<MessageTemplates>().notNull(),
   updatedAt: updatedAt(),
 })
@@ -208,6 +218,14 @@ export const patients = pgTable(
     phone: text('phone'),
     birthDate: date('birth_date'),
     objective: text('objective'),
+    sex: text('sex'), // 'F' | 'M'
+    heightCm: numeric('height_cm', { mode: 'number' }),
+    /** Recursos do app liberados para o paciente (liga/desliga pelo nutricionista). */
+    features: jsonb('features').$type<AppFeatures>().notNull().default(DEFAULT_FEATURES),
+    /** Último cálculo de gasto energético salvo na ficha. */
+    energy: jsonb('energy').$type<EnergyCalc | null>(),
+    anamnesisReceivedAt: timestamp('anamnesis_received_at', { withTimezone: true }),
+    anamnesisNotes: text('anamnesis_notes'),
     status: patientStatusEnum('status').notNull().default('ativo'),
     stage: text('stage').notNull().default('Avaliação inicial'),
     followUpDays: integer('follow_up_days'),
@@ -473,6 +491,79 @@ export const payments = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('payments_patient_idx').on(t.patientId)],
+)
+
+/* ------------------------------------------------------------------ */
+/* Base de alimentos e acompanhamento diário                           */
+/* ------------------------------------------------------------------ */
+
+export const foods = pgTable(
+  'foods',
+  {
+    id: id(),
+    name: text('name').notNull(),
+    /** Nome sem acentos e em minúsculas, para busca. */
+    search: text('search').notNull(),
+    group: text('group').notNull(),
+    source: text('source').notNull().default('TACO'), // TACO | TBCA | proprio
+    kcal: numeric('kcal', { mode: 'number' }).notNull(),
+    protein: numeric('protein', { mode: 'number' }).notNull(),
+    carbs: numeric('carbs', { mode: 'number' }).notNull(),
+    fat: numeric('fat', { mode: 'number' }).notNull(),
+    fiber: numeric('fiber', { mode: 'number' }).notNull().default(0),
+    sodium: numeric('sodium', { mode: 'number' }),
+    /** Peso cozido ÷ peso cru (ex.: arroz ≈ 2,5). */
+    cookingFactor: numeric('cooking_factor', { mode: 'number' }),
+    active: boolean('active').notNull().default(true),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('foods_search_idx').on(t.search)],
+)
+
+export const householdMeasures = pgTable(
+  'household_measures',
+  {
+    id: id(),
+    foodId: uuid('food_id')
+      .notNull()
+      .references(() => foods.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    grams: numeric('grams', { mode: 'number' }).notNull(),
+  },
+  (t) => [index('measures_food_idx').on(t.foodId)],
+)
+
+/** Refeição do plano marcada pelo paciente no dia (feita, parcial ou pulada). */
+export const mealLogs = pgTable(
+  'meal_logs',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    date: date('date').notNull(),
+    planId: uuid('plan_id').references(() => mealPlans.id, { onDelete: 'set null' }),
+    mealKey: text('meal_key').notNull(), // diaId:refeicaoId
+    optionId: text('option_id'),
+    status: text('status').notNull(), // feita | parcial | pulada
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('meal_logs_unique').on(t.patientId, t.date, t.mealKey)],
+)
+
+export const waterLogs = pgTable(
+  'water_logs',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    date: date('date').notNull(),
+    ml: integer('ml').notNull().default(0),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex('water_logs_unique').on(t.patientId, t.date)],
 )
 
 /* ------------------------------------------------------------------ */

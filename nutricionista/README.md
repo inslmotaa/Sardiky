@@ -5,8 +5,8 @@ Primeira versão utilizável, com **dados fictícios** (nenhum paciente real).
 
 - **Site público:** abertura em storytelling animado, apresentação, serviços e valores, como funciona, depoimentos autorizados, dúvidas, contato com WhatsApp e formulário, política de privacidade.
 - **Agendamento on-line:** horários livres calculados a partir do expediente, bloqueios e consultas existentes; nenhum horário pode ser reservado duas vezes.
-- **Área do paciente:** plano alimentar com substituições (imprimível/PDF), diário alimentar com foto, evolução em gráficos, metas, mensagens, formulários, consultas, exportação de dados.
-- **Painel:** agenda dia/semana/mês, prontuário completo, editor de planos com revisão obrigatória e versões, formulários configuráveis, financeiro, relatórios CSV, equipe com permissões, LGPD e auditoria.
+- **App do paciente (celular primeiro):** tela **Hoje** com a próxima refeição e marcação feita/parcial/pulada, contador de água, registro rápido de peso; **Plano** com dias (treino/descanso), opções por refeição e substituições aprovadas (imprimível/PDF); diário alimentar com foto, progresso em gráficos, calculadoras, mensagens, anamnese, consultas e exportação de dados. O André escolhe, por paciente, se calorias, macros, diário, chat e calculadoras aparecem.
+- **Painel:** editor de planos com **cálculo automático** (base de alimentos com medidas caseiras, metas de kcal e macros, sugestão de substituições equivalentes, desfazer/refazer, prévia no celular) e revisão obrigatória antes de ativar; base de alimentos (inclui cadastro por rótulo); calculadoras (porções, IMC, TMB/GET, macros, água, projeção); agenda dia/semana/mês, prontuário, formulários, financeiro, relatórios CSV, equipe com permissões, LGPD e auditoria.
 
 ## Como rodar no computador
 
@@ -30,13 +30,22 @@ npm run dev     # abra http://localhost:3000
 
 ## Prévia em arquivo único
 
-`previa/index.html` abre direto no navegador (dois cliques, sem instalar nada). Traz o site público e uma **demonstração local** da área do cliente (`#cliente`) e do painel do André (`#andre`), onde ele cadastra clientes, monta as refeições e publica o plano. Nessa prévia os dados ficam só no navegador de quem abriu. Para regerar após mudanças: `npm run build`, `ALLOW_PGLITE=1 npx next start -p 3100` e `python3 scripts/gerar-previa.py`.
+`previa/index.html` abre direto no navegador (dois cliques, sem instalar nada). Traz o site público e uma **demonstração local** do app do cliente (`#cliente`: Hoje, Plano, Diário, Progresso, Calculadoras) e do painel do André (`#andre`: clientes, editor de planos com cálculo e calculadoras). A demonstração usa **os mesmos componentes do sistema** (`previa/src/app.tsx`, empacotado com esbuild por `scripts/build-previa.mjs`), com os dados guardados só no navegador de quem abriu.
+
+Para regerar após mudanças: `npm run build`, `ALLOW_PGLITE=1 npx next start -p 3100` (em outro terminal) e `python3 scripts/gerar-previa.py`.
 
 ## O que é real e o que é demonstrativo
 
 | Funciona de verdade | Depende de configuração | Ainda não implementado (indicado na tela) |
 |---|---|---|
-| Login, permissões, agendamento, agenda, prontuário, planos, diário, gráficos, mensagens internas, formulários, financeiro (registros internos), relatórios, LGPD, auditoria, uploads | E-mails e lembretes automáticos (Resend + `CRON_SECRET`) | Envio automático por WhatsApp (hoje: botão que abre a conversa com o texto pronto), pagamento on-line, criação automática de sala de vídeo (hoje: link colado na consulta) |
+| Login, permissões, agendamento, agenda, prontuário, planos com cálculo, base de alimentos, calculadoras, tela Hoje, água e peso, diário, gráficos, mensagens internas, formulários, financeiro (registros internos), relatórios, LGPD, auditoria, uploads | E-mails e lembretes automáticos (Resend + `CRON_SECRET`) | Envio automático por WhatsApp (hoje: botão que abre a conversa com o texto pronto), pagamento on-line, criação automática de sala de vídeo (hoje: link colado na consulta) |
+
+Os valores nutricionais da base inicial (`src/db/foods-taco.ts`, 60 alimentos) têm a Tabela TACO como referência, mas **precisam ser conferidos pelo André** com a tabela oficial antes do uso clínico.
+
+## Problemas comuns
+
+- **A página recarrega sem parar no `npm run dev`:** pare o servidor, apague `.next/dev` e rode de novo.
+- **Erro de banco ao iniciar (ex.: `58P01`):** pare todos os servidores, apague `~/.consultorio-nutri` e rode `npm run setup`.
 
 ## Comandos
 
@@ -45,7 +54,7 @@ npm run dev     # abra http://localhost:3000
 | `npm run dev` | Servidor de desenvolvimento |
 | `npm run build` / `npm start` | Versão de produção |
 | `npm run typecheck` | Checagem de tipos |
-| `npm test` | Testes de unidade (agenda, fuso, senhas, permissões, validações) |
+| `npm test` | Testes de unidade (cálculos nutricionais, agenda, fuso, senhas, permissões, validações) |
 | `npm run test:e2e` | Testes de ponta a ponta no navegador (fluxos e isolamento de dados) |
 | `npm run db:generate` | Gera migração após alterar `src/db/schema.ts` |
 
@@ -55,4 +64,5 @@ npm run dev     # abra http://localhost:3000
 - [Segurança, privacidade e LGPD](docs/02-seguranca-lgpd.md)
 - [Publicação: domínio, hospedagem, backups, monitoramento e custos](docs/03-publicacao.md)
 - [Testes](docs/04-testes.md)
+- [Fase 1 da plataforma: o que foi entregue e o que falta](docs/06-fase-1.md)
 - [Próximos passos: informações do André, consultoria de dieta e treino, aplicativo](docs/05-proximos-passos.md)

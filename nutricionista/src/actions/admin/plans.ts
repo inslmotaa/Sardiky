@@ -9,7 +9,7 @@ import { requireTeam } from '@/lib/auth/session'
 import { audit } from '@/lib/audit'
 import { failure, UserError, type ActionState } from '@/lib/action'
 import { notifyUser } from '@/lib/notify'
-import { countItems, emptyPlan, planContentSchema } from '@/lib/plan'
+import { countItems, emptyPlan, normalizePlan, planContentSchema } from '@/lib/plan'
 import { optDay, str, uuid } from '@/lib/validation'
 
 async function planOrThrow(id: string) {
@@ -45,7 +45,7 @@ export async function createPlan(_: ActionState, fd: FormData): Promise<ActionSt
     let content = emptyPlan()
     if (parsed.data.sourceId) {
       const src = await planOrThrow(parsed.data.sourceId)
-      content = src.content
+      content = normalizePlan(src.content)
     }
     const [row] = await db
       .insert(schema.mealPlans)
@@ -97,7 +97,16 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
 
     if (plan.isTemplate || !plan.patientId) return { error: 'Modelos não são publicados; use-os para criar planos de pacientes.' }
     if (fd.get('reviewed') !== 'on') return { error: 'Confirme que revisou o plano antes de publicar.', fieldErrors: { reviewed: 'Confirmação obrigatória' } }
-    if (content.data.meals.length === 0 || countItems(content.data) === 0) return { error: 'O plano precisa ter ao menos uma refeição com alimentos.' }
+    if (countItems(content.data) === 0) return { error: 'O plano precisa ter ao menos uma refeição com alimentos.' }
+    for (const d of content.data.days) {
+      if (d.meals.length === 0) return { error: `O dia “${d.label}” está sem refeições.` }
+      for (const m of d.meals)
+        for (const o of m.options) {
+          if (o.items.length === 0) return { error: `“${m.name}” (${o.label}, ${d.label}) está sem alimentos.` }
+          if (content.data.mode === 'calculado' && o.items.some((it) => it.per100 && !(it.grams && it.grams > 0)))
+            return { error: `Há alimento sem quantidade em “${m.name}” (${d.label}).` }
+        }
+    }
 
     await db.transaction(async (tx) => {
       await tx
@@ -138,7 +147,7 @@ export async function newPlanVersion(planId: string): Promise<void> {
       status: 'rascunho',
       version: (v ?? plan.version) + 1,
       parentId: plan.id,
-      content: plan.content,
+      content: normalizePlan(plan.content),
       validFrom: null,
       validUntil: null,
       createdBy: user.id,

@@ -137,6 +137,12 @@ function ProfileSection({ s }: { s: S }) {
           <Field label="Contato do encarregado de dados (LGPD)" name="privacyContact">
             <input name="privacyContact" defaultValue={s.privacyContact ?? ''} />
           </Field>
+          <Field label="Link do formulário de anamnese" name="anamneseUrl" hint="Google Forms, Typeform, Tally… Aparece no site, no primeiro acesso e no app.">
+            <input name="anamneseUrl" type="url" defaultValue={s.anamneseUrl ?? ''} />
+          </Field>
+          <Field label="Meta padrão de água (ml por kg)" name="waterMlPerKg" hint="Usada no contador de água do app e nas calculadoras.">
+            <input name="waterMlPerKg" inputMode="numeric" defaultValue={s.waterMlPerKg} />
+          </Field>
         </div>
         <label className="check">
           <input type="checkbox" name="demoBanner" defaultChecked={s.demoBanner} /> Exibir a faixa “versão de demonstração” no site (desmarque ao publicar com dados reais)

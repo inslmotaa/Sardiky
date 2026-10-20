@@ -1,11 +1,16 @@
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
+import { featuresOf } from '@/lib/patient-context'
+import { getSettings } from '@/lib/settings'
+import { todayIn, weekdayOf } from '@/lib/time'
 import { PlanPage } from '@/components/PatientPlanPage'
 import { PageHead, Empty } from '@/components/ui'
 
 export default async function PatientPlanPage() {
   const user = await requirePatient()
+  const features = await featuresOf(user.patientId)
+  const weekday = weekdayOf(todayIn((await getSettings()).timezone))
   // Rascunhos nunca chegam ao paciente: só versões publicadas (e anteriores liberadas).
   const plans = await db
     .select()
@@ -23,5 +28,5 @@ export default async function PatientPlanPage() {
       </>
     )
   }
-  return <PlanPage plan={current} history={history} />
+  return <PlanPage plan={current} history={history} features={features} weekday={weekday} />
 }

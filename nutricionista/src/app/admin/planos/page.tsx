@@ -5,7 +5,7 @@ import { requireTeam } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { planSources } from '@/lib/plan-sources'
-import { countItems } from '@/lib/plan'
+import { countItems, mealCount, normalizePlan } from '@/lib/plan'
 import { fmtDateTime } from '@/lib/time'
 import { NewPlanForm } from '@/components/NewPlanForm'
 import { NoAccess, PageHead, StatusBadge, Empty } from '@/components/ui'
@@ -59,7 +59,7 @@ export default async function PlansPage() {
                   <li key={t.id} className="row row--between">
                     <Link href={`/admin/planos/${t.id}`}>{t.title}</Link>
                     <span className="small muted">
-                      {t.content.meals.length} refeições · {countItems(t.content)} itens
+                      {mealCount(normalizePlan(t.content))} refeições · {countItems(normalizePlan(t.content))} itens
                     </span>
                   </li>
                 ))}

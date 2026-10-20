@@ -4,6 +4,7 @@ import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtDay } from '@/lib/time'
 import { assignForm } from '@/actions/admin/patients'
+import { setAnamnesis } from '@/actions/admin/nutrition'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { FormAnswersView } from '@/components/FormAnswers'
 import { Empty } from '@/components/ui'
@@ -17,6 +18,30 @@ export async function FormsTab({ patient, view }: { patient: typeof schema.patie
   const open = list.find((a) => a.id === view)
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
+      <section className="card">
+        <h2 style={{ fontSize: '1.1rem' }}>Anamnese (formulário externo)</h2>
+        <p className="small muted">
+          A anamnese é preenchida no formulário da consultoria{s.anamneseUrl ? ' ' : ''}
+          {s.anamneseUrl && (
+            <a href={s.anamneseUrl} target="_blank" rel="noopener noreferrer">
+              (abrir formulário)
+            </a>
+          )}
+          . Ao receber as respostas, marque aqui e cole o conteúdo para ficar no prontuário.
+        </p>
+        <ActionForm action={setAnamnesis.bind(null, patient.id)} className="stack">
+          <label className="check">
+            <input type="checkbox" name="received" defaultChecked={Boolean(patient.anamnesisReceivedAt)} /> Anamnese recebida
+            {patient.anamnesisReceivedAt && <span className="muted small"> em {fmtDateTime(patient.anamnesisReceivedAt, s.timezone)}</span>}
+          </label>
+          <Field label="Respostas (cole aqui)" name="notes">
+            <textarea name="notes" rows={5} defaultValue={patient.anamnesisNotes ?? ''} />
+          </Field>
+          <div>
+            <SubmitButton className="btn btn--sm btn--primary">Salvar anamnese</SubmitButton>
+          </div>
+        </ActionForm>
+      </section>
       <section className="card">
         <h2 style={{ fontSize: '1.1rem' }}>Enviar formulário</h2>
         <ActionForm action={assignForm.bind(null, patient.id)} className="row" resetOnSuccess>

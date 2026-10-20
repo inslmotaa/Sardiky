@@ -8,6 +8,19 @@ test('página inicial apresenta o profissional, serviços e storytelling', async
   await expect(page.getByRole('heading', { name: 'Formas de atendimento' })).toBeVisible()
   await expect(page.getByText('Depoimento sem autorização')).toHaveCount(0) // não autorizado nunca aparece
   await expect(page.getByRole('link', { name: 'Política de Privacidade' }).first()).toBeVisible()
+  // Abertura: "Agendar consulta" é o botão principal e "solitário" não aparece mais.
+  await expect(page.locator('.story-open .row a').first()).toHaveText('Agendar consulta')
+  await expect(page.getByText('solitário')).toHaveCount(0)
+  // Anamnese externa e planos de acompanhamento.
+  await expect(page.getByRole('link', { name: 'Preencher anamnese' }).first()).toHaveAttribute('href', 'https://forms.gle/8EkK8XcNE35ydHYKA')
+  await expect(page.getByRole('heading', { name: 'Acompanhamento contínuo, não uma consulta isolada' })).toBeVisible()
+})
+
+test('endereços curtos levam às áreas certas', async ({ page }) => {
+  await page.goto('/entrar')
+  await expect(page).toHaveURL(/\/login$/)
+  await page.goto('/painel')
+  await expect(page).toHaveURL(/\/login/)
 })
 
 test('formulário de interessados exige consentimento e salva o contato', async ({ page }) => {
@@ -48,8 +61,8 @@ test('agendamento completo e bloqueio de conflito no mesmo horário', async ({ p
 })
 
 test('layout responsivo no celular (site)', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 800 })
-  for (const path of ['/', '/agendar', '/login', '/privacidade']) {
+  await page.setViewportSize({ width: 360, height: 800 })
+  for (const path of ['/', '/agendar', '/login', '/privacidade', '/criar-conta']) {
     await page.goto(path)
     await expectNoHorizontalScroll(page)
   }

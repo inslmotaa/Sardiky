@@ -1,8 +1,9 @@
 # Gera previa/index.html: arquivo único que abre direto no navegador, com o site público
-# e a demonstração local da área do cliente e do painel do André (previa/src/demo.*).
+# e a demonstração local da área do cliente e do painel do André (previa/src/app.tsx, que reaproveita
+# os componentes reais do sistema: editor de planos, tela Hoje, plano do paciente e calculadoras).
 # Uso: npm run build && ALLOW_PGLITE=1 npx next start -p 3100   (em outro terminal)
 #      python3 scripts/gerar-previa.py
-import base64, os, re, urllib.request
+import base64, os, re, subprocess, tempfile, urllib.request
 from bs4 import BeautifulSoup, Comment
 
 BASE = 'http://localhost:3100'
@@ -12,7 +13,10 @@ get = lambda u: urllib.request.urlopen(BASE + u).read()
 home = BeautifulSoup(get('/').decode(), 'html.parser')
 priv = BeautifulSoup(get('/privacidade').decode(), 'html.parser')
 demo_css = open(os.path.join(ROOT, 'previa/src/demo.css'), encoding='utf-8').read()
-demo_js = open(os.path.join(ROOT, 'previa/src/demo.js'), encoding='utf-8').read()
+with tempfile.TemporaryDirectory() as tmp:
+    bundle = os.path.join(tmp, 'app.js')
+    subprocess.run(['node', os.path.join(ROOT, 'scripts/build-previa.mjs'), bundle], check=True)
+    demo_js = open(bundle, encoding='utf-8').read().replace('</script', '<\\/script')
 
 # ---- CSS com fontes embutidas ----
 css_href = home.find('link', rel='stylesheet')['href']
@@ -22,6 +26,12 @@ def embed(m):
     path = '/_next/static/' + rel.replace('../', '')
     data = base64.b64encode(get(path)).decode()
     return f'url(data:font/woff2;base64,{data})'
+# Mantém só os subconjuntos latinos das fontes (os demais alfabetos não são usados no site).
+def keep_face(m):
+    block = m.group(0)
+    src = re.search(r'url\(([^)]+)\)', block)
+    return block if not src or re.search(r'-latin-', src.group(1)) else ''
+css = re.sub(r'@font-face\{[^}]*\}', keep_face, css)
 css = re.sub(r'url\((\.\./media/[^)]+\.woff2)\)', embed, css)
 
 # ---- limpeza do documento ----
@@ -67,10 +77,13 @@ area = BeautifulSoup('''
   <div class="container" style="max-width:860px">
     <span class="eyebrow">Área do paciente</span>
     <h2>Acompanhamento também entre as consultas</h2>
-    <p>Pacientes em acompanhamento recebem acesso exclusivo, com login e senha, para consultar o plano alimentar com substituições,
-    registrar o diário alimentar, acompanhar a evolução em gráficos, responder questionários e enviar mensagens ao nutricionista.</p>
+    <p>Pacientes em acompanhamento recebem acesso exclusivo ao app: a tela <strong>Hoje</strong> mostra a próxima refeição e permite marcar
+    o que foi feito, o <strong>Plano</strong> traz as opções e substituições aprovadas pelo André, e há contador de água, registro de peso,
+    gráficos de progresso, calculadoras e mensagens.</p>
+    <p>No painel, o André monta o plano com cálculo automático de calorias e macros (base de alimentos com medidas caseiras),
+    recebe sugestões de substituições equivalentes e só então ativa o plano no app do paciente.</p>
     <div class="demo-links"><a class="btn btn--primary" href="#cliente">Ver a área do cliente</a><a class="btn" href="#andre">Ver o painel do André</a></div>
-    <p class="muted small" style="margin-top:12px">Nesta prévia, as duas telas funcionam como demonstração e guardam os dados só no seu navegador. Na versão publicada, cada cliente entra com login e senha.</p>
+    <p class="muted small" style="margin-top:12px">Nesta prévia, as duas telas funcionam como demonstração e guardam os dados só no seu navegador. Na versão publicada, cada cliente entra com login e senha e só vê os próprios dados.</p>
   </div>
 </section>''', 'html.parser')
 main.append(area)
