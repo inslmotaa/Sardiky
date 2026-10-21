@@ -6,6 +6,7 @@ export const USERS = {
   beatriz: { email: 'paciente@example.com', password: 'Paciente#Demo2026' },
   lucas: { email: 'lucas@example.com', password: 'Paciente#Demo2026' },
   helena: { email: 'helena@example.com', password: 'Paciente#Demo2026' },
+  nutri2: { email: 'nutri2@example.com', password: 'Equipe#Demo2026' },
 }
 
 export async function login(page: Page, who: keyof typeof USERS) {

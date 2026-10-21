@@ -90,7 +90,7 @@ export async function saveRecipe(id: string | null, _: ActionState, fd: FormData
   } catch (err) {
     return failure(err)
   }
-  if (!id) redirect(`/admin/receitas/${newId}`)
+  if (!id) redirect(`/admin/receitas/${newId}?criada=1`)
   return { ok: true, message: 'Receita salva. Ela já pode ser adicionada às refeições no editor de planos.' }
 }
 

@@ -379,7 +379,7 @@ async function main() {
 
   await db.insert(s.appointments).values([
     appt(helena, svcReturn, 0, '14:00', 'confirmada'),
-    appt(lucas, svcReturn, 0, '16:00', 'confirmada', { modality: 'online', meetingUrl: jitsiRoom('André Farion', 'demo0a1b2c') }),
+    appt(lucas, svcReturn, wd(1), '16:00', 'confirmada', { modality: 'online', meetingUrl: jitsiRoom('André Farion', 'demo0a1b2c') }),
     appt(beatriz, svcReturn, wd(5), '09:00', 'confirmada'),
     appt(null, svcFirst, wd(2), '10:00', 'pendente', {
       contactName: 'Interessada Exemplo',
@@ -740,6 +740,7 @@ async function main() {
     { templateId: tTermo.id, patientId: beatriz.id, title: tTermo.title, kind: tTermo.kind, fields: termo, answers: { ciencia: true }, answeredAt: at(-151, '20:05') },
     { templateId: tAcomp.id, patientId: beatriz.id, title: tAcomp.title, kind: tAcomp.kind, fields: acompanhamento, dueDate: day(4) },
     { templateId: tAnamnese.id, patientId: lucas.id, title: tAnamnese.title, kind: tAnamnese.kind, fields: anamnese, dueDate: day(-1) },
+    { templateId: tAcomp.id, patientId: lucas.id, title: tAcomp.title, kind: tAcomp.kind, fields: acompanhamento, dueDate: day(6) },
   ])
 
   /* --------------------------- notas clínicas -------------------------- */

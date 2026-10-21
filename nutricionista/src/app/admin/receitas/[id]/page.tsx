@@ -8,7 +8,7 @@ import { deleteRecipe, saveRecipe } from '@/actions/admin/content'
 import { RecipeEditor } from '@/components/nutri/RecipeEditor'
 import { NoAccess, PageHead } from '@/components/ui'
 
-export default async function RecipePage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RecipePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ criada?: string }> }) {
   const user = await requireTeam()
   if (!can(user, 'clinico')) return <NoAccess />
   const { id } = await params
@@ -16,6 +16,7 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
   if (!isNew && !uuid.safeParse(id).success) notFound()
   const [r, foods] = await Promise.all([isNew ? null : recipeById(id), loadFoods()])
   if (!isNew && !r) notFound()
+  const created = (await searchParams).criada === '1'
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 980 }}>
       <PageHead
@@ -31,6 +32,11 @@ export default async function RecipePage({ params }: { params: Promise<{ id: str
           ) : null
         }
       />
+      {created && (
+        <p className="alert alert--ok" role="status">
+          Receita criada. Ela já pode ser adicionada às refeições no editor de planos (busque por “Receita:”).
+        </p>
+      )}
       <RecipeEditor
         key={r?.updatedAt.toISOString() ?? 'nova'}
         action={saveRecipe.bind(null, r?.id ?? null)}

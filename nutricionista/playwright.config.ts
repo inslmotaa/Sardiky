@@ -8,7 +8,7 @@ import path from 'node:path'
  */
 const PORT = 3200
 const DATA = path.join(os.tmpdir(), 'consultorio-nutri-e2e')
-const env = { NUTRI_DATA_DIR: DATA, ALLOW_PGLITE: '1', APP_URL: `http://localhost:${PORT}`, CRON_SECRET: 'segredo-de-teste' }
+const env = { NUTRI_DATA_DIR: DATA, ALLOW_PGLITE: '1', APP_URL: `http://localhost:${PORT}`, CRON_SECRET: 'segredo-de-teste', ANAMNESE_WEBHOOK_SECRET: 'webhook-de-teste' }
 
 export default defineConfig({
   testDir: 'tests/e2e',
