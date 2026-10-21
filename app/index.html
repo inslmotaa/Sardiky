@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>App Fonseca Team</title>
+  <meta name="description" content="Área do aluno e do profissional da Fonseca Team.">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#050505">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fonseca Team">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" href="../assets/favicon.png" type="image/png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <header class="appbar">
+    <a href="#/" class="appbar__logo" aria-label="Início do app"><img src="../assets/logo-fonseca.png" alt="Fonseca Team" width="315" height="240"></a>
+    <span class="demo-flag" id="demoFlag" hidden>Demonstração</span>
+    <nav class="topnav" id="topNav" aria-label="Menu do profissional" hidden>
+      <a href="#/pro" data-tab="pro">Alunos</a>
+      <a href="#/pro/convidar" data-tab="convidar">Convidar</a>
+      <button type="button" class="topnav__out" id="logoutTop">Sair</button>
+    </nav>
+  </header>
+
+  <main id="view" class="view" tabindex="-1" aria-live="polite">
+    <div class="loading"><div class="spinner" aria-hidden="true"></div><span>Carregando…</span></div>
+  </main>
+
+  <nav class="tabbar" id="tabBar" aria-label="Menu do aluno" hidden>
+    <a href="#/inicio" data-tab="inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-6 8 6v8a1 1 0 0 1-1 1h-4v-5H9v5H5a1 1 0 0 1-1-1z"/></svg>Início</a>
+    <a href="#/fotos" data-tab="fotos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2h6l2 2h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Fotos</a>
+    <a href="#/evolucao" data-tab="evolucao"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16M6 15l4-5 3 3 5-7"/></svg>Evolução</a>
+    <a href="#/plano" data-tab="plano"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></svg>Plano</a>
+    <a href="#/conta" data-tab="conta"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Conta</a>
+  </nav>
+
+  <script src="../js/config.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

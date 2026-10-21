@@ -2,322 +2,345 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fonseca Team | Consultoria Online com Maicon Fonseca</title>
-  <meta name="description" content="Consultoria online premium Fonseca Team com Maicon Fonseca: treino individualizado, acompanhamento contínuo e suporte via WhatsApp para emagrecimento, hipertrofia e definição.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Fonseca Team | Consultoria Online de Treino e Alimentação com Maicon Fonseca</title>
+  <meta name="description" content="Consultoria online com Maicon Fonseca, formado em Educação Física pela Universidade Positivo: treino individualizado, estratégia alimentar e acompanhamento pelo WhatsApp, com app para fotos de avaliação e evolução.">
   <meta name="theme-color" content="#050505">
-  <meta property="og:title" content="Fonseca Team | Consultoria Online com Maicon Fonseca">
-  <meta property="og:description" content="Transforme seu corpo com estratégia, acompanhamento e resultado real.">
   <meta property="og:type" content="website">
+  <meta property="og:title" content="Fonseca Team | Consultoria Online com Maicon Fonseca">
+  <meta property="og:description" content="Treino com direção. Resultado com acompanhamento.">
   <meta property="og:image" content="assets/coach.jpg">
   <link rel="icon" href="assets/favicon.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,700;1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <script>
+    /* Tela de abertura e animações só para quem não pediu menos movimento. */
+    (function (r) {
+      if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      r.classList.add("motion", "is-loading");
+      // Segurança: se algo falhar, a tela de abertura some sozinha.
+      window.__preloaderTimer = setTimeout(function () { r.classList.remove("is-loading"); }, 4000);
+    })(document.documentElement);
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
 
-  <!-- ============ HEADER ============ -->
+  <!-- 4.0 Tela de abertura -->
+  <div class="preloader" aria-hidden="true">
+    <div class="preloader__inner">
+      <img class="preloader__mark" src="assets/logo-mark.png" alt="" width="400" height="252">
+      <div class="preloader__bar"><span></span></div>
+      <span class="preloader__count">0</span>
+    </div>
+  </div>
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
+
+  <!-- 4.1 Topo fixo -->
   <header class="header" id="topo">
     <div class="container header__inner">
       <a href="#topo" class="logo" aria-label="Fonseca Team, voltar ao início">
         <img src="assets/logo-fonseca.png" alt="Fonseca Team" width="315" height="240">
       </a>
-
       <nav class="nav" id="nav" aria-label="Navegação principal">
-        <a href="#metodo">Método</a>
+        <a href="#historia">A história</a>
+        <a href="#app">App</a>
         <a href="#planos">Planos</a>
-        <a href="#depoimentos">Depoimentos</a>
-        <a href="#sobre">Sobre</a>
         <a href="#calculadora">Calculadora</a>
-        <a href="#faq">Dúvidas</a>
-        <a href="#" class="btn btn--primary btn--sm nav__cta" data-whatsapp="Olá! Vim pelo site e quero saber mais sobre a consultoria Fonseca Team.">
-          <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Falar no WhatsApp
-        </a>
+        <a href="#duvidas">Dúvidas</a>
+        <div class="nav__actions">
+          <a href="app/" class="btn btn--outline btn--sm">Entrar</a>
+          <a href="#" class="btn btn--primary btn--sm" data-whatsapp="Olá, Maicon! Vim pelo site e quero saber mais sobre a consultoria Fonseca Team.">
+            <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Falar no WhatsApp
+          </a>
+        </div>
       </nav>
-
-      <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
+      <button class="menu-toggle" id="menuToggle" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav">
         <span></span><span></span><span></span>
       </button>
     </div>
   </header>
 
-  <main id="conteudo">
+  <main id="conteudo" tabindex="-1">
 
-    <!-- ============ HERO ============ -->
-    <section class="hero">
-      <div class="hero__bg" aria-hidden="true">
-        <span class="hero__slash hero__slash--1"></span>
-        <span class="hero__slash hero__slash--2"></span>
-        <img class="hero__mark" src="assets/logo-mark.png" alt="" width="400" height="252">
+    <!-- 4.2 Abertura -->
+    <section class="hero" aria-labelledby="heroTitle">
+      <div class="hero__media media" data-story="0" aria-hidden="true">
+        <div class="media__fallback media__fallback--photo media__fallback--coach"></div>
       </div>
+      <div class="hero__shade" aria-hidden="true"></div>
       <div class="container hero__inner">
-        <div class="hero__content reveal">
-          <span class="pill pill--accent">Consultoria online premium</span>
-          <h1>Transforme seu corpo com <span class="accent">estratégia</span>, acompanhamento e <span class="accent">resultado real.</span></h1>
-          <p class="hero__lead">Consultoria online premium para quem busca emagrecimento, hipertrofia e definição com método, suporte profissional e uma estratégia construída para gerar evolução de verdade.</p>
-          <div class="hero__actions">
-            <a href="#planos" class="btn btn--primary btn--lg">Ver planos</a>
-            <a href="#" class="btn btn--ghost btn--lg" data-whatsapp="Olá! Quero saber mais sobre a consultoria Fonseca Team.">
-              <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Falar no WhatsApp
-            </a>
-          </div>
-          <ul class="hero__facts">
-            <li><strong>+5 anos</strong><span>de experiência</span></li>
-            <li><strong>Centenas</strong><span>de alunos acompanhados</span></li>
-            <li><strong>Todo o Brasil</strong><span>atendimento 100% online</span></li>
-          </ul>
+        <span class="eyebrow">Consultoria online · Treino e alimentação</span>
+        <h1 id="heroTitle" class="split">Treino com <span class="accent">direção.</span> Resultado com <span class="accent">acompanhamento.</span></h1>
+        <p class="hero__lead">Eu sou o Maicon Fonseca. Monto seu treino e sua estratégia do jeito que a sua rotina permite, e acompanho de perto pelo WhatsApp até o resultado aparecer.</p>
+        <div class="hero__actions">
+          <a href="#planos" class="btn btn--primary btn--lg">Começar agora</a>
+          <a href="#" class="btn btn--ghost btn--lg" data-whatsapp="Olá, Maicon! Vim pelo site e quero começar minha consultoria.">
+            <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Falar no WhatsApp
+          </a>
         </div>
-
-        <div class="hero__visual reveal">
-          <figure class="coach-card">
-            <div class="coach-card__photo">
-              <img src="assets/coach.jpg" alt="Maicon Fonseca, de braços cruzados, com a camiseta da Fonseca Team" width="1080" height="1080" loading="eager" fetchpriority="high"
-                   onerror="this.remove()">
-              <div class="coach-card__fallback" aria-hidden="true"><img src="assets/logo-mark.png" alt="" width="400" height="252"></div>
-              <span class="coach-card__chip"><span class="dot"></span>Vagas abertas</span>
-              <div class="coach-card__name">
-                <strong>Maicon Fonseca</strong>
-                <span>Treinador · Fonseca Team</span>
-              </div>
-            </div>
-            <figcaption>
-              <span class="pill">O que você recebe</span>
-              <h2 class="coach-card__title">Consultoria pensada para gerar adesão e resultado</h2>
-              <ul class="checklist checklist--compact">
-                <li><svg aria-hidden="true"><use href="#i-check"/></svg>Treino individualizado</li>
-                <li><svg aria-hidden="true"><use href="#i-check"/></svg>Acesso ao app</li>
-                <li><svg aria-hidden="true"><use href="#i-check"/></svg>Suporte via WhatsApp</li>
-                <li><svg aria-hidden="true"><use href="#i-check"/></svg>Ajustes periódicos</li>
-              </ul>
-            </figcaption>
-          </figure>
-        </div>
+        <ul class="hero__facts">
+          <li><strong>+<span data-count="5">5</span> anos</strong><span>de musculação</span></li>
+          <li><strong>Centenas</strong><span>de alunos</span></li>
+          <li><strong>Todas as regiões</strong><span>do Brasil</span></li>
+        </ul>
       </div>
+      <a href="#historia" class="scroll-hint">Role para ver a história<span class="scroll-hint__line" aria-hidden="true"></span></a>
     </section>
 
-    <!-- ============ FAIXA DE OBJETIVOS ============ -->
+    <!-- Faixa vermelha -->
     <div class="marquee" aria-hidden="true">
       <div class="marquee__track">
-        <span>Emagrecimento</span><span>Hipertrofia</span><span>Definição</span><span>Alta performance</span><span>Estratégia</span><span>Acompanhamento</span>
-        <span>Emagrecimento</span><span>Hipertrofia</span><span>Definição</span><span>Alta performance</span><span>Estratégia</span><span>Acompanhamento</span>
+        <span>Emagrecimento</span><span>Hipertrofia</span><span>Definição</span><span>Alimentação</span><span>Performance</span>
+        <span>Emagrecimento</span><span>Hipertrofia</span><span>Definição</span><span>Alimentação</span><span>Performance</span>
       </div>
     </div>
 
-    <!-- ============ PARA QUEM É ============ -->
-    <section class="section" id="objetivos">
-      <div class="container">
-        <div class="section__head reveal">
-          <span class="pill">Para quem é</span>
-          <h2>Uma estratégia para cada objetivo</h2>
-          <p>Seja qual for o seu ponto de partida, o plano é montado para a sua realidade, rotina e nível atual.</p>
+    <!-- 4.3 A história em 7 capítulos -->
+    <section class="story" id="historia" aria-label="A história">
+      <div class="story__stage" aria-hidden="true">
+        <div class="story__layer media is-active" data-story="1"><div class="media__fallback media__fallback--brand"></div></div>
+        <div class="story__layer media" data-story="2"><div class="media__fallback media__fallback--brand media__fallback--alt"></div></div>
+        <div class="story__layer media" data-story="3"><div class="media__fallback media__fallback--photo media__fallback--postura"></div></div>
+        <div class="story__layer media" data-story="4"><div class="media__fallback media__fallback--photo media__fallback--remada-costas"></div></div>
+        <div class="story__layer media" data-story="5"><div class="media__fallback media__fallback--photo media__fallback--remada-lado"></div></div>
+        <div class="story__layer media" data-story="6"><div class="media__fallback media__fallback--photo media__fallback--puxada"></div></div>
+        <div class="story__layer media" data-story="7"><div class="media__fallback media__fallback--brand"></div></div>
+        <div class="story__shade"></div>
+      </div>
+
+      <nav class="story__nav" aria-label="Capítulos da história">
+        <div class="story__nav-inner">
+          <ol class="story__dots" id="storyDots"></ol>
         </div>
-        <div class="goals">
-          <article class="goal reveal">
-            <div class="icon"><svg aria-hidden="true"><use href="#i-flame"/></svg></div>
-            <h3>Emagrecimento</h3>
-            <p>Perca gordura de forma sustentável, preservando massa muscular e sem soluções milagrosas.</p>
-          </article>
-          <article class="goal reveal">
-            <div class="icon"><svg aria-hidden="true"><use href="#i-dumbbell"/></svg></div>
-            <h3>Hipertrofia</h3>
-            <p>Ganhe massa muscular com periodização, progressão de cargas e volume bem distribuído.</p>
-          </article>
-          <article class="goal reveal">
-            <div class="icon"><svg aria-hidden="true"><use href="#i-target"/></svg></div>
-            <h3>Definição</h3>
-            <p>Recomposição corporal: mais músculo aparente, menos gordura e mais qualidade estética.</p>
-          </article>
-          <article class="goal reveal">
-            <div class="icon"><svg aria-hidden="true"><use href="#i-bolt"/></svg></div>
-            <h3>Performance</h3>
-            <p>Mais força, condicionamento e disposição para render dentro e fora da academia.</p>
-          </article>
-        </div>
+      </nav>
+
+      <div class="story__chapters">
+        <article class="chapter" data-chapter="1" id="capitulo-1">
+          <h2 class="split">Toda segunda-feira é a mesma promessa.</h2>
+          <p>Dessa vez vai. Dieta nova, treino novo, foco total. Até quarta-feira.</p>
+        </article>
+        <article class="chapter" data-chapter="2" id="capitulo-2">
+          <h2 class="split">Planilha da internet não conhece você.</h2>
+          <p>Ela não sabe da sua rotina, do seu joelho, do seu horário, nem do que você come. Por isso ela não funciona por muito tempo.</p>
+        </article>
+        <article class="chapter" data-chapter="3" id="capitulo-3">
+          <h2 class="split">Prazer, eu sou o <span class="accent">Maicon.</span></h2>
+          <p>Me formei em Educação Física na Universidade Positivo e há mais de 5 anos vivo a musculação. Já acompanhei centenas de alunos, de todas as regiões do Brasil.</p>
+        </article>
+        <article class="chapter" data-chapter="4" id="capitulo-4">
+          <h2 class="split">Seu protocolo começa em você.</h2>
+          <p>Antes de qualquer exercício, eu analiso seu objetivo, sua rotina, seu histórico, suas limitações e onde você treina. Só depois eu monto o protocolo, que chega organizado no app.</p>
+        </article>
+        <article class="chapter" data-chapter="5" id="capitulo-5">
+          <h2 class="split">Você não fica sozinho.</h2>
+          <p>Dúvida na execução? Travou na dieta? Me chama no WhatsApp. E a cada fase eu ajusto o que for preciso para você continuar evoluindo.</p>
+        </article>
+        <article class="chapter" data-chapter="6" id="capitulo-6">
+          <h2 class="split">A constância vira <span class="accent">resultado.</span></h2>
+          <div class="quotes" id="quotes" aria-live="polite">
+            <blockquote class="quote is-active">
+              <p>“Comecei sem saber nada e hoje tenho resultado visível. O acompanhamento faz toda diferença.”</p>
+              <cite>Gabriel Prado</cite>
+            </blockquote>
+            <blockquote class="quote">
+              <p>“Treino simples, direto e que realmente funciona. Melhor decisão que tomei.”</p>
+              <cite>Caroline Santos</cite>
+            </blockquote>
+            <blockquote class="quote">
+              <p>“Além do treino, o suporte é o que mais me ajudou a manter consistência.”</p>
+              <cite>Jhonathan Ribas</cite>
+            </blockquote>
+          </div>
+        </article>
+        <article class="chapter" data-chapter="7" id="capitulo-7">
+          <h2 class="split">Agora você é <span class="accent">Fonseca Team.</span></h2>
+          <p>Estratégia, acompanhamento e alguém que cobra junto com você. Escolha seu plano e vamos começar.</p>
+          <a href="#planos" class="btn btn--primary btn--lg">Ver os planos</a>
+        </article>
       </div>
     </section>
 
-    <!-- ============ MÉTODO ============ -->
-    <section class="section section--alt" id="metodo">
+    <!-- 4.4 O método em 3 pilares -->
+    <section class="section" id="metodo">
       <div class="container">
         <div class="section__head reveal">
-          <span class="pill">Método Fonseca Team</span>
-          <h2>O que sustenta sua evolução ao longo do processo</h2>
-          <p>O que gera resultado não é apenas treinar. É ter método, ajuste e acompanhamento de verdade.</p>
+          <span class="pill">O método</span>
+          <h2 class="split">Três pilares, um plano só seu</h2>
         </div>
-        <ol class="steps">
-          <li class="step reveal">
-            <span class="step__num">1</span>
-            <h3>Análise do seu perfil</h3>
-            <p>Seu treino é montado considerando objetivo, rotina, experiência, limitações e disponibilidade real.</p>
+        <ol class="pillars">
+          <li class="pillar reveal">
+            <span class="pillar__num" aria-hidden="true">1</span>
+            <h3>Treino individualizado</h3>
+            <p>Montado para o seu objetivo, o seu nível e o seu local de treino.</p>
           </li>
-          <li class="step reveal">
-            <span class="step__num">2</span>
-            <h3>Estratégia personalizada</h3>
-            <p>Você recebe um plano claro, aplicável e ajustado para gerar evolução sem complicação.</p>
+          <li class="pillar reveal">
+            <span class="pillar__num" aria-hidden="true">2</span>
+            <h3>Alimentação estratégica</h3>
+            <p>Uma estratégia alimentar alinhada ao seu treino e possível de seguir na sua rotina real.</p>
           </li>
-          <li class="step reveal">
-            <span class="step__num">3</span>
-            <h3>Acompanhamento contínuo</h3>
-            <p>Ao longo do processo, os ajustes são feitos para manter aderência, progressão e resultado.</p>
+          <li class="pillar reveal">
+            <span class="pillar__num" aria-hidden="true">3</span>
+            <h3>Acompanhamento</h3>
+            <p>Suporte pelo WhatsApp e ajustes periódicos para você continuar evoluindo.</p>
           </li>
         </ol>
-
-        <div class="journey reveal">
-          <h3>Como começar em 4 passos</h3>
-          <div class="journey__grid">
-            <div><b>01</b><span>Escolha o plano ideal para você</span></div>
-            <div><b>02</b><span>Fale com a equipe pelo WhatsApp e finalize sua inscrição</span></div>
-            <div><b>03</b><span>Responda a avaliação inicial sobre rotina, histórico e objetivo</span></div>
-            <div><b>04</b><span>Receba seu protocolo no app e comece a evoluir</span></div>
-          </div>
-        </div>
       </div>
     </section>
 
-    <!-- ============ BENEFÍCIOS ============ -->
-    <section class="section" id="beneficios">
-      <div class="container">
-        <div class="section__head reveal">
-          <span class="pill">Incluso em todos os planos</span>
-          <h2>Tudo o que você precisa para evoluir</h2>
-        </div>
-        <div class="features">
-          <div class="feature reveal">
-            <svg aria-hidden="true"><use href="#i-dumbbell"/></svg>
-            <div><h3>Treino individualizado</h3><p>Exercícios, séries, repetições e descanso definidos para o seu objetivo e nível.</p></div>
+    <!-- 4.4.1 O app Fonseca Team -->
+    <section class="section section--alt showcase" id="app">
+      <div class="container showcase__inner">
+        <div class="showcase__text">
+          <div class="section__head section__head--left reveal">
+            <span class="pill">O app Fonseca Team</span>
+            <h2 class="split">Sua consultoria na palma da mão</h2>
           </div>
-          <div class="feature reveal">
-            <svg aria-hidden="true"><use href="#i-phone"/></svg>
-            <div><h3>Acesso ao app</h3><p>Seu protocolo sempre à mão, organizado por dia, direto no celular.</p></div>
-          </div>
-          <div class="feature reveal">
-            <svg aria-hidden="true"><use href="#i-chat"/></svg>
-            <div><h3>Suporte via WhatsApp</h3><p>Tire dúvidas sobre execução e treino diretamente com o profissional.</p></div>
-          </div>
-          <div class="feature reveal">
-            <svg aria-hidden="true"><use href="#i-chart"/></svg>
-            <div><h3>Ajustes periódicos</h3><p>O plano evolui junto com você, com ajustes conforme seu progresso e feedback.</p></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ PLANOS ============ -->
-    <section class="section section--alt" id="planos">
-      <div class="container">
-        <div class="section__head reveal">
-          <span class="pill">Planos</span>
-          <h2>Escolha o protocolo ideal para começar</h2>
-          <p>Uma estrutura simples, clara e profissional para você escolher o melhor nível de acompanhamento conforme seu objetivo.</p>
-        </div>
-
-        <div class="plans" id="plans">
-          <!-- preenchido pelo js/main.js a partir de CONFIG.plans -->
-        </div>
-
-        <div class="compare reveal">
-          <h3>Compare os planos</h3>
-          <div class="table-wrap">
-            <table class="compare__table" id="compareTable">
-              <!-- preenchido pelo js/main.js -->
-            </table>
+          <ol class="showcase__list" id="showcaseList">
+            <li class="showcase__item is-active" data-screen="0">
+              <b>01</b>
+              <div><h3>Fotos de avaliação pela câmera</h3><p>Frente, costas e os dois lados, com uma silhueta-guia na tela para acertar a posição.</p></div>
+            </li>
+            <li class="showcase__item" data-screen="1">
+              <b>02</b>
+              <div><h3>Avaliação postural com apoio de IA</h3><p>Os desvios encontrados e os exercícios de alongamento, mobilidade e fortalecimento para corrigir, revisados por mim.</p></div>
+            </li>
+            <li class="showcase__item" data-screen="2">
+              <b>03</b>
+              <div><h3>Anamnese online</h3><p>Você responde uma vez, e eu já monto seu treino a partir dela.</p></div>
+            </li>
+            <li class="showcase__item" data-screen="3">
+              <b>04</b>
+              <div><h3>Sua evolução lado a lado</h3><p>Compare fotos de antes e depois e compartilhe, com ou sem a marca da Fonseca Team.</p></div>
+            </li>
+          </ol>
+          <div class="showcase__cta reveal">
+            <a href="#planos" class="btn btn--primary btn--lg">Quero fazer parte</a>
+            <p class="small muted">A avaliação com IA é um apoio ao trabalho do profissional. Ela não substitui avaliação presencial nem diagnóstico médico.</p>
           </div>
         </div>
-      </div>
-    </section>
 
-    <!-- ============ DEPOIMENTOS ============ -->
-    <section class="section" id="depoimentos">
-      <div class="container">
-        <div class="section__head reveal">
-          <span class="pill">Confiança e credibilidade</span>
-          <h2>Prova de confiança</h2>
-          <p>Depoimentos e resultados que reforçam a confiança no método Fonseca Team.</p>
-        </div>
-
-        <div class="testimonials">
-          <blockquote class="testimonial reveal">
-            <div class="stars" role="img" aria-label="5 de 5 estrelas">★★★★★</div>
-            <p>“Comecei sem saber nada e hoje tenho resultado visível. O acompanhamento faz toda diferença.”</p>
-            <footer><span class="avatar">G</span><div><strong>Gabriel Prado</strong><small>Aluno Fonseca Team</small></div></footer>
-          </blockquote>
-          <blockquote class="testimonial reveal">
-            <div class="stars" role="img" aria-label="5 de 5 estrelas">★★★★★</div>
-            <p>“Treino simples, direto e que realmente funciona. Melhor decisão que tomei.”</p>
-            <footer><span class="avatar">C</span><div><strong>Caroline Santos</strong><small>Aluna Fonseca Team</small></div></footer>
-          </blockquote>
-          <blockquote class="testimonial reveal">
-            <div class="stars" role="img" aria-label="5 de 5 estrelas">★★★★★</div>
-            <p>“Além do treino, o suporte é o que mais me ajudou a manter consistência.”</p>
-            <footer><span class="avatar">J</span><div><strong>Jhonathan Ribas</strong><small>Aluno Fonseca Team</small></div></footer>
-          </blockquote>
-        </div>
-
-        <div class="results-banner reveal">
-          <div>
-            <h3>Resultados reais</h3>
-            <p>Transformações com mais definição, evolução estética, melhora do condicionamento e maior consistência ao longo do processo.</p>
-          </div>
-          <a href="#" class="btn btn--outline" data-instagram>
-            <svg aria-hidden="true"><use href="#i-instagram"/></svg>Ver resultados no Instagram
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============ SOBRE ============ -->
-    <section class="section section--alt" id="sobre">
-      <div class="container about">
-        <div class="about__content reveal">
-          <span class="pill">Sobre o profissional</span>
-          <h2>Sobre <span class="accent" data-config="coachName">Maicon Fonseca</span></h2>
-          <p>Olá! Sou Maicon Fonseca, formado em Educação Física pela Universidade Positivo, e atuo com musculação há mais de cinco anos.</p>
-          <p>Tenho o privilégio de acompanhar alunos de todas as regiões do Brasil, ajudando centenas de pessoas a conquistarem seus objetivos e a transformarem seu estilo de vida por meio dos meus métodos de treinamento.</p>
-          <p>Ao longo desses anos, acumulei muito conhecimento prático e experiência, e hoje coloco tudo isso em prática para guiar você em direção aos seus resultados.</p>
-          <p>Com dedicação, técnicas testadas e acompanhamento personalizado, estarei ao seu lado para alcançarmos juntos aquilo que você deseja.</p>
-          <ul class="checklist">
-            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Formado em Educação Física (Universidade Positivo)</li>
-            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Mais de 5 anos de experiência em musculação</li>
-            <li><svg aria-hidden="true"><use href="#i-check"/></svg>Alunos acompanhados em todo o Brasil</li>
-          </ul>
-          <div class="signature">
-            <img src="assets/logo-mark.png" alt="" width="400" height="252" loading="lazy">
-            <div>
-              <strong>Maicon Fonseca</strong>
-              <span>Profissional de Educação Física · Fonseca Team</span>
+        <div class="phone reveal" aria-hidden="true">
+          <div class="phone__frame">
+            <div class="phone__notch"></div>
+            <div class="phone__screen">
+              <!-- Tela 1: câmera -->
+              <div class="screen is-active" data-screen="0">
+                <div class="screen__bar"><span>Foto 1 de 4</span><b>Frente</b></div>
+                <div class="cam">
+                  <svg class="cam__silhouette" viewBox="0 0 100 200"><use href="#i-silhouette-front"/></svg>
+                  <span class="cam__plumb"></span>
+                  <span class="cam__level">Celular nivelado</span>
+                  <span class="cam__timer">10</span>
+                </div>
+                <div class="screen__actions"><span class="chip">Galeria</span><span class="shutter"></span><span class="chip">Timer 10s</span></div>
+              </div>
+              <!-- Tela 2: avaliação -->
+              <div class="screen" data-screen="1">
+                <div class="screen__bar"><span>Avaliação</span><b>Revisada</b></div>
+                <div class="report">
+                  <div class="report__row"><i class="tag tag--mid">Moderado</i><span>Ombros protraídos</span></div>
+                  <div class="report__row"><i class="tag tag--low">Leve</i><span>Anteriorização da cabeça</span></div>
+                  <div class="report__row"><i class="tag tag--low">Leve</i><span>Joelhos valgos</span></div>
+                  <h4>Corretivos</h4>
+                  <ul><li>Mobilidade torácica · 2×10</li><li>Alongamento de peitoral · 3×30s</li><li>Face pull · 3×15</li></ul>
+                </div>
+              </div>
+              <!-- Tela 3: anamnese -->
+              <div class="screen" data-screen="2">
+                <div class="screen__bar"><span>Anamnese</span><b>Etapa 3 de 7</b></div>
+                <div class="progress"><span style="width:43%"></span></div>
+                <div class="form-mock">
+                  <p>Onde você vai treinar?</p>
+                  <span class="opt is-on">Academia completa</span><span class="opt">Condomínio</span><span class="opt">Em casa</span>
+                  <p>Quantos dias por semana?</p>
+                  <div class="days"><span>3</span><span class="is-on">4</span><span>5</span><span>6</span></div>
+                </div>
+              </div>
+              <!-- Tela 4: evolução -->
+              <div class="screen" data-screen="3">
+                <div class="screen__bar"><span>Evolução</span><b>Antes × Depois</b></div>
+                <div class="ba">
+                  <div class="ba__side"><svg viewBox="0 0 100 200"><use href="#i-silhouette-front"/></svg><span>Antes</span></div>
+                  <div class="ba__side ba__side--after"><svg viewBox="0 0 100 200"><use href="#i-silhouette-front"/></svg><span>Depois</span></div>
+                  <i class="ba__handle"></i>
+                </div>
+                <div class="screen__actions"><span class="chip chip--red">Compartilhar</span><span class="chip">Com a marca</span></div>
+              </div>
             </div>
           </div>
         </div>
-        <aside class="about__side reveal">
-          <div class="card brand-card">
-            <img class="brand-card__logo" src="assets/logo-fonseca.png" alt="Fonseca Team" width="315" height="240" loading="lazy">
-            <p class="brand-card__quote">“A Fonseca Team é para quem quer parar de improvisar e começar a treinar com estrutura.”</p>
-            <p class="muted">Uma consultoria premium, simples de entender e forte para converter esforço em resultado.</p>
-          </div>
-          <div class="values">
-            <div><strong>Método</strong><span>Estratégia antes de esforço</span></div>
-            <div><strong>Clareza</strong><span>Plano simples e aplicável</span></div>
-            <div><strong>Presença</strong><span>Suporte de perto</span></div>
-          </div>
-        </aside>
       </div>
     </section>
 
-    <!-- ============ CALCULADORA ============ -->
+    <!-- 4.5 Planos -->
+    <section class="section" id="planos">
+      <div class="container">
+        <div class="section__head reveal">
+          <span class="pill">Planos</span>
+          <h2 class="split">Escolha o protocolo ideal para começar</h2>
+        </div>
+        <div class="plans" id="plans"></div>
+        <div class="compare reveal">
+          <h3>Compare os planos</h3>
+          <div class="table-wrap" tabindex="0" aria-label="Tabela comparativa, role para o lado"><table class="compare__table" id="compareTable"></table></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4.6 Depoimentos -->
+    <section class="section section--alt" id="depoimentos">
+      <div class="container">
+        <div class="section__head reveal">
+          <span class="pill">Depoimentos</span>
+          <h2 class="split">Quem treina com a Fonseca Team</h2>
+        </div>
+        <div class="testimonials">
+          <figure class="testimonial reveal">
+            <div class="stars" role="img" aria-label="5 de 5 estrelas">★★★★★</div>
+            <blockquote>“Comecei sem saber nada e hoje tenho resultado visível. O acompanhamento faz toda diferença.”</blockquote>
+            <figcaption><span class="avatar">G</span>Gabriel Prado</figcaption>
+          </figure>
+          <figure class="testimonial reveal">
+            <div class="stars" role="img" aria-label="5 de 5 estrelas">★★★★★</div>
+            <blockquote>“Treino simples, direto e que realmente funciona. Melhor decisão que tomei.”</blockquote>
+            <figcaption><span class="avatar">C</span>Caroline Santos</figcaption>
+          </figure>
+          <figure class="testimonial reveal">
+            <div class="stars" role="img" aria-label="5 de 5 estrelas">★★★★★</div>
+            <blockquote>“Além do treino, o suporte é o que mais me ajudou a manter consistência.”</blockquote>
+            <figcaption><span class="avatar">J</span>Jhonathan Ribas</figcaption>
+          </figure>
+        </div>
+        <div class="center reveal">
+          <a href="#" class="btn btn--outline" data-instagram><svg aria-hidden="true"><use href="#i-instagram"/></svg>Ver transformações no Instagram</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Faixa tipográfica -->
+    <div class="big-type" aria-hidden="true">
+      <div class="big-type__track">
+        <span>Fonseca Team</span><span class="is-outline">Fonseca Team</span><span>Fonseca Team</span><span class="is-outline">Fonseca Team</span>
+      </div>
+    </div>
+
+    <!-- 4.7 Calculadora -->
     <section class="section" id="calculadora">
       <div class="container calc">
-        <div class="calc__intro reveal">
-          <span class="pill">Ferramenta gratuita</span>
-          <h2>Calcule seu gasto calórico diário</h2>
-          <p>Descubra seu IMC e uma estimativa das calorias que você gasta por dia, usando a fórmula de Mifflin-St Jeor. Um bom ponto de partida para entender sua estratégia.</p>
-          <p class="muted small">Valores aproximados, apenas para referência. Não substituem avaliação profissional.</p>
+        <div class="calc__intro">
+          <div class="section__head section__head--left reveal">
+            <span class="pill">Calculadora</span>
+            <h2 class="split">Quanto seu corpo gasta por dia?</h2>
+          </div>
+          <p class="reveal">Descubra seu IMC, seu gasto diário, a meta de calorias para o seu objetivo, os macros e a água. Um ponto de partida para entender a sua estratégia.</p>
+          <p class="small muted reveal">Valores aproximados, apenas para referência. Não substituem avaliação profissional.</p>
         </div>
-
-        <form class="calc__form card reveal" id="calcForm" novalidate>
+        <form class="card calc__form reveal" id="calcForm" novalidate>
           <div class="field-row">
             <fieldset class="field">
               <legend>Sexo</legend>
@@ -326,200 +349,149 @@
                 <label><input type="radio" name="sexo" value="f"><span>Feminino</span></label>
               </div>
             </fieldset>
-            <label class="field">
-              <span>Idade</span>
-              <input type="number" name="idade" min="14" max="90" inputmode="numeric" placeholder="Ex.: 28" required>
-            </label>
+            <label class="field"><span>Idade</span><input type="number" name="idade" min="14" max="90" inputmode="numeric" placeholder="Ex.: 28" required></label>
           </div>
           <div class="field-row">
-            <label class="field">
-              <span>Peso (kg)</span>
-              <input type="number" name="peso" min="30" max="300" step="0.1" inputmode="decimal" placeholder="Ex.: 75" required>
+            <label class="field"><span>Peso (kg)</span><input type="number" name="peso" min="30" max="300" step="0.1" inputmode="decimal" placeholder="Ex.: 75" required></label>
+            <label class="field"><span>Altura (cm)</span><input type="number" name="altura" min="120" max="230" inputmode="numeric" placeholder="Ex.: 172" required></label>
+          </div>
+          <div class="field-row">
+            <label class="field"><span>Nível de atividade</span>
+              <select name="atividade">
+                <option value="1.2">Sedentário</option>
+                <option value="1.375">Leve (1 a 3 vezes por semana)</option>
+                <option value="1.55" selected>Moderado (3 a 5 vezes)</option>
+                <option value="1.725">Intenso (6 a 7 vezes)</option>
+                <option value="1.9">Muito intenso</option>
+              </select>
             </label>
-            <label class="field">
-              <span>Altura (cm)</span>
-              <input type="number" name="altura" min="120" max="230" inputmode="numeric" placeholder="Ex.: 172" required>
+            <label class="field"><span>Objetivo</span>
+              <select name="objetivo">
+                <option value="emagrecer">Emagrecer</option>
+                <option value="manter">Manter</option>
+                <option value="ganhar">Ganhar massa</option>
+              </select>
             </label>
           </div>
-          <label class="field">
-            <span>Nível de atividade</span>
-            <select name="atividade">
-              <option value="1.2">Sedentário (pouco ou nenhum exercício)</option>
-              <option value="1.375">Leve (1 a 3x por semana)</option>
-              <option value="1.55" selected>Moderado (3 a 5x por semana)</option>
-              <option value="1.725">Intenso (6 a 7x por semana)</option>
-              <option value="1.9">Muito intenso (atleta / trabalho físico)</option>
-            </select>
-          </label>
           <p class="form-error" id="calcError" role="alert" hidden>Preencha idade, peso e altura com valores válidos.</p>
           <button type="submit" class="btn btn--primary btn--block">Calcular</button>
 
           <div class="calc__result" id="calcResult" hidden aria-live="polite">
-            <div><span>IMC</span><strong id="rImc">–</strong><small id="rImcLabel"></small></div>
-            <div><span>Gasto diário</span><strong id="rTdee">–</strong><small>kcal/dia</small></div>
-            <div><span>Para emagrecer</span><strong id="rCut">–</strong><small>kcal/dia</small></div>
-            <div><span>Para ganhar massa</span><strong id="rBulk">–</strong><small>kcal/dia</small></div>
+            <div class="calc__grid">
+              <div><span>IMC</span><strong data-num id="rImc">0</strong><small id="rImcLabel"></small></div>
+              <div><span>Gasto diário</span><strong data-num id="rTdee">0</strong><small>kcal/dia</small></div>
+              <div class="is-key"><span>Sua meta</span><strong data-num id="rMeta">0</strong><small>kcal/dia</small></div>
+              <div><span>Proteína</span><strong data-num id="rProt">0</strong><small>g/dia</small></div>
+              <div><span>Carboidrato</span><strong data-num id="rCarb">0</strong><small>g/dia</small></div>
+              <div><span>Gordura</span><strong data-num id="rGord">0</strong><small>g/dia</small></div>
+              <div><span>Água</span><strong data-num id="rAgua">0</strong><small>litros/dia</small></div>
+            </div>
+            <a href="#" class="btn btn--primary btn--block" id="calcWhats" target="_blank" rel="noopener">
+              <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Quero uma estratégia feita para mim
+            </a>
           </div>
         </form>
       </div>
     </section>
 
-    <!-- ============ FAQ ============ -->
-    <section class="section section--alt" id="faq">
+    <!-- 4.8 Dúvidas -->
+    <section class="section section--alt" id="duvidas">
       <div class="container faq">
         <div class="section__head reveal">
-          <span class="pill">Dúvidas frequentes</span>
-          <h2>Perguntas e respostas</h2>
+          <span class="pill">Dúvidas</span>
+          <h2 class="split">Perguntas frequentes</h2>
         </div>
-        <div class="accordion reveal">
-          <details>
-            <summary>O que é um protocolo?</summary>
-            <p>Protocolo é o ciclo de treino montado para você, com a estratégia daquela fase. Quanto mais protocolos no plano, mais tempo de acompanhamento e menor o valor por protocolo.</p>
-          </details>
-          <details>
-            <summary>Preciso treinar em academia?</summary>
-            <p>O treino é montado de acordo com o local e os equipamentos que você tem disponíveis. Informe isso na avaliação inicial.</p>
-          </details>
-          <details>
-            <summary>Sou iniciante. A consultoria serve para mim?</summary>
-            <p>Sim. O plano respeita seu nível atual e o suporte via WhatsApp ajuda você a aprender a execução correta e evoluir com segurança.</p>
-          </details>
-          <details>
-            <summary>Como funciona o suporte?</summary>
-            <p>Você fala diretamente pelo WhatsApp para tirar dúvidas sobre treino e execução dos exercícios durante todo o período do plano.</p>
-          </details>
-          <details>
-            <summary>Os treinos são ajustados?</summary>
-            <p>Sim. Os ajustes periódicos fazem parte de todos os planos, para manter aderência, progressão e resultado.</p>
-          </details>
-          <details>
-            <summary>Tenho lesão ou limitação. Posso participar?</summary>
-            <p>Sim. Limitações e histórico são considerados na análise do seu perfil, e o treino é adaptado à sua realidade.</p>
-          </details>
-          <details>
-            <summary>Atende em qual região?</summary>
-            <p>A consultoria é 100% online e atende alunos de todo o Brasil.</p>
-          </details>
-          <details>
-            <summary>Como faço para contratar?</summary>
-            <p>Escolha o plano nesta página e clique no botão. Você será direcionado ao WhatsApp para finalizar a inscrição e receber as formas de pagamento.</p>
-          </details>
-        </div>
+        <div class="accordion reveal" id="faqList"></div>
       </div>
     </section>
 
-    <!-- ============ CONTATO ============ -->
+    <!-- 4.9 Contato -->
     <section class="section" id="contato">
       <div class="container contact">
-        <div class="contact__intro reveal">
-          <span class="pill pill--accent">Vagas limitadas para novos alunos</span>
-          <h2>Comece hoje a sua transformação</h2>
-          <p>Preencha o formulário e você será direcionado ao WhatsApp com a mensagem pronta. O atendimento é feito pessoalmente.</p>
-          <ul class="contact__list">
-            <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg><a href="#" data-whatsapp="Olá! Vim pelo site da Fonseca Team." data-config="whatsappDisplay">(41) 9761-1616</a></li>
+        <div class="contact__intro">
+          <div class="section__head section__head--left reveal">
+            <span class="pill">Contato</span>
+            <h2 class="split">Me conta sobre você</h2>
+          </div>
+          <p class="reveal">Preencha e a conversa abre no WhatsApp com tudo organizado. Eu respondo pessoalmente.</p>
+          <ul class="contact__list reveal">
+            <li><svg aria-hidden="true"><use href="#i-whatsapp"/></svg><a href="#" data-whatsapp="Olá, Maicon! Vim pelo site da Fonseca Team." data-config="whatsappDisplay">(41) 9761-1616</a></li>
             <li><svg aria-hidden="true"><use href="#i-instagram"/></svg><a href="#" data-instagram data-config="instagram">@fonseca.treinador</a></li>
             <li><svg aria-hidden="true"><use href="#i-pin"/></svg><span>Atendimento online em todo o Brasil</span></li>
           </ul>
         </div>
-
         <form class="card contact__form reveal" id="contactForm" novalidate>
-          <label class="field">
-            <span>Nome</span>
-            <input type="text" name="nome" autocomplete="name" placeholder="Seu nome" required>
-          </label>
           <div class="field-row">
-            <label class="field">
-              <span>Idade</span>
-              <input type="number" name="idade" min="14" max="90" inputmode="numeric" placeholder="Ex.: 28">
-            </label>
-            <label class="field">
-              <span>Objetivo</span>
-              <select name="objetivo">
-                <option>Emagrecimento</option>
-                <option>Hipertrofia</option>
-                <option>Definição</option>
-                <option>Performance</option>
-              </select>
-            </label>
+            <label class="field"><span>Nome</span><input type="text" name="nome" autocomplete="name" placeholder="Seu nome" required></label>
+            <label class="field"><span>Idade</span><input type="number" name="idade" min="14" max="90" inputmode="numeric" placeholder="Ex.: 28"></label>
           </div>
-          <label class="field">
-            <span>Plano de interesse</span>
-            <select name="plano" id="planSelect">
-              <option>Ainda não sei</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Conte um pouco sobre você (opcional)</span>
-            <textarea name="mensagem" rows="3" placeholder="Rotina, onde treina, experiência..."></textarea>
-          </label>
+          <div class="field-row">
+            <label class="field"><span>Objetivo</span>
+              <select name="objetivo"><option>Emagrecimento</option><option>Hipertrofia</option><option>Definição</option><option>Performance</option></select>
+            </label>
+            <label class="field"><span>Plano de interesse</span><select name="plano" id="planSelect"><option>Ainda não sei</option></select></label>
+          </div>
+          <label class="field"><span>Conte um pouco sobre você</span><textarea name="mensagem" rows="3" placeholder="Rotina, onde treina, experiência, lesões..."></textarea></label>
           <p class="form-error" id="formError" role="alert" hidden>Por favor, informe seu nome.</p>
-          <button type="submit" class="btn btn--primary btn--block">
-            <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Enviar pelo WhatsApp
-          </button>
+          <button type="submit" class="btn btn--primary btn--block"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg>Enviar pelo WhatsApp</button>
         </form>
       </div>
     </section>
 
-    <!-- ============ CTA FINAL ============ -->
+    <!-- 4.10 Chamada final -->
     <section class="cta-final">
-      <div class="container">
-        <div class="cta-final__box reveal">
-          <img class="cta-final__mark" src="assets/logo-mark.png" alt="" width="400" height="252" loading="lazy">
-          <h2>Pare de improvisar. <span class="accent">Comece a treinar com estrutura.</span></h2>
-          <p>Escolha seu plano e dê o primeiro passo com o método Fonseca Team.</p>
-          <div class="hero__actions">
-            <a href="#planos" class="btn btn--primary btn--lg">Escolher meu plano</a>
-            <a href="#" class="btn btn--ghost btn--lg" data-whatsapp="Olá! Quero começar minha consultoria na Fonseca Team.">Falar no WhatsApp</a>
-          </div>
+      <div class="cta-final__media media" data-story="7" aria-hidden="true">
+        <div class="media__fallback media__fallback--brand media__fallback--alt"></div>
+      </div>
+      <div class="cta-final__shade" aria-hidden="true"></div>
+      <div class="container cta-final__inner">
+        <img class="cta-final__mark" src="assets/logo-mark.png" alt="" width="400" height="252" loading="lazy">
+        <h2 class="split">Pare de improvisar. <span class="accent">Comece a treinar com estrutura.</span></h2>
+        <div class="hero__actions">
+          <a href="#planos" class="btn btn--primary btn--lg">Escolher meu plano</a>
+          <a href="#" class="btn btn--ghost btn--lg" data-whatsapp="Olá, Maicon! Quero começar minha consultoria na Fonseca Team.">Falar no WhatsApp</a>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- ============ FOOTER ============ -->
   <footer class="footer">
     <div class="container footer__grid">
       <div>
         <a href="#topo" class="logo logo--footer" aria-label="Fonseca Team, voltar ao início"><img src="assets/logo-fonseca.png" alt="Fonseca Team" width="315" height="240" loading="lazy"></a>
-        <p class="muted">Treino individualizado, acompanhamento contínuo e suporte de verdade para você evoluir com método.</p>
+        <p class="muted">Treino com direção. Resultado com acompanhamento.</p>
         <div class="socials">
           <a href="#" data-instagram aria-label="Instagram"><svg aria-hidden="true"><use href="#i-instagram"/></svg></a>
-          <a href="#" data-whatsapp="Olá! Vim pelo site da Fonseca Team." aria-label="WhatsApp"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
+          <a href="#" data-whatsapp="Olá, Maicon! Vim pelo site da Fonseca Team." aria-label="WhatsApp"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
         </div>
       </div>
       <div>
-        <h4>Navegação</h4>
+        <h4>Site</h4>
         <ul>
-          <li><a href="#metodo">Método</a></li>
+          <li><a href="#historia">A história</a></li>
+          <li><a href="#app">App</a></li>
           <li><a href="#planos">Planos</a></li>
-          <li><a href="#depoimentos">Depoimentos</a></li>
-          <li><a href="#sobre">Sobre</a></li>
+          <li><a href="#calculadora">Calculadora</a></li>
         </ul>
       </div>
       <div>
-        <h4>Recursos</h4>
+        <h4>Aluno</h4>
         <ul>
-          <li><a href="#calculadora">Calculadora de calorias</a></li>
-          <li><a href="#faq">Perguntas frequentes</a></li>
+          <li><a href="app/">Entrar no app</a></li>
+          <li><a href="#duvidas">Dúvidas</a></li>
           <li><a href="#contato">Contato</a></li>
+          <li><a href="privacidade.html">Política de privacidade</a></li>
         </ul>
       </div>
     </div>
     <div class="container footer__bottom">
-      <span>© <span id="year"></span> Fonseca Team · Maicon Fonseca. Todos os direitos reservados.</span>
-      <span class="muted">Os resultados variam de pessoa para pessoa.</span>
+      <span>© <span id="year"></span> Fonseca Team · Maicon Fonseca. Os resultados variam de pessoa para pessoa.</span>
     </div>
   </footer>
 
-  <!-- Botões flutuantes -->
-  <a href="#" class="float-wa" data-whatsapp="Olá! Vim pelo site e quero saber mais sobre a consultoria." aria-label="Falar no WhatsApp">
-    <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>
-  </a>
-  <a href="#topo" class="to-top" id="toTop" aria-label="Voltar ao topo">
-    <svg aria-hidden="true"><use href="#i-up"/></svg>
-  </a>
+  <a href="#" class="float-wa" data-whatsapp="Olá, Maicon! Vim pelo site e quero saber mais sobre a consultoria." aria-label="Falar no WhatsApp"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg></a>
+  <a href="#topo" class="to-top" id="toTop" aria-label="Voltar ao topo"><svg aria-hidden="true"><use href="#i-up"/></svg></a>
 
-  <!-- ============ ÍCONES (SVG sprite) ============ -->
   <svg width="0" height="0" style="position:absolute" aria-hidden="true">
     <symbol id="i-check" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M7 12h10"/></symbol>
@@ -527,16 +499,15 @@
     <symbol id="i-whatsapp" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.4.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3z"/></symbol>
     <symbol id="i-instagram" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></g></symbol>
     <symbol id="i-pin" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></g></symbol>
-    <symbol id="i-flame" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M12 22c4 0 7-2.7 7-7 0-4-3-6.5-4-10-2 2-3 4-3 6-1-1-2-2-2-4-2.5 2-5 5-5 8 0 4.3 3 7 7 7z"/></symbol>
-    <symbol id="i-dumbbell" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/></g></symbol>
-    <symbol id="i-target" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></g></symbol>
-    <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M13 2L4 14h7l-1 8 9-12h-7z"/></symbol>
-    <symbol id="i-phone" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18h3"/></g></symbol>
-    <symbol id="i-chat" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" d="M4 5h16v11H9l-5 4z"/></symbol>
-    <symbol id="i-chart" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 20V4M4 20h16M8 16l4-5 3 3 5-6"/></symbol>
+    <symbol id="i-silhouette-front" viewBox="0 0 100 200"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><circle cx="50" cy="20" r="11"/><path d="M44 31v6M56 31v6M30 42q20-8 40 0l6 46-7 2-6-34-3 40 3 52-3 46h-8l-4-44-4 44h-8l-3-46 3-52-3-40-6 34-7-2z"/></g></symbol>
   </svg>
 
-  <script src="js/config.js"></script>
-  <script src="js/main.js"></script>
+  <script src="js/vendor/gsap.min.js" defer></script>
+  <script src="js/vendor/ScrollTrigger.min.js" defer></script>
+  <script src="js/vendor/lenis.min.js" defer></script>
+  <script src="js/config.js" defer></script>
+  <script src="js/main.js" defer></script>
+  <script src="js/story.js" defer></script>
+  <script src="js/motion.js" defer></script>
 </body>
 </html>
