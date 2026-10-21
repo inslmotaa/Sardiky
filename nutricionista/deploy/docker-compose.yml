@@ -1,5 +1,5 @@
 # Produção em um servidor (VPS) com Docker. Veja docs/03-publicacao.md.
-# Uso: copie deploy/.env.example para deploy/.env, ajuste e rode:
+# Uso: gere deploy/.env com scripts/gerar-segredos.mjs (docs/09-lancamento.md) e rode:
 #   docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 services:
   db:
@@ -46,7 +46,7 @@ services:
       - caddy_data:/data
     depends_on: [app]
 
-  # Lembretes e limpeza de dados vencidos, de hora em hora.
+  # Lembretes e limpeza de dados vencidos, a cada 5 minutos.
   cron:
     image: curlimages/curl:8.10.1
     restart: unless-stopped

@@ -1,0 +1,101 @@
+{
+  "profissional": {
+    "nome": "André Farion",
+    "titulo": "Nutricionista",
+    "crn": "PREENCHER: ex. CRN-8 12345",
+    "biografia": "PREENCHER: 3 a 5 frases sobre o André — formação, há quanto tempo atende, para quem é o atendimento e o que ele valoriza.",
+    "especialidades": ["Reeducação alimentar", "Nutrição esportiva", "Comportamento alimentar"],
+    "metodo": "O atendimento começa por uma avaliação completa da sua rotina, histórico e preferências. A partir dela, definimos metas realistas e um plano alimentar individualizado, revisado nos retornos conforme sua evolução.",
+    "diferenciais": [
+      "Plano alimentar individualizado, com substituições para dar flexibilidade",
+      "Aplicativo do paciente com plano, diário, lembretes e chat",
+      "Acompanhamento entre consultas",
+      "Atendimento presencial e on-line"
+    ],
+    "comoFunciona": [
+      { "titulo": "Agende", "texto": "Escolha o tipo de consulta, a data e o horário disponíveis." },
+      { "titulo": "Pré-consulta", "texto": "Você responde a anamnese para aproveitarmos melhor o encontro." },
+      { "titulo": "Consulta", "texto": "Avaliação, conversa sobre objetivos e definição das primeiras metas." },
+      { "titulo": "Plano e acompanhamento", "texto": "Seu plano fica no aplicativo e é ajustado nos retornos." }
+    ],
+    "corDaMarca": "#2f5d50",
+    "assinatura": "Nutricionista · atendimento presencial e on-line"
+  },
+  "contato": {
+    "whatsapp": "PREENCHER: ex. (41) 99999-9999",
+    "instagram": "PREENCHER: ex. @andrefarion",
+    "email": "PREENCHER: ex. contato@andrefarion.com.br",
+    "emailPrivacidade": "PREENCHER: e-mail para pedidos da LGPD (pode ser o mesmo)",
+    "endereco": "PREENCHER: rua, número, sala, bairro, cidade/UF — ou \"Atendimento somente on-line\"",
+    "horarioTexto": "Segunda a sexta, 8h às 18h",
+    "modalidadeTexto": "Presencial no consultório e on-line por videochamada"
+  },
+  "anamneseUrl": "https://forms.gle/8EkK8XcNE35ydHYKA",
+  "agenda": {
+    "fusoHorario": "America/Sao_Paulo",
+    "intervaloMinutos": 30,
+    "folgaEntreConsultasMinutos": 10,
+    "antecedenciaMinimaHoras": 12,
+    "diasAFrente": 45,
+    "horarios": [
+      { "dia": "segunda", "inicio": "08:00", "fim": "12:00" },
+      { "dia": "segunda", "inicio": "13:30", "fim": "18:00" },
+      { "dia": "terca", "inicio": "08:00", "fim": "12:00" },
+      { "dia": "terca", "inicio": "13:30", "fim": "18:00" },
+      { "dia": "quarta", "inicio": "08:00", "fim": "12:00" },
+      { "dia": "quarta", "inicio": "13:30", "fim": "18:00" },
+      { "dia": "quinta", "inicio": "08:00", "fim": "12:00" },
+      { "dia": "quinta", "inicio": "13:30", "fim": "18:00" },
+      { "dia": "sexta", "inicio": "08:00", "fim": "12:00" },
+      { "dia": "sexta", "inicio": "13:30", "fim": "18:00" }
+    ]
+  },
+  "chat": {
+    "horario": { "inicio": "08:00", "fim": "18:00", "dias": ["segunda", "terca", "quarta", "quinta", "sexta"] },
+    "respostaAutomatica": "Oi! Recebi sua mensagem e respondo no próximo horário de atendimento (segunda a sexta, 8h às 18h). Em caso de urgência, procure um serviço de saúde.",
+    "respostasRapidas": ["Ótima escolha!", "Vamos ajustar isso no retorno.", "Obrigado por registrar, {nome}! Continue assim.", "Tudo bem, amanhã é um novo dia."]
+  },
+  "refeicoesPadrao": [
+    { "nome": "Café da manhã", "horario": "07:00" },
+    { "nome": "Almoço", "horario": "12:30" },
+    { "nome": "Lanche da tarde", "horario": "16:00" },
+    { "nome": "Jantar", "horario": "19:30" }
+  ],
+  "servicos": [
+    {
+      "nome": "Primeira consulta",
+      "descricao": "Avaliação completa, definição de metas e elaboração do plano alimentar individualizado.",
+      "modalidade": "ambos",
+      "duracaoMinutos": 60,
+      "preco": "PREENCHER: valor em reais, ex. 250"
+    },
+    {
+      "nome": "Retorno",
+      "descricao": "Reavaliação, análise da evolução e ajustes no plano.",
+      "modalidade": "ambos",
+      "duracaoMinutos": 40,
+      "preco": "PREENCHER: valor em reais, ex. 150"
+    },
+    {
+      "nome": "Consultoria on-line",
+      "descricao": "PREENCHER: o que inclui, por quanto tempo e como é o acompanhamento.",
+      "modalidade": "online",
+      "duracaoMinutos": 50,
+      "preco": "PREENCHER: valor em reais"
+    }
+  ],
+  "perguntasFrequentes": [
+    {
+      "pergunta": "Como funciona a primeira consulta?",
+      "resposta": "Conversamos sobre sua rotina, histórico de saúde, preferências e objetivos. Fazemos a avaliação e, em poucos dias, seu plano fica disponível no aplicativo."
+    },
+    {
+      "pergunta": "A consulta on-line tem a mesma qualidade?",
+      "resposta": "Segue a mesma estrutura, por videochamada. Algumas medidas podem ser informadas por você com orientação e aparecem identificadas nos gráficos."
+    },
+    {
+      "pergunta": "Quanto tempo leva para ver resultados?",
+      "resposta": "Cada pessoa responde de um jeito e não há resultado garantido. Definimos metas realistas, acompanhamos a evolução e ajustamos a estratégia sempre que necessário."
+    }
+  ]
+}

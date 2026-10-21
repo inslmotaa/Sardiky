@@ -9,11 +9,11 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
 1. **Domínio** — registre em [registro.br](https://registro.br) (ex.: `andrefarion.com.br`) e crie um registro DNS `A` apontando para o IP do servidor.
 2. **Servidor** — Ubuntu 24.04, 2 GB de RAM, 1–2 vCPU, 40 GB de disco. Instale o Docker (`curl -fsSL https://get.docker.com | sh`). Libere apenas as portas 22, 80 e 443 no firewall; acesso SSH só por chave.
 3. **Código** — `git clone` do repositório e entre em `nutricionista/`.
-4. **Configuração** — `cp deploy/.env.example deploy/.env` e preencha:
-   - `DOMAIN`: o domínio do site
-   - `DB_PASSWORD` e `CRON_SECRET`: valores longos e aleatórios (`openssl rand -base64 32`)
-   - `RESEND_API_KEY` e `EMAIL_FROM`: para e-mails (opcional, mas necessário para lembretes e recuperação de senha por e-mail)
-   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` e `VAPID_SUBJECT`: notificações push no celular (gere com `npx web-push generate-vapid-keys`; guarde a chave privada em segredo e não troque depois, ou os aparelhos precisam ativar de novo)
+4. **Configuração** — gere o `deploy/.env` com senhas e chaves novas, no próprio servidor:
+   ```bash
+   docker run --rm -v "$PWD":/w -w /w node:22-alpine node scripts/gerar-segredos.mjs DOMINIO EMAIL_DE_CONTATO
+   ```
+   O script preenche `DOMAIN`, `DB_PASSWORD`, `CRON_SECRET`, as chaves VAPID das notificações push e `ANAMNESE_WEBHOOK_SECRET`. Os valores não têm caracteres que quebrem a URL do banco. O arquivo é criado com permissão 600, e o script se recusa a sobrescrever um `deploy/.env` existente. Depois, preencha só `RESEND_API_KEY` se for usar e-mail. Não troque as chaves depois de publicar: os celulares teriam de ativar as notificações de novo.
 5. **Subir** — `docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build`
    - O Caddy emite o certificado HTTPS automaticamente.
    - As migrações do banco rodam a cada início da aplicação.
@@ -21,7 +21,11 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
    ```bash
    docker compose -f deploy/docker-compose.yml exec app node scripts/create-admin.mjs "André Farion" email@dominio.com.br
    ```
-   O comando imprime um link de primeiro acesso para criar a senha. Depois, complete **Configurações** (CRN, foto, serviços, horários, WhatsApp) e desmarque a faixa de demonstração.
+   O comando imprime um link de primeiro acesso para criar a senha. Em seguida, aplique os dados reais do consultório (CRN, contatos, serviços, horários, textos) a partir de `deploy/perfil.json`. Esse passo também desliga a faixa de demonstração:
+   ```bash
+   docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec -T app node scripts/aplicar-perfil.mjs - < deploy/perfil.json
+   ```
+   Como preencher o perfil: [09-lancamento.md](09-lancamento.md). Foto, logo e assinatura são enviadas pelo painel (**Configurações**).
 7. **Checklist antes de divulgar**
    - [ ] Política de privacidade revisada por profissional jurídico
    - [ ] CRN, endereço, contatos e serviços reais em Configurações
