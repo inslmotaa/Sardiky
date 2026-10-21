@@ -83,6 +83,12 @@ const Perfil = z.object({
     horarioTexto: texto(200),
     modalidadeTexto: texto(200),
   }),
+  site: z
+    .object({
+      agendamento: z.enum(['whatsapp', 'site'], { error: 'use whatsapp ou site' }).default('whatsapp'),
+      mostrarValores: z.boolean().default(false),
+    })
+    .default({ agendamento: 'whatsapp', mostrarValores: false }),
   anamneseUrl: z.url({ protocol: /^https$/, error: 'use o link completo (https://…)' }).optional(),
   agenda: z.object({
     fusoHorario: z.string().default('America/Sao_Paulo'),
@@ -109,7 +115,8 @@ const Perfil = z.object({
         descricao: z.string().trim().max(1000).default(''),
         modalidade: z.enum(['presencial', 'online', 'ambos'], { error: 'use presencial, online ou ambos' }),
         duracaoMinutos: z.number().int().min(10).max(300),
-        preco: reais,
+        // Opcional: usado no financeiro e só aparece no site com site.mostrarValores = true.
+        preco: reais.default(0),
         publico: z.boolean().default(true),
       }),
     )
@@ -177,6 +184,8 @@ const settings = {
   quick_replies: sql.json(p.chat.respostasRapidas),
   default_meals: sql.json(p.refeicoesPadrao.map((m) => ({ name: m.nome, time: m.horario }))),
   demo_banner: false,
+  booking_channel: p.site.agendamento,
+  show_prices: p.site.mostrarValores,
   updated_at: new Date(),
 }
 const templates = {

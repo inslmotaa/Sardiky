@@ -37,7 +37,8 @@ describe('perfil de produção', () => {
     const r = run(['scripts/aplicar-perfil.mjs', 'deploy/perfil.exemplo.json', '--conferir'])
     expect(r.code).toBe(1)
     expect(r.out).toContain('profissional.crn')
-    expect(r.out).toContain('contato.whatsapp')
+    expect(r.out).toContain('contato.instagram')
+    expect(r.out).not.toContain('preco') // preço é opcional
   })
 
   it('aceita o modelo preenchido (só confere, sem banco)', () => {
@@ -88,5 +89,14 @@ describe('gerador de segredos', () => {
     const again = run(['g.mjs', 'andrefarion.com.br', 'contato@andrefarion.com.br'], { cwd: dir })
     expect(again.code).toBe(1)
     expect(readFileSync(file, 'utf8')).toContain(env.DB_PASSWORD)
+  })
+})
+
+describe('destino do "Agendar consulta"', () => {
+  it('vai para o WhatsApp quando escolhido e preenchido; senão, para a agenda on-line', async () => {
+    const { bookingLink } = await import('@/lib/format')
+    expect(bookingLink({ whatsapp: '5541991551789', bookingChannel: 'whatsapp' }, 'Oi!')).toEqual({ href: 'https://wa.me/5541991551789?text=Oi!', external: true })
+    expect(bookingLink({ whatsapp: '5541991551789', bookingChannel: 'site' })).toEqual({ href: '/agendar', external: false })
+    expect(bookingLink({ whatsapp: null, bookingChannel: 'whatsapp' })).toEqual({ href: '/agendar', external: false })
   })
 })

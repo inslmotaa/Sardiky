@@ -15,14 +15,14 @@ Tudo isto vai aparecer no site e nos PDFs. Nada aqui é senha.
 | Informação | Onde aparece | Exemplo |
 |---|---|---|
 | Número do CRN | Rodapé do site, PDFs, assinatura | CRN-8 12345 |
-| WhatsApp | Botão flutuante, contato, cobranças | (41) 99999-9999 |
+| WhatsApp (já preenchido: (41) 99155-1789) | Agendamento, contato, botão flutuante, cobranças | (41) 99155-1789 |
 | Instagram | Rodapé e contato | @andrefarion |
 | E-mail de contato | Contato e política de privacidade | contato@andrefarion.com.br |
 | E-mail para pedidos da LGPD | Política de privacidade | pode ser o mesmo |
 | Endereço do consultório, ou "somente on-line" | Contato e confirmações de consulta | Rua…, sala…, bairro, cidade/UF |
 | Biografia curta (3 a 5 frases) | Seção "Sobre" | Formação, tempo de atuação, público, o que valoriza |
 | Especialidades e diferenciais | Seção "Sobre" | Reeducação alimentar, nutrição esportiva… |
-| Serviços, duração e preço | Agendamento e seção de serviços | Primeira consulta, 60 min, R$ 250 |
+| Serviços e duração (preço opcional, não aparece no site) | Seção de serviços e financeiro | Primeira consulta, 60 min |
 | Dias e horários de atendimento | Horários livres no agendamento | Seg a sex, 8h–12h e 13h30–18h |
 | Foto profissional e logo (opcional) | Site, app e PDF | JPG ou PNG, boa luz, fundo neutro |
 | Domínio desejado | Endereço do site | andrefarion.com.br |
@@ -38,7 +38,7 @@ Tudo isto vai aparecer no site e nos PDFs. Nada aqui é senha.
    ```bash
    cp deploy/perfil.exemplo.json deploy/perfil.json
    ```
-2. Troque todo texto que começa com `PREENCHER`. Os preços vão como número em reais (`250` ou `249.90`, sem "R$"). Os dias da semana vão escritos (`segunda`, `terca`, `quarta`…).
+2. Troque todo texto que começa com `PREENCHER`. Os dias da semana vão escritos (`segunda`, `terca`, `quarta`…). O bloco `site` define se o "Agendar consulta" abre o WhatsApp (`"agendamento": "whatsapp"`, padrão) ou a agenda on-line (`"site"`), e se os valores aparecem (`"mostrarValores": false`, padrão). O preço de cada serviço é opcional (`"preco": 250`) e serve ao financeiro.
 3. Confira antes de gravar. Este comando não precisa de banco:
    ```bash
    node scripts/aplicar-perfil.mjs deploy/perfil.json --conferir

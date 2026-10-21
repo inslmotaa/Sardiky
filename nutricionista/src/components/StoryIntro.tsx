@@ -1,7 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import type { BookingTarget } from '@/lib/format'
+import { BookingLink } from './BookingLink'
 
 const WORDS = ['complicado', 'restritivo', 'uma dieta da moda']
 
@@ -32,7 +33,7 @@ const CHAPTERS = [
  * Abertura em storytelling. Animações leves (CSS), acionadas pela rolagem.
  * Sem JavaScript ou com "reduzir movimento" ativo, todo o conteúdo aparece estático.
  */
-export function StoryIntro({ name }: { name: string }) {
+export function StoryIntro({ name, booking }: { name: string; booking: BookingTarget }) {
   const [word, setWord] = useState(0)
   const [active, setActive] = useState(0)
   const [ready, setReady] = useState(false)
@@ -103,9 +104,9 @@ export function StoryIntro({ name }: { name: string }) {
             Esta é a história de muita gente que chega ao consultório. Talvez seja a sua também.
           </p>
           <div className="row reveal" style={{ justifyContent: 'center' }}>
-            <Link href="/agendar" className="btn btn--primary btn--lg">
+            <BookingLink to={booking} className="btn btn--primary btn--lg">
               Agendar consulta
-            </Link>
+            </BookingLink>
             <a href="#historia" className="btn btn--lg">
               Conhecer a história
             </a>
@@ -161,9 +162,9 @@ export function StoryIntro({ name }: { name: string }) {
             pessoa evolui no seu tempo; não prometemos resultados garantidos, prometemos acompanhamento de verdade.
           </p>
           <div className="row" style={{ justifyContent: 'center' }}>
-            <Link href="/agendar" className="btn btn--primary btn--lg">
+            <BookingLink to={booking} className="btn btn--primary btn--lg">
               Escrever o próximo capítulo
-            </Link>
+            </BookingLink>
             <a href="#apresentacao" className="btn btn--lg">
               Conhecer o nutricionista
             </a>

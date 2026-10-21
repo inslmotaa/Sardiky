@@ -150,6 +150,15 @@ function ProfileSection({ s }: { s: S }) {
             <input name="waterMlPerKg" inputMode="numeric" defaultValue={s.waterMlPerKg} />
           </Field>
         </div>
+        <Field label="Botão “Agendar consulta” do site" name="bookingChannel" hint="Pelo WhatsApp, a agenda on-line fica desligada e todos os botões de agendar e o contato abrem a conversa.">
+          <select name="bookingChannel" defaultValue={s.bookingChannel}>
+            <option value="whatsapp">Abre o WhatsApp do consultório</option>
+            <option value="site">Abre a agenda on-line do site</option>
+          </select>
+        </Field>
+        <label className="check">
+          <input type="checkbox" name="showPrices" defaultChecked={s.showPrices} /> Mostrar os valores dos serviços e planos no site
+        </label>
         <label className="check">
           <input type="checkbox" name="demoBanner" defaultChecked={s.demoBanner} /> Exibir a faixa “versão de demonstração” no site (desmarque ao publicar com dados reais)
         </label>

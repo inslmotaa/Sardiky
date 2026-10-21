@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getSettings } from '@/lib/settings'
-import { whatsappLink } from '@/lib/format'
+import { bookingLink, whatsappLink } from '@/lib/format'
+import { BookingLink } from '@/components/BookingLink'
 import { Brand } from '@/components/Brand'
 import { IconInstagram, IconMail, IconWhatsApp } from '@/components/icons'
 
@@ -15,6 +16,7 @@ const NAV = [
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const s = await getSettings()
+  const booking = bookingLink(s)
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de mais informações sobre as consultas.')
   return (
     <>
@@ -23,7 +25,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       </a>
       {s.demoBanner && (
         <div className="demo-banner" role="note">
-          Versão de demonstração: registro, endereço, contatos, depoimentos e pacientes são fictícios.
+          Versão de demonstração: registro, endereço, e-mail, depoimentos e pacientes são fictícios.
         </div>
       )}
       <header className="site-header">
@@ -38,9 +40,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             <Link href="/login" className="btn btn--ghost btn--sm">
               Área do paciente
             </Link>
-            <Link href="/agendar" className="btn btn--primary btn--sm">
+            <BookingLink to={booking} className="btn btn--primary btn--sm">
               Agendar consulta
-            </Link>
+            </BookingLink>
           </nav>
           <details className="mobile-menu">
             <summary aria-label="Abrir menu">Menu</summary>
@@ -51,9 +53,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                 </a>
               ))}
               <Link href="/login">Área do paciente</Link>
-              <Link href="/agendar" className="btn btn--primary btn--block">
+              <BookingLink to={booking} className="btn btn--primary btn--block">
                 Agendar consulta
-              </Link>
+              </BookingLink>
             </div>
           </details>
         </div>

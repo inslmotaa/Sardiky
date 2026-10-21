@@ -53,7 +53,7 @@ head.append(icon)
 banner = home.select_one('.demo-banner')
 if banner:
     banner.clear()
-    banner.append(BeautifulSoup('Prévia em arquivo único. Veja também a <a href="#cliente">área do cliente</a> e o <a href="#andre">painel do André</a> (demonstração local). Registro, endereço, contatos e depoimentos são fictícios.', 'html.parser'))
+    banner.append(BeautifulSoup('Prévia em arquivo único. Veja também a <a href="#cliente">área do cliente</a> e o <a href="#andre">painel do André</a> (demonstração local). Registro, endereço e depoimentos são fictícios; o WhatsApp é o real.', 'html.parser'))
 
 # Links internos
 for a in home.find_all('a', href=True):
@@ -64,11 +64,12 @@ for a in home.find_all('a', href=True):
     elif h.startswith('/login'): a['href'] = '#cliente'
     elif h.startswith('/privacidade'): a['href'] = '#privacidade'; a.attrs.pop('target', None)
 
-# Formulário de contato -> WhatsApp
+# Formulário de contato -> WhatsApp (só existe com a agenda on-line ligada; no modo WhatsApp o contato já monta a mensagem)
 form = home.find('form')
-for k in ['action', 'method', 'enctype', 'encType']: form.attrs.pop(k, None)
-form['id'] = 'form-contato'
-for inp in form.select('input[type=hidden]'): inp.decompose()
+if form:
+    for k in ['action', 'method', 'enctype', 'encType']: form.attrs.pop(k, None)
+    form['id'] = 'form-contato'
+    for inp in form.select('input[type=hidden]'): inp.decompose()
 
 # Seções extras: área do paciente (explicação) + política de privacidade
 main = home.find('main')
@@ -156,6 +157,20 @@ script.string = r'''
     } else {
       story.querySelectorAll('.reveal').forEach(function (n) { n.classList.add('is-visible'); });
     }
+  }
+
+  // Contato pelo WhatsApp: a mensagem é montada enquanto a pessoa digita.
+  var waName = document.getElementById('wa-name');
+  if (waName) {
+    var box = waName.closest('.stack');
+    var waGo = box.querySelector('a[href*="wa.me"]');
+    var val = function (id) { return document.getElementById(id).value.trim(); };
+    var upd = function () {
+      var n = val('wa-name'), i = val('wa-interest'), m = val('wa-message');
+      waGo.href = waLink(['Olá! Vim pelo site' + (n ? ' e meu nome é ' + n : '') + '.',
+        i ? 'Tenho interesse em: ' + i + '.' : 'Gostaria de mais informações sobre o acompanhamento.', m].filter(Boolean).join(' '));
+    };
+    box.addEventListener('input', upd); box.addEventListener('change', upd);
   }
 
   // Formulário de contato: valida e envia pelo WhatsApp.

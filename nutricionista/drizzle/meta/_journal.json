@@ -29,6 +29,13 @@
       "when": 1792539792465,
       "tag": "0003_fase3_gestao",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792546188441,
+      "tag": "0004_site_whatsapp",
+      "breakpoints": true
     }
   ]
 }

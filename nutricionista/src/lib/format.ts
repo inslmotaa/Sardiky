@@ -83,3 +83,12 @@ export function chatFileTitle(mime: string) {
   if (mime === 'application/pdf') return 'Documento PDF'
   return 'Anexo'
 }
+
+export const BOOKING_MESSAGE = 'Olá! Vim pelo site e gostaria de agendar uma consulta.'
+export type BookingTarget = { href: string; external: boolean }
+
+/** Destino do "Agendar consulta": o WhatsApp do consultório (quando escolhido e preenchido) ou a agenda on-line. */
+export function bookingLink(s: { whatsapp: string | null; bookingChannel: string }, text = BOOKING_MESSAGE): BookingTarget {
+  const wa = s.bookingChannel === 'whatsapp' ? whatsappLink(s.whatsapp, text) : null
+  return wa ? { href: wa, external: true } : { href: '/agendar', external: false }
+}

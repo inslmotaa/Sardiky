@@ -1,7 +1,8 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getSettings } from '@/lib/settings'
-import { whatsappLink } from '@/lib/format'
+import { bookingLink, whatsappLink } from '@/lib/format'
+import { BookingLink } from '@/components/BookingLink'
 
 export const metadata: Metadata = { title: 'Criar conta', robots: { index: false } }
 
@@ -16,9 +17,9 @@ export default async function CreateAccountPage() {
         O acesso ao app é liberado por convite. Depois do seu cadastro, {s.professionalName} envia um link por e-mail ou WhatsApp para você criar a sua senha.
       </p>
       <div className="stack" style={{ ['--gap' as string]: '10px' }}>
-        <Link href="/agendar" className="btn btn--primary btn--block">
+        <BookingLink to={bookingLink(s, 'Olá! Gostaria de agendar minha primeira consulta.')} className="btn btn--primary btn--block">
           Agendar primeira consulta
-        </Link>
+        </BookingLink>
         {s.anamneseUrl && (
           <a href={s.anamneseUrl} target="_blank" rel="noopener noreferrer" className="btn btn--block">
             Preencher anamnese

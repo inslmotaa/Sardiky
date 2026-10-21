@@ -1,10 +1,11 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { and, asc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { slotsForRange } from '@/lib/booking'
-import { money } from '@/lib/format'
+import { bookingLink, money } from '@/lib/format'
 import { fmtDayLong, isValidDay, isValidTime, todayIn, weekdayOf, weekdayShort, zonedParts } from '@/lib/time'
 import { createBooking } from '@/actions/public'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
@@ -17,6 +18,9 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 export default async function BookingPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams
   const s = await getSettings()
+  // Agendamento pelo WhatsApp: a agenda on-line fica desligada e o endereço leva à conversa.
+  const booking = bookingLink(s)
+  if (booking.external) redirect(booking.href)
   const services = await db
     .select()
     .from(schema.services)
@@ -67,7 +71,7 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
               <Link key={svc.id} href={`/agendar?servico=${svc.id}`} className="option-card" aria-current={svc.id === service?.id ? 'true' : undefined}>
                 <strong>{svc.name}</strong>
                 <div className="muted small">
-                  {svc.durationMinutes} min · {svc.priceCents ? money(svc.priceCents) : 'valor sob consulta'} ·{' '}
+                  {svc.durationMinutes} min · {s.showPrices ? `${svc.priceCents ? money(svc.priceCents) : 'valor sob consulta'} · ` : ''}
                   {svc.modality === 'ambos' ? 'presencial ou on-line' : svc.modality === 'online' ? 'on-line' : 'presencial'}
                 </div>
               </Link>
@@ -147,7 +151,7 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
             <h2 style={{ fontSize: '1.15rem' }}>5. Seus dados</h2>
             <p className="alert alert--info">
               <strong>{service.name}</strong> · {modality === 'online' ? 'on-line' : 'presencial'} · {fmtDayLong(selectedDay.day)} às {selectedTime}
-              {service.priceCents ? ` · ${money(service.priceCents)}` : ''}
+              {s.showPrices && service.priceCents ? ` · ${money(service.priceCents)}` : ''}
             </p>
             <ActionForm action={createBooking} className="stack">
               <input type="hidden" name="serviceId" value={service.id} />

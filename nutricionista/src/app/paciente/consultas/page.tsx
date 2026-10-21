@@ -1,9 +1,10 @@
-import Link from 'next/link'
 import { desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
+import { bookingLink } from '@/lib/format'
+import { BookingLink } from '@/components/BookingLink'
 import { cancelOwnAppointment, confirmPresence, rateAppointment, requestReschedule } from '@/actions/patient'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { PageHead, StatusBadge, Empty } from '@/components/ui'
@@ -21,9 +22,9 @@ export default async function PatientAppointments() {
       <PageHead
         title="Consultas"
         actions={
-          <Link href="/agendar" className="btn btn--primary">
+          <BookingLink to={bookingLink(s, `Olá! Sou ${user.name.split(' ')[0]} e gostaria de agendar uma nova consulta.`)} className="btn btn--primary">
             Agendar nova consulta
-          </Link>
+          </BookingLink>
         }
       />
       <section>

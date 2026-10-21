@@ -2,10 +2,12 @@ import Link from 'next/link'
 import { and, asc, eq, isNotNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
-import { initials, money, whatsappLink } from '@/lib/format'
+import { bookingLink, initials, money, whatsappLink } from '@/lib/format'
 import { createLead } from '@/actions/public'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
 import { StoryIntro } from '@/components/StoryIntro'
+import { BookingLink } from '@/components/BookingLink'
+import { WhatsAppContact } from '@/components/WhatsAppContact'
 import { IconCheck, IconClock, IconPin, IconVideo, IconWhatsApp } from '@/components/icons'
 
 const MODALITY: Record<string, string> = { presencial: 'Presencial', online: 'On-line', ambos: 'Presencial ou on-line' }
@@ -28,11 +30,13 @@ export default async function HomePage() {
     db.select().from(schema.packages).where(eq(schema.packages.active, true)).orderBy(asc(schema.packages.priceCents)),
   ])
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de agendar uma consulta.')
+  const booking = bookingLink(s)
+  const viaWhatsapp = booking.external
 
   return (
     <>
       {/* --------------------- ABERTURA EM STORYTELLING --------------------- */}
-      <StoryIntro name={s.professionalName} />
+      <StoryIntro name={s.professionalName} booking={booking} />
 
       {/* --------------------------- APRESENTAÇÃO --------------------------- */}
       <section className="hero" id="apresentacao">
@@ -45,15 +49,15 @@ export default async function HomePage() {
               preferências e seus objetivos — e ajusto a estratégia a cada consulta.
             </p>
             <div className="hero__actions">
-              <Link href="/agendar" className="btn btn--primary btn--lg">
-                Agendar consulta
-              </Link>
+              <BookingLink to={booking} className="btn btn--primary btn--lg">
+                {viaWhatsapp && <IconWhatsApp />} Agendar consulta
+              </BookingLink>
               {s.anamneseUrl && (
                 <a href={s.anamneseUrl} className="btn btn--lg" target="_blank" rel="noopener noreferrer">
                   Preencher anamnese
                 </a>
               )}
-              {wa && (
+              {wa && !viaWhatsapp && (
                 <a href={wa} className="btn btn--lg btn--ghost" target="_blank" rel="noopener noreferrer">
                   <IconWhatsApp /> Falar no WhatsApp
                 </a>
@@ -129,7 +133,10 @@ export default async function HomePage() {
           <div className="section__head">
             <span className="eyebrow">Serviços</span>
             <h2>Formas de atendimento</h2>
-            <p className="muted">Valores e durações atualizados pelo próprio consultório. Escolha o serviço ao agendar.</p>
+            <p className="muted">
+              {s.showPrices ? 'Valores e durações atualizados pelo próprio consultório.' : 'Valores informados no atendimento.'}{' '}
+              {viaWhatsapp ? 'Agende pelo WhatsApp.' : 'Escolha o serviço ao agendar.'}
+            </p>
           </div>
           <div className="grid-3">
             {services.map((svc) => (
@@ -145,10 +152,13 @@ export default async function HomePage() {
                 <p className="muted" style={{ margin: 0 }}>
                   {svc.description}
                 </p>
-                <div className="service-card__price">{svc.priceCents > 0 ? money(svc.priceCents) : 'Valor sob consulta'}</div>
-                <Link href={`/agendar?servico=${svc.id}`} className="btn btn--block">
+                {s.showPrices && <div className="service-card__price">{svc.priceCents > 0 ? money(svc.priceCents) : 'Valor sob consulta'}</div>}
+                <BookingLink
+                  to={viaWhatsapp ? bookingLink(s, `Olá! Vim pelo site e gostaria de agendar: ${svc.name}.`) : { href: `/agendar?servico=${svc.id}`, external: false }}
+                  className="btn btn--block"
+                >
                   Agendar este serviço
-                </Link>
+                </BookingLink>
               </article>
             ))}
           </div>
@@ -177,7 +187,7 @@ export default async function HomePage() {
                     <span>·</span>
                     <span>{pk.validityDays} dias de acompanhamento</span>
                   </div>
-                  <div className="service-card__price">{money(pk.priceCents)}</div>
+                  {s.showPrices && <div className="service-card__price">{money(pk.priceCents)}</div>}
                   <a
                     href={whatsappLink(s.whatsapp, `Olá! Tenho interesse no plano ${pk.name}.`) ?? '/agendar'}
                     className="btn btn--block btn--primary"
@@ -314,7 +324,11 @@ export default async function HomePage() {
           <div>
             <span className="eyebrow">Contato</span>
             <h2>Vamos conversar?</h2>
-            <p>Agende diretamente pelo site, chame no WhatsApp ou deixe seus dados para retornarmos.</p>
+            <p>
+              {viaWhatsapp
+                ? 'Agendamentos, valores e dúvidas são atendidos pelo WhatsApp.'
+                : 'Agende diretamente pelo site, chame no WhatsApp ou deixe seus dados para retornarmos.'}
+            </p>
             <ul className="checklist" style={{ margin: '20px 0' }}>
               {s.address && (
                 <li>
@@ -333,15 +347,21 @@ export default async function HomePage() {
               )}
             </ul>
             <div className="row">
-              <Link href="/agendar" className="btn btn--primary">
-                Ver horários disponíveis
-              </Link>
+              <BookingLink to={booking} className="btn btn--primary">
+                {viaWhatsapp ? (
+                  <>
+                    <IconWhatsApp /> Agendar pelo WhatsApp
+                  </>
+                ) : (
+                  'Ver horários disponíveis'
+                )}
+              </BookingLink>
               {s.anamneseUrl && (
                 <a href={s.anamneseUrl} className="btn" target="_blank" rel="noopener noreferrer">
                   Preencher anamnese
                 </a>
               )}
-              {wa && (
+              {wa && !viaWhatsapp && (
                 <a href={wa} className="btn btn--whatsapp" target="_blank" rel="noopener noreferrer">
                   <IconWhatsApp /> WhatsApp
                 </a>
@@ -349,6 +369,12 @@ export default async function HomePage() {
             </div>
           </div>
 
+          {viaWhatsapp && s.whatsapp ? (
+            <div className="card">
+              <h3>Mande uma mensagem</h3>
+              <WhatsAppContact phone={s.whatsapp} interests={services.map((svc) => svc.name)} />
+            </div>
+          ) : (
           <div className="card">
             <h3>Quero ser contatado(a)</h3>
             <p className="muted small">Pedimos só o necessário para retornar o contato.</p>
@@ -391,6 +417,7 @@ export default async function HomePage() {
               <SubmitButton pendingText="Enviando…">Enviar</SubmitButton>
             </ActionForm>
           </div>
+          )}
         </div>
       </section>
     </>

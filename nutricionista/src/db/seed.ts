@@ -74,7 +74,7 @@ async function main() {
     address: 'Rua Exemplo, 123 — sala 45, Centro, Cidade/UF (endereço fictício)',
     hoursText: 'Segunda a sexta, 8h às 18h · Sábados, 8h às 12h',
     modalityText: 'Presencial no consultório e on-line por videochamada',
-    whatsapp: '5500000000000',
+    whatsapp: '5541991551789',
     instagram: 'https://instagram.com/',
     contactEmail: 'contato@example.com',
     privacyContact: 'privacidade@example.com',
@@ -97,6 +97,8 @@ async function main() {
     maxDaysAhead: 45,
     financeEnabled: true,
     demoBanner: true,
+    showPrices: false,
+    bookingChannel: 'whatsapp',
     templates: {
       confirmacao:
         'Olá, {nome}! Sua consulta ({servico}) está confirmada para {data} às {hora}. Código: {codigo}. Se precisar remarcar, responda esta mensagem.',

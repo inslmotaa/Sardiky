@@ -174,6 +174,10 @@ export const settings = pgTable('settings', {
   financeEnabled: boolean('finance_enabled').notNull().default(true),
   /** Faixa "dados fictícios" no topo do site, enquanto o sistema estiver em demonstração. */
   demoBanner: boolean('demo_banner').notNull().default(true),
+  /** Valores dos serviços e planos visíveis no site público. */
+  showPrices: boolean('show_prices').notNull().default(false),
+  /** Para onde o "Agendar consulta" do site leva: WhatsApp do consultório ou agenda on-line do próprio site. */
+  bookingChannel: text('booking_channel').$type<'whatsapp' | 'site'>().notNull().default('whatsapp'),
   leadRetentionDays: integer('lead_retention_days').notNull().default(180),
   /** Formulário de anamnese externo (Google Forms, Typeform…). */
   anamneseUrl: text('anamnese_url'),

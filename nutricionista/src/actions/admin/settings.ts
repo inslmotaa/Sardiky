@@ -60,6 +60,8 @@ const profileSchema = z.object({
   waterMlPerKg: z.coerce.number().int().min(20, 'Entre 20 e 60').max(60, 'Entre 20 e 60'),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida'),
   demoBanner: checkbox,
+  showPrices: checkbox,
+  bookingChannel: z.enum(['whatsapp', 'site']),
 })
 
 export async function saveProfile(_: ActionState, fd: FormData): Promise<ActionState> {
