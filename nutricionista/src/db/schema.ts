@@ -176,6 +176,10 @@ export const settings = pgTable('settings', {
   demoBanner: boolean('demo_banner').notNull().default(true),
   /** Valores dos serviços e planos visíveis no site público. */
   showPrices: boolean('show_prices').notNull().default(false),
+  /** Valores dos planos de acompanhamento no site (independe dos valores das consultas). */
+  showPlanPrices: boolean('show_plan_prices').notNull().default(true),
+  /** "Todos os planos incluem": itens comuns a todos os planos, exibidos no site. */
+  plansIncluded: jsonb('plans_included').$type<{ title: string; text: string }[]>().notNull().default([]),
   /** Para onde o "Agendar consulta" do site leva: WhatsApp do consultório ou agenda on-line do próprio site. */
   bookingChannel: text('booking_channel').$type<'whatsapp' | 'site'>().notNull().default('whatsapp'),
   leadRetentionDays: integer('lead_retention_days').notNull().default(180),
@@ -258,6 +262,13 @@ export const packages = pgTable('packages', {
   sessions: integer('sessions').notNull().default(1),
   priceCents: integer('price_cents').notNull(),
   validityDays: integer('validity_days').notNull().default(90),
+  /** Duração do plano em meses (o desconto exibido no site é calculado a partir do valor por mês). */
+  months: integer('months').notNull().default(1),
+  /** Benefícios exclusivos deste plano (ex.: vale avaliação física). */
+  perks: jsonb('perks').$type<{ title: string; text: string }[]>().notNull().default([]),
+  /** Selo de destaque no site (ex.: "Melhor custo-benefício"). */
+  highlight: text('highlight'),
+  sort: integer('sort').notNull().default(0),
   active: boolean('active').notNull().default(true),
   createdAt: createdAt(),
 })
@@ -723,7 +734,7 @@ export const prescriptions = pgTable(
     patientId: uuid('patient_id')
       .notNull()
       .references(() => patients.id, { onDelete: 'cascade' }),
-    type: text('type').notNull(), // suplemento | fitoterapico | exame
+    type: text('type').notNull(), // PRESCRIPTION_TYPE_KEYS; 'livre' = prescrição escrita, com o texto em notes
     name: text('name').notNull(),
     dose: text('dose'),
     schedule: text('schedule'),

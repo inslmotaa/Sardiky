@@ -53,13 +53,13 @@ export function PlanPage({
       <PatientPlan content={normalizePlan(plan.content)} features={features} weekday={weekday} />
       {isCurrent && prescriptions.length > 0 && (
         <section className="card" id="prescricoes">
-          <h2 style={{ fontSize: '1.1rem' }}>Suplementos e exames</h2>
+          <h2 style={{ fontSize: '1.1rem' }}>Prescrições</h2>
           <ul className="list">
             {prescriptions.map((p) => (
               <li key={p.id}>
                 <strong>{p.name}</strong> <span className="badge badge--plain">{PRESCRIPTION_TYPES[p.type] ?? p.type}</span>
                 <div className="small">{[p.dose, p.schedule, p.duration].filter(Boolean).join(' · ')}</div>
-                {p.notes && <div className="small muted">{p.notes}</div>}
+                {p.notes && <div className="small prescription-text">{p.notes}</div>}
               </li>
             ))}
           </ul>

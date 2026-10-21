@@ -98,6 +98,13 @@ async function main() {
     financeEnabled: true,
     demoBanner: true,
     showPrices: false,
+    showPlanPrices: true,
+    plansIncluded: [
+      { title: 'Avaliação física', text: 'Presencial ou online.' },
+      { title: 'Anamnese completa', text: 'Histórico de saúde, rotina e objetivos.' },
+      { title: 'Dieta personalizada', text: 'Atualizada a cada 15 dias.' },
+      { title: 'Manipulados e ergogênicos', text: 'Acompanhamento com orientações e ajustes individuais.' },
+    ],
     bookingChannel: 'whatsapp',
     templates: {
       confirmacao:
@@ -219,9 +226,16 @@ async function main() {
     },
   ])
 
+  // Planos de acompanhamento (valores do material de divulgação do André).
+  const exclusive = [
+    { title: 'Vale avaliação física', text: 'Avaliação física completa sem custo adicional.' },
+    { title: 'Desconto em produtos selecionados', text: 'Até 15% de desconto em produtos do nosso parceiro de suplementos e nutrição esportiva.' },
+  ]
   await db.insert(s.packages).values([
-    { name: 'Trimestral', description: 'Primeira consulta + 2 retornos em até 90 dias.', sessions: 3, priceCents: 49000, validityDays: 90 },
-    { name: 'Semestral', description: 'Primeira consulta + 5 retornos em até 180 dias.', sessions: 6, priceCents: 89000, validityDays: 180 },
+    { name: 'Mensal', months: 1, priceCents: 25000, validityDays: 30, sort: 1 },
+    { name: 'Trimestral', months: 3, priceCents: 63750, validityDays: 90, sort: 2 },
+    { name: 'Semestral', months: 6, priceCents: 120000, validityDays: 180, sort: 3, perks: exclusive },
+    { name: 'Anual', months: 12, priceCents: 225000, validityDays: 365, sort: 4, perks: exclusive, highlight: 'Melhor custo-benefício' },
   ])
 
   /* ------------------------------ usuários ----------------------------- */

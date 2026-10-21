@@ -38,7 +38,7 @@ Tudo isto vai aparecer no site e nos PDFs. Nada aqui é senha.
    ```bash
    cp deploy/perfil.exemplo.json deploy/perfil.json
    ```
-2. Troque todo texto que começa com `PREENCHER`. Os dias da semana vão escritos (`segunda`, `terca`, `quarta`…). O bloco `site` define se o "Agendar consulta" abre o WhatsApp (`"agendamento": "whatsapp"`, padrão) ou a agenda on-line (`"site"`), e se os valores aparecem (`"mostrarValores": false`, padrão). O preço de cada serviço é opcional (`"preco": 250`) e serve ao financeiro.
+2. Troque todo texto que começa com `PREENCHER`. Os dias da semana vão escritos (`segunda`, `terca`, `quarta`…). O bloco `site` define se o "Agendar consulta" abre o WhatsApp (`"agendamento": "whatsapp"`, padrão) ou a agenda on-line (`"site"`), e se os valores aparecem (`"mostrarValores": false`, padrão). O preço de cada serviço é opcional (`"preco": 250`) e serve ao financeiro. Os blocos `planos` e `planosIncluem` já vêm com os planos do material de divulgação (Mensal, Trimestral, Semestral e Anual); `"mostrarValoresPlanos": true` mostra os valores deles no site.
 3. Confira antes de gravar. Este comando não precisa de banco:
    ```bash
    node scripts/aplicar-perfil.mjs deploy/perfil.json --conferir

@@ -2,6 +2,7 @@ import 'server-only'
 import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage, type RGB } from 'pdf-lib'
 import { dayTotals, optionTotals, quantityLabel, sortedMeals, type PlanContent } from './plan'
 import { fmt, formatMeasure, scale } from './nutricao'
+import { PRESCRIPTION_TYPES } from './constants'
 
 /**
  * PDF do plano alimentar com a identidade do consultório (nome, registro profissional e cor).
@@ -46,7 +47,7 @@ type Opts = {
   showKcal: boolean
   showMacros: boolean
   contact: string | null
-  prescriptions?: { type: string; name: string; dose: string | null; schedule: string | null; duration: string | null }[]
+  prescriptions?: { type: string; name: string; dose: string | null; schedule: string | null; duration: string | null; notes: string | null }[]
   /** Assinatura no fim do plano: texto e imagem (PNG/JPG) opcionais. */
   signature?: { text: string | null; image: { bytes: Uint8Array; mime: string } | null }
   /** Logo do consultório no cabeçalho (PNG/JPG). */
@@ -184,12 +185,13 @@ export async function planPdf(plan: PlanContent, o: Opts) {
   if (o.prescriptions?.length) {
     ensure(50)
     y -= 10
-    text('Suplementos e exames', { font: bold, size: 13, color: brand })
-    const label: Record<string, string> = { suplemento: 'Suplemento', fitoterapico: 'Fitoterápico', exame: 'Exame' }
+    text('Prescrições', { font: bold, size: 13, color: brand })
     for (const p of o.prescriptions) {
-      text(`•  ${p.name} (${label[p.type] ?? p.type})`, { size: 10, x: M + 6 })
+      text(`•  ${p.name} (${PRESCRIPTION_TYPES[p.type] ?? p.type})`, { font: bold, size: 10, x: M + 6 })
       const det = [p.dose, p.schedule, p.duration].filter(Boolean).join(' · ')
       if (det) text(det, { size: 9, color: muted, x: M + 18 })
+      if (p.notes) text(p.notes, { size: 9.5, x: M + 18, width: A4.w - 2 * M - 18 })
+      y -= 4
     }
   }
 

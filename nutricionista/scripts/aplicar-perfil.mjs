@@ -87,8 +87,9 @@ const Perfil = z.object({
     .object({
       agendamento: z.enum(['whatsapp', 'site'], { error: 'use whatsapp ou site' }).default('whatsapp'),
       mostrarValores: z.boolean().default(false),
+      mostrarValoresPlanos: z.boolean().default(true),
     })
-    .default({ agendamento: 'whatsapp', mostrarValores: false }),
+    .default({ agendamento: 'whatsapp', mostrarValores: false, mostrarValoresPlanos: true }),
   anamneseUrl: z.url({ protocol: /^https$/, error: 'use o link completo (https://…)' }).optional(),
   agenda: z.object({
     fusoHorario: z.string().default('America/Sao_Paulo'),
@@ -122,6 +123,20 @@ const Perfil = z.object({
     )
     .min(1, 'informe ao menos um serviço'),
   perguntasFrequentes: z.array(z.object({ pergunta: texto(200), resposta: texto(2000) })).default([]),
+  // Planos de acompanhamento (seção "Planos" do site e financeiro).
+  planos: z
+    .array(
+      z.object({
+        nome: texto(80),
+        meses: z.number().int().min(1).max(36),
+        preco: reais.refine((v) => v > 0, 'informe o valor total do plano'),
+        descricao: z.string().trim().max(300).default(''),
+        destaque: z.string().trim().max(40).optional(),
+        beneficiosExclusivos: z.array(z.object({ titulo: texto(80), texto: z.string().trim().max(300).default('') })).max(8).default([]),
+      }),
+    )
+    .default([]),
+  planosIncluem: z.array(z.object({ titulo: texto(80), texto: z.string().trim().max(300).default('') })).max(12).default([]),
 })
 
 const parsed = Perfil.safeParse(raw)
@@ -186,6 +201,8 @@ const settings = {
   demo_banner: false,
   booking_channel: p.site.agendamento,
   show_prices: p.site.mostrarValores,
+  show_plan_prices: p.site.mostrarValoresPlanos,
+  plans_included: sql.json(p.planosIncluem.map((x) => ({ title: x.titulo, text: x.texto }))),
   updated_at: new Date(),
 }
 const templates = {
@@ -233,6 +250,32 @@ const out = await sql.begin(async (tx) => {
   if (p.perguntasFrequentes.length)
     await tx`insert into faqs ${tx(p.perguntasFrequentes.map((f, i) => ({ question: f.pergunta, answer: f.resposta, published: true, sort: i + 1 })))}`
 
+  // Planos: mesma regra dos serviços (atualiza pelo nome, cria os novos, desativa os que saíram).
+  const plans = await tx`select id, name from packages`
+  const keepPlans = []
+  for (const [i, pl] of p.planos.entries()) {
+    const row = {
+      name: pl.nome,
+      description: pl.descricao,
+      months: pl.meses,
+      price_cents: Math.round(pl.preco * 100),
+      validity_days: pl.meses === 12 ? 365 : pl.meses * 30,
+      highlight: pl.destaque || null,
+      perks: tx.json(pl.beneficiosExclusivos.map((x) => ({ title: x.titulo, text: x.texto }))),
+      sort: i + 1,
+      active: true,
+    }
+    const found = plans.find((e) => e.name.trim().toLowerCase() === pl.nome.toLowerCase())
+    if (found) {
+      await tx`update packages set ${tx(row)} where id = ${found.id}`
+      keepPlans.push(found.id)
+    } else {
+      const [n] = await tx`insert into packages ${tx(row)} returning id`
+      keepPlans.push(n.id)
+    }
+  }
+  await tx`update packages set active = false where active and not (id = any(${keepPlans}::uuid[]))`
+
   const [admins] = await tx`select count(*)::int as n from users where role = 'admin' and is_active`
   const [media] = await tx`select photo_file_id, logo_file_id from settings where id = 1`
   return { off: off.map((r) => r.name), admins: admins.n, media }
@@ -240,7 +283,7 @@ const out = await sql.begin(async (tx) => {
 await sql.end()
 
 console.log(`Perfil aplicado: ${p.profissional.nome} (${p.profissional.crn.toUpperCase()}).`)
-console.log(`  ${p.servicos.length} serviço(s), ${p.agenda.horarios.length} faixa(s) de horário, ${p.perguntasFrequentes.length} pergunta(s) frequente(s).`)
+console.log(`  ${p.servicos.length} serviço(s), ${p.planos.length} plano(s), ${p.agenda.horarios.length} faixa(s) de horário, ${p.perguntasFrequentes.length} pergunta(s) frequente(s).`)
 if (out.off.length) console.log(`  Serviços desativados (não estão mais no arquivo): ${out.off.join(', ')}`)
 console.log('  Faixa de demonstração desligada.')
 const todo = []

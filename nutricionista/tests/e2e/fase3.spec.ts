@@ -91,21 +91,49 @@ test('lista de compras da semana gerada do plano, com itens marcáveis', async (
   await expect(page.locator('.shopping li', { hasText: 'Arroz, integral, cozido' }).getByRole('checkbox')).toBeChecked()
 })
 
-test('prescrição registrada aparece no plano do paciente', async ({ page }) => {
+test('prescrições: item com dose, texto escrito livremente e edição aparecem no plano do paciente', async ({ page }) => {
   await login(page, 'admin')
   const id = await openPatient(page, 'Beatriz Exemplo')
   await page.goto(`/admin/pacientes/${id}?aba=prescricoes`)
-  await page.getByLabel('Nome').fill('Ômega 3')
-  await page.getByLabel('Dose').fill('1 g')
-  await page.getByLabel('Horário').fill('No jantar')
-  await page.getByRole('button', { name: 'Registrar' }).click()
+  const form = page.locator('section.card', { hasText: 'Escrever prescrição' })
+
+  // Item com dose e horário.
+  await form.getByLabel('Título').fill('Ômega 3')
+  await form.getByLabel('Tipo').selectOption('suplemento')
+  await form.getByText('Dose, horário e duração (opcional)').click()
+  await form.getByLabel('Dose').fill('1 g')
+  await form.getByLabel('Horário').fill('No jantar')
+  await form.getByRole('button', { name: 'Registrar prescrição' }).click()
   await expect(page.getByText('Prescrição registrada e visível no app do paciente.')).toBeVisible()
+
+  // Prescrição escrita (tipo padrão), com várias linhas; sem texto não registra.
+  await page.reload()
+  await form.getByLabel('Título').fill('Pré-treino e manipulados')
+  await form.getByRole('button', { name: 'Registrar prescrição' }).click()
+  await expect(form.getByText('Escreva a prescrição')).toBeVisible()
+  await form.getByLabel('Prescrição').fill('Creatina 5 g por dia, com água.\nCafeína 200 mg, 30 min antes do treino.')
+  await form.getByRole('button', { name: 'Registrar prescrição' }).click()
+  await expect(page.getByText('Prescrição registrada e visível no app do paciente.')).toBeVisible()
+
+  // Edição do texto.
+  await page.reload()
+  const item = page.locator('li', { hasText: 'Pré-treino e manipulados' })
+  await item.getByText('Editar').click()
+  await item.getByLabel('Prescrição').fill('Creatina 5 g por dia, com água.\nCafeína 150 mg, 30 min antes do treino.')
+  await item.getByRole('button', { name: 'Salvar alterações' }).click()
+  await expect(page.getByText('Prescrição atualizada no app do paciente.')).toBeVisible()
+
   await login(page, 'beatriz')
   await page.goto('/paciente/plano')
   const box = page.locator('#prescricoes')
+  await expect(box.getByRole('heading', { name: 'Prescrições' })).toBeVisible()
   await expect(box).toContainText('Ômega 3')
   await expect(box).toContainText('1 g · No jantar')
   await expect(box).toContainText('Vitamina D3')
+  await expect(box).toContainText('Pré-treino e manipulados')
+  await expect(box.locator('.prescription-text', { hasText: 'Cafeína 150 mg' })).toHaveText('Creatina 5 g por dia, com água.\nCafeína 150 mg, 30 min antes do treino.')
+  const pdf = await page.request.get('/paciente/plano/pdf')
+  expect(pdf.headers()['content-type']).toContain('application/pdf')
 })
 
 test('agenda: paciente confirma presença, pede remarcação e avalia a consulta', async ({ page }) => {

@@ -14,13 +14,31 @@ test('página inicial apresenta o profissional, serviços e storytelling', async
   // Abertura: "Agendar consulta" é o botão principal, leva ao WhatsApp, e "solitário" não aparece mais.
   await expect(page.locator('.story-open .row a').first()).toHaveText('Agendar consulta')
   await expect(page.locator('.story-open .row a').first()).toHaveAttribute('href', new RegExp(`^${WA}\\?text=`))
-  // Valores não aparecem no site.
-  await expect(page.locator('main')).not.toContainText('R$')
+  // Valores das consultas não aparecem no site; os dos planos, sim (como no material de divulgação).
+  await expect(page.locator('#servicos')).not.toContainText('R$')
   await expect(page.locator('#servicos a', { hasText: 'Agendar este serviço' }).first()).toHaveAttribute('href', /^https:\/\/wa\.me\/5541991551789\?text=.*Primeira%20consulta/)
   await expect(page.getByText('solitário')).toHaveCount(0)
   // Anamnese externa e planos de acompanhamento.
   await expect(page.getByRole('link', { name: 'Preencher anamnese' }).first()).toHaveAttribute('href', 'https://forms.gle/8EkK8XcNE35ydHYKA')
-  await expect(page.getByRole('heading', { name: 'Acompanhamento contínuo, não uma consulta isolada' })).toBeVisible()
+  const planos = page.locator('#planos')
+  await expect(planos.getByRole('heading', { name: 'Nutrição é investimento em você' })).toBeVisible()
+  await expect(planos.locator('.plan__name')).toHaveText(['Mensal', 'Trimestral', 'Semestral', 'Anual'])
+  const tri = planos.locator('.plan', { hasText: 'Trimestral' })
+  await expect(tri).toContainText('15% de desconto')
+  await expect(tri).toContainText(/R\$\s212,50\/mês/)
+  await expect(tri).toContainText(/de R\$\s750,00/)
+  await expect(tri.locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s637,50$/)
+  const anual = planos.locator('.plan', { hasText: 'Anual' })
+  await expect(anual).toContainText('Melhor custo-benefício')
+  await expect(anual).toContainText('25% de desconto')
+  await expect(anual.locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s2\.250,00$/)
+  await expect(planos.locator('.plan', { hasText: 'Semestral' }).locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s1\.200,00$/)
+  await expect(planos.locator('.plan', { hasText: 'Mensal' }).locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s250,00$/)
+  await expect(anual.getByRole('link', { name: 'Quero o plano Anual' })).toHaveAttribute('href', new RegExp(`^${WA}\\?text=.*plano%20Anual`))
+  await expect(planos).toContainText('Todos os planos incluem')
+  await expect(planos).toContainText('Dieta personalizada')
+  await expect(planos.locator('.plans-perks')).toContainText('para os planos Semestral e Anual')
+  await expect(planos.locator('.plans-perks')).toContainText('Vale avaliação física')
 })
 
 test('endereços curtos levam às áreas certas', async ({ page }) => {
@@ -50,7 +68,7 @@ async function siteSettings(page: Page, booking: 'whatsapp' | 'site', prices: bo
   await login(page, 'admin')
   await page.goto('/admin/configuracoes')
   await page.getByLabel('Botão “Agendar consulta” do site').selectOption(booking)
-  await page.getByLabel('Mostrar os valores dos serviços e planos no site').setChecked(prices)
+  await page.getByLabel('Mostrar os valores das consultas no site').setChecked(prices)
   await page.getByRole('button', { name: 'Salvar perfil' }).click()
   await expect(page.getByText('Perfil e identidade visual atualizados.')).toBeVisible()
   await page.context().clearCookies()

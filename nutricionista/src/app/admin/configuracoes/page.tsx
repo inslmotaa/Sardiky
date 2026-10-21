@@ -22,6 +22,7 @@ import {
 } from '@/actions/admin/settings'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
 import { DemoTag, NoAccess, PageHead, Tabs } from '@/components/ui'
+import { titledText } from '@/lib/planos'
 
 const SECTIONS = [
   { key: 'perfil', label: 'Perfil e identidade', perm: 'config' },
@@ -157,8 +158,14 @@ function ProfileSection({ s }: { s: S }) {
           </select>
         </Field>
         <label className="check">
-          <input type="checkbox" name="showPrices" defaultChecked={s.showPrices} /> Mostrar os valores dos serviços e planos no site
+          <input type="checkbox" name="showPrices" defaultChecked={s.showPrices} /> Mostrar os valores das consultas no site
         </label>
+        <label className="check">
+          <input type="checkbox" name="showPlanPrices" defaultChecked={s.showPlanPrices} /> Mostrar os valores dos planos de acompanhamento no site (os planos são editados em Financeiro)
+        </label>
+        <Field label="Todos os planos incluem" name="plansIncluded" hint="Um item por linha, no formato Título | texto. Aparece abaixo dos planos no site.">
+          <textarea name="plansIncluded" rows={4} defaultValue={titledText(s.plansIncluded)} />
+        </Field>
         <label className="check">
           <input type="checkbox" name="demoBanner" defaultChecked={s.demoBanner} /> Exibir a faixa “versão de demonstração” no site (desmarque ao publicar com dados reais)
         </label>

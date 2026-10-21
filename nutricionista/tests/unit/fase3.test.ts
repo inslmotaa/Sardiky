@@ -85,3 +85,25 @@ describe('feriados e videochamada', () => {
     expect(jitsiRoom('André Farion', 'ab12cd34ef')).toBe('https://meet.jit.si/AndreFarion-ab12cd34ef')
   })
 })
+
+describe('planos de acompanhamento', () => {
+  it('calcula valor por mês, desconto e "de R$" como no material de divulgação', async () => {
+    const { planPrices, titledLines, titledText } = await import('@/lib/planos')
+    const [m, t, s, a] = planPrices([
+      { priceCents: 25000, months: 1 },
+      { priceCents: 63750, months: 3 },
+      { priceCents: 120000, months: 6 },
+      { priceCents: 225000, months: 12 },
+    ])
+    expect(m).toMatchObject({ monthlyCents: 25000, discountPct: 0, fullCents: null })
+    expect(t).toMatchObject({ monthlyCents: 21250, discountPct: 15, fullCents: 75000 })
+    expect(s).toMatchObject({ monthlyCents: 20000, discountPct: 20, fullCents: 150000 })
+    expect(a).toMatchObject({ monthlyCents: 18750, discountPct: 25, fullCents: 300000 })
+    const items = titledLines('Avaliação física | Presencial ou online.\n\n  Dieta | A cada 15 dias | revisada ')
+    expect(items).toEqual([
+      { title: 'Avaliação física', text: 'Presencial ou online.' },
+      { title: 'Dieta', text: 'A cada 15 dias | revisada' },
+    ])
+    expect(titledLines(titledText(items))).toEqual(items)
+  })
+})

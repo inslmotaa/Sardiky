@@ -392,6 +392,7 @@ a.stat-card:hover {
   margin-left: 2px;
 }
 .input,
+input:not([type]),
 input[type='text'],
 input[type='email'],
 input[type='tel'],
@@ -3588,4 +3589,260 @@ kbd {
 .shopping label.is-done .shopping__name {
   text-decoration: line-through;
   color: var(--muted);
+}
+
+/* ---------------------- planos de acompanhamento ---------------------- */
+.plans {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+@media (min-width: 640px) {
+  .plans {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1000px) {
+  .plans {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 26px 20px 20px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.plan--featured {
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
+  color: #fff;
+  box-shadow: 0 10px 30px rgb(20 50 40 / 0.25);
+}
+.plan__ribbon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.plan__off {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--brand-soft);
+  color: var(--brand-ink);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.plan--featured .plan__off {
+  background: #fff;
+}
+.plan__kicker {
+  margin-top: 6px;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.plan__name {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+.plan__desc {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.plan__monthly {
+  font-weight: 700;
+  color: var(--brand);
+  font-size: 0.95rem;
+}
+.plan__from {
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.plan__price {
+  display: flex;
+  align-items: flex-start;
+  gap: 2px;
+  margin: 10px 0 4px;
+  line-height: 1;
+}
+.plan__cur {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-top: 0.7em;
+}
+.plan__int {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.plan__cents {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-top: 0.2em;
+}
+.plan__months {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.plan__perks {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  font-size: 0.88rem;
+  display: grid;
+  gap: 4px;
+}
+.plan__perks li {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.plan--featured .plan__kicker,
+.plan--featured .plan__desc,
+.plan--featured .plan__from,
+.plan--featured .plan__monthly {
+  color: color-mix(in oklab, #fff 82%, var(--brand));
+}
+.plan--featured .plan__months {
+  border-top-color: rgb(255 255 255 / 0.2);
+}
+.plan--featured .plan__name,
+.plan--featured .plan__price {
+  color: #fff;
+}
+.plans-included h3 svg {
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+.btn--light {
+  --btn-bg: #fff;
+  --btn-fg: var(--brand-ink);
+  --btn-border: #fff;
+}
+.plans-included {
+  margin-top: 28px;
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--brand-softer);
+  border: 1px solid var(--line);
+}
+.plans-included h3,
+.plans-perks__tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.plans-included ul,
+.plans-perks ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.plans-included li,
+.plans-perks li {
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.plans-included li span {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.plans-perks {
+  margin-top: 16px;
+  padding: 24px;
+  border-radius: var(--radius);
+  background: var(--brand-ink);
+  color: #fff;
+}
+.plans-perks__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  font-weight: 600;
+}
+.plans-perks__tag {
+  display: inline-flex;
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand-ink);
+  font-size: 0.75rem;
+}
+.plans-perks li span {
+  font-size: 0.9rem;
+  color: rgb(255 255 255 / 0.82);
+}
+.plans-cta {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.plans-cta p {
+  margin: 0;
+  display: grid;
+  gap: 4px;
+}
+.plans-cta em {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--brand-ink);
+}
+
+/* Prescrição escrita: mantém as quebras de linha digitadas pelo nutricionista. */
+.prescription-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-top: 4px;
 }

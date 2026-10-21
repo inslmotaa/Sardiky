@@ -8,7 +8,10 @@ import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
 import { StoryIntro } from '@/components/StoryIntro'
 import { BookingLink } from '@/components/BookingLink'
 import { WhatsAppContact } from '@/components/WhatsAppContact'
-import { IconCheck, IconClock, IconPin, IconVideo, IconWhatsApp } from '@/components/icons'
+import { IconCalendar, IconCheck, IconClock, IconPin, IconVideo, IconWhatsApp } from '@/components/icons'
+import { monthsLabel, planPrices } from '@/lib/planos'
+
+const listNames = (n: string[]) => (n.length > 1 ? `${n.slice(0, -1).join(', ')} e ${n[n.length - 1]}` : n.join(''))
 
 const MODALITY: Record<string, string> = { presencial: 'Presencial', online: 'On-line', ambos: 'Presencial ou on-line' }
 
@@ -27,10 +30,14 @@ export default async function HomePage() {
       .where(and(eq(schema.testimonials.published, true), isNotNull(schema.testimonials.authorizedAt)))
       .orderBy(asc(schema.testimonials.sort)),
     db.select().from(schema.faqs).where(eq(schema.faqs.published, true)).orderBy(asc(schema.faqs.sort)),
-    db.select().from(schema.packages).where(eq(schema.packages.active, true)).orderBy(asc(schema.packages.priceCents)),
+    db.select().from(schema.packages).where(eq(schema.packages.active, true)).orderBy(asc(schema.packages.sort), asc(schema.packages.months)),
   ])
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de agendar uma consulta.')
   const booking = bookingLink(s)
+  const plans = planPrices(packages)
+  // Benefícios iguais em vários planos aparecem juntos numa faixa, como no material de divulgação.
+  const withPerks = plans.filter((p) => p.perks.length > 0)
+  const sharedPerks = withPerks.length > 1 && withPerks.every((p) => JSON.stringify(p.perks) === JSON.stringify(withPerks[0].perks)) ? withPerks[0].perks : null
   const viaWhatsapp = booking.external
 
   return (
@@ -166,38 +173,97 @@ export default async function HomePage() {
       </section>
 
       {/* ---------------------- PLANOS DE ACOMPANHAMENTO ---------------------- */}
-      {packages.length > 0 && (
+      {plans.length > 0 && (
         <section className="section section--alt" id="planos">
           <div className="container">
             <div className="section__head">
-              <span className="eyebrow">Planos de acompanhamento</span>
-              <h2>Acompanhamento contínuo, não uma consulta isolada</h2>
-              <p className="muted">Todos os planos incluem o app do paciente com o plano alimentar, registro diário e mensagens.</p>
+              <span className="eyebrow">Planos de acompanhamento nutricional</span>
+              <h2>Nutrição é investimento em você</h2>
+              <p className="muted">Mais saúde, performance e resultados com um plano que cabe na sua rotina.</p>
             </div>
-            <div className="grid-3">
-              {packages.map((pk, i) => (
-                <article key={pk.id} className={`card service-card${i === 1 ? ' card--soft' : ''}`}>
-                  {i === 1 && <span className="badge badge--brand" style={{ alignSelf: 'flex-start' }}>Mais escolhido</span>}
-                  <h3 style={{ margin: 0 }}>{pk.name}</h3>
-                  <p className="muted" style={{ margin: 0 }}>
-                    {pk.description}
-                  </p>
-                  <div className="service-card__meta">
-                    <span>{pk.sessions} consultas</span>
-                    <span>·</span>
-                    <span>{pk.validityDays} dias de acompanhamento</span>
+            <div className="plans">
+              {plans.map((pk) => (
+                <article key={pk.id} className={`plan${pk.highlight ? ' plan--featured' : ''}`}>
+                  {pk.highlight && <span className="plan__ribbon">{pk.highlight}</span>}
+                  {s.showPlanPrices && pk.discountPct > 0 && <span className="plan__off">{pk.discountPct}% de desconto</span>}
+                  <span className="plan__kicker">Plano</span>
+                  <h3 className="plan__name">{pk.name}</h3>
+                  {pk.description && <p className="plan__desc">{pk.description}</p>}
+                  {s.showPlanPrices && (
+                    <>
+                      <div className="plan__monthly">{money(pk.monthlyCents)}/mês</div>
+                      {pk.fullCents && <div className="plan__from">de {money(pk.fullCents)}</div>}
+                      <div className="plan__price" aria-label={money(pk.priceCents)}>
+                        <span className="plan__cur">R$</span>
+                        <span className="plan__int">{Math.floor(pk.priceCents / 100).toLocaleString('pt-BR')}</span>
+                        <span className="plan__cents">,{String(pk.priceCents % 100).padStart(2, '0')}</span>
+                      </div>
+                    </>
+                  )}
+                  <div className="plan__months">
+                    <IconCalendar width={16} height={16} /> {monthsLabel(pk.months)}
                   </div>
-                  {s.showPrices && <div className="service-card__price">{money(pk.priceCents)}</div>}
+                  {pk.perks.length > 0 && !sharedPerks && (
+                    <ul className="plan__perks">
+                      {pk.perks.map((x) => (
+                        <li key={x.title}>
+                          <IconCheck width={16} height={16} /> {x.title}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <a
-                    href={whatsappLink(s.whatsapp, `Olá! Tenho interesse no plano ${pk.name}.`) ?? '/agendar'}
-                    className="btn btn--block btn--primary"
+                    href={whatsappLink(s.whatsapp, `Olá! Vim pelo site e tenho interesse no plano ${pk.name}.`) ?? '/#contato'}
+                    className={`btn btn--block ${pk.highlight ? 'btn--light' : 'btn--primary'}`}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Quero este plano
+                    Quero o plano {pk.name}
                   </a>
                 </article>
               ))}
+            </div>
+
+            {s.plansIncluded.length > 0 && (
+              <div className="plans-included">
+                <h3>
+                  <IconCheck /> Todos os planos incluem
+                </h3>
+                <ul>
+                  {s.plansIncluded.map((it) => (
+                    <li key={it.title}>
+                      <strong>{it.title}</strong>
+                      {it.text && <span>{it.text}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {sharedPerks && (
+              <div className="plans-perks">
+                <p className="plans-perks__head">
+                  <span className="plans-perks__tag">Benefícios exclusivos</span> para os planos {listNames(plans.filter((p) => p.perks.length).map((p) => p.name))}
+                </p>
+                <ul>
+                  {sharedPerks.map((x) => (
+                    <li key={x.title}>
+                      <strong>{x.title}</strong>
+                      {x.text && <span>{x.text}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            <div className="plans-cta">
+              <p>
+                <em>Seu corpo agradece com resultados!</em>
+                <span className="muted small">Mais que dieta, um estilo de vida.</span>
+              </p>
+              <BookingLink to={bookingLink(s, 'Olá! Vim pelo site e gostaria de agendar minha avaliação.')} className="btn btn--primary btn--lg">
+                {viaWhatsapp && <IconWhatsApp />} Agende sua avaliação
+              </BookingLink>
             </div>
           </div>
         </section>

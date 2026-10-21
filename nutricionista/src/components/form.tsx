@@ -6,6 +6,7 @@ import {
   useActionState,
   useContext,
   useEffect,
+  useId,
   useRef,
   type ReactNode,
 } from 'react'
@@ -14,7 +15,8 @@ import type { ActionState } from '@/lib/action'
 
 type Action = (state: ActionState, data: FormData) => Promise<ActionState>
 
-const FormContext = createContext<{ errors?: Record<string, string>; pending: boolean }>({ pending: false })
+// uid: prefixo único por formulário, para que vários formulários na mesma página (ex.: editar cada item de uma lista) não repitam ids.
+const FormContext = createContext<{ errors?: Record<string, string>; pending: boolean; uid?: string }>({ pending: false })
 
 /**
  * Formulário ligado a uma Server Action, com mensagens de sucesso/erro.
@@ -39,6 +41,7 @@ export function ActionForm({
   encType?: 'multipart/form-data'
 }) {
   const [state, formAction, pending] = useActionState(action, {})
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '')
   const ref = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
@@ -60,7 +63,7 @@ export function ActionForm({
         startTransition(() => formAction(fd))
       }}
     >
-      <FormContext.Provider value={{ errors: state.fieldErrors, pending }}>
+      <FormContext.Provider value={{ errors: state.fieldErrors, pending, uid }}>
         {children}
         <FormMessage state={state} />
       </FormContext.Provider>
@@ -112,7 +115,8 @@ export function Field({
   className?: string
 }) {
   const error = useFieldError(name)
-  const id = `f-${name}`
+  const uid = useContext(FormContext).uid
+  const id = uid ? `f-${uid}-${name}` : `f-${name}`
   return (
     <div className={`field ${className ?? ''}`} data-invalid={error ? 'true' : undefined}>
       <label htmlFor={id}>

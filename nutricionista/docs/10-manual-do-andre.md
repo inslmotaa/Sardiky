@@ -28,7 +28,7 @@ Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua á
    - ao clicar em **Liberar para o paciente**, o plano aparece na hora no app do cliente, com notificação no celular. O PDF com sua assinatura fica disponível para os dois.
 6. **Extras para o cliente:**
    - receitas e materiais educativos (PDF, vídeo, link);
-   - suplementos e exames na aba **Prescrições**;
+   - prescrições na aba **Prescrições**. Em **Escrever prescrição**, o André digita livremente: suplementos, manipulados, ergogênicos, alimentos, quantidades, horários e orientações. As quebras de linha são mantidas no app do cliente e no PDF. Há também os tipos Suplemento, Manipulado, Ergogênico, Fitoterápico, Alimentação, Exame e Outro, com dose, horário e duração opcionais. Cada prescrição pode ser editada (o cliente é avisado) ou encerrada;
    - metas na aba **Metas**.
 
 ### Acompanhamento do dia a dia
@@ -36,7 +36,12 @@ Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua á
 - **Acompanhamento:** mostra quem está em dia, com dificuldade ou sem progresso, pela adesão dos últimos 7 dias. Quem está há 3 dias sem registrar gera um alerta.
 - **Mensagens:** é o chat com cada cliente. Dá para responder a uma refeição do diário com foto, mandar áudio e usar respostas rápidas. Fora do horário configurado, o cliente recebe uma resposta automática.
 - **Agenda:** consultas, confirmação de presença, link de videochamada e feriados.
-- **Financeiro:** pagamentos, inadimplência e cobrança pelo WhatsApp. Os valores ficam só no painel e não aparecem no site.
+- **Financeiro:** pagamentos, inadimplência e cobrança pelo WhatsApp.
+- **Planos de acompanhamento** (Mensal R$ 250, Trimestral R$ 637,50, Semestral R$ 1.200 e Anual R$ 2.250):
+  - são editados em **Financeiro → Planos de acompanhamento**: nome, meses, valor total, selo de destaque e benefícios exclusivos;
+  - o valor por mês, o desconto e o "de R$ …" aparecem sozinhos no site;
+  - o botão de cada plano abre o WhatsApp com o nome do plano;
+  - os valores das consultas continuam fora do site.
 
 ### Configurações importantes
 
@@ -44,7 +49,8 @@ Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua á
 |---|---|
 | Configurações → Perfil | CRN, biografia, foto, logo, WhatsApp, Instagram |
 | Configurações → Perfil | **Botão "Agendar consulta" do site**: WhatsApp (padrão) ou agenda on-line |
-| Configurações → Perfil | **Mostrar os valores no site** (desligado por padrão) |
+| Configurações → Perfil | **Mostrar os valores das consultas no site** (desligado por padrão) |
+| Configurações → Perfil | **Mostrar os valores dos planos** (ligado) e a lista **Todos os planos incluem** |
 | Configurações → Equipe | Convidar recepção ou outro nutricionista. Cada um pode ver só os próprios clientes. |
 | Privacidade e auditoria | Quem acessou o quê, pedidos de exportação e exclusão de dados (LGPD) |
 

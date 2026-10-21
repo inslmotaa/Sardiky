@@ -11,6 +11,7 @@ import { parseMoney } from '@/lib/format'
 import { getSettings } from '@/lib/settings'
 import { todayIn } from '@/lib/time'
 import { int, optDay, optStr, str, uuid } from '@/lib/validation'
+import { titledLines } from '@/lib/planos'
 
 const money = (msg = 'Valor inválido') =>
   z
@@ -123,26 +124,45 @@ export async function chargeAppointment(appointmentId: string): Promise<void> {
 }
 
 const packageSchema = z.object({
-  name: str(80, 'Dê um nome ao pacote'),
+  id: z.string().optional(),
+  name: str(80, 'Dê um nome ao plano'),
   description: optStr(300),
-  sessions: int(1, 50),
+  months: int(1, 36),
   price: z
     .string()
     .transform((v) => parseMoney(v))
     .refine((v) => v !== null && v > 0, 'Valor inválido'),
-  validityDays: int(7, 730),
+  highlight: optStr(40),
+  perks: z.string().max(2000).optional(),
+  sort: int(0, 99),
 })
 
+/** Cria ou atualiza um plano de acompanhamento (o que aparece na seção "Planos" do site). */
 export async function savePackage(_: ActionState, fd: FormData): Promise<ActionState> {
   const parsed = packageSchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
   try {
     const user = await ensureFinance()
-    const { price, ...rest } = parsed.data
-    await db.insert(schema.packages).values({ ...rest, description: rest.description ?? '', priceCents: price! })
-    await audit(user, 'pacote_criado', 'pacote', { details: { nome: rest.name } })
+    const { id, price, perks, ...rest } = parsed.data
+    const values = {
+      ...rest,
+      description: rest.description ?? '',
+      priceCents: price!,
+      // Validade usada no financeiro: a duração do plano em dias.
+      validityDays: rest.months === 12 ? 365 : rest.months * 30,
+      perks: titledLines(perks),
+    }
+    if (id) {
+      if (!uuid.safeParse(id).success) return { error: 'Plano inválido.' }
+      await db.update(schema.packages).set(values).where(eq(schema.packages.id, id))
+      await audit(user, 'pacote_atualizado', 'pacote', { entityId: id, details: { nome: rest.name } })
+    } else {
+      await db.insert(schema.packages).values(values)
+      await audit(user, 'pacote_criado', 'pacote', { details: { nome: rest.name } })
+    }
     revalidatePath('/admin/financeiro')
-    return { ok: true, message: 'Pacote criado.' }
+    revalidatePath('/')
+    return { ok: true, message: id ? 'Plano atualizado.' : 'Plano criado.' }
   } catch (err) {
     return failure(err)
   }
@@ -156,4 +176,5 @@ export async function togglePackage(id: string): Promise<void> {
   await db.update(schema.packages).set({ active: !p.active }).where(eq(schema.packages.id, id))
   await audit(user, p.active ? 'pacote_desativado' : 'pacote_ativado', 'pacote', { entityId: id })
   revalidatePath('/admin/financeiro')
+  revalidatePath('/')
 }

@@ -13,6 +13,7 @@ import { onlyDigits, parseMoney } from '@/lib/format'
 import { sendEmail } from '@/lib/notify'
 import { IMAGE_TYPES, saveUpload } from '@/lib/storage'
 import { checkbox, email, int, optDay, optEmail, optStr, str, time, uuid } from '@/lib/validation'
+import { titledLines } from '@/lib/planos'
 
 const lines = (v: string | null | undefined) =>
   (v ?? '')
@@ -61,6 +62,8 @@ const profileSchema = z.object({
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida'),
   demoBanner: checkbox,
   showPrices: checkbox,
+  showPlanPrices: checkbox,
+  plansIncluded: z.string().max(3000).optional(),
   bookingChannel: z.enum(['whatsapp', 'site']),
 })
 
@@ -79,6 +82,7 @@ export async function saveProfile(_: ActionState, fd: FormData): Promise<ActionS
       specialties: lines(d.specialties),
       differentials: lines(d.differentials),
       howItWorks,
+      plansIncluded: titledLines(d.plansIncluded),
       updatedAt: new Date(),
     }
     for (const kind of ['photo', 'logo'] as const) {

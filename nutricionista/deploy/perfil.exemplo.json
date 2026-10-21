@@ -49,7 +49,8 @@
   "anamneseUrl": "https://forms.gle/8EkK8XcNE35ydHYKA",
   "site": {
     "agendamento": "whatsapp",
-    "mostrarValores": false
+    "mostrarValores": false,
+    "mostrarValoresPlanos": true
   },
   "agenda": {
     "fusoHorario": "America/Sao_Paulo",
@@ -166,6 +167,67 @@
       "descricao": "PREENCHER: o que inclui, por quanto tempo e como é o acompanhamento.",
       "modalidade": "online",
       "duracaoMinutos": 50
+    }
+  ],
+  "planos": [
+    {
+      "nome": "Mensal",
+      "meses": 1,
+      "preco": 250
+    },
+    {
+      "nome": "Trimestral",
+      "meses": 3,
+      "preco": 637.5
+    },
+    {
+      "nome": "Semestral",
+      "meses": 6,
+      "preco": 1200,
+      "beneficiosExclusivos": [
+        {
+          "titulo": "Vale avaliação física",
+          "texto": "Avaliação física completa sem custo adicional."
+        },
+        {
+          "titulo": "Desconto em produtos selecionados",
+          "texto": "Até 15% de desconto em produtos do nosso parceiro de suplementos e nutrição esportiva."
+        }
+      ]
+    },
+    {
+      "nome": "Anual",
+      "meses": 12,
+      "preco": 2250,
+      "destaque": "Melhor custo-benefício",
+      "beneficiosExclusivos": [
+        {
+          "titulo": "Vale avaliação física",
+          "texto": "Avaliação física completa sem custo adicional."
+        },
+        {
+          "titulo": "Desconto em produtos selecionados",
+          "texto": "Até 15% de desconto em produtos do nosso parceiro de suplementos e nutrição esportiva."
+        }
+      ]
+    }
+  ],
+  "planosIncluem": [
+    {
+      "titulo": "Avaliação física",
+      "texto": "Presencial ou online."
+    },
+    {
+      "titulo": "Anamnese completa",
+      "texto": "Histórico de saúde, rotina e objetivos."
+    },
+    {
+      "titulo": "Dieta personalizada",
+      "texto": "Atualizada a cada 15 dias."
+    },
+    {
+      "titulo": "Manipulados e ergogênicos",
+      "texto": "Acompanhamento com orientações e ajustes individuais."
     }
   ],
   "perguntasFrequentes": [

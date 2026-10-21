@@ -7,8 +7,9 @@ import { getSettings } from '@/lib/settings'
 import { addMonths, capitalize, monthName, startOfMonth, todayIn } from '@/lib/time'
 import { money } from '@/lib/format'
 import { integrationStatus } from '@/lib/integrations'
-import { savePackage, togglePackage } from '@/actions/admin/finance'
-import { ActionForm, Field, SubmitButton } from '@/components/form'
+import { togglePackage } from '@/actions/admin/finance'
+import { PackageForm } from '@/components/PackageForm'
+import { monthsLabel, planPrices } from '@/lib/planos'
 import { PaymentForm } from '@/components/PaymentForm'
 import { PaymentsTable } from '@/components/PaymentsTable'
 import { DemoTag, NoAccess, PageHead, Stat } from '@/components/ui'
@@ -58,9 +59,10 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
       .where(and(eq(schema.payments.status, 'pago'), gte(schema.payments.paidAt, addMonths(month, -11)), lt(schema.payments.paidAt, next)))
       .groupBy(sql`to_char(${schema.payments.paidAt}, 'YYYY-MM')`)
       .orderBy(sql`to_char(${schema.payments.paidAt}, 'YYYY-MM')`),
-    db.select().from(schema.packages).orderBy(asc(schema.packages.name)),
+    db.select().from(schema.packages).orderBy(asc(schema.packages.sort), asc(schema.packages.months)),
     db.select({ id: schema.patients.id, name: schema.patients.fullName }).from(schema.patients).where(isNull(schema.patients.anonymizedAt)).orderBy(asc(schema.patients.fullName)),
   ])
+  const plans = planPrices(packages)
   const received = rows.filter((r) => r.pay.status === 'pago').reduce((n, r) => n + r.pay.amountCents - r.pay.discountCents, 0)
   const discounts = rows.filter((r) => r.pay.status === 'pago').reduce((n, r) => n + r.pay.discountCents, 0)
   const maxMonth = Math.max(1, ...monthly.map((m) => m.v))
@@ -152,47 +154,44 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
             </p>
           </div>
           <div className="card">
-            <h2 style={{ fontSize: '1.1rem' }}>Pacotes de acompanhamento</h2>
+            <h2 style={{ fontSize: '1.1rem' }}>Planos de acompanhamento</h2>
+            <p className="small muted" style={{ marginTop: 0 }}>
+              Aparecem na seção “Planos” do site{s.showPlanPrices ? ', com os valores' : ', sem os valores'} (ajuste em Configurações → Perfil).
+            </p>
             <ul className="list">
-              {packages.map((p) => (
-                <li key={p.id} className="row row--between">
-                  <span>
-                    <strong>{p.name}</strong> · {money(p.priceCents)} · {p.sessions} consultas · {p.validityDays} dias
-                    {p.description && <div className="small muted">{p.description}</div>}
-                  </span>
-                  <form action={togglePackage.bind(null, p.id)}>
-                    <button className="link-btn small" type="submit">
-                      {p.active ? 'Desativar' : 'Ativar'}
-                    </button>
-                  </form>
+              {plans.map((p) => (
+                <li key={p.id} style={{ opacity: p.active ? 1 : 0.55 }}>
+                  <div className="row row--between" style={{ alignItems: 'flex-start' }}>
+                    <span>
+                      <strong>{p.name}</strong> · {money(p.priceCents)} · {monthsLabel(p.months)}
+                      {p.months > 1 && (
+                        <span className="small muted">
+                          {' '}
+                          ({money(p.monthlyCents)}/mês{p.discountPct > 0 ? `, ${p.discountPct}% de desconto` : ''})
+                        </span>
+                      )}
+                      {p.highlight && <span className="badge badge--brand" style={{ marginLeft: 6 }}>{p.highlight}</span>}
+                      {!p.active && <span className="badge badge--warn" style={{ marginLeft: 6 }}>Inativo</span>}
+                    </span>
+                    <form action={togglePackage.bind(null, p.id)}>
+                      <button className="link-btn small" type="submit">
+                        {p.active ? 'Desativar' : 'Ativar'}
+                      </button>
+                    </form>
+                  </div>
+                  <details className="disclosure" style={{ marginTop: 6 }}>
+                    <summary>Editar {p.name}</summary>
+                    <div>
+                      <PackageForm pk={p} />
+                    </div>
+                  </details>
                 </li>
               ))}
             </ul>
             <details className="disclosure" style={{ marginTop: 12 }}>
-              <summary>Novo pacote</summary>
+              <summary>Novo plano</summary>
               <div>
-                <ActionForm action={savePackage} className="stack" resetOnSuccess>
-                  <Field label="Nome" name="name">
-                    <input name="name" maxLength={80} />
-                  </Field>
-                  <Field label="Descrição" name="description">
-                    <input name="description" maxLength={300} />
-                  </Field>
-                  <div className="form-grid form-grid--3">
-                    <Field label="Consultas" name="sessions">
-                      <input name="sessions" inputMode="numeric" defaultValue="3" />
-                    </Field>
-                    <Field label="Valor (R$)" name="price">
-                      <input name="price" inputMode="decimal" />
-                    </Field>
-                    <Field label="Validade (dias)" name="validityDays">
-                      <input name="validityDays" inputMode="numeric" defaultValue="90" />
-                    </Field>
-                  </div>
-                  <div>
-                    <SubmitButton>Criar pacote</SubmitButton>
-                  </div>
-                </ActionForm>
+                <PackageForm />
               </div>
             </details>
           </div>

@@ -36,6 +36,13 @@
       "when": 1792546188441,
       "tag": "0004_site_whatsapp",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792620738126,
+      "tag": "0005_planos_e_prescricao_livre",
+      "breakpoints": true
     }
   ]
 }

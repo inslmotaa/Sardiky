@@ -14,6 +14,7 @@ import { DOC_TYPES, IMAGE_TYPES, saveUpload } from '@/lib/storage'
 import { checkbox, optNum, optStr, str, uuid } from '@/lib/validation'
 import { notifyUser } from '@/lib/notify'
 import { pushToUser } from '@/lib/push'
+import { PRESCRIPTION_TYPE_KEYS } from '@/lib/constants'
 
 /* ------------------------------ receitas ------------------------------ */
 
@@ -172,29 +173,46 @@ export async function toggleMaterial(id: string, active: boolean): Promise<void>
 
 /* ------------------------------ prescrições ------------------------------ */
 
-const prescriptionSchema = z.object({
-  type: z.enum(['suplemento', 'fitoterapico', 'exame'], 'Escolha o tipo'),
-  name: str(160, 'Informe o nome'),
-  dose: optStr(160),
-  schedule: optStr(160),
-  duration: optStr(120),
-  notes: optStr(1000),
-})
+const prescriptionSchema = z
+  .object({
+    id: z.string().optional(),
+    type: z.enum(PRESCRIPTION_TYPE_KEYS, 'Escolha o tipo'),
+    name: str(160, 'Informe um título'),
+    dose: optStr(160),
+    schedule: optStr(160),
+    duration: optStr(120),
+    // Prescrição escrita: texto livre com suplementos, manipulados, orientações alimentares etc.
+    notes: optStr(8000),
+  })
+  .refine((d) => d.type !== 'livre' || !!d.notes, { path: ['notes'], message: 'Escreva a prescrição' })
 
-export async function addPrescription(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
+/** Registra ou edita uma prescrição do paciente (visível no app e no PDF do plano). */
+export async function savePrescription(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
   const parsed = prescriptionSchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
+  const { id, ...data } = parsed.data
   try {
     const user = await requireTeam('clinico')
-    if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    if (!uuid.safeParse(patientId).success || (id && !uuid.safeParse(id).success)) return { error: 'Paciente inválido.' }
     await assertPatientAccess(user, patientId)
     const [p] = await db.select({ userId: schema.patients.userId }).from(schema.patients).where(eq(schema.patients.id, patientId))
     if (!p) return { error: 'Paciente não encontrado.' }
-    await db.insert(schema.prescriptions).values({ ...parsed.data, patientId, createdBy: user.id })
-    if (p.userId) await notifyUser(p.userId, parsed.data.type === 'exame' ? 'Exame solicitado' : 'Nova prescrição', parsed.data.name, '/paciente/plano#prescricoes')
-    await audit(user, 'prescricao_criada', 'prescricao', { patientId, details: { tipo: parsed.data.type } })
+    if (id) {
+      const done = await db
+        .update(schema.prescriptions)
+        .set(data)
+        .where(and(eq(schema.prescriptions.id, id), eq(schema.prescriptions.patientId, patientId)))
+        .returning({ id: schema.prescriptions.id })
+      if (!done.length) return { error: 'Prescrição não encontrada.' }
+      if (p.userId) await notifyUser(p.userId, 'Prescrição atualizada', data.name, '/paciente/plano#prescricoes')
+      await audit(user, 'prescricao_editada', 'prescricao', { entityId: id, patientId, details: { tipo: data.type } })
+    } else {
+      await db.insert(schema.prescriptions).values({ ...data, patientId, createdBy: user.id })
+      if (p.userId) await notifyUser(p.userId, data.type === 'exame' ? 'Exame solicitado' : 'Nova prescrição', data.name, '/paciente/plano#prescricoes')
+      await audit(user, 'prescricao_criada', 'prescricao', { patientId, details: { tipo: data.type } })
+    }
     revalidatePath(`/admin/pacientes/${patientId}`)
-    return { ok: true, message: 'Prescrição registrada e visível no app do paciente.' }
+    return { ok: true, message: id ? 'Prescrição atualizada no app do paciente.' : 'Prescrição registrada e visível no app do paciente.' }
   } catch (err) {
     return failure(err)
   }
