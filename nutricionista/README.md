@@ -6,6 +6,7 @@ Primeira versão utilizável, com **dados fictícios** (nenhum paciente real).
 - **Site público:** abertura em storytelling animado, apresentação, serviços e valores, como funciona, depoimentos autorizados, dúvidas, contato com WhatsApp e formulário, política de privacidade.
 - **Agendamento on-line:** horários livres calculados a partir do expediente, bloqueios e consultas existentes; nenhum horário pode ser reservado duas vezes.
 - **App do paciente (celular primeiro, instalável):** tela **Hoje** com a próxima refeição e marcação feita/parcial/pulada, contador de água, registro rápido de peso; **Plano** com dias (treino/descanso), opções por refeição, substituições aprovadas e **PDF com a marca**; **Diário** por refeição (“segui o plano”, “segui em parte”, “comi outra coisa” com busca de alimentos, foto, fome, saciedade e humor); **Progresso** com constância semanal, metas, gráficos e fotos de evolução lado a lado; **chat** com fotos, PDF e áudio curto; **notificações push** (refeições, água, plano novo, mensagens, consultas) e plano disponível **sem internet**. O André escolhe, por paciente, se calorias, macros, diário, chat e calculadoras aparecem.
+- **Gestão (Fase 3):** agenda com confirmação de presença, pedido de remarcação e avaliação da consulta pelo paciente, sala de videochamada gerada no Jitsi, feriados nacionais bloqueados com um clique e lembretes 24 h/2 h; **anamnese nativa** com seções, escala, envio de exames, consentimento e respostas que viram restrições na ficha (com alerta no editor de planos) e webhook para Google Forms/Tally; **receitas** com cálculo automático e vínculo ao plano; **materiais educativos**; **lista de compras** da semana gerada do plano; **prescrições** de suplementos e exames; pagamentos **atrasados** com cobrança pelo WhatsApp; **nutricionistas que veem só os próprios pacientes**; assinatura e logo no PDF e refeições padrão dos planos novos.
 - **Painel:** **Acompanhamento** (quem está em dia, com dificuldade ou sem progresso, com mensagem rápida); **avaliações antropométricas** com dobras (Jackson-Pollock 3 e 7, Durnin-Womersley), bioimpedância, circunferências, massa magra e RCQ; editor de planos com **cálculo automático** (base de alimentos com medidas caseiras, metas de kcal e macros, sugestão de substituições equivalentes, desfazer/refazer, prévia no celular) e revisão obrigatória antes de ativar; base de alimentos (inclui cadastro por rótulo); calculadoras (porções, IMC, TMB/GET, macros, água, projeção); agenda dia/semana/mês, prontuário, formulários, financeiro, relatórios CSV, equipe com permissões, LGPD e auditoria.
 
 ## Como rodar no computador
@@ -27,6 +28,7 @@ npm run dev     # abra http://localhost:3000
 | Paciente 2 | lucas@example.com | Paciente#Demo2026 |
 
 | Paciente 3 | helena@example.com | Paciente#Demo2026 |
+| Nutricionista 2 (vê só os próprios pacientes) | nutri2@example.com | Equipe#Demo2026 |
 
 `npm run setup` apaga e recria os dados de demonstração (ele se recusa a rodar em produção). Em desenvolvimento, o banco embutido e os arquivos enviados ficam em `~/.consultorio-nutri/` — fora do projeto, para o servidor não recarregar a página a cada gravação. Se o banco local for corrompido (por exemplo, ao fechar o servidor à força), apague essa pasta e rode `npm run setup` de novo.
 
@@ -68,4 +70,5 @@ Os valores nutricionais da base inicial (`src/db/foods-taco.ts`, 60 alimentos) t
 - [Testes](docs/04-testes.md)
 - [Fase 1 da plataforma: o que foi entregue e o que falta](docs/06-fase-1.md)
 - [Fase 2 — Acompanhamento: o que foi entregue e o que falta](docs/07-fase-2.md)
+- [Fase 3 — Gestão: o que foi entregue, webhook da anamnese e o que falta](docs/08-fase-3.md)
 - [Próximos passos: informações do André, consultoria de dieta e treino, aplicativo](docs/05-proximos-passos.md)

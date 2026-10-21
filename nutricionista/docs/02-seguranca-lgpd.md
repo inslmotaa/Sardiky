@@ -16,6 +16,7 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 |---|---|
 | Nutricionista (admin) | Tudo |
 | Equipe (staff) | Somente as áreas liberadas: agenda, cadastro, dados clínicos, financeiro, relatórios, conteúdo do site. Configurações e LGPD ficam restritas ao administrador. |
+| Nutricionista da equipe (“só os próprios pacientes”) | Ficha, planos, diário, chat, acompanhamento, agenda, arquivos e avisos apenas dos pacientes em que é o responsável; os demais respondem como “não encontrado”. |
 | Paciente | Apenas os próprios dados. O identificador do paciente vem **sempre da sessão**, nunca de um parâmetro da URL. |
 
 - Cada Server Action e rota verifica permissão no servidor (não basta esconder botões).
@@ -33,6 +34,8 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 - Exportações CSV protegidas contra injeção de fórmulas.
 - Campo-isca e limite de envios nos formulários públicos contra robôs.
 - Nenhuma chave secreta é enviada ao navegador; segredos ficam em variáveis de ambiente (`.env` não é versionado). No push, só a chave **pública** VAPID vai para o navegador.
+- Webhook da anamnese externa protegido por segredo (`ANAMNESE_WEBHOOK_SECRET`), com limite de chamadas e validação dos dados; sem o segredo configurado, a rota recusa tudo.
+- Exames enviados na anamnese ficam na pasta privada, visíveis só ao paciente e à equipe clínica. Fotos de receitas não são dados pessoais e podem ser vistas por qualquer paciente.
 - Microfone liberado apenas para o próprio site (áudio curto do chat), via `Permissions-Policy`.
 
 ## App instalável e dados no aparelho
@@ -50,7 +53,7 @@ Ficam registrados com data, usuário e IP: logins (inclusive falhos), visualiza�
 
 | Princípio / direito | Como o sistema atende |
 |---|---|
-| Base legal e consentimento | Consentimento registrado (tipo, versão da política e data) no agendamento, no formulário de contato, no primeiro acesso e nos termos assinados pelo paciente. |
+| Base legal e consentimento | Consentimento registrado (tipo, versão da política e data) no agendamento, no formulário de contato, no primeiro acesso, nos termos assinados pelo paciente e **antes da anamnese** (autorização específica para dados de saúde). |
 | Minimização | Formulários públicos pedem só nome e contato; os formulários clínicos são configuráveis e o construtor lembra de pedir só o necessário. |
 | Acesso e portabilidade | Paciente baixa os próprios dados em JSON (“Meus dados”). |
 | Correção, eliminação, revogação | Solicitação pela área do paciente → fila em “Privacidade e auditoria” com resposta registrada. |

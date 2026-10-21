@@ -23,6 +23,7 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Arquivos e exportação | tipo detectado pelo conteúdo (HTML disfarçado é recusado); CSV protegido contra fórmulas |
 | Cálculos nutricionais | Mifflin F 70 kg/165 cm/30 anos = 1.420,25 kcal e ×1,55 = 2.201,4; IMC 70/1,65 = 25,7 (sobrepeso; Lipschitz a partir de 60 anos); faixa de peso saudável; Harris-Benedict, Katch-McArdle, Cunningham; macros por % e g/kg; água por ml/kg; 150 g de alimento com 128 kcal/100 g = 192 kcal; medida caseira ↔ gramas; cru ↔ cozido; substituições sugeridas dentro de ±10% e no mesmo grupo; busca tolerante a acentos e erros de digitação; plural de medidas |
 | Composição corporal | Siri; Jackson-Pollock 3 dobras (homem e mulher, dobras certas por sexo); Jackson-Pollock 7 dobras; Durnin-Womersley com coeficiente por faixa etária; dobra faltando não calcula; massa magra |
+| Lista de compras, restrições, feriados | soma semanal por dia da semana, cozido → cru pelo fator de cocção, unidades; alertas de lactose/glúten/vegetariano/ovo (com exceções “sem lactose” e “pão de queijo”); Páscoa 2025–2027, Carnaval, Sexta-feira Santa, Corpus Christi; nome da sala do Jitsi |
 | Adesão ao plano | feita = 1, parcial = ½; dias antes do plano não contam; dias da semana com números diferentes de refeições; limites configuráveis; sequência de dias; adesão semanal |
 | Validação | formulários configuráveis (obrigatórios, opções inválidas, campos desconhecidos descartados); plano alimentar v2 (dias, opções, itens calculados) e conversão de planos antigos; valores em reais; telefones |
 
@@ -56,6 +57,17 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Sem internet | depois do primeiro acesso, o plano abre com o aparelho off-line |
 | PDF e metas | PDF do plano (paciente só o próprio); paciente marca meta como concluída |
 | Tarefa agendada | `/api/cron` roda os lembretes com o segredo |
+| Restrições no editor | ficha com lactose → aviso no topo do editor, ⚠ nos alimentos e alerta ao adicionar queijo |
+| Anamnese nativa | seções, exige consentimento para dados de saúde, restrições marcadas vão para a ficha |
+| Receitas | cadastro com cálculo (150 g de arroz = 192 kcal), uso no editor como “Receita: …”, biblioteca do paciente |
+| Lista de compras | itens da semana agrupados, cozidos em peso cru, marcação persiste |
+| Prescrições | registro no painel aparece no plano do paciente |
+| Agenda | paciente confirma presença, vê o link do Jitsi, pede remarcação e avalia a consulta |
+| Feriados | 10 feriados nacionais de 2027 bloqueados; repetir não duplica |
+| Equipe | nutricionista com pacientes próprios não vê a ficha de outros (404), nem no acompanhamento e nas mensagens |
+| Materiais | material para todos × para pacientes escolhidos |
+| Financeiro | pendente vencido aparece como “Atrasado”, com link de cobrança pelo WhatsApp |
+| Webhook | sem segredo → 401; com segredo cria paciente e leva restrições à ficha |
 | Portabilidade | exportação JSON do próprio paciente sem notas clínicas internas |
 
 ## Revisão manual recomendada antes da produção

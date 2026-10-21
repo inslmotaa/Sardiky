@@ -10,7 +10,7 @@ export async function GET() {
   const pid = user.patientId
   const [patient] = await db.select().from(schema.patients).where(eq(schema.patients.id, pid))
   const by = <T,>(p: Promise<T>) => p
-  const [appointments, measurements, goals, plans, diary, messages, forms, consents, files, mealLogs, water, photos, prefs] = await Promise.all([
+  const [appointments, measurements, goals, plans, diary, messages, forms, consents, files, mealLogs, water, photos, prefs, prescriptions] = await Promise.all([
     by(db.select().from(schema.appointments).where(eq(schema.appointments.patientId, pid))),
     by(db.select().from(schema.measurements).where(eq(schema.measurements.patientId, pid))),
     by(db.select().from(schema.goals).where(eq(schema.goals.patientId, pid))),
@@ -24,6 +24,7 @@ export async function GET() {
     by(db.select().from(schema.waterLogs).where(eq(schema.waterLogs.patientId, pid))),
     by(db.select({ data: schema.progressPhotos.date, angulo: schema.progressPhotos.angle, arquivo: schema.progressPhotos.fileId }).from(schema.progressPhotos).where(eq(schema.progressPhotos.patientId, pid))),
     by(db.select({ notificacoes: schema.users.notificationPrefs }).from(schema.users).where(eq(schema.users.id, user.id))),
+    by(db.select().from(schema.prescriptions).where(eq(schema.prescriptions.patientId, pid))),
   ])
   const data = {
     geradoEm: new Date().toISOString(),
@@ -38,6 +39,7 @@ export async function GET() {
     agua: water,
     fotosDeEvolucao: photos,
     preferenciasDeNotificacao: prefs[0]?.notificacoes ?? null,
+    prescricoes: prescriptions,
     mensagens: messages,
     formularios: forms,
     consentimentos: consents,

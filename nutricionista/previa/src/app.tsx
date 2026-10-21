@@ -19,6 +19,10 @@ import { ChatThread, type ChatMessage } from '@/components/nutri/ChatThread'
 import { QuickMessage } from '@/components/nutri/QuickMessage'
 import { AdherenceBars } from '@/components/AdherenceBars'
 import { adherence, ADHERENCE_LABEL, classify, streak, weeklyAdherence, type AdherenceClass } from '@/lib/acompanhamento'
+import { shoppingList, shoppingQuantity } from '@/lib/compras'
+import { recipeNutrients, scale } from '@/lib/nutricao'
+import { ShoppingList } from '@/components/nutri/ShoppingList'
+import { NutriInline } from '@/components/nutri/MacroBars'
 
 /* ------------------------------ dados ------------------------------ */
 
@@ -30,6 +34,41 @@ const FOODS: EditorFood[] = TACO_FOODS.map((f, i) => ({
   cookingFactor: f.cookingFactor ?? null,
   measures: f.measures.map(([name, grams]) => ({ name, grams })),
 }))
+
+/** Receitas de exemplo (as mesmas do banco de demonstração), com cálculo pela base de alimentos. */
+const ing = (name: string, grams: number) => {
+  const f = FOODS.find((x) => x.name.startsWith(name))!
+  return { name: f.name, grams, per100: f.per100 }
+}
+const DEMO_RECIPES = [
+  {
+    title: 'Panqueca de banana e aveia',
+    portions: 1,
+    finalWeight: 160,
+    prep: 10,
+    tags: ['café da manhã', 'sem lactose', 'vegetariana'],
+    ingredients: [ing('Banana prata', 100), ing('Aveia em flocos', 30), ing('Ovo de galinha, inteiro, cozido', 50)],
+    steps: '1. Amasse a banana com um garfo.\n2. Misture o ovo e a aveia até formar uma massa.\n3. Doure em frigideira antiaderente, 2 a 3 minutos de cada lado.',
+  },
+  {
+    title: 'Salada de grão-de-bico',
+    portions: 2,
+    finalWeight: 350,
+    prep: 15,
+    tags: ['vegana', 'sem glúten', 'sem lactose'],
+    ingredients: [ing('Grão-de-bico', 160), ing('Tomate', 120), ing('Cenoura', 60), ing('Azeite de oliva', 10)],
+    steps: '1. Pique o tomate e rale a cenoura.\n2. Misture com o grão-de-bico cozido.\n3. Tempere com o azeite, limão, sal e cheiro-verde.',
+  },
+  {
+    title: 'Omelete de legumes',
+    portions: 1,
+    finalWeight: 170,
+    prep: 12,
+    tags: ['low carb', 'sem glúten', 'sem lactose'],
+    ingredients: [ing('Ovo de galinha, inteiro, cozido', 100), ing('Tomate', 40), ing('Abobrinha italiana', 40), ing('Azeite de oliva', 4)],
+    steps: '1. Bata os ovos com uma pitada de sal.\n2. Refogue os legumes no azeite por 3 minutos.\n3. Junte os ovos, tampe e cozinhe em fogo baixo até firmar.',
+  },
+]
 
 type Features = { diario: boolean; peso: boolean; chat: boolean; calorias: boolean; macros: boolean; calculadoras: boolean; agua: boolean }
 const ALL_ON: Features = { diario: true, peso: true, chat: true, calorias: true, macros: true, calculadoras: true, agua: true }
@@ -299,7 +338,7 @@ function Root() {
   }, [isApp])
   if (!isApp) return null
   const [area, sub, extra] = hash.slice(1).split('/')
-  return area === 'cliente' ? <ClientArea tab={sub || 'hoje'} /> : <AndreArea page={sub} extra={extra} />
+  return area === 'cliente' ? <ClientArea tab={sub || 'hoje'} extra={extra} /> : <AndreArea page={sub} extra={extra} />
 }
 
 function DemoBar({ children }: { children?: React.ReactNode }) {
@@ -337,7 +376,7 @@ const Leaf = () => (
 
 /* ------------------------------ área do cliente ------------------------------ */
 
-function ClientArea({ tab }: { tab: string }) {
+function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
   const s = useStore()
   const c = clientOf(s, s.current)
   const f = c.features
@@ -536,6 +575,21 @@ function ClientArea({ tab }: { tab: string }) {
                     </a>
                   </li>
                 )}
+                {[
+                  ['#cliente/compras', 'Lista de compras', 'Gerada do seu plano da semana'],
+                  ['#cliente/receitas', 'Receitas', 'Receitas e sugestões do André'],
+                ].map(([href, label, hint]) => (
+                  <li key={href} style={{ padding: 0 }}>
+                    <a href={href}>
+                      <span>
+                        {label}
+                        <span className="small muted" style={{ display: 'block', fontWeight: 400 }}>
+                          {hint}
+                        </span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
                 {f.calculadoras && (
                   <li style={{ padding: 0 }}>
                     <a href="#cliente/calculadoras">
@@ -553,9 +607,100 @@ function ClientArea({ tab }: { tab: string }) {
                   </a>
                 </li>
               </ul>
-              <p className="small muted">Agenda, notificações, fotos de evolução e perfil funcionam no sistema publicado.</p>
+              <p className="small muted">Agenda (confirmar presença, remarcar e avaliar), materiais, notificações, fotos de evolução e perfil funcionam no sistema publicado.</p>
             </div>
           )}
+
+          {tab === 'compras' &&
+            (content ? (
+              <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 760 }}>
+                <div className="page-head">
+                  <div>
+                    <h1>Lista de compras da semana</h1>
+                    <p>Gerada do seu plano (primeira opção de cada refeição, 7 dias). Alimentos cozidos aparecem em peso cru.</p>
+                  </div>
+                </div>
+                <ShoppingList
+                  storageKey={`demo-compras-${c.id}`}
+                  rows={shoppingList(content, new Map(FOODS.map((x) => [x.id, { cookingFactor: x.cookingFactor, measures: x.measures }]))).map((i) => ({
+                    key: i.key,
+                    name: i.name,
+                    groupLabel: i.groupLabel,
+                    quantity: shoppingQuantity(i),
+                  }))}
+                />
+              </div>
+            ) : (
+              <p className="empty">A lista aparece quando o plano for ativado.</p>
+            ))}
+
+          {tab === 'receitas' && !extra && (
+            <div className="stack" style={{ ['--gap' as string]: '18px' }}>
+              <h1>Receitas</h1>
+              <div className="recipe-grid">
+                {DEMO_RECIPES.map((r, i) => {
+                  const n = recipeNutrients(r.ingredients, r.finalWeight, r.portions)
+                  return (
+                    <a key={r.title} href={`#cliente/receitas/${i}`} className="card recipe-card">
+                      <div className="recipe-card__ph" aria-hidden>
+                        🍽️
+                      </div>
+                      <strong>{r.title}</strong>
+                      <span className="small muted">
+                        {r.portions} {r.portions === 1 ? 'porção' : 'porções'}
+                        {f.calorias && n.perPortion ? ` · ${fmt(n.perPortion.kcal, 0)} kcal/porção` : ''} · {r.prep} min
+                      </span>
+                    </a>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {tab === 'receitas' &&
+            extra &&
+            DEMO_RECIPES[Number(extra)] &&
+            (() => {
+              const r = DEMO_RECIPES[Number(extra)]
+              const n = recipeNutrients(r.ingredients, r.finalWeight, r.portions)
+              return (
+                <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 760 }}>
+                  <nav className="breadcrumb">
+                    <a href="#cliente/receitas">Receitas</a>
+                  </nav>
+                  <h1>{r.title}</h1>
+                  <div className="row" style={{ gap: 6 }}>
+                    {r.tags.map((t) => (
+                      <span key={t} className="badge badge--plain">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
+                  <section className="card">
+                    <h2 style={{ fontSize: '1.1rem' }}>Ingredientes</h2>
+                    <ul className="list">
+                      {r.ingredients.map((x) => (
+                        <li key={x.name} className="row row--between">
+                          <span>{x.name}</span>
+                          <span className="muted">
+                            {x.grams} g{f.calorias ? ` · ${fmt(scale(x.per100, x.grams).kcal, 0)} kcal` : ''}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {n.perPortion && (f.calorias || f.macros) && (
+                      <p className="small" style={{ marginBottom: 0 }}>
+                        Por porção: <NutriInline n={n.perPortion} showKcal={f.calorias} showMacros={f.macros} />
+                      </p>
+                    )}
+                  </section>
+                  <section className="card">
+                    <h2 style={{ fontSize: '1.1rem' }}>Modo de preparo</h2>
+                    <p className="recipe-steps">{r.steps}</p>
+                  </section>
+                </div>
+              )
+            })()}
 
           {tab === 'calculadoras' && (
             <div className="stack" style={{ maxWidth: 900 }}>
@@ -1086,7 +1231,7 @@ function ClientPlanEditor({ clientId }: { clientId: string }) {
         validUntil={null}
         isTemplate={false}
         foods={FOODS}
-        patient={{ name: c.name, weightKg: c.weights[c.weights.length - 1]?.value ?? null, energyTarget: c.energyTarget }}
+        patient={{ name: c.name, weightKg: c.weights[c.weights.length - 1]?.value ?? null, energyTarget: c.energyTarget, restrictions: c.id === 'beatriz' ? ['lactose'] : c.id === 'helena' ? ['vegetariano'] : [] }}
       />
     </div>
   )
