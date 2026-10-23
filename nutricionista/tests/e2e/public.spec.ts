@@ -12,13 +12,11 @@ test('página principal: hero com fundo líquido, storytelling em capítulos, So
   await expect(hero.locator('.wm__solid')).toHaveText('ANDRÉ')
   await expect(hero.locator('.wm__out')).toHaveText('FARION')
   await expect(hero.locator('.hero__label')).toHaveText('COACH')
-  // Toques de nutrição (faixa de temas e cartão do prato) e o fundo "em ação" com os outros pilares:
-  // monitor de batimentos, anéis de movimento/treino/sono e indicadores de treino, sono, água e passos.
+  // Toques de nutrição (faixa de temas e cartão do prato) sobre o fundo de natureza e alimentos, sem batimentos.
   await expect(hero.locator('.ticker')).toContainText('HIDRATAÇÃO')
   await expect(hero.getByRole('complementary', { name: 'Exemplo de prato equilibrado' })).toContainText('Vegetais')
-  await expect(hero).toHaveClass(/action--on/)
-  await expect(hero.locator('.action__rings li')).toHaveText([/MOVIMENTO/, /TREINO/, /SONO/])
-  await expect(hero.locator('.act-chip')).toHaveCount(5)
+  await expect(hero).toHaveClass(/nature--on/)
+  await expect(hero.locator('[data-action], .act-chip, .action__rings')).toHaveCount(0)
   await expect(hero).toContainText('Nutrição baseada em evidência, pensada para a sua rotina.')
   await expect(hero.getByRole('list', { name: 'Serviços' }).getByRole('listitem')).toHaveText(['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar'])
   await expect(hero.getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/criar-conta?next=/agendar')

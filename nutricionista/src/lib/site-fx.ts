@@ -1,6 +1,6 @@
 /**
  * Efeitos do site público em JavaScript puro (sem React), usados no Next e na prévia em arquivo único:
- * fundo "em ação" da abertura (monitor de batimentos), fundo de natureza e alimentos, nome que ocupa
+ * fundo de natureza e alimentos (abertura, fecho da história e topo das páginas), nome que ocupa
  * a largura disponível, palavra que troca, storytelling ligado à rolagem, entrada suave, números que
  * contam e cabeçalho que ganha fundo ao rolar.
  * initSiteFx devolve a função que desfaz tudo (troca de página no Next).
@@ -91,7 +91,7 @@ function mountNature(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
     ctx.clearRect(0, 0, w, h)
     // Sol que "respira" (ciclo de 8 s): inspira, expira.
     const breath = 0.5 + 0.5 * Math.sin((t * Math.PI * 2) / 8)
-    const sx = w * 0.84
+    const sx = w * (Number(canvas.dataset.sunX) || 0.84)
     const sy = Math.min(h * 0.22, 150)
     const sr = Math.min(130, Math.max(60, w * 0.08))
     const sun = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr * (1.6 + breath * 0.25))
@@ -206,161 +206,6 @@ function mountNature(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
     host.removeEventListener('pointermove', onMove)
     host.removeEventListener('pointerleave', onLeave)
     host.classList.remove('nature--on')
-  }
-}
-
-/* ------------------------ fundo "em ação" da abertura ------------------------ */
-
-// Forma de um batimento (P, QRS e T) ao longo de um período: devolve o deslocamento vertical (−1 a 1).
-function beat(u: number) {
-  const g = (c: number, w: number, a: number) => a * Math.exp(-((u - c) * (u - c)) / (2 * w * w))
-  return g(0.18, 0.025, 0.12) + g(0.3, 0.008, -0.14) + g(0.33, 0.01, 1) + g(0.36, 0.01, -0.32) + g(0.58, 0.045, 0.24)
-}
-
-function mountAction(canvas: HTMLCanvasElement, reduce: boolean): Cleanup {
-  const host = (canvas.closest('section') as HTMLElement | null) ?? canvas.parentElement!
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return () => {}
-  let w = 0
-  let h = 0
-  let dpr = 1
-  let raf = 0
-  let prev = 0
-  let t = 2.2
-  let visible = true
-  let running = false
-  const GREEN = '31, 94, 59'
-  const LIGHT = '141, 191, 139'
-
-  let base = 0
-  const resize = () => {
-    dpr = Math.min(window.devicePixelRatio || 1, 2)
-    w = host.clientWidth
-    h = host.clientHeight
-    canvas.width = Math.round(w * dpr)
-    canvas.height = Math.round(h * dpr)
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    // A linha passa no espaço livre acima do nome (e, no celular, abaixo do cartão do prato).
-    const top = host.getBoundingClientRect().top
-    const label = host.querySelector('.hero__label')?.getBoundingClientRect()
-    const card = host.querySelector('.plate-card')?.getBoundingClientRect()
-    const limit = label ? label.top - top - 60 : h * 0.5
-    const floor = card && w < 760 ? card.bottom - top + 46 : h * 0.3
-    base = Math.max(floor, Math.min(h * 0.5, limit))
-  }
-  const lineY = () => base
-  const period = () => Math.max(220, Math.min(360, w / 4.2))
-  const amp = () => (w < 760 ? 34 : Math.min(90, h * 0.11))
-  const yAt = (x: number) => lineY() - beat((((x % period()) + period()) % period()) / period()) * amp()
-
-  const draw = () => {
-    ctx.clearRect(0, 0, w, h)
-    const speed = Math.max(260, w / 4.5)
-    const sweep = w + 260
-    const head = reduce ? w * 0.7 : (t * speed) % sweep
-    const base = lineY()
-    // Grade de pontos que acende perto da varredura.
-    const step = 30
-    for (let y = step / 2; y < h; y += step) {
-      for (let x = step / 2; x < w; x += step) {
-        const d = Math.abs(x - head)
-        const near = Math.max(0, 1 - d / 220) * Math.max(0, 1 - Math.abs(y - base) / (h * 0.45))
-        ctx.fillStyle = `rgba(${GREEN}, ${0.07 + near * 0.22})`
-        ctx.fillRect(x - 1, y - 1, 2, 2)
-      }
-    }
-    // Linha de base bem leve, de ponta a ponta.
-    ctx.strokeStyle = `rgba(${GREEN}, 0.08)`
-    ctx.lineWidth = 1
-    ctx.beginPath()
-    ctx.moveTo(0, base)
-    ctx.lineTo(w, base)
-    ctx.stroke()
-    // Rastro do batimento: some aos poucos atrás da cabeça.
-    const trail = Math.min(w * 0.75, 900)
-    const from = Math.max(0, head - trail)
-    const to = Math.min(w, head)
-    if (to > from) {
-      const grad = ctx.createLinearGradient(from, 0, to, 0)
-      grad.addColorStop(0, `rgba(${GREEN}, 0)`)
-      grad.addColorStop(0.7, `rgba(${GREEN}, 0.45)`)
-      grad.addColorStop(1, `rgba(${GREEN}, 0.9)`)
-      ctx.strokeStyle = grad
-      ctx.lineWidth = 1.8
-      ctx.lineJoin = 'round'
-      ctx.beginPath()
-      for (let x = from; x <= to; x += 2) {
-        const y = yAt(x)
-        if (x === from) ctx.moveTo(x, y)
-        else ctx.lineTo(x, y)
-      }
-      ctx.stroke()
-    }
-    if (head <= w) {
-      const y = yAt(head)
-      const glow = ctx.createRadialGradient(head, y, 0, head, y, 26)
-      glow.addColorStop(0, `rgba(${LIGHT}, 0.55)`)
-      glow.addColorStop(1, `rgba(${LIGHT}, 0)`)
-      ctx.fillStyle = glow
-      ctx.beginPath()
-      ctx.arc(head, y, 26, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.fillStyle = `rgb(${GREEN})`
-      ctx.beginPath()
-      ctx.arc(head, y, 3.2, 0, Math.PI * 2)
-      ctx.fill()
-      // Onda que se abre a cada pico.
-      const u = (((head % period()) + period()) % period()) / period()
-      if (u > 0.33 && u < 0.75) {
-        const k = (u - 0.33) / 0.42
-        ctx.strokeStyle = `rgba(${LIGHT}, ${0.5 * (1 - k)})`
-        ctx.lineWidth = 1.2
-        ctx.beginPath()
-        ctx.arc(head - (u - 0.33) * period(), base - amp(), 8 + k * 70, 0, Math.PI * 2)
-        ctx.stroke()
-      }
-    }
-  }
-  const frame = (now: number) => {
-    const dt = prev ? Math.min(0.05, (now - prev) / 1000) : 0
-    prev = now
-    t += dt
-    draw()
-    raf = requestAnimationFrame(frame)
-  }
-  const start = () => {
-    if (running || reduce || !visible || document.hidden) return
-    running = true
-    prev = 0
-    raf = requestAnimationFrame(frame)
-  }
-  const stop = () => {
-    running = false
-    cancelAnimationFrame(raf)
-  }
-  resize()
-  draw()
-  const ro = new ResizeObserver(() => {
-    resize()
-    draw()
-  })
-  ro.observe(host)
-  const io = new IntersectionObserver(([e]) => {
-    visible = e.isIntersecting
-    if (visible) start()
-    else stop()
-  })
-  io.observe(host)
-  const onVis = () => (document.hidden ? stop() : start())
-  document.addEventListener('visibilitychange', onVis)
-  host.classList.add('action--on')
-  start()
-  return () => {
-    stop()
-    ro.disconnect()
-    io.disconnect()
-    document.removeEventListener('visibilitychange', onVis)
-    host.classList.remove('action--on')
   }
 }
 
@@ -565,7 +410,6 @@ export function initSiteFx(root: ParentNode = document): Cleanup {
   const reduce = prefersReducedMotion()
   const cleanups: Cleanup[] = [mountHeader()]
   root.querySelectorAll<HTMLCanvasElement>('canvas[data-nature]').forEach((c, i) => cleanups.push(mountNature(c, reduce, i + 1)))
-  root.querySelectorAll<HTMLCanvasElement>('canvas[data-action]').forEach((c) => cleanups.push(mountAction(c, reduce)))
   root.querySelectorAll<HTMLElement>('[data-fit]').forEach((el) => cleanups.push(mountFit(el)))
   root.querySelectorAll<HTMLElement>('[data-rotate]').forEach((el) => cleanups.push(mountRotate(el, reduce)))
   root.querySelectorAll<HTMLElement>('[data-story]').forEach((el) => cleanups.push(mountStory(el, reduce)))

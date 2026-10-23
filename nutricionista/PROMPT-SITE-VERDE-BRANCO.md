@@ -36,20 +36,13 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
 
 ### 1. Hero (100svh)
 
-- **Fundo "em ação":** mostra os outros pilares além da alimentação.
-  - Base clara, com brilhos verde-claro suaves e grão por cima (SVG feTurbulence, cerca de 6%).
-  - Um `<canvas>` com um monitor de batimentos: a linha varre a tela, deixa um rastro que some aos poucos, tem uma cabeça com brilho e solta uma onda a cada pico. Os pontos de uma grade leve acendem quando a varredura passa.
-  - A linha fica no espaço livre acima do nome (no celular, entre o cartão do prato e o nome).
-  - À esquerda, anéis de atividade que se completam: Movimento, Treino e Sono.
-  - Indicadores em pílulas de vidro que flutuam devagar e contam ao abrir: Treino 45 min, Sono 8 h, Água 2.400 ml, Passos 10.000 e Batimentos 72 bpm.
-  - Em telas médias, alguns indicadores somem; no celular, ficam só a linha e a grade.
-  - O fundo pausa fora da tela ou com a aba oculta, e fica parado com "reduzir movimento".
-- **Fundo de natureza, alimentos e bem-estar** (sem fundo líquido): vale para o fecho da história, o bloco do Sobre (enquanto não houver foto) e o topo das páginas internas.
+- **Fundo de natureza, alimentos e bem-estar** (sem fundo líquido e sem batimentos): vale para a hero, o fecho da história, o bloco do Sobre (enquanto não houver foto) e o topo das páginas internas. Na hero, o sol fica no centro, porque o canto direito é do cartão do prato.
   - Base clara com brilhos verde-claro.
   - Um sol que "respira" num ciclo de 8 s (inspira e expira), com anéis finos.
   - Alimentos em linha fina verde que sobem devagar, balançando e girando de leve: maçã, folha, cenoura, espiga, abacate, rodela de cítrico, coração e broto.
   - Sementes que sobem pelo fundo.
   - Grama na base, balançando com o vento e se afastando do mouse.
+  - Grão bem sutil por cima (SVG feTurbulence, cerca de 6%).
   - O fundo pausa fora da tela e fica parado com "reduzir movimento".
 - **Toques de nutrição:**
   - uma faixa fina logo abaixo do menu, com temas passando devagar em mono: Proteínas ● Fibras ● Hidratação ● Vegetais ● Frutas da estação ● Grãos integrais ● Gorduras boas ● Rotina e sono;

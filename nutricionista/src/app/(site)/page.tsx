@@ -9,7 +9,7 @@ import { BookingLink } from '@/components/BookingLink'
 import { Wordmark } from '@/components/Wordmark'
 import { MonoLabel, NatureBg, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
-import { HeroAction, HeroTicker, PlateCard } from '@/components/HeroArt'
+import { HeroTicker, PlateCard } from '@/components/HeroArt'
 
 const SERVICES = ['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar']
 
@@ -96,9 +96,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       {/* --------------------------------- HERO --------------------------------- */}
-      <section className="hero" id="inicio">
-        <HeroAction />
-        <div className="grain" aria-hidden />
+      <section className="hero" id="inicio" data-nature-host="">
+        {/* O sol fica no meio, porque o canto direito é do cartão do prato. */}
+        <NatureBg sunX={0.5} />
         <HeroTicker />
         <div className="tl-container hero__inner">
           <PlateCard waterMlPerKg={s.waterMlPerKg} />
