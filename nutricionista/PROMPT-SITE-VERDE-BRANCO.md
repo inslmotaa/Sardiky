@@ -36,30 +36,22 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
 
 ### 1. Hero (100svh)
 
-- **Fundo:** um `<canvas>` WebGL com um shader "liquid" claro.
-  - fbm com domain warping, normais calculadas e luz especular suave.
-  - Base quase branca, sombras verde-claro, reflexos brancos e um toque de verde nos vales.
-  - Reage ao mouse com easing.
-  - Vinheta leve embaixo e nas bordas.
-  - Grão por cima via SVG feTurbulence, com cerca de 6% de opacidade.
-- **Desempenho e acessibilidade do fundo:**
-  - renderiza a 55% da resolução;
-  - pausa fora da tela ou com a aba oculta;
-  - usa um frame estático com "reduzir movimento";
-  - sem WebGL, usa um gradiente claro.
-- **Nome:** "ANDRÉ FARION" gigante, ancorado embaixo à esquerda.
-  - "ANDRÉ" preenchido e "FARION" só com contorno.
-  - Um traço verde-claro piscando devagar no fim.
-  - O JavaScript ajusta o tamanho para ocupar exatamente a largura disponível. No celular, o nome quebra em duas linhas.
-  - No hover, as letras vazadas ganham um verde transparente.
+- **Fundo "em ação":** mostra os outros pilares além da alimentação.
+  - Base clara, com brilhos verde-claro suaves e grão por cima (SVG feTurbulence, cerca de 6%).
+  - Um `<canvas>` com um monitor de batimentos: a linha varre a tela, deixa um rastro que some aos poucos, tem uma cabeça com brilho e solta uma onda a cada pico. Os pontos de uma grade leve acendem quando a varredura passa.
+  - A linha fica no espaço livre acima do nome (no celular, entre o cartão do prato e o nome).
+  - À esquerda, anéis de atividade que se completam: Movimento, Treino e Sono.
+  - Indicadores em pílulas de vidro que flutuam devagar e contam ao abrir: Treino 45 min, Sono 8 h, Água 2.400 ml, Passos 10.000 e Batimentos 72 bpm.
+  - Em telas médias, alguns indicadores somem; no celular, ficam só a linha e a grade.
+  - O fundo pausa fora da tela ou com a aba oculta, e fica parado com "reduzir movimento".
+- O fundo líquido em WebGL continua no fecho da história, no bloco do Sobre e no topo das páginas internas.
 - **Toques de nutrição:**
   - uma faixa fina logo abaixo do menu, com temas passando devagar em mono: Proteínas ● Fibras ● Hidratação ● Vegetais ● Frutas da estação ● Grãos integrais ● Gorduras boas ● Rotina e sono;
   - um cartão de vidro no alto à direita, "Prato equilibrado · exemplo", com:
     - um gráfico em rosca (Vegetais ½, Proteína ¼, Carboidrato ¼);
     - barras de macronutrientes (Proteínas 30%, Carboidratos 45%, Gorduras 25%);
     - a água por dia, em ml por kg;
-  - ilustrações botânicas em linha fina verde (ramo de folhas, rodela de cítrico e espiga) que se desenham ao abrir e balançam de leve;
-  - no celular, o cartão aparece no topo, sem as barras, e as ilustrações ficam escondidas.
+  - no celular, o cartão aparece no topo, sem as barras.
 - **Nav:** "ANDRÉ FARION —" à esquerda e, à direita, em mono: / Sobre / Consultoria / Resultados / Contato / Entrar. No celular, vira um botão "Menu".
 - **Linha inferior,** separada por uma linha fina:
   - a frase "Nutrição baseada em evidência, pensada para a sua rotina. Planos alimentares que você consegue seguir de verdade.";

@@ -9,7 +9,7 @@ import { BookingLink } from '@/components/BookingLink'
 import { Wordmark } from '@/components/Wordmark'
 import { Liquid, MonoLabel, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
-import { HeroBotanicals, HeroTicker, PlateCard } from '@/components/HeroArt'
+import { HeroAction, HeroTicker, PlateCard } from '@/components/HeroArt'
 
 const SERVICES = ['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar']
 
@@ -96,10 +96,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       )}
 
       {/* --------------------------------- HERO --------------------------------- */}
-      <section className="hero" id="inicio" data-liquid-host="">
-        <Liquid />
+      <section className="hero" id="inicio">
+        <HeroAction />
+        <div className="grain" aria-hidden />
         <HeroTicker />
-        <HeroBotanicals />
         <div className="tl-container hero__inner">
           <PlateCard waterMlPerKg={s.waterMlPerKg} />
           <MonoLabel className="hero__label">
