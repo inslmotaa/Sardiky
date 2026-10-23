@@ -147,7 +147,7 @@ export function PatientPlan({
 
       {content.guidance && (
         <section className="card card--soft">
-          <h3>Orientações do nutricionista</h3>
+          <h3>Orientações do coach</h3>
           <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{content.guidance}</p>
         </section>
       )}

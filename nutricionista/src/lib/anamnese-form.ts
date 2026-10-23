@@ -59,7 +59,7 @@ export const ANAMNESIS_STEPS: AnamStep[] = [
       ta('alergias', 'Alergias e intolerâncias alimentares', { placeholder: 'Ex.: lactose, glúten, frutos do mar' }),
       ta('cirurgias', 'Cirurgias'),
       ta('exames', 'Exames recentes (descreva ou anexe abaixo)'),
-      { id: 'arquivos', label: 'Anexar exames (PDF ou foto)', type: 'files', hint: 'Opcional. Os arquivos ficam em área privada: só você e o nutricionista acessam.' },
+      { id: 'arquivos', label: 'Anexar exames (PDF ou foto)', type: 'files', hint: 'Opcional. Os arquivos ficam em área privada: só você e o coach acessam.' },
     ],
   },
   {

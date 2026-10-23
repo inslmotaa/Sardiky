@@ -1,7 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
+import { SITE_NAV } from '@/lib/constants'
 
 /** Cabeçalho fixo: ganha fundo com desfoque e sombra depois que a página rola. */
 export function HeaderScrollWatcher({ target }: { target: string }) {
@@ -50,6 +52,44 @@ export function UserMenu({ name, area, logout }: { name: string; area: string; l
             Sair
           </button>
         </form>
+      </div>
+    </details>
+  )
+}
+
+/** Links do menu principal, com a página atual marcada. */
+export function SiteNavLinks({ className }: { className?: string }) {
+  const pathname = usePathname()
+  return (
+    <>
+      {SITE_NAV.map((n) => (
+        <Link key={n.href} href={n.href} className={className} aria-current={pathname === n.href ? 'page' : undefined}>
+          {n.label}
+        </Link>
+      ))}
+    </>
+  )
+}
+
+/** Menu do celular: abre por cima da página e fecha ao escolher um item. */
+export function MobileMenu({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDetailsElement>(null)
+  const pathname = usePathname()
+  useEffect(() => {
+    ref.current?.removeAttribute('open')
+  }, [pathname])
+  return (
+    <details className="site-menu" ref={ref}>
+      <summary aria-label="Abrir menu">
+        <span className="site-menu__icon" aria-hidden>
+          <span />
+          <span />
+          <span />
+        </span>
+        Menu
+      </summary>
+      <div className="site-menu__panel" onClick={(e) => (e.target as HTMLElement).closest('a') && ref.current?.removeAttribute('open')}>
+        {children}
       </div>
     </details>
   )

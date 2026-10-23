@@ -61,7 +61,7 @@ export async function PrescriptionsTab({ patient }: { patient: typeof schema.pat
         <h2 style={{ fontSize: '1.1rem' }}>Escrever prescrição</h2>
         <PrescriptionForm patientId={patient.id} />
         <p className="small muted" style={{ margin: '12px 0 0' }}>
-          Prescreva apenas o que está dentro das atribuições do nutricionista (Resolução CFN). A prescrição aparece no app e no PDF do plano.
+          Prescreva apenas o que está dentro das suas atribuições profissionais. A prescrição aparece no app e no PDF do plano.
         </p>
       </section>
       <section>

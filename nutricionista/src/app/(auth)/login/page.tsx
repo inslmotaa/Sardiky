@@ -26,7 +26,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <h1 style={{ fontSize: '1.6rem' }}>Sem acesso a esta área</h1>
         <p className="muted" style={{ margin: 0 }}>
           {sp['sem-acesso'] === 'painel'
-            ? 'O painel é exclusivo do nutricionista e da equipe.'
+            ? 'O painel é exclusivo do coach e da equipe.'
             : 'A área do cliente é exclusiva dos pacientes.'}{' '}
           Você está conectado como <strong>{user.name}</strong>.
         </p>
@@ -49,7 +49,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div>
         <h1 style={{ fontSize: '1.6rem' }}>Entrar</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Área do cliente e painel do consultório.
+          Acesse a sua área para ver o plano, o diário e as mensagens.
         </p>
       </div>
       {sp.senha && <p className="alert alert--ok">Senha definida. Entre com a nova senha.</p>}
@@ -76,13 +76,13 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <GoogleLink href={`/api/auth/google${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ''}`} label="Entrar com Google" />
         </>
       )}
-      <p className="small row row--between" style={{ margin: 0 }}>
+      <div className="auth-links">
         <Link href="/recuperar-senha">Esqueci minha senha</Link>
         {emailVerificationRequired() && <Link href="/criar-conta/confirme">Reenviar confirmação de e-mail</Link>}
-      </p>
-      <p className="small" style={{ margin: 0 }}>
-        Ainda não tem conta? <Link href={`/criar-conta${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ''}`}>Criar conta</Link>
-      </p>
+        <span>
+          Ainda não tem conta? <Link href={`/criar-conta${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ''}`}>Criar conta</Link>
+        </span>
+      </div>
     </div>
   )
 }

@@ -40,9 +40,11 @@ export default async function CreateAccountPage({ searchParams }: { searchParams
         </p>
       )}
       <SignUpForm plano={pkg?.id ?? null} next={next} google={googleConfigured()} />
-      <p className="small" style={{ margin: 0 }}>
-        Já tem conta? <Link href={`/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Entrar</Link>
-      </p>
+      <div className="auth-links">
+        <span>
+          Já tem conta? <Link href={`/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Entrar</Link>
+        </span>
+      </div>
     </div>
   )
 }

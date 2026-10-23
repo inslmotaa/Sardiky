@@ -61,7 +61,7 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
           subtitle="Leva cerca de 10 minutos. Cada etapa é salva quando você avança: pode sair e continuar depois."
         />
         <AnamnesisWizard answers={draft.answers} startAt={draft.step} next={next} version={draft.version} />
-        <p className="small muted">Suas respostas são dados de saúde: ficam protegidas e só o nutricionista tem acesso.</p>
+        <p className="small muted">Suas respostas são dados de saúde: ficam protegidas e só o coach tem acesso.</p>
       </div>
     )
   }
@@ -86,7 +86,7 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
       ) : (
         <p className="card">Sua anamnese já foi recebida pelo consultório. Quando for a hora de uma reavaliação, ela aparece aqui para você atualizar.</p>
       )}
-      <p className="small muted">Precisa corrigir algo? Fale com o nutricionista pelas mensagens: na reavaliação você atualiza as respostas.</p>
+      <p className="small muted">Precisa corrigir algo? Fale com o coach pelas mensagens: na reavaliação você atualiza as respostas.</p>
     </div>
   )
 }

@@ -84,7 +84,7 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
         <h2 style={{ fontSize: '1.1rem' }}>Anonimizar paciente</h2>
         <p className="small">
           Remove de forma irreversível nome, contatos, conta de acesso, mensagens, diário, avaliações, planos, formulários, notas e arquivos. Consultas e lançamentos financeiros
-          ficam apenas como registros sem identificação. <strong>Antes, verifique o prazo de guarda do prontuário exigido pelas normas do CFN/CRN e pela legislação.</strong>
+          ficam apenas como registros sem identificação. <strong>Antes, verifique o prazo de guarda do prontuário exigido pelas normas profissionais e pela legislação.</strong>
         </p>
         <ActionForm action={anonymizePatient} className="stack" confirm="Esta ação é irreversível. Continuar?">
           <div className="form-grid">

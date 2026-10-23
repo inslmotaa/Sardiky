@@ -68,7 +68,7 @@ export async function postMessage(p: Post) {
       .where(and(eq(schema.messages.patientId, p.patientId), eq(schema.messages.fromPatient, true), isNull(schema.messages.readAt)))
     const [pt] = await db.select({ userId: schema.patients.userId }).from(schema.patients).where(eq(schema.patients.id, p.patientId))
     if (pt?.userId) {
-      await notifyUser(pt.userId, p.isGuidance ? 'Nova orientação do nutricionista' : 'Nova mensagem do nutricionista', undefined, '/paciente/mensagens')
+      await notifyUser(pt.userId, p.isGuidance ? 'Nova orientação do coach' : 'Nova mensagem do coach', undefined, '/paciente/mensagens')
       await pushToUser(pt.userId, 'mensagens', { title: p.isGuidance ? 'Nova orientação' : `Mensagem de ${s.professionalName.split(' ')[0]}`, body: preview, url: '/paciente/mensagens', tag: 'chat' }, { nowHHMM: now.time })
     }
   }

@@ -262,7 +262,7 @@ export function TodayView({
 
       {!day ? (
         <div className="empty">
-          <p style={{ margin: 0 }}>Seu nutricionista ainda está montando seu plano. Assim que ele for ativado, ele aparece aqui.</p>
+          <p style={{ margin: 0 }}>Seu coach ainda está montando seu plano. Assim que ele for ativado, ele aparece aqui.</p>
         </div>
       ) : (
         <div className="today-grid">
@@ -326,7 +326,7 @@ export function TodayView({
                 )}
                 {data.features.chat && (
                   <a href={links.chat} className="btn btn--block">
-                    Falar com o nutricionista
+                    Falar com o coach
                   </a>
                 )}
                 <a href={links.progress} className="btn btn--block">

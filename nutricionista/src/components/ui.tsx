@@ -80,7 +80,7 @@ export function NoAccess() {
     <div className="card">
       <h1>Acesso restrito</h1>
       <p className="muted">
-        Seu usuário não tem permissão para ver esta área. Se precisar dela, peça ao nutricionista responsável para
+        Seu usuário não tem permissão para ver esta área. Se precisar dela, peça ao coach responsável para
         ajustar suas permissões em Configurações → Equipe.
       </p>
       <Link className="btn" href="/admin">

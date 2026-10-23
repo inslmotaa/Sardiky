@@ -12,7 +12,7 @@ const TYPES = [
   ['refeicoes', 'Horário de cada refeição do plano'],
   ['agua', 'Lembrete de água'],
   ['plano', 'Plano novo ou alterado'],
-  ['mensagens', 'Mensagens e comentários do nutricionista'],
+  ['mensagens', 'Mensagens e comentários do coach'],
   ['consultas', 'Consultas (24 h e 2 h antes)'],
   ['lembretes', 'Lembrete gentil se ficar 3 dias sem registrar'],
   ['pesagem', 'Lembrete de pesagem semanal'],

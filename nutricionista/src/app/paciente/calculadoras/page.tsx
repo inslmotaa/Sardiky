@@ -17,7 +17,7 @@ export default async function PatientCalculators() {
   const w = latest(rows, 'weightKg')
   return (
     <div className="stack" style={{ maxWidth: 900 }}>
-      <PageHead title="Calculadoras" subtitle="Ferramentas para o dia a dia. Seu plano é definido pelo seu nutricionista." />
+      <PageHead title="Calculadoras" subtitle="Ferramentas para o dia a dia. Seu plano é definido pelo seu coach." />
       <Calculators
         foods={foods}
         mode="patient"

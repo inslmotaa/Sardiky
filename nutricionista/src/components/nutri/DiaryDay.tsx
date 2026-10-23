@@ -158,7 +158,7 @@ export function DiaryDay({
       <section className="card diary-meal" aria-label="Registros fora do plano">
         <h3 style={{ margin: 0 }}>Fora do plano</h3>
         <p className="small muted" style={{ margin: '4px 0 0' }}>
-          Um lanche extra, uma bebida, um evento. Registrar ajuda o nutricionista a ajustar o plano à sua rotina.
+          Um lanche extra, uma bebida, um evento. Registrar ajuda o coach a ajustar o plano à sua rotina.
         </p>
         {extras.map((e) => (
           <EntrySummary key={e.id} e={e} show={show} onDelete={onDelete} title={`${e.time} · ${e.meal}`} />
@@ -203,7 +203,7 @@ function EntrySummary({ e, show, onDelete, title }: { e: DiaryEntryView; show: {
         {e.notes && <div className="small">“{e.notes}”</div>}
         {e.comment && (
           <p className="alert alert--info small" style={{ margin: '8px 0 0' }}>
-            <strong>Nutricionista:</strong> {e.comment}
+            <strong>Coach:</strong> {e.comment}
           </p>
         )}
         {onDelete && !e.comment && !e.id.startsWith('log-') && (

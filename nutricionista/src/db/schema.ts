@@ -153,7 +153,7 @@ export type MessageTemplates = { confirmacao: string; lembrete: string; cancelam
 export const settings = pgTable('settings', {
   id: integer('id').primaryKey().default(1),
   professionalName: text('professional_name').notNull(),
-  professionalTitle: text('professional_title').notNull().default('Nutricionista'),
+  professionalTitle: text('professional_title').notNull().default('Coach'),
   registry: text('registry'),
   bio: text('bio').notNull().default(''),
   photoFileId: uuid('photo_file_id'),
@@ -309,7 +309,7 @@ export const patients = pgTable(
     anamnesisNotes: text('anamnesis_notes'),
     /** Restrições alimentares (lactose, glúten, vegetariano…): geram alerta no editor de planos. */
     restrictions: jsonb('restrictions').$type<string[]>().notNull().default([]),
-    /** Nutricionista responsável (equipe com vários nutricionistas). */
+    /** Coach responsável (equipe com vários nutricionistas). */
     nutritionistId: uuid('nutritionist_id').references(() => users.id, { onDelete: 'set null' }),
     /** Plano de acompanhamento escolhido no cadastro ou contratado (definido pelo nutricionista). */
     packageId: uuid('package_id').references(() => packages.id, { onDelete: 'set null' }),

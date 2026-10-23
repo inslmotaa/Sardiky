@@ -1,41 +1,41 @@
 {
   "profissional": {
     "nome": "André Farion",
-    "titulo": "Nutricionista",
-    "crn": "PREENCHER: ex. CRN-8 12345",
+    "titulo": "Coach",
     "biografia": "PREENCHER: 3 a 5 frases sobre o André — formação, há quanto tempo atende, para quem é o atendimento e o que ele valoriza.",
     "especialidades": [
-      "Reeducação alimentar",
-      "Nutrição esportiva",
-      "Comportamento alimentar"
+      "Ganho de massa muscular",
+      "Emagrecimento saudável",
+      "Mais energia e disposição",
+      "Melhor qualidade de vida"
     ],
-    "metodo": "O atendimento começa por uma avaliação completa da sua rotina, histórico e preferências. A partir dela, definimos metas realistas e um plano alimentar individualizado, revisado nos retornos conforme sua evolução.",
+    "metodo": "Tudo começa por uma anamnese completa e uma avaliação física. A partir delas, definimos metas realistas e uma estratégia individual, revista a cada 15 dias conforme a sua evolução.",
     "diferenciais": [
-      "Plano alimentar individualizado, com substituições para dar flexibilidade",
-      "Aplicativo do paciente com plano, diário, lembretes e chat",
-      "Acompanhamento entre consultas",
-      "Atendimento presencial e on-line"
+      "Dieta personalizada, atualizada a cada 15 dias",
+      "Avaliação física presencial ou on-line",
+      "Aplicativo com plano, diário, lembretes e mensagens",
+      "Acompanhamento próximo, com ajustes conforme o seu progresso"
     ],
     "comoFunciona": [
       {
-        "titulo": "Agende",
-        "texto": "Escolha o tipo de consulta, a data e o horário disponíveis."
+        "titulo": "Escolha seu plano",
+        "texto": "Mensal, trimestral, semestral ou anual."
       },
       {
-        "titulo": "Pré-consulta",
-        "texto": "Você responde a anamnese para aproveitarmos melhor o encontro."
+        "titulo": "Crie sua conta",
+        "texto": "E responda a anamnese no próprio site."
       },
       {
-        "titulo": "Consulta",
-        "texto": "Avaliação, conversa sobre objetivos e definição das primeiras metas."
+        "titulo": "Avaliação",
+        "texto": "Conversa, avaliação física e definição de metas."
       },
       {
-        "titulo": "Plano e acompanhamento",
-        "texto": "Seu plano fica no aplicativo e é ajustado nos retornos."
+        "titulo": "Plano no app",
+        "texto": "Com ajustes a cada 15 dias."
       }
     ],
     "corDaMarca": "#2f8f57",
-    "assinatura": "Nutricionista · atendimento presencial e on-line"
+    "assinatura": "Coach · atendimento presencial e on-line"
   },
   "contato": {
     "whatsapp": "(41) 99155-1789",
@@ -232,7 +232,7 @@
   "perguntasFrequentes": [
     {
       "pergunta": "Como funciona a primeira consulta?",
-      "resposta": "Conversamos sobre sua rotina, histórico de saúde, preferências e objetivos. Fazemos a avaliação e, em poucos dias, seu plano fica disponível no aplicativo."
+      "resposta": "Conversamos sobre sua rotina, histórico de saúde, preferências e objetivos. Fazemos a avaliação e, em poucos dias, seu plano fica disponível no app."
     },
     {
       "pergunta": "A consulta on-line tem a mesma qualidade?",

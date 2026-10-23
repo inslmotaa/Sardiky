@@ -152,7 +152,7 @@ export async function createMaterial(_: ActionState, fd: FormData): Promise<Acti
         : await db.select({ userId: schema.patients.userId }).from(schema.patients).where(eq(schema.patients.status, 'ativo'))
     for (const t of targets) {
       if (!t.userId) continue
-      await notifyUser(t.userId, 'Novo material do nutricionista', d.title, '/paciente/materiais')
+      await notifyUser(t.userId, 'Novo material do coach', d.title, '/paciente/materiais')
       await pushToUser(t.userId, 'mensagens', { title: 'Novo material', body: d.title, url: '/paciente/materiais', tag: 'material' })
     }
     await audit(user, 'material_publicado', 'material', { details: { titulo: d.title, publico: d.audience } })

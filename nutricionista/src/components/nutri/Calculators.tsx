@@ -59,7 +59,7 @@ type Props = {
   onSaveEnergy?: (patientId: string, e: EnergyToSave) => Promise<{ ok?: boolean; error?: string; message?: string }>
 }
 
-const DISCLAIMER_PATIENT = 'Estimativa. Seu plano é definido pelo seu nutricionista.'
+const DISCLAIMER_PATIENT = 'Estimativa. Seu plano é definido pelo seu coach.'
 const DISCLAIMER_PRO = 'Estimativa baseada em fórmulas de referência; confirme com a avaliação clínica.'
 
 function NumInput({ id, label, value, onChange, unit, hint }: { id: string; label: string; value: string; onChange: (v: string) => void; unit?: string; hint?: string }) {
@@ -322,7 +322,7 @@ function Portions({ foods, disclaimer }: { foods: CalcFood[]; disclaimer: string
         <section className="card stack">
           <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Cru ↔ cozido</h2>
           <p className="small muted" style={{ margin: 0 }}>
-            Fator de cocção de {food.name.toLowerCase()}: {fmt(food.cookingFactor, 2)} (peso cozido ÷ peso cru), editável pelo nutricionista.
+            Fator de cocção de {food.name.toLowerCase()}: {fmt(food.cookingFactor, 2)} (peso cozido ÷ peso cru), editável pelo coach.
           </p>
           <div className="row">
             <NumInput

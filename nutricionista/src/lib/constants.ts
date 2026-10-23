@@ -13,3 +13,11 @@ export const PRESCRIPTION_TYPES = {
   outro: 'Outro',
 } as Record<string, string>
 export const PRESCRIPTION_TYPE_KEYS = ['livre', 'suplemento', 'manipulado', 'ergogenico', 'fitoterapico', 'alimentacao', 'exame', 'outro'] as const
+
+/** Páginas do site público (menu do cabeçalho e rodapé). */
+export const SITE_NAV = [
+  { href: '/sobre', label: 'Sobre' },
+  { href: '/como-funciona', label: 'Como funciona' },
+  { href: '/planos', label: 'Planos' },
+  { href: '/duvidas', label: 'Dúvidas' },
+]

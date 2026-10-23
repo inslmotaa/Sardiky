@@ -10,7 +10,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     id: '/paciente',
     name: `${s.professionalName} · Nutrição`,
     short_name: s.professionalName.split(' ').slice(0, 2).join(' '),
-    description: 'Seu plano alimentar, diário, água e conversa com o nutricionista.',
+    description: 'Seu plano alimentar, diário, água e conversa com o coach.',
     start_url: '/paciente',
     scope: '/',
     display: 'standalone',

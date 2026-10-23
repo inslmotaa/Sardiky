@@ -75,7 +75,7 @@ function ProfileSection({ s }: { s: S }) {
           <Field label="Título" name="professionalTitle" required>
             <input name="professionalTitle" defaultValue={s.professionalTitle} />
           </Field>
-          <Field label="Registro profissional (CRN)" name="registry" hint="Ex.: CRN-3 12345">
+          <Field label="Registro profissional (opcional)" name="registry" hint="Deixe vazio para não mostrar no site nem no PDF.">
             <input name="registry" defaultValue={s.registry ?? ''} />
           </Field>
           <Field label="Cor principal" name="brandColor" hint="Usada em botões, destaques e gráficos.">
@@ -350,7 +350,7 @@ async function ClinicalSection({ s }: { s: S }) {
         </Field>
         <fieldset>
           <legend>Assinatura no PDF do plano</legend>
-          <Field label="Texto abaixo da assinatura (opcional)" name="signatureText" hint="Ex.: Nutricionista — CRN-0 00000 · contato@…">
+          <Field label="Texto abaixo da assinatura (opcional)" name="signatureText" hint="Ex.: Coach · contato@…">
             <input name="signatureText" maxLength={300} defaultValue={s.signatureText ?? ''} />
           </Field>
           <Field label="Imagem da assinatura (PNG ou JPG, fundo branco ou transparente)" name="signature">
@@ -571,7 +571,7 @@ async function TeamSection({ tz }: { tz: string }) {
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <p className="alert alert--info small">
-        O nutricionista (administrador) tem acesso total. Membros da equipe veem apenas as áreas liberadas abaixo. Dados clínicos devem ser liberados somente a
+        O coach (administrador) tem acesso total. Membros da equipe veem apenas as áreas liberadas abaixo. Dados clínicos devem ser liberados somente a
         profissionais que participam do atendimento e estão sujeitos a sigilo.
       </p>
       {team.map((u) => (
@@ -598,7 +598,7 @@ async function TeamSection({ tz }: { tz: string }) {
                 <input type="checkbox" name="isActive" defaultChecked={u.isActive} /> Acesso ativo
               </label>
               <label className="check">
-                <input type="checkbox" name="ownPatientsOnly" defaultChecked={u.ownPatientsOnly} /> Nutricionista: vê só os próprios pacientes (ficha, planos, diário, chat, acompanhamento e agenda)
+                <input type="checkbox" name="ownPatientsOnly" defaultChecked={u.ownPatientsOnly} /> Coach: vê só os próprios pacientes (ficha, planos, diário, chat, acompanhamento e agenda)
               </label>
               <div>
                 <SubmitButton className="btn btn--sm btn--primary">Salvar permissões</SubmitButton>
@@ -628,7 +628,7 @@ async function TeamSection({ tz }: { tz: string }) {
               ))}
             </div>
             <label className="check">
-              <input type="checkbox" name="ownPatientsOnly" /> Nutricionista: vê só os próprios pacientes
+              <input type="checkbox" name="ownPatientsOnly" /> Coach: vê só os próprios pacientes
             </label>
           </fieldset>
           <div>

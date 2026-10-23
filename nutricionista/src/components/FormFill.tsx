@@ -62,7 +62,7 @@ export function FormFill({
         }
         if (f.type === 'file') {
           return (
-            <Field key={f.id} label={f.label} name={name} required={f.required} hint={f.help || 'PDF, JPG ou PNG até 5 MB. Visível só para você e para o nutricionista.'}>
+            <Field key={f.id} label={f.label} name={name} required={f.required} hint={f.help || 'PDF, JPG ou PNG até 5 MB. Visível só para você e para o coach.'}>
               <input type="file" name={name} accept="application/pdf,image/jpeg,image/png,image/webp" />
             </Field>
           )

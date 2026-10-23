@@ -9,7 +9,7 @@ export default async function PatientMaterials() {
   const list = (await materialsForPatient(user.patientId)).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 760 }}>
-      <PageHead crumbs={[{ href: '/paciente/mais', label: 'Mais' }]} title="Materiais" subtitle="E-books, vídeos e guias do seu nutricionista." />
+      <PageHead crumbs={[{ href: '/paciente/mais', label: 'Mais' }]} title="Materiais" subtitle="E-books, vídeos e guias do seu coach." />
       {list.length === 0 ? (
         <Empty>Ainda não há materiais liberados para você.</Empty>
       ) : (

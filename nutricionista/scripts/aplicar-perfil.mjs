@@ -65,7 +65,8 @@ const Perfil = z.object({
   profissional: z.object({
     nome: texto(120),
     titulo: texto(80),
-    crn: z.string().trim().regex(/^CRN-?\s?\d{1,2}\s*[\d.\s/-]{3,}[A-Z]?$/i, 'use o formato CRN-8 12345'),
+    // Registro profissional (opcional): só aparece no site e no PDF se preenchido.
+    registro: z.string().trim().max(120).optional(),
     biografia: texto(3000),
     especialidades: z.array(texto(80)).max(12),
     metodo: texto(3000),
@@ -173,7 +174,7 @@ const sql = postgres(process.env.DATABASE_URL, { max: 1, onnotice: () => {} })
 const settings = {
   professional_name: p.profissional.nome,
   professional_title: p.profissional.titulo,
-  registry: p.profissional.crn.toUpperCase(),
+  registry: p.profissional.registro || null,
   bio: p.profissional.biografia,
   specialties: sql.json(p.profissional.especialidades),
   method: p.profissional.metodo,
@@ -282,7 +283,7 @@ const out = await sql.begin(async (tx) => {
 })
 await sql.end()
 
-console.log(`Perfil aplicado: ${p.profissional.nome} (${p.profissional.crn.toUpperCase()}).`)
+console.log(`Perfil aplicado: ${p.profissional.nome} (${p.profissional.titulo}).`)
 console.log(`  ${p.servicos.length} serviço(s), ${p.planos.length} plano(s), ${p.agenda.horarios.length} faixa(s) de horário, ${p.perguntasFrequentes.length} pergunta(s) frequente(s).`)
 if (out.off.length) console.log(`  Serviços desativados (não estão mais no arquivo): ${out.off.join(', ')}`)
 console.log('  Faixa de demonstração desligada.')

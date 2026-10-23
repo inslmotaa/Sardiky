@@ -61,7 +61,7 @@ export default async function DiaryPage({ searchParams }: { searchParams: Promis
       )}
 
       {!d.day && (
-        <p className="empty">Seu nutricionista ainda está montando seu plano. Enquanto isso, você já pode registrar o que comeu em “Fora do plano”.</p>
+        <p className="empty">Seu coach ainda está montando seu plano. Enquanto isso, você já pode registrar o que comeu em “Fora do plano”.</p>
       )}
 
       <DiaryDay
@@ -73,7 +73,7 @@ export default async function DiaryPage({ searchParams }: { searchParams: Promis
         action={saveDiaryMeal}
         onDelete={deleteDiaryEntry}
         show={show}
-        photoNote="A foto fica visível só para você e para o seu nutricionista."
+        photoNote="A foto fica visível só para você e para o seu coach."
       />
 
       <section className="card">

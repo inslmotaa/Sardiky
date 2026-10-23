@@ -26,7 +26,7 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
   ])
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
-      <PageHead title="Seu progresso" subtitle="Pontos cheios são medições feitas pelo nutricionista; pontos vazados são valores informados por você." />
+      <PageHead title="Seu progresso" subtitle="Pontos cheios são medições feitas pelo coach; pontos vazados são valores informados por você." />
       {summary.hasPlan && (
         <section className="card" aria-labelledby="adesao">
           <h2 id="adesao" style={{ fontSize: '1.15rem' }}>
@@ -60,7 +60,7 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
           upload={addOwnProgressPhotos}
           onDelete={deleteOwnProgressPhoto}
           today={today}
-          privacyNote="Suas fotos são privadas: só você e o seu nutricionista podem vê-las."
+          privacyNote="Suas fotos são privadas: só você e o seu coach podem vê-las."
         />
       </section>
       {features.peso && (

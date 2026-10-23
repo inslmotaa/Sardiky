@@ -95,7 +95,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="sidebar__foot">
           <div style={{ marginBottom: 6 }}>
             <strong style={{ color: '#fff' }}>{user.name}</strong>
-            <div style={{ color: '#9fb0a9' }}>{user.role === 'admin' ? 'Nutricionista (administrador)' : 'Equipe'}</div>
+            <div style={{ color: '#9fb0a9' }}>{user.role === 'admin' ? 'Coach (administrador)' : 'Equipe'}</div>
           </div>
           <div className="row" style={{ gap: 14 }}>
             <a href="/" target="_blank" style={{ color: '#fff' }}>

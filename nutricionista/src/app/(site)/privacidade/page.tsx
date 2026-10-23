@@ -70,7 +70,7 @@ export default async function PrivacyPage() {
         <h2>4. Onde ficam guardados</h2>
         <ul>
           <li>Em servidor contratado pelo consultório, num banco de dados protegido por senha e acessível apenas pelo próprio sistema.</li>
-          <li>Exames e fotos ficam em área privada: só abrem para você e para o nutricionista, depois de conferido o login.</li>
+          <li>Exames e fotos ficam em área privada: só abrem para você e para o coach, depois de conferido o login.</li>
           <li>Toda a comunicação usa conexão criptografada (HTTPS). Senhas nunca são guardadas em texto: só um resumo criptográfico.</li>
           <li>Há cópia de segurança diária, guardada de forma protegida, e registro das ações sensíveis no painel.</li>
         </ul>

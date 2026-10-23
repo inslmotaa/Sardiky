@@ -2,6 +2,7 @@
 
 import { animate, motion, MotionConfig, useInView, useMotionValue, useReducedMotion, useSpring, useTransform, type Variants } from 'framer-motion'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { Fruit } from './Fruits'
 
 /**
  * Animações do site (framer-motion). Tudo respeita "reduzir movimento" do sistema:
@@ -50,10 +51,10 @@ export function StaggerItem({ children, className }: { children: ReactNode; clas
 }
 
 /** Título que entra palavra por palavra. */
-export function WordsTitle({ text, className }: { text: string; className?: string }) {
+export function WordsTitle({ text, className, as: Tag = 'h1' }: { text: string; className?: string; as?: 'h1' | 'h2' }) {
   const words = text.split(/\s+/).filter(Boolean)
   return (
-    <h1 className={className} aria-label={text}>
+    <Tag className={className} aria-label={text}>
       {words.map((w, i) => (
         <motion.span
           key={`${w}-${i}`}
@@ -68,7 +69,7 @@ export function WordsTitle({ text, className }: { text: string; className?: stri
           {i < words.length - 1 ? ' ' : ''}
         </motion.span>
       ))}
-    </h1>
+    </Tag>
   )
 }
 
@@ -123,42 +124,28 @@ export function HeroDecor() {
       <span className="blob blob--2" />
       <span className="blob blob--3" />
       <motion.div className="float-layer" style={far}>
-        <Leaf className="floaty floaty--1" />
-        <Citrus className="floaty floaty--2" />
+        <span className="floaty floaty--1">
+          <Fruit name="folha" size={54} />
+        </span>
+        <span className="floaty floaty--2">
+          <Fruit name="laranja" size={46} />
+        </span>
+        <span className="floaty floaty--6">
+          <Fruit name="uva" size={44} />
+        </span>
       </motion.div>
       <motion.div className="float-layer" style={near}>
-        <Leaf className="floaty floaty--3" />
-        <Leaf className="floaty floaty--4" />
-        <Berry className="floaty floaty--5" />
+        <span className="floaty floaty--3">
+          <Fruit name="maca" size={50} />
+        </span>
+        <span className="floaty floaty--4">
+          <Fruit name="morango" size={38} />
+        </span>
+        <span className="floaty floaty--5">
+          <Fruit name="abacate" size={46} />
+        </span>
       </motion.div>
     </div>
   )
 }
 
-function Leaf({ className }: { className: string }) {
-  return (
-    <svg className={className} viewBox="0 0 64 64" width="64" height="64">
-      <path d="M8 56C8 28 26 8 58 6c-2 30-20 50-50 50z" fill="var(--verde-claro)" opacity=".85" />
-      <path d="M10 54C24 40 36 26 54 10" stroke="var(--verde-escuro)" strokeWidth="2.2" fill="none" strokeLinecap="round" opacity=".55" />
-    </svg>
-  )
-}
-function Citrus({ className }: { className: string }) {
-  return (
-    <svg className={className} viewBox="0 0 64 64" width="56" height="56">
-      <circle cx="32" cy="32" r="26" fill="#f4e7a1" stroke="var(--verde-claro)" strokeWidth="4" />
-      {Array.from({ length: 8 }, (_, i) => (
-        <path key={i} d="M32 32 L32 10" stroke="#e7d26b" strokeWidth="3" transform={`rotate(${i * 45} 32 32)`} strokeLinecap="round" />
-      ))}
-    </svg>
-  )
-}
-function Berry({ className }: { className: string }) {
-  return (
-    <svg className={className} viewBox="0 0 64 64" width="44" height="44">
-      <circle cx="26" cy="38" r="14" fill="var(--verde-principal)" opacity=".8" />
-      <circle cx="40" cy="34" r="12" fill="var(--verde-claro)" opacity=".9" />
-      <path d="M33 22c2-8 8-12 14-12" stroke="var(--verde-escuro)" strokeWidth="3" fill="none" strokeLinecap="round" />
-    </svg>
-  )
-}

@@ -127,10 +127,10 @@ test('permissões: paciente sem acesso ao painel e equipe fora da área do clien
   // Logado no site: avatar com menu no lugar de "Entrar".
   await page.goto('/')
   await expect(page.locator('.site-header').getByRole('link', { name: 'Entrar' })).toHaveCount(0)
-  await page.locator('.user-menu summary').click()
-  await expect(page.locator('.user-menu').getByRole('link', { name: 'Minha área' })).toHaveAttribute('href', '/paciente')
+  await page.locator('.site-nav .user-menu summary').click()
+  await expect(page.locator('.site-nav .user-menu').getByRole('link', { name: 'Minha área' })).toHaveAttribute('href', '/paciente')
   // Logado, "Agendar consulta" vai direto para a agenda.
-  await expect(page.locator('.home-hero').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/agendar')
+  await expect(page.locator('#apresentacao').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/agendar')
 
   await login(page, 'admin')
   await page.goto('/app')

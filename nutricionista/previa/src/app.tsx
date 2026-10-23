@@ -491,7 +491,7 @@ function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
               </div>
             ) : (
               <div className="empty">
-                <p style={{ margin: 0 }}>Seu nutricionista ainda está montando seu plano. Assim que ele for ativado, ele aparece aqui.</p>
+                <p style={{ margin: 0 }}>Seu coach ainda está montando seu plano. Assim que ele for ativado, ele aparece aqui.</p>
               </div>
             ))}
 
@@ -826,7 +826,7 @@ function Diary({ client }: { client: Client }) {
           <p>Conte como foi cada refeição. Não existe registro “certo” — o importante é ser sincero.</p>
         </div>
       </div>
-      {!day && <p className="empty">Seu nutricionista ainda está montando seu plano. Enquanto isso, registre em “Fora do plano”.</p>}
+      {!day && <p className="empty">Seu coach ainda está montando seu plano. Enquanto isso, registre em “Fora do plano”.</p>}
       <DiaryDay
         key={client.id}
         date={t}
@@ -893,7 +893,7 @@ function AndreArea({ page, extra }: { page?: string; extra?: string }) {
               <Leaf />
             </span>
             <span className="brand__name">
-              André Farion<span className="brand__sub">Painel do nutricionista</span>
+              André Farion<span className="brand__sub">Painel do coach</span>
             </span>
           </a>
           <nav className="row" style={{ gap: 6 }}>

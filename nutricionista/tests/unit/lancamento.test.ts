@@ -15,7 +15,6 @@ const run = (args: string[], opts: { cwd?: string; input?: string } = {}) => {
 const example = () => JSON.parse(readFileSync(path.join(root, 'deploy/perfil.exemplo.json'), 'utf8'))
 const filled = () => {
   const p = example()
-  p.profissional.crn = 'CRN-8 12345'
   p.profissional.biografia = 'Biografia de teste.'
   Object.assign(p.contato, {
     whatsapp: '(41) 99876-5432',
@@ -36,7 +35,7 @@ describe('perfil de produção', () => {
   it('recusa o modelo enquanto houver campos a preencher', () => {
     const r = run(['scripts/aplicar-perfil.mjs', 'deploy/perfil.exemplo.json', '--conferir'])
     expect(r.code).toBe(1)
-    expect(r.out).toContain('profissional.crn')
+    expect(r.out).toContain('profissional.biografia')
     expect(r.out).toContain('contato.instagram')
     expect(r.out).not.toContain('preco') // preço é opcional
   })

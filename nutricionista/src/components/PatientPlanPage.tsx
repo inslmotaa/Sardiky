@@ -48,7 +48,7 @@ export function PlanPage({
         </p>
       )}
       <p className="muted small no-print" style={{ margin: 0 }}>
-        Plano elaborado e revisado pelo nutricionista. Em caso de dúvida, use as mensagens — não altere quantidades por conta própria.
+        Plano elaborado e revisado pelo coach. Em caso de dúvida, use as mensagens — não altere quantidades por conta própria.
       </p>
       <PatientPlan content={normalizePlan(plan.content)} features={features} weekday={weekday} />
       {isCurrent && prescriptions.length > 0 && (

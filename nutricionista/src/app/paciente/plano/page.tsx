@@ -24,7 +24,7 @@ export default async function PatientPlanPage() {
     return (
       <>
         <PageHead title="Plano alimentar" />
-        <Empty>Seu plano ainda não foi publicado. Assim que o nutricionista concluir a revisão, ele aparecerá aqui.</Empty>
+        <Empty>Seu plano ainda não foi publicado. Assim que o coach concluir a revisão, ele aparecerá aqui.</Empty>
       </>
     )
   }

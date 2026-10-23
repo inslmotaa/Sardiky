@@ -496,7 +496,7 @@ export async function changeWater(delta: number): Promise<void> {
 
 export async function quickWeight(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
-  if (!(await featuresOf(user.patientId)).peso) return { error: 'Registro de peso desativado pelo nutricionista.' }
+  if (!(await featuresOf(user.patientId)).peso) return { error: 'Registro de peso desativado pelo coach.' }
   const kg = optNum(20, 350).safeParse(fd.get('weightKg') ?? '')
   if (!kg.success || kg.data == null) return { fieldErrors: { weightKg: 'Informe o peso entre 20 e 350 kg' }, error: 'Peso inválido.' }
   const s = await getSettings()

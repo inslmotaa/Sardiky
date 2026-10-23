@@ -31,7 +31,7 @@ export function PatientFormFields({ p, nutritionists = [] }: { p?: typeof schema
           <input name="heightCm" inputMode="decimal" defaultValue={p?.heightCm ?? ''} />
         </Field>
         {nutritionists.length > 1 && (
-          <Field label="Nutricionista responsável" name="nutritionistId" hint="Nutricionistas marcados como “só os próprios pacientes” veem apenas os seus.">
+          <Field label="Coach responsável" name="nutritionistId" hint="Coaches marcados como “só os próprios pacientes” veem apenas os seus.">
             <select name="nutritionistId" defaultValue={p?.nutritionistId ?? ''}>
               <option value="">Sem responsável definido</option>
               {nutritionists.map((n) => (

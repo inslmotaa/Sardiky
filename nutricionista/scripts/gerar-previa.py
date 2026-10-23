@@ -13,6 +13,7 @@ get = lambda u: urllib.request.urlopen(BASE + u).read()
 home = BeautifulSoup(get('/').decode(), 'html.parser')
 priv = BeautifulSoup(get('/privacidade').decode(), 'html.parser')
 plans = BeautifulSoup(get('/planos').decode(), 'html.parser')
+about = BeautifulSoup(get('/sobre').decode(), 'html.parser')
 demo_css = open(os.path.join(ROOT, 'previa/src/demo.css'), encoding='utf-8').read()
 with tempfile.TemporaryDirectory() as tmp:
     bundle = os.path.join(tmp, 'app.js')
@@ -43,9 +44,12 @@ for t in home.select('div[hidden]'): t.decompose()
 for t in home.select('meta[name=robots]'): t.decompose()
 # Animações de entrada (framer-motion) dependem de JavaScript: no arquivo estático o conteúdo já aparece pronto.
 def show_all(doc):
+    # Mantém a posição (top/left…) e tira só o estado inicial da animação (opacidade e transformações).
     for t in doc.select('[data-reveal]'):
-        t.attrs.pop('style', None)
-show_all(home); show_all(plans)
+        keep = [d for d in (t.get('style') or '').split(';') if d.strip() and d.split(':')[0].strip() not in ('opacity', 'transform', 'translate', 'scale', 'rotate')]
+        if keep: t['style'] = ';'.join(keep)
+        else: t.attrs.pop('style', None)
+show_all(home); show_all(plans); show_all(about)
 html_tag = home.find('html')
 if html_tag.get('id') == '__next_error__': del html_tag['id']
 
@@ -68,6 +72,9 @@ for a in home.find_all('a', href=True):
     elif h == '/': a['href'] = '#'
     elif h.startswith('/agendar') or h.startswith('/criar-conta'): a['href'] = '#'; a['data-agendar'] = '1'
     elif h == '/planos': a['href'] = '#planos'
+    elif h == '/sobre': a['href'] = '#sobre'
+    elif h == '/como-funciona': a['href'] = '#como-funciona'
+    elif h == '/duvidas': a['href'] = '#duvidas'
     elif h.startswith('/entrar'): a['href'] = '#cliente'
     elif h.startswith('/login'): a['href'] = '#cliente'
     elif h.startswith('/privacidade'): a['href'] = '#privacidade'; a.attrs.pop('target', None)
@@ -98,6 +105,15 @@ area = BeautifulSoup('''
   </div>
 </section>''', 'html.parser')
 main.append(area)
+# Página "Sobre" (no site publicado fica em /sobre).
+amain = about.find('main')
+for i, sec in enumerate(amain.find_all('section', recursive=False)):
+    if i == 0: sec['id'] = 'sobre'
+    for a in sec.find_all('a', href=True):
+        if a['href'].startswith('/criar-conta') or a['href'].startswith('/agendar'):
+            a['href'] = '#'; a['data-agendar'] = '1'
+        elif a['href'] == '/planos': a['href'] = '#planos'
+    main.append(sec.extract())
 # Página de planos (no site publicado fica em /planos).
 pmain = plans.find('main')
 for sec in pmain.find_all('section', recursive=False):
@@ -146,7 +162,7 @@ script.string = r'''
   }
 
   // Menu do celular fecha ao escolher um item.
-  document.querySelectorAll('.mobile-menu a').forEach(function (a) {
+  document.querySelectorAll('.mobile-menu a, .site-menu a').forEach(function (a) {
     a.addEventListener('click', function () { a.closest('details').removeAttribute('open'); });
   });
 
@@ -155,7 +171,7 @@ script.string = r'''
   if (story) {
     var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     story.setAttribute('data-ready', 'true');
-    var words = ['complicado', 'restritivo', 'uma dieta da moda'], i = 0;
+    var words = ['complicado', 'restritivo', 'sem graça', 'uma dieta da moda'], i = 0;
     var w = story.querySelector('.story-word__item');
     if (!reduce && w) setInterval(function () {
       i = (i + 1) %% words.length;

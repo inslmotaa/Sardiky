@@ -477,7 +477,7 @@ export async function commentDiary(patientId: string, entryId: string, fd: FormD
   } else {
     await db.update(schema.diaryEntries).set({ professionalComment: comment, commentedAt: new Date() }).where(eq(schema.diaryEntries.id, entry.id))
     if (p.userId) {
-      await notifyUser(p.userId, 'O nutricionista comentou seu diário', comment.slice(0, 80), '/paciente/diario')
+      await notifyUser(p.userId, 'O coach comentou seu diário', comment.slice(0, 80), '/paciente/diario')
       await pushToUser(p.userId, 'mensagens', { title: `Comentário no seu diário (${entry.meal})`, body: comment.slice(0, 90), url: '/paciente/diario' })
     }
     await audit(user, 'diario_comentado', 'diario', { entityId: entryId, patientId })

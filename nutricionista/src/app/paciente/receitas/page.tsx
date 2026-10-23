@@ -12,7 +12,7 @@ export default async function PatientRecipes() {
   list.sort((a, b) => Number(b.inPlan) - Number(a.inPlan) || a.title.localeCompare(b.title))
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px' }}>
-      <PageHead crumbs={[{ href: '/paciente/mais', label: 'Mais' }]} title="Receitas" subtitle="Receitas do seu plano e sugestões do seu nutricionista." />
+      <PageHead crumbs={[{ href: '/paciente/mais', label: 'Mais' }]} title="Receitas" subtitle="Receitas do seu plano e sugestões do seu coach." />
       {list.length === 0 ? (
         <Empty>Ainda não há receitas liberadas para você.</Empty>
       ) : (

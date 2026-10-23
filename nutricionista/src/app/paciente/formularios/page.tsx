@@ -18,7 +18,7 @@ export default async function PatientForms() {
   const done = list.filter((a) => a.answeredAt)
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
-      <PageHead title="Formulários e avaliações" subtitle="Questionários enviados pelo nutricionista. Pedimos somente o necessário para o seu atendimento." />
+      <PageHead title="Formulários e avaliações" subtitle="Questionários enviados pelo coach. Pedimos somente o necessário para o seu atendimento." />
       <section>
         <h2 style={{ fontSize: '1.15rem' }}>Para preencher</h2>
         {pending.length === 0 ? (

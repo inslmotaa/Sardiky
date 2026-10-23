@@ -53,23 +53,23 @@ async function main() {
   await db.insert(s.settings).values({
     id: 1,
     professionalName: 'André Farion',
-    professionalTitle: 'Nutricionista',
-    registry: 'CRN-0 00000 (exemplo — informe o número real em Configurações)',
-    bio: 'Nutricionista dedicado a um atendimento individualizado. Acredito em um plano que caiba na sua vida: possível de seguir, construído junto com você e ajustado a cada consulta. (Texto de exemplo — ajuste a biografia em Configurações.)',
-    specialties: ['Reeducação alimentar', 'Nutrição esportiva', 'Saúde da mulher', 'Comportamento alimentar'],
+    professionalTitle: 'Coach',
+    registry: null,
+    bio: 'Acompanhamento individual para quem quer resultado de verdade, sem fórmulas prontas: um plano que cabe na sua rotina, construído junto com você e ajustado de perto. (Texto de exemplo — ajuste a apresentação em Configurações.)',
+    specialties: ['Ganho de massa muscular', 'Emagrecimento saudável', 'Mais energia e disposição', 'Melhor qualidade de vida'],
     method:
-      'O atendimento começa por uma avaliação completa da sua rotina, histórico e preferências. A partir dela, definimos metas realistas e um plano alimentar individualizado, revisado nos retornos conforme sua evolução.',
+      'Tudo começa por uma anamnese completa e uma avaliação física. A partir delas, definimos metas realistas e uma estratégia individual, revista a cada 15 dias conforme a sua evolução.',
     differentials: [
-      'Plano alimentar individualizado, com substituições para dar flexibilidade',
-      'Área do paciente para consultar o plano e registrar a rotina',
-      'Acompanhamento entre consultas pelos canais combinados',
-      'Atendimento presencial e on-line',
+      'Dieta personalizada, atualizada a cada 15 dias',
+      'Avaliação física presencial ou on-line',
+      'Aplicativo com plano, diário, lembretes e mensagens',
+      'Acompanhamento próximo, com ajustes conforme o seu progresso',
     ],
     howItWorks: [
-      { title: 'Agende', text: 'Escolha o tipo de consulta, a data e o horário disponíveis.' },
-      { title: 'Pré-consulta', text: 'Você recebe um questionário breve para aproveitarmos melhor o encontro.' },
-      { title: 'Consulta', text: 'Avaliação, conversa sobre objetivos e definição das primeiras metas.' },
-      { title: 'Plano e acompanhamento', text: 'Seu plano fica disponível na área do paciente e é ajustado nos retornos.' },
+      { title: 'Escolha seu plano', text: 'Mensal, trimestral, semestral ou anual.' },
+      { title: 'Crie sua conta', text: 'E responda a anamnese no próprio site.' },
+      { title: 'Avaliação', text: 'Conversa, avaliação física e definição de metas.' },
+      { title: 'Plano no app', text: 'Com ajustes a cada 15 dias.' },
     ],
     address: 'Rua Exemplo, 123 — sala 45, Centro, Cidade/UF (endereço fictício)',
     hoursText: 'Segunda a sexta, 8h às 18h · Sábados, 8h às 12h',
@@ -86,7 +86,7 @@ async function main() {
       { name: 'Lanche da tarde', time: '16:00' },
       { name: 'Jantar', time: '19:30' },
     ],
-    signatureText: 'Nutricionista · atendimento presencial e on-line',
+    signatureText: 'Coach · atendimento presencial e on-line',
     quickReplies: ['Ótima escolha!', 'Vamos ajustar isso no retorno.', 'Obrigado por registrar, {nome}! Continue assim.', 'Tudo bem, amanhã é um novo dia.'],
     chatHours: { start: '08:00', end: '18:00', weekdays: [1, 2, 3, 4, 5] },
     chatAutoReply: 'Oi! Recebi sua mensagem e respondo no próximo horário de atendimento (segunda a sexta, 8h às 18h). Em caso de urgência, procure um serviço de saúde.',
@@ -177,7 +177,7 @@ async function main() {
     },
     {
       authorDisplay: 'J. P. (exemplo)',
-      text: 'Gosto de ver minha evolução na área do paciente e de ter o plano sempre à mão no celular.',
+      text: 'Gosto de ver minha evolução na área do cliente e de ter o plano sempre à mão no celular.',
       authorizedAt: day(-20),
       published: true,
       sort: 3,
@@ -195,7 +195,7 @@ async function main() {
     {
       question: 'Como funciona a primeira consulta?',
       answer:
-        'Conversamos sobre sua rotina, histórico de saúde, preferências e objetivos. Fazemos a avaliação antropométrica (no presencial) e, em até alguns dias, seu plano fica disponível na área do paciente.',
+        'Conversamos sobre sua rotina, histórico de saúde, preferências e objetivos. Fazemos a avaliação antropométrica (no presencial) e, em até alguns dias, seu plano fica disponível na área do cliente.',
       sort: 1,
     },
     {
@@ -211,13 +211,8 @@ async function main() {
       sort: 3,
     },
     {
-      question: 'Vocês atendem por convênio?',
-      answer: 'O atendimento é particular. Emitimos recibo para que você solicite reembolso ao seu plano, quando ele oferecer essa possibilidade.',
-      sort: 4,
-    },
-    {
       question: 'Posso remarcar minha consulta?',
-      answer: 'Sim. Pedimos aviso com pelo menos 24 horas de antecedência, pelo WhatsApp ou pela área do paciente.',
+      answer: 'Sim. Pedimos aviso com pelo menos 24 horas de antecedência, pelo WhatsApp ou pela área do cliente.',
       sort: 5,
     },
     {
@@ -264,7 +259,7 @@ async function main() {
       // Segunda nutricionista da equipe: vê só os próprios pacientes (Helena).
       {
         email: 'nutri2@example.com',
-        name: 'Carla Nutricionista (exemplo)',
+        name: 'Carla Coach (exemplo)',
         role: 'staff',
         passwordHash: staffHash,
         permissions: ['clinico', 'agenda', 'cadastro'],
@@ -882,12 +877,12 @@ async function main() {
   await db.insert(s.auditLogs).values({ action: 'seed', entity: 'sistema', actorLabel: 'script de demonstração', details: { note: 'Dados fictícios carregados' } })
 
   console.log('\nPronto! Acessos de demonstração (dados fictícios):')
-  console.log(`  Nutricionista: nutri@example.com / ${PASSWORDS.admin}`)
+  console.log(`  Coach: nutri@example.com / ${PASSWORDS.admin}`)
   console.log(`  Equipe:        recepcao@example.com / ${PASSWORDS.staff}`)
   console.log(`  Paciente:      paciente@example.com / ${PASSWORDS.patient}`)
   console.log(`  Paciente 2:    lucas@example.com / ${PASSWORDS.patient}`)
   console.log(`  Paciente 3:    helena@example.com / ${PASSWORDS.patient}`)
-  console.log(`  Nutricionista 2 (só os próprios pacientes): nutri2@example.com / ${PASSWORDS.staff}`)
+  console.log(`  Coach 2 (só os próprios pacientes): nutri2@example.com / ${PASSWORDS.staff}`)
 }
 
 await main()
