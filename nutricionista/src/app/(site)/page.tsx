@@ -7,7 +7,7 @@ import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
 import { planPrices } from '@/lib/planos'
 import { BookingLink } from '@/components/BookingLink'
 import { Wordmark } from '@/components/Wordmark'
-import { Liquid, MonoLabel, PlanGrid } from '@/components/SiteBlocks'
+import { MonoLabel, NatureBg, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
 import { HeroAction, HeroTicker, PlateCard } from '@/components/HeroArt'
 
@@ -183,8 +183,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           </ol>
         </div>
 
-        <div className="story__close" data-liquid-host="">
-          <Liquid />
+        <div className="story__close" data-nature-host="">
+          <NatureBg />
           <div className="tl-container story__close-inner">
             <MonoLabel>PRÓXIMO CAPÍTULO</MonoLabel>
             <h2 className="display story__close-title" data-rv="" style={d(80)}>
@@ -215,8 +215,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <img src={`/arquivos/${s.photoFileId}`} alt={`Foto de ${s.professionalName}`} />
               </figure>
             ) : (
-              <figure className="about__photo about__photo--liquid" data-liquid-host="" data-rv="">
-                <Liquid />
+              <figure className="about__photo about__photo--nature" data-nature-host="" data-rv="">
+                <NatureBg />
                 <figcaption className="about__caption">
                   {s.professionalName.toLocaleUpperCase('pt-BR')} · {s.professionalTitle.toLocaleUpperCase('pt-BR')}
                 </figcaption>

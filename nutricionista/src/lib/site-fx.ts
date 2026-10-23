@@ -1,66 +1,10 @@
 /**
  * Efeitos do site público em JavaScript puro (sem React), usados no Next e na prévia em arquivo único:
- * fundo "em ação" da abertura (monitor de batimentos em canvas), fundo líquido em WebGL, nome que ocupa a largura disponível, palavra que troca, storytelling ligado
- * à rolagem, entrada suave, números que contam e cabeçalho que ganha fundo ao rolar.
+ * fundo "em ação" da abertura (monitor de batimentos), fundo de natureza e alimentos, nome que ocupa
+ * a largura disponível, palavra que troca, storytelling ligado à rolagem, entrada suave, números que
+ * contam e cabeçalho que ganha fundo ao rolar.
  * initSiteFx devolve a função que desfaz tudo (troca de página no Next).
  */
-
-const VERT = `attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}`
-
-// Superfície líquida: fbm com domain warping, normais por diferença finita e luz especular suave.
-const FRAG = `precision highp float;
-uniform vec2 uRes;
-uniform float uTime;
-uniform vec2 uMouse;
-uniform float uPush;
-uniform float uSeed;
-
-float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
-float noise(vec2 p){vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);
-  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);}
-const mat2 R=mat2(1.6,1.2,-1.2,1.6);
-float fbm(vec2 p){float v=0.0;float a=0.5;for(int i=0;i<4;i++){v+=a*noise(p);p=R*p;a*=0.5;}return v;}
-
-float height(vec2 p,vec2 m){
-  vec2 d=p-m;
-  float k=uPush*exp(-dot(d,d)*3.0);
-  p-=d*k*0.45;
-  float t=uTime;
-  vec2 q=vec2(fbm(p+0.06*t+uSeed),fbm(p+vec2(5.2,1.3)-0.05*t));
-  vec2 r=vec2(fbm(p+2.4*q+vec2(1.7,9.2)+0.035*t),fbm(p+2.4*q+vec2(8.3,2.8)-0.03*t));
-  return fbm(p+1.9*r)+k*0.08;
-}
-
-void main(){
-  vec2 uv=gl_FragCoord.xy/uRes;
-  vec2 asp=vec2(uRes.x/uRes.y,1.0);
-  vec2 p=uv*asp*1.05;
-  vec2 m=uMouse*asp*1.05;
-  float e=0.012;
-  float h=height(p,m);
-  float hx=height(p+vec2(e,0.0),m);
-  float hy=height(p+vec2(0.0,e),m);
-  vec3 n=normalize(vec3((h-hx)/e*0.26,(h-hy)/e*0.26,1.0));
-  vec3 L=normalize(vec3(-0.45,0.6,0.66));
-  vec3 H=normalize(L+vec3(0.0,0.0,1.0));
-  float diff=clamp(dot(n,L),0.0,1.0);
-  float nh=clamp(dot(n,H),0.0,1.0);
-  float spec=pow(nh,56.0)*0.55+pow(nh,9.0)*0.07;
-  vec3 base=vec3(0.969,0.973,0.961);
-  vec3 shade=vec3(0.885,0.93,0.882);
-  vec3 valley=vec3(0.553,0.749,0.545);
-  vec3 deep=vec3(0.122,0.369,0.231);
-  vec3 col=mix(shade,base,smoothstep(0.45,0.98,diff));
-  col=mix(col,valley,smoothstep(0.52,0.2,h)*0.13);
-  col=mix(col,deep,smoothstep(0.40,0.15,h)*0.05);
-  col+=vec3(spec);
-  float bottom=smoothstep(0.42,0.0,uv.y);
-  float edge=smoothstep(0.38,0.9,length((uv-0.5)*vec2(1.1,1.0)));
-  col=mix(col,col*vec3(0.93,0.955,0.935),clamp(bottom*0.6+edge*0.7,0.0,1.0));
-  gl_FragColor=vec4(min(col,vec3(1.0)),1.0);
-}`
-
-const RENDER_SCALE = 0.55
 
 type Cleanup = () => void
 
@@ -70,96 +14,151 @@ function prefersReducedMotion() {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 }
 
-/* ----------------------------- fundo líquido ----------------------------- */
+/* ------------------- fundo de natureza, alimentos e bem-estar ------------------- */
 
-function mountLiquid(canvas: HTMLCanvasElement, reduce: boolean, seed: number): Cleanup {
-  const host = (canvas.closest('[data-liquid-host]') as HTMLElement | null) ?? canvas.parentElement!
-  let gl: WebGLRenderingContext | null = null
-  try {
-    gl = (canvas.getContext('webgl', {
-      antialias: false,
-      alpha: false,
-      preserveDrawingBuffer: false,
-    }) || canvas.getContext('experimental-webgl')) as WebGLRenderingContext | null
-  } catch {
-    gl = null
-  }
-  const fallback = () => {
-    host.classList.add('liquid--fallback')
-    return () => host.classList.remove('liquid--fallback')
-  }
-  if (!gl) return fallback()
+// Alimentos e símbolos em linha fina (caixa de 48 × 48, centro em 24,24).
+const SHAPES = [
+  'M24 14c-4-4-14-3-15 7-1 9 5 19 10 19 2 0 3-1 5-1s3 1 5 1c5 0 11-10 10-19-1-10-11-11-15-7zM24 14c0-4 2-7 5-8M27 9c3-3 8-2 9-1-2 3-6 4-9 1z',
+  'M8 40C8 22 20 9 40 8c-1 19-13 32-32 32zM10 38C20 28 28 20 38 10',
+  'M31 11l7-6M31 11l1-8M31 11h8M31 11c-3-1-6 0-8 2L9 37c-1 2 1 4 3 3l24-13c2-2 3-5 2-8M19 21l3 3M15 28l3 3',
+  'M24 44V10M24 18c-4-1-7-4-7-8 4 1 7 4 7 8zM24 18c4-1 7-4 7-8-4 1-7 4-7 8zM24 28c-4-1-7-4-7-8 4 1 7 4 7 8zM24 28c4-1 7-4 7-8-4 1-7 4-7 8zM24 38c-4-1-7-4-7-8 4 1 7 4 7 8zM24 38c4-1 7-4 7-8-4 1-7 4-7 8z',
+  'M24 6c-7 0-10 10-13 17-4 9 3 19 13 19s17-10 13-19C34 16 31 6 24 6zM30 30a6 6 0 1 1-12 0 6 6 0 0 1 12 0z',
+  'M24 40S8 30 8 18a8 8 0 0 1 16-3 8 8 0 0 1 16 3c0 12-16 22-16 22z',
+  'M24 42V24M24 26c-8 0-12-6-12-12 8 0 12 6 12 12zM24 22c6 0 10-5 10-10-6 0-10 5-10 10z',
+]
 
-  const compile = (type: number, src: string) => {
-    const sh = gl!.createShader(type)!
-    gl!.shaderSource(sh, src)
-    gl!.compileShader(sh)
-    return gl!.getShaderParameter(sh, gl!.COMPILE_STATUS) ? sh : null
+function citrus() {
+  const p = new Path2D()
+  p.arc(24, 24, 18, 0, Math.PI * 2)
+  p.moveTo(38, 24)
+  p.arc(24, 24, 14, 0, Math.PI * 2)
+  for (let i = 0; i < 6; i++) {
+    const a = (i * Math.PI) / 3
+    p.moveTo(24, 24)
+    p.lineTo(24 + Math.cos(a) * 13, 24 + Math.sin(a) * 13)
   }
-  const vs = compile(gl.VERTEX_SHADER, VERT)
-  const fs = compile(gl.FRAGMENT_SHADER, FRAG)
-  const prog = gl.createProgram()!
-  if (!vs || !fs) return fallback()
-  gl.attachShader(prog, vs)
-  gl.attachShader(prog, fs)
-  gl.linkProgram(prog)
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return fallback()
-  gl.useProgram(prog)
-  const buf = gl.createBuffer()
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
-  const loc = gl.getAttribLocation(prog, 'p')
-  gl.enableVertexAttribArray(loc)
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0)
-  const uRes = gl.getUniformLocation(prog, 'uRes')
-  const uTime = gl.getUniformLocation(prog, 'uTime')
-  const uMouse = gl.getUniformLocation(prog, 'uMouse')
-  const uPush = gl.getUniformLocation(prog, 'uPush')
-  gl.uniform1f(gl.getUniformLocation(prog, 'uSeed'), seed)
-  host.classList.add('liquid--on')
+  return p
+}
 
-  // Mouse com easing: o alvo muda na hora, a posição usada no shader persegue o alvo.
-  const mouse = {
-    x: 0.65,
-    y: 0.6,
-    tx: 0.65,
-    ty: 0.6,
-    push: 0,
-    tpush: 0,
-    last: 0,
-  }
-  let time = 8 + seed * 3
+function mountNature(canvas: HTMLCanvasElement, reduce: boolean, seed: number): Cleanup {
+  const host = (canvas.closest('[data-nature-host]') as HTMLElement | null) ?? canvas.parentElement!
+  const ctx = canvas.getContext('2d')
+  if (!ctx || typeof Path2D === 'undefined') return () => {}
+  const shapes = [...SHAPES.map((d) => new Path2D(d)), citrus()]
+  // Gerador pseudoaleatório com semente: cada bloco tem a sua composição, sempre a mesma.
+  let r = 9301 + seed * 49297
+  const rand = () => ((r = (r * 9301 + 49297) % 233280) / 233280)
+  const GREEN = '31, 94, 59'
+  const LIGHT = '141, 191, 139'
+  let w = 0
+  let h = 0
   let raf = 0
   let prev = 0
+  let t = 3
   let visible = true
   let running = false
+  let foods: { x: number; y: number; s: number; a: number; rot: number; vr: number; vy: number; shape: number; ph: number }[] = []
+  let seeds: { x: number; y: number; r: number; vy: number; ph: number }[] = []
+  let blades: { x: number; hgt: number; ph: number; lean: number }[] = []
+  const mouse = { x: -9999, tx: -9999 }
 
-  const resize = () => {
+  const layout = () => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2)
-    const w = Math.max(1, Math.round(host.clientWidth * dpr * RENDER_SCALE))
-    const h = Math.max(1, Math.round(host.clientHeight * dpr * RENDER_SCALE))
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w
-      canvas.height = h
-    }
-    gl!.viewport(0, 0, w, h)
+    w = host.clientWidth
+    h = host.clientHeight
+    canvas.width = Math.round(w * dpr)
+    canvas.height = Math.round(h * dpr)
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    r = 9301 + seed * 49297
+    const n = Math.max(5, Math.min(16, Math.round((w * h) / 70000)))
+    foods = Array.from({ length: n }, (_, i) => ({
+      x: rand() * w,
+      y: rand() * h,
+      s: (0.7 + rand() * 0.6) * Math.min(1.3, Math.max(0.75, w / 1100)),
+      a: 0.16 + rand() * 0.16,
+      rot: rand() * Math.PI * 2,
+      vr: (rand() - 0.5) * 0.12,
+      vy: 6 + rand() * 9,
+      shape: i % shapes.length,
+      ph: rand() * Math.PI * 2,
+    }))
+    seeds = Array.from({ length: Math.round(n * 2.2) }, () => ({ x: rand() * w, y: rand() * h, r: 1 + rand() * 1.8, vy: 10 + rand() * 16, ph: rand() * 6 }))
+    blades = []
+    for (let x = -4; x < w + 8; x += 7 + rand() * 5) blades.push({ x, hgt: 14 + rand() * 30, ph: rand() * Math.PI * 2, lean: (rand() - 0.5) * 6 })
   }
-  const draw = () => {
-    gl!.uniform2f(uRes, canvas.width, canvas.height)
-    gl!.uniform1f(uTime, time)
-    gl!.uniform2f(uMouse, mouse.x, mouse.y)
-    gl!.uniform1f(uPush, mouse.push)
-    gl!.drawArrays(gl!.TRIANGLES, 0, 3)
+
+  const draw = (dt: number) => {
+    ctx.clearRect(0, 0, w, h)
+    // Sol que "respira" (ciclo de 8 s): inspira, expira.
+    const breath = 0.5 + 0.5 * Math.sin((t * Math.PI * 2) / 8)
+    const sx = w * 0.84
+    const sy = Math.min(h * 0.22, 150)
+    const sr = Math.min(130, Math.max(60, w * 0.08))
+    const sun = ctx.createRadialGradient(sx, sy, 0, sx, sy, sr * (1.6 + breath * 0.25))
+    sun.addColorStop(0, `rgba(${LIGHT}, 0.3)`)
+    sun.addColorStop(1, `rgba(${LIGHT}, 0)`)
+    ctx.fillStyle = sun
+    ctx.beginPath()
+    ctx.arc(sx, sy, sr * (1.6 + breath * 0.25), 0, Math.PI * 2)
+    ctx.fill()
+    ctx.lineWidth = 1
+    for (let k = 0; k < 3; k++) {
+      ctx.strokeStyle = `rgba(${GREEN}, ${0.13 - k * 0.035})`
+      ctx.beginPath()
+      ctx.arc(sx, sy, sr * (0.55 + k * 0.32) * (0.92 + breath * 0.12), 0, Math.PI * 2)
+      ctx.stroke()
+    }
+    // Sementes subindo devagar.
+    for (const p of seeds) {
+      p.y -= p.vy * dt
+      if (p.y < -6) {
+        p.y = h + 6
+        p.x = Math.random() * w
+      }
+      ctx.fillStyle = `rgba(${LIGHT}, 0.55)`
+      ctx.beginPath()
+      ctx.arc(p.x + Math.sin(t * 0.8 + p.ph) * 8, p.y, p.r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    // Alimentos em linha fina, flutuando e girando de leve.
+    ctx.lineCap = 'round'
+    ctx.lineJoin = 'round'
+    for (const f of foods) {
+      f.y -= f.vy * dt
+      f.rot += f.vr * dt
+      if (f.y < -50) {
+        f.y = h + 50
+        f.x = Math.random() * w
+      }
+      ctx.save()
+      ctx.translate(f.x + Math.sin(t * 0.5 + f.ph) * 14, f.y)
+      ctx.rotate(f.rot + Math.sin(t * 0.7 + f.ph) * 0.15)
+      ctx.scale(f.s, f.s)
+      ctx.translate(-24, -24)
+      ctx.strokeStyle = `rgba(${GREEN}, ${f.a})`
+      ctx.lineWidth = 1.4 / f.s
+      ctx.stroke(shapes[f.shape]!)
+      ctx.restore()
+    }
+    // Grama na base, balançando com o vento e se afastando do mouse.
+    mouse.x += (mouse.tx - mouse.x) * 0.08
+    ctx.lineWidth = 1.2
+    for (const b of blades) {
+      const d = b.x - mouse.x
+      const push = Math.abs(d) < 140 ? Math.sign(d) * (1 - Math.abs(d) / 140) * 16 : 0
+      const sway = Math.sin(t * 1.3 + b.ph + b.x * 0.012) * 5 + b.lean + push
+      ctx.strokeStyle = `rgba(${GREEN}, 0.26)`
+      ctx.beginPath()
+      ctx.moveTo(b.x, h)
+      ctx.quadraticCurveTo(b.x + sway * 0.3, h - b.hgt * 0.6, b.x + sway, h - b.hgt)
+      ctx.stroke()
+    }
   }
   const frame = (now: number) => {
     const dt = prev ? Math.min(0.05, (now - prev) / 1000) : 0
     prev = now
-    time += dt
-    if (now - mouse.last > 900) mouse.tpush = Math.min(mouse.tpush, 0.35)
-    mouse.x += (mouse.tx - mouse.x) * 0.06
-    mouse.y += (mouse.ty - mouse.y) * 0.06
-    mouse.push += (mouse.tpush - mouse.push) * 0.04
-    draw()
+    t += dt
+    draw(dt)
     raf = requestAnimationFrame(frame)
   }
   const start = () => {
@@ -172,13 +171,11 @@ function mountLiquid(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
     running = false
     cancelAnimationFrame(raf)
   }
-
-  resize()
-  draw()
-
+  layout()
+  draw(0)
   const ro = new ResizeObserver(() => {
-    resize()
-    if (!running) draw()
+    layout()
+    draw(0)
   })
   ro.observe(host)
   const io = new IntersectionObserver(([e]) => {
@@ -189,23 +186,18 @@ function mountLiquid(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
   io.observe(host)
   const onVis = () => (document.hidden ? stop() : start())
   document.addEventListener('visibilitychange', onVis)
-
   const onMove = (ev: PointerEvent) => {
-    const r = host.getBoundingClientRect()
-    mouse.tx = (ev.clientX - r.left) / r.width
-    mouse.ty = 1 - (ev.clientY - r.top) / r.height
-    mouse.tpush = 1
-    mouse.last = performance.now()
+    mouse.tx = ev.clientX - host.getBoundingClientRect().left
   }
   const onLeave = () => {
-    mouse.tpush = 0
+    mouse.tx = -9999
   }
   if (!reduce) {
     host.addEventListener('pointermove', onMove)
     host.addEventListener('pointerleave', onLeave)
   }
+  host.classList.add('nature--on')
   start()
-
   return () => {
     stop()
     ro.disconnect()
@@ -213,8 +205,7 @@ function mountLiquid(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
     document.removeEventListener('visibilitychange', onVis)
     host.removeEventListener('pointermove', onMove)
     host.removeEventListener('pointerleave', onLeave)
-    host.classList.remove('liquid--on')
-    gl!.getExtension('WEBGL_lose_context')?.loseContext()
+    host.classList.remove('nature--on')
   }
 }
 
@@ -573,7 +564,7 @@ function mountHeader(): Cleanup {
 export function initSiteFx(root: ParentNode = document): Cleanup {
   const reduce = prefersReducedMotion()
   const cleanups: Cleanup[] = [mountHeader()]
-  root.querySelectorAll<HTMLCanvasElement>('canvas[data-liquid]').forEach((c, i) => cleanups.push(mountLiquid(c, reduce, i * 1.7)))
+  root.querySelectorAll<HTMLCanvasElement>('canvas[data-nature]').forEach((c, i) => cleanups.push(mountNature(c, reduce, i + 1)))
   root.querySelectorAll<HTMLCanvasElement>('canvas[data-action]').forEach((c) => cleanups.push(mountAction(c, reduce)))
   root.querySelectorAll<HTMLElement>('[data-fit]').forEach((el) => cleanups.push(mountFit(el)))
   root.querySelectorAll<HTMLElement>('[data-rotate]').forEach((el) => cleanups.push(mountRotate(el, reduce)))

@@ -1,11 +1,11 @@
 import { money } from '@/lib/format'
 import type { PlanPrice } from '@/lib/planos'
 
-/** Fundo líquido (WebGL, ligado pelo site-fx) com o grão por cima. */
-export function Liquid() {
+/** Fundo de natureza, alimentos e bem-estar (canvas, ligado pelo site-fx) com o grão por cima. */
+export function NatureBg() {
   return (
     <>
-      <canvas className="liquid" data-liquid="" aria-hidden />
+      <canvas className="nature" data-nature="" aria-hidden />
       <div className="grain" aria-hidden />
     </>
   )
@@ -21,11 +21,11 @@ export function MonoLabel({ children, dot = true, className }: { children: React
   )
 }
 
-/** Topo das páginas internas: fundo líquido, rótulo "/ SOBRE" e título largo. */
+/** Topo das páginas internas: fundo de natureza, rótulo "/ SOBRE" e título largo. */
 export function PageHead({ label, title, lead }: { label: string; title: React.ReactNode; lead?: React.ReactNode }) {
   return (
-    <section className="tl-pagehead" data-liquid-host="">
-      <Liquid />
+    <section className="tl-pagehead" data-nature-host="">
+      <NatureBg />
       <div className="tl-container tl-pagehead__inner">
         <p className="sec-label" data-rv="">
           / {label}

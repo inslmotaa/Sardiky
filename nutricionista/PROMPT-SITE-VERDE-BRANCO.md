@@ -44,7 +44,13 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
   - Indicadores em pílulas de vidro que flutuam devagar e contam ao abrir: Treino 45 min, Sono 8 h, Água 2.400 ml, Passos 10.000 e Batimentos 72 bpm.
   - Em telas médias, alguns indicadores somem; no celular, ficam só a linha e a grade.
   - O fundo pausa fora da tela ou com a aba oculta, e fica parado com "reduzir movimento".
-- O fundo líquido em WebGL continua no fecho da história, no bloco do Sobre e no topo das páginas internas.
+- **Fundo de natureza, alimentos e bem-estar** (sem fundo líquido): vale para o fecho da história, o bloco do Sobre (enquanto não houver foto) e o topo das páginas internas.
+  - Base clara com brilhos verde-claro.
+  - Um sol que "respira" num ciclo de 8 s (inspira e expira), com anéis finos.
+  - Alimentos em linha fina verde que sobem devagar, balançando e girando de leve: maçã, folha, cenoura, espiga, abacate, rodela de cítrico, coração e broto.
+  - Sementes que sobem pelo fundo.
+  - Grama na base, balançando com o vento e se afastando do mouse.
+  - O fundo pausa fora da tela e fica parado com "reduzir movimento".
 - **Toques de nutrição:**
   - uma faixa fina logo abaixo do menu, com temas passando devagar em mono: Proteínas ● Fibras ● Hidratação ● Vegetais ● Frutas da estação ● Grãos integrais ● Gorduras boas ● Rotina e sono;
   - um cartão de vidro no alto à direita, "Prato equilibrado · exemplo", com:
@@ -74,14 +80,14 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
 | A virada | "Até que o plano passa a ser seu." | prato com setores Vegetais, Proteína e Carboidrato |
 | O caminho | "Acompanhamento que enxerga cada passo." | gráfico subindo, com o rótulo "a cada 15 dias" |
 
-- **Fecho,** com o fundo líquido de novo: "A sua história começa na primeira consulta." e os botões "Escrever o próximo capítulo →" e "Conhecer o André".
+- **Fecho,** com o fundo de natureza: "A sua história começa na primeira consulta." e os botões "Escrever o próximo capítulo →" e "Conhecer o André".
 
 ### 3. Seções numeradas
 
 Cada seção abre com um rótulo mono sem número ("/ SOBRE") e é separada da anterior por uma linha fina.
 
 - **/ Sobre:**
-  - foto ou bloco líquido;
+  - foto ou, enquanto não houver foto, um bloco com o fundo de natureza;
   - "Mais que dieta, um estilo de vida.", seguido de biografia, método e objetivos em mono.
 - **/ Consultoria:**
   - 4 passos marcados com um traço verde, sem número: Escolha seu plano, Responda a anamnese, Avaliação e metas, Plano no app;
@@ -107,7 +113,7 @@ Cada seção abre com um rótulo mono sem número ("/ SOBRE") e é separada da a
 
 ### 5. Páginas internas e telas de acesso
 
-- Sobre, Como funciona, Planos (com tabela de comparação) e Dúvidas usam o mesmo topo líquido e o mesmo estilo.
+- Sobre, Como funciona, Planos (com tabela de comparação) e Dúvidas usam o mesmo topo com o fundo de natureza e o mesmo estilo.
 - Privacidade e Agendar seguem as fontes e as cores do site.
 - Entrar e Criar conta seguem o mesmo visual.
 

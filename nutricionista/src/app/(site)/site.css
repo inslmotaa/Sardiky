@@ -195,35 +195,23 @@ html:has(.tl) {
   transform: translateY(22px);
 }
 
-/* ------------------------------ fundo líquido ------------------------------ */
-[data-liquid-host] {
+/* ------------------- fundo de natureza, alimentos e bem-estar ------------------- */
+[data-nature-host] {
   position: relative;
   isolation: isolate;
   overflow: hidden;
   background:
-    radial-gradient(90% 70% at 72% 18%, #ffffff 0%, rgb(255 255 255 / 0) 60%),
-    radial-gradient(
-      70% 60% at 15% 80%,
-      rgb(141 191 139 / 0.28) 0%,
-      rgb(141 191 139 / 0) 70%
-    ),
-    linear-gradient(180deg, #f9faf7 0%, #eef4ec 100%);
+    radial-gradient(70% 60% at 80% 10%, rgb(141 191 139 / 0.2) 0%, rgb(141 191 139 / 0) 70%),
+    radial-gradient(60% 50% at 10% 100%, rgb(141 191 139 / 0.18) 0%, rgb(141 191 139 / 0) 70%),
+    linear-gradient(180deg, #fbfcf9 0%, #eef5ec 100%);
 }
-.liquid {
+.nature {
   position: absolute;
   inset: 0;
   z-index: -2;
   display: block;
   width: 100%;
   height: 100%;
-  opacity: 0;
-  transition: opacity 1.4s ease;
-}
-.liquid--on > .liquid {
-  opacity: 1;
-}
-.liquid--fallback > .liquid {
-  display: none;
 }
 .grain {
   position: absolute;
