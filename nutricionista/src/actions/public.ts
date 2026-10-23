@@ -1,10 +1,10 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
-import { clientIp } from '@/lib/auth/session'
+import { clientIp, getCurrentUser } from '@/lib/auth/session'
 import { newCode } from '@/lib/auth/tokens'
 import { audit } from '@/lib/audit'
 import { assertFree, getService, slotsForDay } from '@/lib/booking'
@@ -28,6 +28,7 @@ const bookingSchema = z.object({
   returning: z.enum(['sim', 'nao'], 'Informe se já é paciente'),
   notes: optStr(1000),
   consent: z.literal('on', 'É preciso concordar com a Política de Privacidade'),
+  plano: z.string().optional(),
 })
 
 export async function createBooking(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -51,7 +52,17 @@ export async function createBooking(_: ActionState, fd: FormData): Promise<Actio
       return { error: 'Este horário não está mais disponível. Volte e escolha outro.' }
     }
     const end = new Date(start.getTime() + svc.durationMinutes * 60_000)
-    const [patient] = await db.select({ id: schema.patients.id }).from(schema.patients).where(eq(schema.patients.email, d.email))
+    // Cliente conectado: a consulta fica na ficha dele (não depende do e-mail digitado).
+    const user = await getCurrentUser()
+    const [patient] =
+      user?.role === 'patient' && user.patientId
+        ? await db.select({ id: schema.patients.id, packageId: schema.patients.packageId }).from(schema.patients).where(eq(schema.patients.id, user.patientId))
+        : await db.select({ id: schema.patients.id, packageId: schema.patients.packageId }).from(schema.patients).where(eq(schema.patients.email, d.email))
+    const [plan] =
+      d.plano && /^[0-9a-f-]{36}$/.test(d.plano)
+        ? await db.select({ id: schema.packages.id, name: schema.packages.name }).from(schema.packages).where(and(eq(schema.packages.id, d.plano), eq(schema.packages.active, true)))
+        : []
+    const notes = [plan ? `Plano de interesse: ${plan.name}` : null, d.notes].filter(Boolean).join('\n') || null
     code = newCode()
 
     await db.transaction(async (tx) => {
@@ -69,11 +80,12 @@ export async function createBooking(_: ActionState, fd: FormData): Promise<Actio
         contactEmail: d.email,
         contactPhone: d.phone,
         isReturning: d.returning === 'sim',
-        patientNotes: d.notes,
+        patientNotes: notes,
         source: 'site',
         code,
       })
       await tx.insert(schema.consents).values({ subjectEmail: d.email, patientId: patient?.id ?? null, kind: 'agendamento', version: PRIVACY_VERSION })
+      if (plan && patient && !patient.packageId) await tx.update(schema.patients).set({ packageId: plan.id, updatedAt: new Date() }).where(eq(schema.patients.id, patient.id))
     })
 
     await notifyTeam('agenda', 'Novo pedido de agendamento', `${d.name} · ${svc.name} · ${fmtDay(d.day)} ${d.time}`, '/admin/agenda?status=pendente')

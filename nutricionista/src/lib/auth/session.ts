@@ -95,7 +95,8 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 export async function requireTeam(perm?: Permission) {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/admin')
-  if (user.role === 'patient') redirect('/paciente')
+  // Sem permissão para a área: volta para a tela de entrada, com aviso.
+  if (user.role === 'patient') redirect('/login?sem-acesso=painel')
   if (perm && !can(user, perm)) throw new ForbiddenError()
   return user
 }
@@ -104,7 +105,7 @@ export async function requireTeam(perm?: Permission) {
 export async function requirePatient() {
   const user = await getCurrentUser()
   if (!user) redirect('/login?next=/paciente')
-  if (user.role !== 'patient') redirect('/admin')
+  if (user.role !== 'patient') redirect('/login?sem-acesso=paciente')
   if (!user.patientId) throw new ForbiddenError()
   return user as CurrentUser & { patientId: string }
 }

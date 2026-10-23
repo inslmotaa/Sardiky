@@ -25,13 +25,13 @@ export default async function ResetPage({ searchParams }: { searchParams: Promis
     <div className="card stack">
       <h1 style={{ fontSize: '1.6rem' }}>{invite ? 'Crie sua senha de acesso' : 'Nova senha'}</h1>
       <p className="muted" style={{ margin: 0 }}>
-        {invite ? `Olá, ${row.user.name.split(' ')[0]}! ` : ''}Use pelo menos 10 caracteres, com letras e números.
+        {invite ? `Olá, ${row.user.name.split(' ')[0]}! ` : ''}Use pelo menos 8 caracteres, com letras e números.
       </p>
       <ActionForm action={resetPassword} className="stack">
         <input type="hidden" name="token" value={token} />
         <input type="email" name="username" value={row.user.email} autoComplete="username" readOnly hidden />
         <Field label="Nova senha" name="password">
-          <input name="password" type="password" autoComplete="new-password" minLength={10} />
+          <input name="password" type="password" autoComplete="new-password" minLength={8} />
         </Field>
         <Field label="Repita a senha" name="confirm">
           <input name="confirm" type="password" autoComplete="new-password" />

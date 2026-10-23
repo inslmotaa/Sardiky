@@ -13,13 +13,9 @@ Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua á
 
 ### Rotina de um novo cliente
 
-1. **O contato chega pelo WhatsApp.** No site, os botões de agendar e o formulário de contato abrem a conversa com (41) 99155-1789.
-2. **Cadastrar.** Em **Pacientes → Novo paciente**, informe nome, telefone e objetivo. Depois, na ficha, clique em **Liberar acesso**: o sistema gera um link de primeiro acesso para o cliente criar a senha. O link pode ser enviado pelo próprio WhatsApp.
-3. **Anamnese.** Ela chega de dois jeitos:
-   - automaticamente, pelo modelo escolhido em Configurações;
-   - pelo Google Forms, se ele estiver ligado ao webhook (veja [08-fase-3.md](08-fase-3.md)).
-
-   Restrições e alergias informadas aparecem em destaque no editor de planos.
+1. **O cliente se cadastra pelo site.** Escolhe um plano em `/planos` (ou clica em "Agendar consulta"), cria a conta e já começa pela anamnese, em etapas. O André recebe "Novo cadastro pelo site" e "Nova anamnese recebida" em **Início → Avisos**.
+2. **Ou o André cadastra.** Em **Pacientes → Novo paciente**, informe nome, telefone e objetivo. Depois, na ficha, clique em **Liberar acesso**: o sistema gera um link de primeiro acesso, que pode ser enviado pelo WhatsApp. No primeiro acesso, o cliente preenche a anamnese.
+3. **Anamnese.** Na ficha do cliente, aba **Anamnese**, ficam as respostas por etapa, o histórico de versões, **Exportar PDF** e **Pedir reavaliação**. Restrições e alergias informadas aparecem em destaque no editor de planos.
 4. **Avaliação.** Na ficha do cliente, aba **Avaliações e evolução**, registre peso, circunferências, dobras e bioimpedância. O percentual de gordura é calculado sozinho.
 5. **Montar e enviar a alimentação.** Na ficha do cliente, aba **Planos alimentares → Novo plano**:
    - escolha os alimentos da base, com medidas caseiras, ou as receitas cadastradas;
@@ -48,7 +44,7 @@ Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua á
 | Onde | O quê |
 |---|---|
 | Configurações → Perfil | CRN, biografia, foto, logo, WhatsApp, Instagram |
-| Configurações → Perfil | **Botão "Agendar consulta" do site**: WhatsApp (padrão) ou agenda on-line |
+| Configurações → Perfil | **Botão "Agendar consulta" do site**: agenda on-line com conta do cliente (padrão) ou WhatsApp |
 | Configurações → Perfil | **Mostrar os valores das consultas no site** (desligado por padrão) |
 | Configurações → Perfil | **Mostrar os valores dos planos** (ligado) e a lista **Todos os planos incluem** |
 | Configurações → Equipe | Convidar recepção ou outro nutricionista. Cada um pode ver só os próprios clientes. |

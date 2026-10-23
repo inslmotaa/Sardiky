@@ -1,10 +1,12 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
-import { requirePatient } from '@/lib/auth/session'
+import { destroySession, requirePatient } from '@/lib/auth/session'
+import { verifyPassword } from '@/lib/auth/password'
 import { audit } from '@/lib/audit'
 import { failure, formObject, UserError, zodErrors, type ActionState } from '@/lib/action'
 import { parseAnswers } from '@/lib/forms'
@@ -508,4 +510,37 @@ export async function completeOnboarding(): Promise<void> {
   const user = await requirePatient()
   await db.update(schema.users).set({ onboardedAt: new Date() }).where(eq(schema.users.id, user.id))
   revalidatePath('/paciente')
+}
+
+/**
+ * "Excluir minha conta": encerra o acesso na hora (login, sessões e notificações) e registra o pedido de eliminação.
+ * O prontuário fica guardado só pelo prazo das normas profissionais e é anonimizado pelo nutricionista em Privacidade.
+ */
+export async function deleteMyAccount(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requirePatient()
+  const [row] = await db.select().from(schema.users).where(eq(schema.users.id, user.id))
+  if (!row) return { error: 'Conta não encontrada.' }
+  if (String(fd.get('confirm') ?? '').trim().toUpperCase() !== 'EXCLUIR') return { error: 'Digite EXCLUIR para confirmar.', fieldErrors: { confirm: 'Digite EXCLUIR' } }
+  if (row.passwordHash && !(await verifyPassword(String(fd.get('password') ?? ''), row.passwordHash))) {
+    return { error: 'Senha incorreta.', fieldErrors: { password: 'Senha incorreta' } }
+  }
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.dataRequests).values({
+      patientId: user.patientId,
+      requesterName: user.name,
+      type: 'exclusao',
+      details: 'Conta excluída pelo próprio titular no app. Acesso encerrado; falta anonimizar o prontuário quando o prazo de guarda permitir.',
+    })
+    await tx.delete(schema.sessions).where(eq(schema.sessions.userId, user.id))
+    await tx.delete(schema.pushSubscriptions).where(eq(schema.pushSubscriptions.userId, user.id))
+    await tx
+      .update(schema.users)
+      .set({ isActive: false, email: `excluido-${user.id}@conta-removida.invalid`, name: 'Conta excluída', passwordHash: null, googleSub: null, updatedAt: new Date() })
+      .where(eq(schema.users.id, user.id))
+    await tx.update(schema.patients).set({ userId: null, status: 'inativo', updatedAt: new Date() }).where(eq(schema.patients.id, user.patientId))
+  })
+  await notifyTeam('config', 'Conta excluída pelo paciente', user.name, '/admin/privacidade')
+  await audit(user, 'conta_excluida', 'usuario', { entityId: user.id, patientId: user.patientId })
+  await destroySession()
+  redirect('/?conta=excluida')
 }

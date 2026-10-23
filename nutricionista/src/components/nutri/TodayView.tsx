@@ -38,7 +38,23 @@ const FACTOR = { feita: 1, parcial: 0.5, pulada: 0, outra: 0 } as const
  * Tela “Hoje”: em até dois toques o paciente sabe o que comer agora.
  * Recebe dados prontos e ações (Server Actions no sistema, funções locais na prévia).
  */
-export function TodayView({ data, actions, links, weightForm }: { data: TodayData; actions: TodayActions; links: Record<'plan' | 'chat' | 'diary' | 'progress', string>; weightForm?: ReactNode }) {
+export function TodayView({
+  data,
+  actions,
+  links,
+  weightForm,
+  variant = 'full',
+  emptyPlan,
+}: {
+  data: TodayData
+  actions: TodayActions
+  links: Record<'plan' | 'chat' | 'diary' | 'progress', string>
+  weightForm?: ReactNode
+  /** 'hub': só refeições, macros e água (a tela inicial monta saudação, consulta, peso e atalhos). */
+  variant?: 'full' | 'hub'
+  /** Estado vazio (plano ainda não liberado) usado no hub. */
+  emptyPlan?: ReactNode
+}) {
   const [logs, setLogOptimistic] = useOptimistic(data.logs, (cur, upd: { key: string; log: MealLog | null }) => {
     const next = { ...cur }
     if (upd.log) next[upd.key] = upd.log
@@ -82,6 +98,159 @@ export function TodayView({ data, actions, links, weightForm }: { data: TodayDat
   const cups = Math.max(1, Math.ceil(data.waterGoalMl / 250))
   const fullCups = Math.floor(water / 250)
 
+  const mealsBlock = day && (
+    <>
+      {/* Próxima refeição */}
+      {next ? (
+        <section className="card next-meal" aria-labelledby="next-meal-title">
+          <span className="eyebrow">Agora</span>
+          <h2 id="next-meal-title" style={{ margin: '0 0 4px' }}>
+            {next.name}
+            {next.time && <span className="muted" style={{ fontWeight: 500 }}> · {next.time.replace(':00', 'h').replace(':', 'h')}</span>}
+          </h2>
+          {next.options.length > 1 && (
+            <div className="option-tabs" role="group" aria-label="Escolha a opção" style={{ margin: '8px 0' }}>
+              {next.options.map((o) => (
+                <button key={o.id} type="button" className="btn btn--sm" aria-pressed={o.id === optionOf(next).id} onClick={() => setChosen((c) => ({ ...c, [next.id]: o.id }))}>
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <ul className="list" style={{ margin: '8px 0 12px' }}>
+            {optionOf(next).items.map((it) => (
+              <li key={it.id} className="row row--between" style={{ padding: '8px 0' }}>
+                <span>{it.name}</span>
+                <span className="muted nowrap">{quantityLabel(it)}</span>
+              </li>
+            ))}
+          </ul>
+          {calc && <NutriInline n={optionTotals(optionOf(next))} showKcal={data.features.calorias} showMacros={data.features.macros} />}
+          <div className="meal-status-actions" style={{ marginTop: 12 }}>
+            <button type="button" className="btn btn--primary" onClick={() => mark(next, 'feita')}>
+              Marcar como feita
+            </button>
+            <button type="button" className="btn" onClick={() => mark(next, 'parcial')}>
+              Fiz em parte
+            </button>
+            <button type="button" className="btn btn--ghost" onClick={() => mark(next, 'pulada')}>
+              Pulei
+            </button>
+          </div>
+        </section>
+      ) : allDone ? (
+        <section className="card card--soft celebrate" aria-live="polite">
+          <h2 style={{ marginTop: 0 }}>Todas as refeições de hoje registradas!</h2>
+          <p style={{ margin: 0 }}>Cada registro ajuda no seu acompanhamento. Amanhã é um novo dia.</p>
+          <Confetti />
+        </section>
+      ) : null}
+
+      {/* Linha do tempo */}
+      <section className="card">
+        <div className="card__head">
+          <h2>Refeições de hoje</h2>
+          <a href={links.plan} className="small">
+            Ver plano
+          </a>
+        </div>
+        <ol className="timeline-day">
+          {meals.map((m) => {
+            const log = logs[keyOf(m)]
+            return (
+              <li key={m.id}>
+                <time>{m.time || '—'}</time>
+                <span>
+                  <strong>{m.name}</strong>
+                  {log && log.status !== 'pulada' && m.options.length > 1 && <span className="small muted"> · {optionOf(m).label}</span>}
+                </span>
+                <span className="row" style={{ gap: 6, flexWrap: 'nowrap' }}>
+                  {log ? (
+                    <>
+                      <span className={`badge ${STATUS_TONE[log.status]}`}>{STATUS_LABEL[log.status]}</span>
+                      <button type="button" className="link-btn small" aria-label={`Desfazer registro de ${m.name}`} onClick={() => mark(m, null)}>
+                        desfazer
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <span className="badge badge--plain">Pendente</span>
+                      <button type="button" className="btn btn--sm" aria-label={`Marcar ${m.name} como feita`} onClick={() => mark(m, 'feita')}>
+                        ✓
+                      </button>
+                    </>
+                  )}
+                </span>
+              </li>
+            )
+          })}
+        </ol>
+      </section>
+    </>
+  )
+
+  const waterCard = data.features.agua && (
+    <section className="card">
+      <div className="card__head">
+        <h2>Água</h2>
+        <span className="small">
+          <strong>{fmt(water / 1000, 2)} L</strong> de {fmt(data.waterGoalMl / 1000, 1)} L
+        </span>
+      </div>
+      <WaterRing ml={water} goal={data.waterGoalMl} />
+      <div className="water" role="group" aria-label={`Copos de 250 ml: ${fullCups} de ${cups}`}>
+        {Array.from({ length: cups }, (_, i) => (
+          <button
+            key={i}
+            type="button"
+            className="water__cup"
+            data-full={i < fullCups}
+            aria-label={i < fullCups ? `Copo ${i + 1} registrado (toque para tirar)` : `Registrar copo ${i + 1} (+250 ml)`}
+            onClick={() => addWater(i < fullCups ? -250 : 250)}
+          />
+        ))}
+      </div>
+      <div className="row" style={{ marginTop: 12 }}>
+        <button type="button" className="btn btn--primary" onClick={() => addWater(250)}>
+          + 250 ml
+        </button>
+        <button type="button" className="btn btn--ghost" onClick={() => addWater(-250)} disabled={water <= 0}>
+          − 250 ml
+        </button>
+      </div>
+    </section>
+  )
+
+  if (variant === 'hub') {
+    const macros = calc && (data.features.calorias || data.features.macros) && day && (
+      <section className="card">
+        <div className="card__head">
+          <h2>Seu dia</h2>
+          <span className="small muted">consumido × planejado</span>
+        </div>
+        <div className="row" style={{ gap: 18, alignItems: 'center' }}>
+          {data.features.calorias && <KcalRing value={consumed.kcal} target={planned.kcal} />}
+          {data.features.macros && (
+            <div style={{ flex: 1, minWidth: 180 }}>
+              <MacroBars value={consumed} target={planned} />
+            </div>
+          )}
+        </div>
+      </section>
+    )
+    return (
+      <div className="today-grid">
+        <div className="stack" style={{ ['--gap' as string]: '16px' }}>
+          {!day ? emptyPlan : mealsBlock}
+        </div>
+        <div className="stack" style={{ ['--gap' as string]: '16px' }}>
+          {macros}
+          {waterCard}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px' }}>
       <div>
@@ -98,92 +267,7 @@ export function TodayView({ data, actions, links, weightForm }: { data: TodayDat
       ) : (
         <div className="today-grid">
           <div className="stack" style={{ ['--gap' as string]: '16px' }}>
-            {/* Próxima refeição */}
-            {next ? (
-              <section className="card next-meal" aria-labelledby="next-meal-title">
-                <span className="eyebrow">Agora</span>
-                <h2 id="next-meal-title" style={{ margin: '0 0 4px' }}>
-                  {next.name}
-                  {next.time && <span className="muted" style={{ fontWeight: 500 }}> · {next.time.replace(':00', 'h').replace(':', 'h')}</span>}
-                </h2>
-                {next.options.length > 1 && (
-                  <div className="option-tabs" role="group" aria-label="Escolha a opção" style={{ margin: '8px 0' }}>
-                    {next.options.map((o) => (
-                      <button key={o.id} type="button" className="btn btn--sm" aria-pressed={o.id === optionOf(next).id} onClick={() => setChosen((c) => ({ ...c, [next.id]: o.id }))}>
-                        {o.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <ul className="list" style={{ margin: '8px 0 12px' }}>
-                  {optionOf(next).items.map((it) => (
-                    <li key={it.id} className="row row--between" style={{ padding: '8px 0' }}>
-                      <span>{it.name}</span>
-                      <span className="muted nowrap">{quantityLabel(it)}</span>
-                    </li>
-                  ))}
-                </ul>
-                {calc && <NutriInline n={optionTotals(optionOf(next))} showKcal={data.features.calorias} showMacros={data.features.macros} />}
-                <div className="meal-status-actions" style={{ marginTop: 12 }}>
-                  <button type="button" className="btn btn--primary" onClick={() => mark(next, 'feita')}>
-                    Marcar como feita
-                  </button>
-                  <button type="button" className="btn" onClick={() => mark(next, 'parcial')}>
-                    Fiz em parte
-                  </button>
-                  <button type="button" className="btn btn--ghost" onClick={() => mark(next, 'pulada')}>
-                    Pulei
-                  </button>
-                </div>
-              </section>
-            ) : allDone ? (
-              <section className="card card--soft celebrate" aria-live="polite">
-                <h2 style={{ marginTop: 0 }}>Todas as refeições de hoje registradas!</h2>
-                <p style={{ margin: 0 }}>Cada registro ajuda no seu acompanhamento. Amanhã é um novo dia.</p>
-                <Confetti />
-              </section>
-            ) : null}
-
-            {/* Linha do tempo */}
-            <section className="card">
-              <div className="card__head">
-                <h2>Refeições de hoje</h2>
-                <a href={links.plan} className="small">
-                  Ver plano
-                </a>
-              </div>
-              <ol className="timeline-day">
-                {meals.map((m) => {
-                  const log = logs[keyOf(m)]
-                  return (
-                    <li key={m.id}>
-                      <time>{m.time || '—'}</time>
-                      <span>
-                        <strong>{m.name}</strong>
-                        {log && log.status !== 'pulada' && m.options.length > 1 && <span className="small muted"> · {optionOf(m).label}</span>}
-                      </span>
-                      <span className="row" style={{ gap: 6, flexWrap: 'nowrap' }}>
-                        {log ? (
-                          <>
-                            <span className={`badge ${STATUS_TONE[log.status]}`}>{STATUS_LABEL[log.status]}</span>
-                            <button type="button" className="link-btn small" aria-label={`Desfazer registro de ${m.name}`} onClick={() => mark(m, null)}>
-                              desfazer
-                            </button>
-                          </>
-                        ) : (
-                          <>
-                            <span className="badge badge--plain">Pendente</span>
-                            <button type="button" className="btn btn--sm" aria-label={`Marcar ${m.name} como feita`} onClick={() => mark(m, 'feita')}>
-                              ✓
-                            </button>
-                          </>
-                        )}
-                      </span>
-                    </li>
-                  )
-                })}
-              </ol>
-            </section>
+            {mealsBlock}
           </div>
 
           <div className="stack" style={{ ['--gap' as string]: '16px' }}>
@@ -204,36 +288,7 @@ export function TodayView({ data, actions, links, weightForm }: { data: TodayDat
               </section>
             )}
 
-            {data.features.agua && (
-              <section className="card">
-                <div className="card__head">
-                  <h2>Água</h2>
-                  <span className="small">
-                    <strong>{fmt(water / 1000, 2)} L</strong> de {fmt(data.waterGoalMl / 1000, 1)} L
-                  </span>
-                </div>
-                <div className="water" role="group" aria-label={`Copos de 250 ml: ${fullCups} de ${cups}`}>
-                  {Array.from({ length: cups }, (_, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      className="water__cup"
-                      data-full={i < fullCups}
-                      aria-label={i < fullCups ? `Copo ${i + 1} registrado (toque para tirar)` : `Registrar copo ${i + 1} (+250 ml)`}
-                      onClick={() => addWater(i < fullCups ? -250 : 250)}
-                    />
-                  ))}
-                </div>
-                <div className="row" style={{ marginTop: 12 }}>
-                  <button type="button" className="btn btn--primary" onClick={() => addWater(250)}>
-                    + 250 ml
-                  </button>
-                  <button type="button" className="btn btn--ghost" onClick={() => addWater(-250)} disabled={water <= 0}>
-                    − 250 ml
-                  </button>
-                </div>
-              </section>
-            )}
+            {waterCard}
 
             {data.nextAppointment && (
               <section className="card">
@@ -305,6 +360,40 @@ function Confetti() {
       {Array.from({ length: 14 }, (_, i) => (
         <span key={i} style={{ left: `${(i * 7 + 3) % 100}%`, animationDelay: `${(i % 5) * 0.12}s`, background: ['var(--macro-protein)', 'var(--macro-carbs)', 'var(--macro-fat)', 'var(--brand)'][i % 4] }} />
       ))}
+    </div>
+  )
+}
+
+/** Anel de progresso da meta de água (animado ao mudar). */
+function WaterRing({ ml, goal }: { ml: number; goal: number }) {
+  const r = 34
+  const c = 2 * Math.PI * r
+  const pct = Math.min(1, goal > 0 ? ml / goal : 0)
+  return (
+    <div className="water-ring" aria-hidden>
+      <svg viewBox="0 0 80 80" width="88" height="88">
+        <circle cx="40" cy="40" r={r} fill="none" stroke="var(--verde-menta)" strokeWidth="9" />
+        <circle
+          cx="40"
+          cy="40"
+          r={r}
+          fill="none"
+          stroke="url(#water-grad)"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={c}
+          strokeDashoffset={c * (1 - pct)}
+          transform="rotate(-90 40 40)"
+          className="water-ring__arc"
+        />
+        <defs>
+          <linearGradient id="water-grad" x1="0" x2="1">
+            <stop offset="0" stopColor="#6cc48a" />
+            <stop offset="1" stopColor="#2f8f57" />
+          </linearGradient>
+        </defs>
+      </svg>
+      <span>{Math.round(pct * 100)}%</span>
     </div>
   )
 }

@@ -52,12 +52,22 @@ const profileSchema = z.object({
     .refine((v) => v === null || /^https:\/\//.test(v), 'Use o link completo (https://…)'),
   contactEmail: optEmail,
   privacyContact: optStr(200),
-  anamneseUrl: z
+  // Números reais para os contadores do site (vazios = não aparecem).
+  statsPatients: z
     .string()
     .trim()
     .optional()
-    .transform((v) => v || null)
-    .refine((v) => v === null || /^https:\/\//.test(v), 'Use o link completo (https://…)'),
+    .transform((v) => (v ? Number(v.replace(/\D/g, '')) : null))
+    .refine((v) => v === null || (Number.isInteger(v) && v > 0 && v < 1_000_000), 'Número inválido'),
+  statsYears: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => (v ? Number(v.replace(/\D/g, '')) : null))
+    .refine((v) => v === null || (Number.isInteger(v) && v > 0 && v < 80), 'Número inválido'),
+  responsibleDocument: optStr(30),
+  dailyQuote: optStr(240),
+  weeklyTip: optStr(1000),
   waterMlPerKg: z.coerce.number().int().min(20, 'Entre 20 e 60').max(60, 'Entre 20 e 60'),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida'),
   demoBanner: checkbox,

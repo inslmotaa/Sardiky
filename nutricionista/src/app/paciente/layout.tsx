@@ -43,7 +43,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
       </a>
       <header className="patient-header">
         <div className="container patient-header__inner" style={{ position: 'relative' }}>
-          <Brand name={s.professionalName} sub="Área do paciente" logoFileId={s.logoFileId} href="/paciente" />
+          <Brand name={s.professionalName} sub="Área do cliente" logoFileId={s.logoFileId} />
           <nav className="patient-nav" aria-label="Área do paciente">
             <NavLinks items={main} />
           </nav>
@@ -75,11 +75,11 @@ export default async function PatientLayout({ children }: { children: React.Reac
       <p className="container small muted no-print" style={{ paddingBottom: 90, marginTop: -60 }}>
         Este app não substitui atendimento médico. Em caso de urgência, procure um serviço de saúde.
       </p>
-      {!user.onboarded && (
+      {/* Boas-vindas depois da anamnese (o formulário em etapas vem antes, sem nada por cima). */}
+      {!user.onboarded && patient.anamnesisReceivedAt && (
         <Onboarding
           firstName={user.name.split(' ')[0]}
           professional={s.professionalName}
-          anamneseUrl={s.anamneseUrl}
           anamnesisDone={Boolean(patient.anamnesisReceivedAt)}
           onFinish={completeOnboarding}
           pushToggle={<PushToggle publicKey={vapidKeys()?.publicKey ?? null} subscribe={savePushSubscription} unsubscribe={removePushSubscription} />}

@@ -43,11 +43,9 @@ export default async function MorePage() {
         <p className="small muted" style={{ margin: 0 }}>
           {p.anamnesisReceivedAt ? 'Sua anamnese já foi recebida.' : 'Ainda não recebemos a sua anamnese. Ela ajuda a montar um plano que combine com você.'}
         </p>
-        {s.anamneseUrl && (
-          <a href={s.anamneseUrl} target="_blank" rel="noopener noreferrer" className="btn btn--primary" style={{ justifySelf: 'start' }}>
-            {p.anamnesisReceivedAt ? 'Abrir formulário de anamnese' : 'Preencher anamnese'}
-          </a>
-        )}
+        <Link href="/paciente/anamnese" className="btn btn--primary" style={{ justifySelf: 'start' }}>
+          {p.anamnesisReceivedAt ? 'Ver minha anamnese' : 'Preencher anamnese'}
+        </Link>
       </section>
       {wa && (
         <a href={wa} target="_blank" rel="noopener noreferrer" className="btn btn--whatsapp">

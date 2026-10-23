@@ -87,8 +87,21 @@ export function chatFileTitle(mime: string) {
 export const BOOKING_MESSAGE = 'Olá! Vim pelo site e gostaria de agendar uma consulta.'
 export type BookingTarget = { href: string; external: boolean }
 
-/** Destino do "Agendar consulta": o WhatsApp do consultório (quando escolhido e preenchido) ou a agenda on-line. */
-export function bookingLink(s: { whatsapp: string | null; bookingChannel: string }, text = BOOKING_MESSAGE): BookingTarget {
+/**
+ * Destino do "Agendar consulta": o WhatsApp do consultório (quando escolhido e preenchido) ou a agenda on-line.
+ * Na agenda on-line, quem ainda não entrou passa antes pelo cadastro (loggedIn === false).
+ */
+export function bookingLink(s: { whatsapp: string | null; bookingChannel: string }, text = BOOKING_MESSAGE, opts: { loggedIn?: boolean } = {}): BookingTarget {
   const wa = s.bookingChannel === 'whatsapp' ? whatsappLink(s.whatsapp, text) : null
-  return wa ? { href: wa, external: true } : { href: '/agendar', external: false }
+  if (wa) return { href: wa, external: true }
+  return { href: opts.loggedIn === false ? '/criar-conta?next=/agendar' : '/agendar', external: false }
+}
+
+/** Máscara de WhatsApp: (00) 00000-0000 (ou (00) 0000-0000 para fixo). */
+export function maskPhone(v: string) {
+  const d = v.replace(/\D/g, '').slice(0, 11)
+  if (d.length <= 2) return d ? `(${d}` : ''
+  if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`
+  if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`
+  return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`
 }

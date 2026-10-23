@@ -4,8 +4,9 @@ import type { Metadata } from 'next'
 import { and, asc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
+import { getCurrentUser } from '@/lib/auth/session'
 import { slotsForRange } from '@/lib/booking'
-import { bookingLink, money } from '@/lib/format'
+import { bookingLink, maskPhone, money } from '@/lib/format'
 import { fmtDayLong, isValidDay, isValidTime, todayIn, weekdayOf, weekdayShort, zonedParts } from '@/lib/time'
 import { createBooking } from '@/actions/public'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
@@ -17,10 +18,14 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 
 export default async function BookingPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams
-  const s = await getSettings()
+  const [s, user] = await Promise.all([getSettings(), getCurrentUser()])
   // Agendamento pelo WhatsApp: a agenda on-line fica desligada e o endereço leva à conversa.
   const booking = bookingLink(s)
   if (booking.external) redirect(booking.href)
+  // Plano escolhido em /planos (?plano=) e dados do cliente conectado para pré-preencher.
+  const planoId = one(sp.plano)
+  const [plan] = planoId && /^[0-9a-f-]{36}$/.test(planoId) ? await db.select().from(schema.packages).where(and(eq(schema.packages.id, planoId), eq(schema.packages.active, true))) : []
+  const [me] = user?.patientId ? await db.select().from(schema.patients).where(eq(schema.patients.id, user.patientId)) : []
   const services = await db
     .select()
     .from(schema.services)
@@ -42,6 +47,7 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
     const p = new URLSearchParams()
     if (service) p.set('servico', service.id)
     if (modality && service?.modality === 'ambos') p.set('modalidade', modality)
+    if (plan) p.set('plano', plan.id)
     for (const [k, v] of Object.entries(extra)) p.set(k, v)
     return `/agendar?${p.toString()}`
   }
@@ -55,6 +61,11 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
         <p className="muted">
           Escolha o serviço, a data e o horário. O pedido fica <strong>pendente</strong> até a confirmação pela equipe.
         </p>
+        {plan && (
+          <p className="alert alert--ok">
+            Plano escolhido: <strong>{plan.name}</strong>. Agende a primeira consulta; os detalhes do plano são combinados nela.
+          </p>
+        )}
         <ol className="stepper" aria-label="Etapas do agendamento">
           {['Serviço', 'Modalidade', 'Data', 'Horário', 'Seus dados'].map((label, i) => (
             <li key={label} aria-current={step === i + 1 ? 'step' : undefined} className={step > i + 1 ? 'done' : undefined}>
@@ -68,7 +79,7 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
           <h2 style={{ fontSize: '1.15rem', margin: 0 }}>1. Tipo de consulta</h2>
           <div className="grid-2">
             {services.map((svc) => (
-              <Link key={svc.id} href={`/agendar?servico=${svc.id}`} className="option-card" aria-current={svc.id === service?.id ? 'true' : undefined}>
+              <Link key={svc.id} href={`/agendar?servico=${svc.id}${plan ? `&plano=${plan.id}` : ''}`} className="option-card" aria-current={svc.id === service?.id ? 'true' : undefined}>
                 <strong>{svc.name}</strong>
                 <div className="muted small">
                   {svc.durationMinutes} min · {s.showPrices ? `${svc.priceCents ? money(svc.priceCents) : 'valor sob consulta'} · ` : ''}
@@ -158,23 +169,24 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
               <input type="hidden" name="modality" value={modality} />
               <input type="hidden" name="day" value={selectedDay.day} />
               <input type="hidden" name="time" value={selectedTime} />
+              {plan && <input type="hidden" name="plano" value={plan.id} />}
               <input type="text" name="website" tabIndex={-1} autoComplete="off" className="sr-only" aria-hidden />
               <Field label="Nome completo" name="name" required>
-                <input name="name" autoComplete="name" maxLength={120} />
+                <input name="name" autoComplete="name" maxLength={120} defaultValue={me?.fullName ?? ''} />
               </Field>
               <div className="form-grid">
                 <Field label="E-mail" name="email" required hint="Usado para a confirmação.">
-                  <input name="email" type="email" autoComplete="email" />
+                  <input name="email" type="email" autoComplete="email" defaultValue={me?.email ?? user?.email ?? ''} />
                 </Field>
                 <Field label="Telefone / WhatsApp" name="phone" required>
-                  <input name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="(11) 90000-0000" />
+                  <input name="phone" type="tel" autoComplete="tel" inputMode="tel" placeholder="(11) 90000-0000" defaultValue={me?.phone ? maskPhone(me.phone) : ''} />
                 </Field>
               </div>
               <fieldset>
                 <legend>Você já é paciente?</legend>
                 <div className="row" style={{ gap: 20 }}>
                   <label className="check">
-                    <input type="radio" name="returning" value="nao" defaultChecked /> Não, é minha primeira consulta
+                    <input type="radio" name="returning" value="nao" defaultChecked={!me?.anamnesisReceivedAt || !me} /> Não, é minha primeira consulta
                   </label>
                   <label className="check">
                     <input type="radio" name="returning" value="sim" /> Sim, já sou paciente

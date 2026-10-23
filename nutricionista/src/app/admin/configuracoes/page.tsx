@@ -144,8 +144,20 @@ function ProfileSection({ s }: { s: S }) {
           <Field label="Contato do encarregado de dados (LGPD)" name="privacyContact">
             <input name="privacyContact" defaultValue={s.privacyContact ?? ''} />
           </Field>
-          <Field label="Link do formulário de anamnese" name="anamneseUrl" hint="Google Forms, Typeform, Tally… Aparece no site, no primeiro acesso e no app.">
-            <input name="anamneseUrl" type="url" defaultValue={s.anamneseUrl ?? ''} />
+          <Field label="CPF/CNPJ do responsável (Política de privacidade)" name="responsibleDocument">
+            <input name="responsibleDocument" defaultValue={s.responsibleDocument ?? ''} placeholder="[PREENCHER]" />
+          </Field>
+          <Field label="Pacientes atendidos (contador do site)" name="statsPatients" hint="Só números reais. Vazio: o contador não aparece.">
+            <input name="statsPatients" inputMode="numeric" defaultValue={s.statsPatients ?? ''} placeholder="[PREENCHER]" />
+          </Field>
+          <Field label="Anos de experiência (contador do site)" name="statsYears" hint="Só números reais. Vazio: o contador não aparece.">
+            <input name="statsYears" inputMode="numeric" defaultValue={s.statsYears ?? ''} placeholder="[PREENCHER]" />
+          </Field>
+          <Field label="Frase do dia (área do cliente)" name="dailyQuote" hint="Aparece na saudação da tela inicial de cada cliente.">
+            <input name="dailyQuote" maxLength={240} defaultValue={s.dailyQuote ?? ''} />
+          </Field>
+          <Field label="Dica da semana (área do cliente)" name="weeklyTip" className="span-2">
+            <textarea name="weeklyTip" rows={2} maxLength={1000} defaultValue={s.weeklyTip ?? ''} />
           </Field>
           <Field label="Meta padrão de água (ml por kg)" name="waterMlPerKg" hint="Usada no contador de água do app e nas calculadoras.">
             <input name="waterMlPerKg" inputMode="numeric" defaultValue={s.waterMlPerKg} />

@@ -1,10 +1,12 @@
 import 'server-only'
-import { and, eq, gt, isNull } from 'drizzle-orm'
+import { and, eq, gt, inArray, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { hashToken } from './tokens'
 
-/** Valida o token de redefinição ou de convite (primeiro acesso). */
-export async function findValidToken(token: string) {
+type TokenType = (typeof schema.tokenTypeEnum.enumValues)[number]
+
+/** Valida o token de redefinição ou de convite (primeiro acesso); cada tipo de link só vale para a sua finalidade. */
+export async function findValidToken(token: string, types: TokenType[] = ['reset', 'convite']) {
   if (!token || token.length > 100) return null
   const [row] = await db
     .select({ token: schema.authTokens, user: schema.users })
@@ -13,6 +15,7 @@ export async function findValidToken(token: string) {
     .where(
       and(
         eq(schema.authTokens.id, hashToken(token)),
+        inArray(schema.authTokens.type, types),
         isNull(schema.authTokens.usedAt),
         gt(schema.authTokens.expiresAt, new Date()),
       ),

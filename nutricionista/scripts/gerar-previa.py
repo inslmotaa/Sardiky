@@ -12,6 +12,7 @@ get = lambda u: urllib.request.urlopen(BASE + u).read()
 
 home = BeautifulSoup(get('/').decode(), 'html.parser')
 priv = BeautifulSoup(get('/privacidade').decode(), 'html.parser')
+plans = BeautifulSoup(get('/planos').decode(), 'html.parser')
 demo_css = open(os.path.join(ROOT, 'previa/src/demo.css'), encoding='utf-8').read()
 with tempfile.TemporaryDirectory() as tmp:
     bundle = os.path.join(tmp, 'app.js')
@@ -40,6 +41,11 @@ for t in home.find_all('link'): t.decompose()
 for c in home.find_all(string=lambda s: isinstance(s, Comment)): c.extract()
 for t in home.select('div[hidden]'): t.decompose()
 for t in home.select('meta[name=robots]'): t.decompose()
+# Animações de entrada (framer-motion) dependem de JavaScript: no arquivo estático o conteúdo já aparece pronto.
+def show_all(doc):
+    for t in doc.select('[data-reveal]'):
+        t.attrs.pop('style', None)
+show_all(home); show_all(plans)
 html_tag = home.find('html')
 if html_tag.get('id') == '__next_error__': del html_tag['id']
 
@@ -60,7 +66,9 @@ for a in home.find_all('a', href=True):
     h = a['href']
     if h.startswith('/#'): a['href'] = h[1:]
     elif h == '/': a['href'] = '#'
-    elif h.startswith('/agendar'): a['href'] = '#'; a['data-agendar'] = '1'
+    elif h.startswith('/agendar') or h.startswith('/criar-conta'): a['href'] = '#'; a['data-agendar'] = '1'
+    elif h == '/planos': a['href'] = '#planos'
+    elif h.startswith('/entrar'): a['href'] = '#cliente'
     elif h.startswith('/login'): a['href'] = '#cliente'
     elif h.startswith('/privacidade'): a['href'] = '#privacidade'; a.attrs.pop('target', None)
 
@@ -90,6 +98,14 @@ area = BeautifulSoup('''
   </div>
 </section>''', 'html.parser')
 main.append(area)
+# Página de planos (no site publicado fica em /planos).
+pmain = plans.find('main')
+for sec in pmain.find_all('section', recursive=False):
+    if 'plans-hero' in (sec.get('class') or []): sec['id'] = 'planos'
+    for a in sec.find_all('a', href=True):
+        if a['href'].startswith('/criar-conta') or a['href'].startswith('/agendar'):
+            a['href'] = '#'; a['data-agendar'] = '1'
+    main.append(sec.extract())
 psec = priv.find('main').find('section')
 psec['id'] = 'privacidade'
 psec['class'] = ['section', 'section--alt']
@@ -116,10 +132,18 @@ script.string = r'''
   // Botões de agendamento: abrem o WhatsApp com o serviço escolhido.
   document.querySelectorAll('a[data-agendar]').forEach(function (a) {
     var card = a.closest('article');
-    var svc = card && card.querySelector('h3') ? card.querySelector('h3').textContent.trim() : '';
-    a.href = waLink('Olá! Vim pelo site e gostaria de agendar ' + (svc ? 'o serviço "' + svc + '"' : 'uma consulta') + '.');
+    var name = card && card.querySelector('.plan__name, h3');
+    var svc = name ? name.textContent.trim() : '';
+    a.href = waLink(svc ? 'Olá! Vim pelo site e tenho interesse no plano ' + svc + '.' : 'Olá! Vim pelo site e gostaria de agendar uma consulta.');
     a.target = '_blank'; a.rel = 'noopener noreferrer';
   });
+
+  // Cabeçalho fixo ganha fundo ao rolar.
+  var header = document.getElementById('site-header');
+  if (header) {
+    var onScroll = function () { header.toggleAttribute('data-scrolled', window.scrollY > 8); };
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+  }
 
   // Menu do celular fecha ao escolher um item.
   document.querySelectorAll('.mobile-menu a').forEach(function (a) {

@@ -23,13 +23,13 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export const viewport: Viewport = { themeColor: '#2f5d50', width: 'device-width', initialScale: 1 }
+export const viewport: Viewport = { themeColor: '#2f8f57', width: 'device-width', initialScale: 1 }
 
 const HEX = /^#[0-9a-fA-F]{6}$/
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const s = await getSettings()
-  const brand = HEX.test(s.brandColor) ? s.brandColor : '#2f5d50'
+  const brand = HEX.test(s.brandColor) ? s.brandColor : '#2f8f57'
   return (
     <html lang="pt-BR">
       <body style={{ ['--brand' as string]: brand }}>{children}</body>

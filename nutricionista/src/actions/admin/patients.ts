@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
@@ -502,4 +502,11 @@ export async function scheduleFollowUp(patientId: string, _: ActionState, fd: Fo
   } catch (err) {
     return failure(err)
   }
+}
+
+/** Marca como lidos os avisos do painel (novos cadastros, anamneses, mensagens…). */
+export async function markTeamNotificationsRead(): Promise<void> {
+  const user = await requireTeam()
+  await db.update(schema.notifications).set({ readAt: new Date() }).where(and(eq(schema.notifications.userId, user.id), isNull(schema.notifications.readAt)))
+  revalidatePath('/admin')
 }

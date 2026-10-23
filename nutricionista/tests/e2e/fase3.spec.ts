@@ -1,14 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
-import { login } from './helpers'
+import { login, openPatient } from './helpers'
 
 /** Fase 3: agenda, anamnese nativa, receitas, materiais, compras, prescrições, equipe e financeiro. */
 
-async function openPatient(page: Page, name: string) {
-  await page.goto('/admin/pacientes')
-  await page.getByRole('link', { name }).first().click()
-  await page.waitForURL(/\/admin\/pacientes\/[0-9a-f-]{36}/)
-  return page.url().match(/pacientes\/([0-9a-f-]{36})/)![1]
-}
 
 test('restrições da ficha geram alerta no editor de planos', async ({ page }) => {
   await login(page, 'admin')

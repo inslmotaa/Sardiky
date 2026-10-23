@@ -44,7 +44,7 @@ async function main() {
   console.log('Limpando dados…')
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
-      form_templates, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, foods, measurements, goals, leads,
+      form_templates, anamneses, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, foods, measurements, goals, leads,
       appointments, patients, packages, faqs, testimonials, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
@@ -78,7 +78,7 @@ async function main() {
     instagram: 'https://instagram.com/',
     contactEmail: 'contato@example.com',
     privacyContact: 'privacidade@example.com',
-    anamneseUrl: 'https://forms.gle/8EkK8XcNE35ydHYKA',
+    anamneseUrl: null,
     waterMlPerKg: 35,
     defaultMeals: [
       { name: 'Café da manhã', time: '07:00' },
@@ -105,7 +105,9 @@ async function main() {
       { title: 'Dieta personalizada', text: 'Atualizada a cada 15 dias.' },
       { title: 'Manipulados e ergogênicos', text: 'Acompanhamento com orientações e ajustes individuais.' },
     ],
-    bookingChannel: 'whatsapp',
+    bookingChannel: 'site',
+    dailyQuote: 'Constância vale mais que perfeição: cada refeição registrada conta.',
+    weeklyTip: 'Deixe frutas lavadas e porcionadas na geladeira: fica mais fácil escolher bem nos lanches da tarde.',
     templates: {
       confirmacao:
         'Olá, {nome}! Sua consulta ({servico}) está confirmada para {data} às {hora}. Código: {codigo}. Se precisar remarcar, responda esta mensagem.',
@@ -231,12 +233,12 @@ async function main() {
     { title: 'Vale avaliação física', text: 'Avaliação física completa sem custo adicional.' },
     { title: 'Desconto em produtos selecionados', text: 'Até 15% de desconto em produtos do nosso parceiro de suplementos e nutrição esportiva.' },
   ]
-  await db.insert(s.packages).values([
+  const [, pkgTrimestral] = await db.insert(s.packages).values([
     { name: 'Mensal', months: 1, priceCents: 25000, validityDays: 30, sort: 1 },
     { name: 'Trimestral', months: 3, priceCents: 63750, validityDays: 90, sort: 2 },
     { name: 'Semestral', months: 6, priceCents: 120000, validityDays: 180, sort: 3, perks: exclusive },
-    { name: 'Anual', months: 12, priceCents: 225000, validityDays: 365, sort: 4, perks: exclusive, highlight: 'Melhor custo-benefício' },
-  ])
+    { name: 'Anual', months: 12, priceCents: 225000, validityDays: 365, sort: 4, perks: exclusive, highlight: 'Mais escolhido' },
+  ]).returning()
 
   /* ------------------------------ usuários ----------------------------- */
   console.log('Criando usuários (o hash de senha leva alguns segundos)…')
@@ -270,6 +272,8 @@ async function main() {
       },
     ])
     .returning()
+  // Contas de demonstração já com e-mail confirmado.
+  await db.update(s.users).set({ emailVerifiedAt: new Date() })
 
   const [beatriz, lucas, rafael, helena] = await db
     .insert(s.patients)
@@ -286,6 +290,7 @@ async function main() {
         restrictions: ['lactose'],
         nutritionistId: admin.id,
         anamnesisReceivedAt: at(-151, '20:00'),
+        packageId: pkgTrimestral.id,
         status: 'ativo',
         stage: 'Acompanhamento',
         followUpDays: 30,
@@ -305,6 +310,7 @@ async function main() {
         stage: 'Avaliação inicial',
         followUpDays: 21,
         nextFollowUp: day(-3),
+        anamnesisReceivedAt: at(-25, '19:00'),
       },
       {
         fullName: 'Rafael Demonstração',
@@ -322,6 +328,7 @@ async function main() {
         userId: uHelena.id,
         nutritionistId: nutri2.id,
         restrictions: ['vegetariano'],
+        anamnesisReceivedAt: at(-21, '19:00'),
         fullName: 'Helena Teste',
         email: 'helena@example.com',
         phone: '11900000004',
@@ -336,6 +343,23 @@ async function main() {
       },
     ])
     .returning()
+
+  // Anamnese enviada pelo site (exemplo fictício), visível na aba Anamnese do painel.
+  await db.insert(s.anamneses).values({
+    patientId: beatriz.id,
+    status: 'enviada',
+    version: 1,
+    step: 6,
+    submittedAt: at(-151, '20:00'),
+    answers: {
+      pessoais: { nascimento: '1991-04-12', sexo: 'Feminino', profissao: 'Analista administrativa', cidade: 'Curitiba/PR' },
+      objetivo: { principal: 'Reeducação alimentar', prazo: '3 a 6 meses', motivacao: 'Quero ter mais disposição no dia a dia.' },
+      saude: { doencas: '', medicamentos: '', suplementos: '', alergias: 'Intolerância à lactose', cirurgias: '', exames: '', arquivos: [] },
+      medidas: { peso: 71.2, altura: 165, cintura: 82 },
+      rotina: { acorda: '06:30', dorme: '23:00', trabalho: 'Escritório, 8h às 17h, sentada.', atividade: 'Levemente ativo', treinos: 2 },
+      alimentacao: { refeicoes: 4, habitual: 'Pão e café; almoço no restaurante; lanche no meio da tarde; jantar leve.', preferencias: 'Frutas, arroz e feijão', aversoes: 'Fígado', agua: '1 a 2 L', alcool: 'Fins de semana', intestino: 'Todos os dias' },
+    },
+  })
 
   await db.insert(s.consents).values([
     { userId: uBeatriz.id, patientId: beatriz.id, kind: 'tratamento_dados_saude', version: '2026-10' },
@@ -767,7 +791,6 @@ async function main() {
 
   /* ----------------------------- financeiro ---------------------------- */
   /* ---------------- receitas, materiais, prescrições e anamnese ---------------- */
-  await db.update(s.settings).set({ autoAnamnesisTemplateId: tAnamnese.id }).where(eq(s.settings.id, 1))
   const ing = (name: string, grams: number) => {
     const f = foodRows.find((r) => r.name.startsWith(name))!
     return { foodId: f.id, name: f.name, grams, per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber } }

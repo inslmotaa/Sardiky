@@ -4,7 +4,7 @@ import { requirePatient } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtDay } from '@/lib/time'
 import { changePassword } from '@/actions/auth'
-import { createDataRequest } from '@/actions/patient'
+import { createDataRequest, deleteMyAccount } from '@/actions/patient'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { PageHead, StatusBadge } from '@/components/ui'
 
@@ -29,7 +29,7 @@ export default async function MyDataPage() {
 
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
-      <PageHead title="Meus dados" subtitle="Seus dados cadastrais, documentos, privacidade e senha." />
+      <PageHead title="Perfil" subtitle="Seus dados cadastrais, documentos, privacidade e senha." />
       <div className="grid-2">
         <section className="card">
           <h2 style={{ fontSize: '1.1rem' }}>Cadastro</h2>
@@ -54,7 +54,7 @@ export default async function MyDataPage() {
             <Field label="Senha atual" name="current">
               <input type="password" name="current" autoComplete="current-password" />
             </Field>
-            <Field label="Nova senha" name="password" hint="Mínimo de 10 caracteres, com letras e números.">
+            <Field label="Nova senha" name="password" hint="Mínimo de 8 caracteres, com letras e números.">
               <input type="password" name="password" autoComplete="new-password" />
             </Field>
             <Field label="Repita a nova senha" name="confirm">
@@ -89,9 +89,17 @@ export default async function MyDataPage() {
           Você pode baixar uma cópia dos seus dados a qualquer momento ou fazer uma solicitação ao encarregado de dados
           {s.privacyContact ? ` (${s.privacyContact})` : ''}.
         </p>
-        <a href="/paciente/meus-dados/exportar" className="btn">
-          Baixar meus dados (JSON)
-        </a>
+        <div className="row">
+          <a href="/paciente/meus-dados/exportar" className="btn btn--primary">
+            Baixar meus dados
+          </a>
+          <a href="#excluir-conta" className="btn btn--danger">
+            Excluir minha conta
+          </a>
+        </div>
+        <p className="small muted" style={{ margin: '6px 0 0' }}>
+          O arquivo (JSON) traz cadastro, anamnese, consultas, planos, diário, medidas, mensagens e consentimentos.
+        </p>
         <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '20px 0' }} />
         <ActionForm action={createDataRequest} className="stack" resetOnSuccess>
           <Field label="Tipo de solicitação" name="type">
@@ -144,6 +152,29 @@ export default async function MyDataPage() {
             </ul>
           </>
         )}
+      </section>
+
+      <section className="card card--danger" id="excluir-conta">
+        <h2 style={{ fontSize: '1.1rem' }}>Excluir minha conta</h2>
+        <p className="small">
+          Seu acesso é encerrado na hora: login, sessões e notificações. O prontuário (anamnese, consultas e planos) fica guardado apenas
+          pelo prazo exigido pelas normas profissionais e depois é anonimizado. Esta ação não pode ser desfeita.
+        </p>
+        <ActionForm action={deleteMyAccount} className="stack" confirm="Excluir sua conta agora? Você perde o acesso ao app.">
+          <div className="form-grid">
+            <Field label="Digite EXCLUIR para confirmar" name="confirm">
+              <input name="confirm" type="text" autoComplete="off" />
+            </Field>
+            <Field label="Sua senha" name="password" hint="Contas criadas com o Google não precisam de senha.">
+              <input name="password" type="password" autoComplete="current-password" />
+            </Field>
+          </div>
+          <div>
+            <SubmitButton className="btn btn--danger" pendingText="Excluindo…">
+              Excluir minha conta
+            </SubmitButton>
+          </div>
+        </ActionForm>
       </section>
     </div>
   )

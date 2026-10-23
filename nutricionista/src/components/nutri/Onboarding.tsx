@@ -9,14 +9,12 @@ import { useState, useTransition, type ReactNode } from 'react'
 export function Onboarding({
   firstName,
   professional,
-  anamneseUrl,
   anamnesisDone,
   onFinish,
   pushToggle,
 }: {
   firstName: string
   professional: string
-  anamneseUrl: string | null
   anamnesisDone: boolean
   onFinish: () => Promise<void>
   /** Botão que ativa o push neste aparelho (no sistema); sem ele, só pede a permissão. */
@@ -65,11 +63,9 @@ export function Onboarding({
       ) : (
         <>
           <p>A anamnese ajuda {professional} a montar um plano que combine com a sua rotina e a sua saúde.</p>
-          {anamneseUrl && (
-            <a href={anamneseUrl} target="_blank" rel="noopener noreferrer" className="btn btn--primary">
-              Preencher anamnese
-            </a>
-          )}
+          <a href="/paciente/anamnese" className="btn btn--primary">
+            Preencher anamnese
+          </a>
         </>
       )}
     </>,

@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
 import { hashPassword, passwordProblem, verifyPassword } from '@/lib/auth/password'
@@ -14,6 +14,7 @@ import { sendEmail } from '@/lib/notify'
 import { isLimited, rateLimit } from '@/lib/rate-limit'
 import type { ActionState } from '@/lib/action'
 import { email } from '@/lib/validation'
+import { createPatientAccount, destinationFor, emailVerificationRequired, sendVerification } from '@/lib/auth/accounts'
 
 const MAX_FAILED = 5
 const LOCK_MINUTES = 15
@@ -59,13 +60,85 @@ export async function login(_: ActionState, fd: FormData): Promise<ActionState> 
     return generic
   }
 
+  if (!user.emailVerifiedAt && emailVerificationRequired()) {
+    return {
+      error: 'Confirme seu e-mail para entrar: enviamos um link quando você criou a conta.',
+      fieldErrors: { email: 'E-mail ainda não confirmado' },
+    }
+  }
+
   await db
     .update(schema.users)
     .set({ failedLogins: 0, lockedUntil: null, lastLoginAt: new Date() })
     .where(eq(schema.users.id, user.id))
   await createSession(user.id)
   await audit({ id: user.id, name: user.name, role: user.role }, 'login', 'usuario', { entityId: user.id })
-  redirect(safeNext(fd.get('next'), user.role === 'patient' ? '/paciente' : '/admin'))
+  const [p] = await db.select({ id: schema.patients.id }).from(schema.patients).where(eq(schema.patients.userId, user.id))
+  redirect(await destinationFor({ role: user.role, patientId: p?.id ?? null }, fd.get('next')))
+}
+
+/* --------------------------- cadastro público --------------------------- */
+
+const signUpSchema = z.object({
+  name: z.string().trim().min(3, 'Informe o nome completo').max(120, 'Nome muito longo'),
+  email,
+  phone: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ''))
+    .refine((v) => v.length === 10 || v.length === 11, 'Informe DDD + número'),
+  password: z.string().max(200),
+  confirm: z.string(),
+  consent: z.literal('on', { error: 'É preciso aceitar a Política de privacidade' }),
+  plano: z.string().optional(),
+  next: z.string().optional(),
+})
+
+/** Cadastro de cliente pelo site. Não existe cadastro público de nutricionista: a conta do André é criada pelo script/SQL. */
+export async function signUp(_: ActionState, fd: FormData): Promise<ActionState> {
+  const ip = (await clientIp()) ?? 'local'
+  if (!rateLimit(`cadastro:${ip}`, 10, 60 * 60_000)) return { error: 'Muitos cadastros a partir desta rede. Tente novamente mais tarde.' }
+  const parsed = signUpSchema.safeParse(Object.fromEntries(['name', 'email', 'phone', 'password', 'confirm', 'consent', 'plano', 'next'].map((k) => [k, fd.get(k) ?? undefined])))
+  // Senha conferida junto com os demais campos, para mostrar todos os erros de uma vez.
+  const fieldErrors: Record<string, string> = parsed.success ? {} : Object.fromEntries(parsed.error.issues.map((i) => [String(i.path[0]), i.message]))
+  const password = String(fd.get('password') ?? '')
+  const problem = passwordProblem(password)
+  if (problem) fieldErrors.password = problem
+  else if (password !== String(fd.get('confirm') ?? '')) fieldErrors.confirm = 'As senhas não conferem'
+  if (!parsed.success || Object.keys(fieldErrors).length) return { error: 'Confira os campos destacados.', fieldErrors }
+  const d = parsed.data
+  const [exists] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, d.email))
+  if (exists) return { error: 'Já existe uma conta com este e-mail. Entre ou recupere a senha.', fieldErrors: { email: 'E-mail já cadastrado' } }
+  const [pkg] =
+    d.plano && /^[0-9a-f-]{36}$/.test(d.plano)
+      ? await db.select({ id: schema.packages.id }).from(schema.packages).where(and(eq(schema.packages.id, d.plano), eq(schema.packages.active, true)))
+      : []
+  const verify = emailVerificationRequired()
+  const user = await createPatientAccount({
+    name: d.name,
+    email: d.email,
+    phone: d.phone,
+    passwordHash: await hashPassword(d.password),
+    packageId: pkg?.id ?? null,
+    verified: !verify,
+  })
+  const next = safeNext(d.next, '')
+  if (verify) {
+    await sendVerification(user, next || null)
+    redirect(`/criar-conta/confirme?email=${encodeURIComponent(d.email)}`)
+  }
+  await createSession(user.id)
+  redirect(await destinationFor({ role: 'patient', patientId: user.patientId }, next || null))
+}
+
+/** Reenvia o link de confirmação (resposta sempre igual, para não revelar quais e-mails existem). */
+export async function resendVerification(_: ActionState, fd: FormData): Promise<ActionState> {
+  const ip = (await clientIp()) ?? 'local'
+  if (!rateLimit(`confirmar:${ip}`, 5, 15 * 60_000)) return { error: 'Muitas solicitações. Aguarde alguns minutos.' }
+  const parsed = email.safeParse(fd.get('email'))
+  if (!parsed.success) return { error: 'Informe um e-mail válido.', fieldErrors: { email: 'E-mail inválido' } }
+  const [user] = await db.select().from(schema.users).where(eq(schema.users.email, parsed.data))
+  if (user && user.isActive && !user.emailVerifiedAt) await sendVerification(user)
+  return { ok: true, message: 'Se houver uma conta aguardando confirmação, enviamos um novo link. Confira também a caixa de spam.' }
 }
 
 export async function logout() {
@@ -119,6 +192,8 @@ export async function resetPassword(_: ActionState, fd: FormData): Promise<Actio
   await db.update(schema.authTokens).set({ usedAt: new Date() }).where(eq(schema.authTokens.id, row.token.id))
   // Encerra sessões abertas em outros aparelhos.
   await db.delete(schema.sessions).where(eq(schema.sessions.userId, row.user.id))
+  // Quem recebe o link no e-mail e cria a senha confirmou o endereço.
+  if (!row.user.emailVerifiedAt) await db.update(schema.users).set({ emailVerifiedAt: new Date() }).where(eq(schema.users.id, row.user.id))
   if (row.token.type === 'convite' && row.user.role === 'patient') {
     const [patient] = await db.select().from(schema.patients).where(eq(schema.patients.userId, row.user.id))
     if (patient) {

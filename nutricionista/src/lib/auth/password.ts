@@ -37,7 +37,7 @@ export async function verifyPassword(password: string, stored: string | null | u
 
 /** Regras mínimas de senha: 10+ caracteres, letras e números. */
 export function passwordProblem(pw: string): string | null {
-  if (pw.length < 10) return 'A senha precisa ter pelo menos 10 caracteres.'
+  if (pw.length < 8) return 'A senha precisa ter pelo menos 8 caracteres.'
   if (pw.length > 200) return 'A senha é longa demais.'
   if (!/[a-zA-Z]/.test(pw) || !/\d/.test(pw)) return 'Use letras e números na senha.'
   return null

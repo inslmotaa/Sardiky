@@ -27,7 +27,7 @@ if (user && user.role !== 'admin') {
   console.error('Este e-mail já pertence a outro tipo de usuário.')
   process.exit(1)
 }
-if (!user) [user] = await sql`insert into users (email, name, role) values (${email}, ${name}, 'admin') returning id`
+if (!user) [user] = await sql`insert into users (email, name, role, email_verified_at) values (${email}, ${name}, 'admin', now()) returning id`
 
 const token = randomBytes(32).toString('base64url')
 const id = createHash('sha256').update(token).digest('hex')

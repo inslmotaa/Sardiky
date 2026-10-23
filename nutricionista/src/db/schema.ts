@@ -81,7 +81,7 @@ export const measurementSourceEnum = pgEnum('measurement_source', ['profissional
 export const adherenceEnum = pgEnum('adherence', ['total', 'parcial', 'nao_seguiu'])
 export const paymentStatusEnum = pgEnum('payment_status', ['pendente', 'pago', 'cancelado', 'estornado'])
 export const paymentSourceEnum = pgEnum('payment_source', ['manual', 'provedor'])
-export const tokenTypeEnum = pgEnum('token_type', ['reset', 'convite'])
+export const tokenTypeEnum = pgEnum('token_type', ['reset', 'convite', 'verificacao'])
 
 /* ------------------------------------------------------------------ */
 /* Usuários, sessões e autenticação                                    */
@@ -101,6 +101,10 @@ export const users = pgTable(
     failedLogins: integer('failed_logins').notNull().default(0),
     lockedUntil: timestamp('locked_until', { withTimezone: true }),
     lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+    /** E-mail confirmado (cadastro público, convite aceito ou login pelo Google). */
+    emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
+    /** Conta Google vinculada (identificador "sub" do Google). */
+    googleSub: text('google_sub'),
     /** Primeiro acesso concluído (boas-vindas, notificações e anamnese). */
     onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
     /** Nutricionista da equipe que vê apenas os pacientes sob sua responsabilidade. */
@@ -154,7 +158,7 @@ export const settings = pgTable('settings', {
   bio: text('bio').notNull().default(''),
   photoFileId: uuid('photo_file_id'),
   logoFileId: uuid('logo_file_id'),
-  brandColor: text('brand_color').notNull().default('#2f5d50'),
+  brandColor: text('brand_color').notNull().default('#2f8f57'),
   specialties: jsonb('specialties').$type<string[]>().notNull().default([]),
   method: text('method').notNull().default(''),
   differentials: jsonb('differentials').$type<string[]>().notNull().default([]),
@@ -181,7 +185,15 @@ export const settings = pgTable('settings', {
   /** "Todos os planos incluem": itens comuns a todos os planos, exibidos no site. */
   plansIncluded: jsonb('plans_included').$type<{ title: string; text: string }[]>().notNull().default([]),
   /** Para onde o "Agendar consulta" do site leva: WhatsApp do consultório ou agenda on-line do próprio site. */
-  bookingChannel: text('booking_channel').$type<'whatsapp' | 'site'>().notNull().default('whatsapp'),
+  bookingChannel: text('booking_channel').$type<'whatsapp' | 'site'>().notNull().default('site'),
+  /** Hub do cliente: frase do dia e dica da semana escritas pelo nutricionista. */
+  dailyQuote: text('daily_quote'),
+  weeklyTip: text('weekly_tip'),
+  /** Números reais do consultório para os contadores do site (vazios = não aparecem). */
+  statsPatients: integer('stats_patients'),
+  statsYears: integer('stats_years'),
+  /** CPF/CNPJ do responsável pelo tratamento dos dados (Política de Privacidade). */
+  responsibleDocument: text('responsible_document'),
   leadRetentionDays: integer('lead_retention_days').notNull().default(180),
   /** Formulário de anamnese externo (Google Forms, Typeform…). */
   anamneseUrl: text('anamnese_url'),
@@ -299,6 +311,8 @@ export const patients = pgTable(
     restrictions: jsonb('restrictions').$type<string[]>().notNull().default([]),
     /** Nutricionista responsável (equipe com vários nutricionistas). */
     nutritionistId: uuid('nutritionist_id').references(() => users.id, { onDelete: 'set null' }),
+    /** Plano de acompanhamento escolhido no cadastro ou contratado (definido pelo nutricionista). */
+    packageId: uuid('package_id').references(() => packages.id, { onDelete: 'set null' }),
     status: patientStatusEnum('status').notNull().default('ativo'),
     stage: text('stage').notNull().default('Avaliação inicial'),
     followUpDays: integer('follow_up_days'),
@@ -745,6 +759,32 @@ export const prescriptions = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('prescriptions_patient_idx').on(t.patientId)],
+)
+
+/* ------------------------------------------------------------------ */
+/* Anamnese preenchida no site                                          */
+/* ------------------------------------------------------------------ */
+
+export type AnamnesisAnswers = Record<string, Record<string, unknown>>
+
+/** Cada reavaliação é uma nova versão; o paciente preenche em etapas e o rascunho é salvo a cada etapa. */
+export const anamneses = pgTable(
+  'anamneses',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    answers: jsonb('answers').$type<AnamnesisAnswers>().notNull().default({}),
+    status: text('status').$type<'rascunho' | 'enviada'>().notNull().default('rascunho'),
+    version: integer('version').notNull().default(1),
+    /** Última etapa salva (para continuar de onde parou). */
+    step: integer('step').notNull().default(0),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex('anamneses_patient_version_idx').on(t.patientId, t.version)],
 )
 
 /* ------------------------------------------------------------------ */

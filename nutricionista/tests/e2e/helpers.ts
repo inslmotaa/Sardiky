@@ -23,3 +23,11 @@ export async function expectNoHorizontalScroll(page: Page) {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
   expect(overflow).toBeLessThanOrEqual(1)
 }
+
+/** Abre o prontuário de um paciente pelo nome e devolve o id. */
+export async function openPatient(page: Page, name: string) {
+  await page.goto('/admin/pacientes')
+  await page.getByRole('link', { name }).first().click()
+  await page.waitForURL(/\/admin\/pacientes\/[0-9a-f-]{36}/)
+  return page.url().match(/pacientes\/([0-9a-f-]{36})/)![1]
+}

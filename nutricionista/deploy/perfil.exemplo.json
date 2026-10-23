@@ -34,7 +34,7 @@
         "texto": "Seu plano fica no aplicativo e é ajustado nos retornos."
       }
     ],
-    "corDaMarca": "#2f5d50",
+    "corDaMarca": "#2f8f57",
     "assinatura": "Nutricionista · atendimento presencial e on-line"
   },
   "contato": {
@@ -46,9 +46,8 @@
     "horarioTexto": "Segunda a sexta, 8h às 18h",
     "modalidadeTexto": "Presencial no consultório e on-line por videochamada"
   },
-  "anamneseUrl": "https://forms.gle/8EkK8XcNE35ydHYKA",
   "site": {
-    "agendamento": "whatsapp",
+    "agendamento": "site",
     "mostrarValores": false,
     "mostrarValoresPlanos": true
   },
@@ -199,7 +198,7 @@
       "nome": "Anual",
       "meses": 12,
       "preco": 2250,
-      "destaque": "Melhor custo-benefício",
+      "destaque": "Mais escolhido",
       "beneficiosExclusivos": [
         {
           "titulo": "Vale avaliação física",

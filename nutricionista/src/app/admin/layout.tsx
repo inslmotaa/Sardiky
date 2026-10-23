@@ -90,7 +90,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         Pular para o conteúdo
       </a>
       <aside className="sidebar">
-        <Brand name={s.professionalName} sub="Painel do consultório" logoFileId={s.logoFileId} href="/admin" />
+        <Brand name={s.professionalName} sub="Painel do consultório" logoFileId={s.logoFileId} />
         <nav aria-label="Painel">{nav}</nav>
         <div className="sidebar__foot">
           <div style={{ marginBottom: 6 }}>
@@ -111,7 +111,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </aside>
       <div style={{ minWidth: 0 }}>
         <header className="topbar topbar--mobile-only" style={{ position: 'sticky' }}>
-          <Brand name={s.professionalName} sub="Painel" logoFileId={s.logoFileId} href="/admin" />
+          <Brand name={s.professionalName} sub="Painel" logoFileId={s.logoFileId} />
           <div style={{ position: 'static' }}>
             <CloseOnNavigate>
               <summary>Menu</summary>

@@ -9,6 +9,7 @@ import { addDays, capitalize, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfM
 import { money } from '@/lib/format'
 import { trackingBoard } from '@/lib/tracking'
 import { PageHead, Stat, StatusBadge } from '@/components/ui'
+import { markTeamNotificationsRead } from '@/actions/admin/patients'
 
 export default async function AdminHome() {
   const user = await requireTeam()
@@ -37,6 +38,12 @@ export default async function AdminHome() {
       }
     : null
 
+  const notes = await db
+    .select()
+    .from(schema.notifications)
+    .where(and(eq(schema.notifications.userId, user.id), isNull(schema.notifications.readAt)))
+    .orderBy(desc(schema.notifications.createdAt))
+    .limit(8)
   const [[active], [newPatients], todayAppts, upcoming, pending, followUp, forms, unread, [monthPaid], [openAmount]] = await Promise.all([
     db.select({ n: count() }).from(schema.patients).where(and(eq(schema.patients.status, 'ativo'), isNull(schema.patients.anonymizedAt))),
     db.select({ n: count() }).from(schema.patients).where(gte(schema.patients.createdAt, zonedToUtc(addDays(today, -30), '00:00', tz))),
@@ -117,6 +124,30 @@ export default async function AdminHome() {
           </>
         }
       />
+
+      {notes.length > 0 && (
+        <section className="card card--soft" aria-label="Avisos">
+          <div className="card__head">
+            <h2 style={{ fontSize: '1.05rem' }}>Avisos</h2>
+            <form action={markTeamNotificationsRead}>
+              <button className="link-btn small" type="submit">
+                Marcar como lidos
+              </button>
+            </form>
+          </div>
+          <ul className="list">
+            {notes.map((n) => (
+              <li key={n.id} className="row row--between">
+                <span>
+                  {n.link ? <Link href={n.link}>{n.title}</Link> : <strong>{n.title}</strong>}
+                  {n.body && <span className="muted"> — {n.body}</span>}
+                </span>
+                <span className="small muted nowrap">{fmtDateTime(n.createdAt, tz)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {clinical && tracking && (tracking.inactive.length > 0 || tracking.struggling > 0) && (
         <section className="card card--soft" aria-label="Alertas de acompanhamento">

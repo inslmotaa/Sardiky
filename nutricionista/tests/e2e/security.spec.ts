@@ -53,7 +53,7 @@ test('paciente não acessa o painel nem dados de outro paciente', async ({ page 
   expect(res?.status()).toBe(404)
   expect((await page.request.get(photoUrl!)).status()).toBe(404)
   await page.goto('/admin')
-  await expect(page).toHaveURL(/\/paciente$/)
+  await expect(page).toHaveURL(/\/login\?sem-acesso=painel/)
 
   // Visitante anônimo também não.
   await page.context().clearCookies()

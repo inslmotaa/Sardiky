@@ -57,6 +57,10 @@ ANAMNESE_WEBHOOK_SECRET=${secret()}
 # E-mail (recuperação de senha, confirmações). Crie a chave em https://resend.com e cole aqui.
 RESEND_API_KEY=
 EMAIL_FROM="André Farion <nao-responda@${domain}>"
+
+# "Entrar com Google" (opcional). Retorno a cadastrar no Google Cloud: https://${domain}/api/auth/google/callback
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
 `
 writeFileSync(OUT, env, { mode: 0o600 })
 console.log(`${OUT} criado com senhas e chaves novas (permissão 600).`)

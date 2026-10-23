@@ -100,3 +100,12 @@ describe('destino do "Agendar consulta"', () => {
     expect(bookingLink({ whatsapp: null, bookingChannel: 'whatsapp' })).toEqual({ href: '/agendar', external: false })
   })
 })
+
+describe('agendar pelo site com conta', () => {
+  it('visitante passa pelo cadastro; quem está conectado vai direto para a agenda', async () => {
+    const { bookingLink } = await import('@/lib/format')
+    const s = { whatsapp: '5541991551789', bookingChannel: 'site' }
+    expect(bookingLink(s, undefined, { loggedIn: false })).toEqual({ href: '/criar-conta?next=/agendar', external: false })
+    expect(bookingLink(s, undefined, { loggedIn: true })).toEqual({ href: '/agendar', external: false })
+  })
+})

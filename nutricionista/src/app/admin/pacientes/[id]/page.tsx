@@ -17,6 +17,7 @@ import { EvolutionTab } from './_tabs/evolution'
 import { PlansTab } from './_tabs/plans'
 import { DiaryTab } from './_tabs/diary'
 import { FormsTab } from './_tabs/forms'
+import { AnamnesisTab } from './_tabs/anamnesis'
 import { GoalsTab } from './_tabs/goals'
 import { PrescriptionsTab } from './_tabs/prescriptions'
 import { NotesTab } from './_tabs/notes'
@@ -30,7 +31,8 @@ const TABS = [
   { key: 'evolucao', label: 'Avaliações e evolução', perm: 'clinico' },
   { key: 'planos', label: 'Planos alimentares', perm: 'clinico' },
   { key: 'diario', label: 'Diário', perm: 'clinico' },
-  { key: 'formularios', label: 'Anamnese e formulários', perm: 'clinico' },
+  { key: 'anamnese', label: 'Anamnese', perm: 'clinico' },
+  { key: 'formularios', label: 'Formulários', perm: 'clinico' },
   { key: 'metas', label: 'Metas', perm: 'clinico' },
   { key: 'prescricoes', label: 'Prescrições', perm: 'clinico' },
   { key: 'notas', label: 'Notas clínicas', perm: 'clinico' },
@@ -96,6 +98,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
       {tab.key === 'evolucao' && <EvolutionTab patient={p} compare={{ a: sp.a, b: sp.b }} viewerId={user.id} />}
       {tab.key === 'planos' && <PlansTab patient={p} />}
       {tab.key === 'diario' && <DiaryTab patient={p} />}
+      {tab.key === 'anamnese' && <AnamnesisTab patient={p} version={sp.versao} />}
       {tab.key === 'formularios' && <FormsTab patient={p} view={sp.ver} />}
       {tab.key === 'metas' && <GoalsTab patient={p} />}
       {tab.key === 'prescricoes' && <PrescriptionsTab patient={p} />}

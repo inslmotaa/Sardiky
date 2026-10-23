@@ -58,7 +58,8 @@ test('nutricionista cadastra paciente e libera acesso por link', async ({ page, 
   await p2.getByLabel('E-mail').fill('nova.teste@example.com')
   await p2.getByLabel('Senha').fill('MinhaSenha2026')
   await p2.getByRole('button', { name: 'Entrar' }).click()
-  await expect(p2).toHaveURL(/\/paciente$/)
+  // Sem anamnese ainda: o primeiro acesso começa por ela.
+  await expect(p2).toHaveURL(/\/paciente\/anamnese$/)
   // Link é de uso único.
   await p2.goto(link.replace(/^https?:\/\/[^/]+/, ''))
   await expect(p2.getByText('Link inválido ou expirado')).toBeVisible()

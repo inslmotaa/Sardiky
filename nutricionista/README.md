@@ -69,6 +69,7 @@ Os valores nutricionais da base inicial (`src/db/foods-taco.ts`, 60 alimentos) t
 - [Publicação: domínio, hospedagem, backups, monitoramento e custos](docs/03-publicacao.md)
 - [Lançamento: dados reais do André, segredos do servidor e checklist](docs/09-lancamento.md)
 - [Manual do André: painel, app do cliente, banco de dados e LGPD](docs/10-manual-do-andre.md)
+- [Site novo, contas de cliente, anamnese no site e hub do cliente (o que rodar no servidor)](docs/11-site-contas-anamnese.md)
 - [Testes](docs/04-testes.md)
 - [Fase 1 da plataforma: o que foi entregue e o que falta](docs/06-fase-1.md)
 - [Fase 2 — Acompanhamento: o que foi entregue e o que falta](docs/07-fase-2.md)

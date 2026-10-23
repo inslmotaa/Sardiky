@@ -1,38 +1,47 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { getSettings } from '@/lib/settings'
-import { bookingLink, whatsappLink } from '@/lib/format'
-import { BookingLink } from '@/components/BookingLink'
+import { redirect } from 'next/navigation'
+import { and, eq } from 'drizzle-orm'
+import { db, schema } from '@/db'
+import { getCurrentUser } from '@/lib/auth/session'
+import { googleConfigured } from '@/lib/auth/google'
+import { money } from '@/lib/format'
+import { monthsLabel } from '@/lib/planos'
+import { SignUpForm } from '@/components/AuthWidgets'
 
-export const metadata: Metadata = { title: 'Criar conta', robots: { index: false } }
+export const metadata: Metadata = { title: 'Criar conta' }
 
-/** Contas de paciente são criadas por convite: o nutricionista cadastra e envia o link. */
-export default async function CreateAccountPage() {
-  const s = await getSettings()
-  const wa = whatsappLink(s.whatsapp, 'Olá! Quero começar o acompanhamento e acessar o app.')
+type SP = Promise<Record<string, string | undefined>>
+
+/** Cadastro do cliente. ?plano=<id> guarda o plano escolhido; ?next=/agendar segue para o agendamento depois da anamnese. */
+export default async function CreateAccountPage({ searchParams }: { searchParams: SP }) {
+  const sp = await searchParams
+  const plano = sp.plano && /^[0-9a-f-]{36}$/.test(sp.plano) ? sp.plano : null
+  const next = sp.next && sp.next.startsWith('/') && !sp.next.startsWith('//') ? sp.next : null
+  const user = await getCurrentUser()
+  if (user) redirect(user.role === 'patient' ? (plano ? `/agendar?plano=${plano}` : (next ?? '/paciente')) : '/admin')
+  const [pkg] = plano ? await db.select().from(schema.packages).where(and(eq(schema.packages.id, plano), eq(schema.packages.active, true))) : []
   return (
     <div className="card stack">
-      <h1 style={{ fontSize: '1.6rem' }}>Criar conta</h1>
-      <p className="muted" style={{ margin: 0 }}>
-        O acesso ao app é liberado por convite. Depois do seu cadastro, {s.professionalName} envia um link por e-mail ou WhatsApp para você criar a sua senha.
-      </p>
-      <div className="stack" style={{ ['--gap' as string]: '10px' }}>
-        <BookingLink to={bookingLink(s, 'Olá! Gostaria de agendar minha primeira consulta.')} className="btn btn--primary btn--block">
-          Agendar primeira consulta
-        </BookingLink>
-        {s.anamneseUrl && (
-          <a href={s.anamneseUrl} target="_blank" rel="noopener noreferrer" className="btn btn--block">
-            Preencher anamnese
-          </a>
-        )}
-        {wa && (
-          <a href={wa} target="_blank" rel="noopener noreferrer" className="btn btn--whatsapp btn--block">
-            Falar pelo WhatsApp
-          </a>
-        )}
+      <div>
+        <h1 style={{ fontSize: '1.6rem' }}>Criar conta</h1>
+        <p className="muted" style={{ margin: 0 }}>
+          Com a conta você preenche a anamnese, agenda a consulta e acompanha o seu plano pelo app.
+        </p>
       </div>
+      {pkg && (
+        <p className="alert alert--ok" style={{ margin: 0 }}>
+          Plano escolhido: <strong>{pkg.name}</strong> · {money(pkg.priceCents)} · {monthsLabel(pkg.months)}
+        </p>
+      )}
+      {sp.google === 'sem-conta' && (
+        <p className="alert alert--info" style={{ margin: 0 }}>
+          Ainda não há conta com esse Google. Marque a caixa da Política de privacidade e use “Criar conta com Google”.
+        </p>
+      )}
+      <SignUpForm plano={pkg?.id ?? null} next={next} google={googleConfigured()} />
       <p className="small" style={{ margin: 0 }}>
-        Já recebeu o convite? <Link href="/login">Entrar</Link>
+        Já tem conta? <Link href={`/login${next ? `?next=${encodeURIComponent(next)}` : ''}`}>Entrar</Link>
       </p>
     </div>
   )

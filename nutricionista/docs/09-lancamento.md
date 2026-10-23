@@ -58,7 +58,7 @@ docker run --rm -v "$PWD":/w -w /w node:22-alpine node scripts/gerar-segredos.mj
 # 3.2 Subir tudo (banco, aplicação, HTTPS automático, lembretes e backup diário)
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d --build
 
-# 3.3 Conta do André (o comando imprime um link para ele criar a senha)
+# 3.3 Conta do André (imprime um link para ele criar a senha; ou use deploy/criar-admin.sql, ver docs/11)
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec app node scripts/create-admin.mjs "André Farion" andre@andrefarion.com.br
 
 # 3.4 Dados reais do consultório (também desliga a faixa de demonstração)

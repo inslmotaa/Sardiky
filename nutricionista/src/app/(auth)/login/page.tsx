@@ -1,28 +1,61 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { login } from '@/actions/auth'
+import { login, logout } from '@/actions/auth'
 import { getCurrentUser } from '@/lib/auth/session'
+import { destinationFor, emailVerificationRequired } from '@/lib/auth/accounts'
+import { googleConfigured } from '@/lib/auth/google'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
+import { GoogleLink } from '@/components/AuthWidgets'
 import { ClearCacheOnMount } from '@/components/pwa'
 
 export const metadata: Metadata = { title: 'Entrar', robots: { index: false } }
 
+const ERRORS: Record<string, string> = {
+  google: 'Não foi possível entrar com o Google. Tente novamente ou use e-mail e senha.',
+  inativo: 'Esta conta está desativada. Fale com o consultório.',
+}
+
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
   const user = await getCurrentUser()
-  if (user) redirect(user.role === 'patient' ? '/paciente' : '/admin')
+  // Conectado, mas tentou abrir uma área de outro perfil: mostra o aviso em vez de redirecionar em círculo.
+  if (user && sp['sem-acesso']) {
+    return (
+      <div className="card stack">
+        <h1 style={{ fontSize: '1.6rem' }}>Sem acesso a esta área</h1>
+        <p className="muted" style={{ margin: 0 }}>
+          {sp['sem-acesso'] === 'painel'
+            ? 'O painel é exclusivo do nutricionista e da equipe.'
+            : 'A área do cliente é exclusiva dos pacientes.'}{' '}
+          Você está conectado como <strong>{user.name}</strong>.
+        </p>
+        <Link href={user.role === 'patient' ? '/paciente' : '/admin'} className="btn btn--primary btn--block">
+          Ir para a minha área
+        </Link>
+        <form action={logout}>
+          <button type="submit" className="btn btn--block">
+            Sair e entrar com outra conta
+          </button>
+        </form>
+      </div>
+    )
+  }
+  if (user) redirect(await destinationFor(user, sp.next))
+  const google = googleConfigured()
   return (
     <div className="card stack">
       <ClearCacheOnMount />
       <div>
         <h1 style={{ fontSize: '1.6rem' }}>Entrar</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Área do paciente e painel do consultório.
+          Área do cliente e painel do consultório.
         </p>
       </div>
       {sp.senha && <p className="alert alert--ok">Senha definida. Entre com a nova senha.</p>}
       {sp.saiu && <p className="alert alert--info">Você saiu da sua conta.</p>}
+      {sp.next && !sp.saiu && <p className="alert alert--info">Entre para continuar.</p>}
+      {sp.erro && ERRORS[sp.erro] && <p className="alert alert--error">{ERRORS[sp.erro]}</p>}
       <ActionForm action={login} className="stack">
         <input type="hidden" name="next" value={sp.next ?? ''} />
         <Field label="E-mail" name="email">
@@ -35,11 +68,20 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           Entrar
         </SubmitButton>
       </ActionForm>
-      <p className="small" style={{ margin: 0 }}>
+      {google && (
+        <>
+          <div className="auth-sep">
+            <span>ou</span>
+          </div>
+          <GoogleLink href={`/api/auth/google${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ''}`} label="Entrar com Google" />
+        </>
+      )}
+      <p className="small row row--between" style={{ margin: 0 }}>
         <Link href="/recuperar-senha">Esqueci minha senha</Link>
+        {emailVerificationRequired() && <Link href="/criar-conta/confirme">Reenviar confirmação de e-mail</Link>}
       </p>
-      <p className="muted small" style={{ margin: 0 }}>
-        Ainda não tem acesso? O acesso à área do paciente é liberado pelo consultório após a primeira consulta.
+      <p className="small" style={{ margin: 0 }}>
+        Ainda não tem conta? <Link href={`/criar-conta${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ''}`}>Criar conta</Link>
       </p>
     </div>
   )

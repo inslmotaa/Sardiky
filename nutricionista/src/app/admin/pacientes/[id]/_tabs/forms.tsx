@@ -19,15 +19,10 @@ export async function FormsTab({ patient, view }: { patient: typeof schema.patie
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <section className="card">
-        <h2 style={{ fontSize: '1.1rem' }}>Anamnese (formulário externo)</h2>
+        <h2 style={{ fontSize: '1.1rem' }}>Anamnese recebida por outro meio</h2>
         <p className="small muted">
-          A anamnese é preenchida no formulário da consultoria{s.anamneseUrl ? ' ' : ''}
-          {s.anamneseUrl && (
-            <a href={s.anamneseUrl} target="_blank" rel="noopener noreferrer">
-              (abrir formulário)
-            </a>
-          )}
-          . Ao receber as respostas, marque aqui e cole o conteúdo para ficar no prontuário.
+          A anamnese do site fica na aba Anamnese. Se receber respostas por outro meio (papel, mensagem), marque aqui e cole o conteúdo para ficar no
+          prontuário.
         </p>
         <ActionForm action={setAnamnesis.bind(null, patient.id)} className="stack">
           <label className="check">
