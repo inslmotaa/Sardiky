@@ -53,7 +53,7 @@ async function fillAnamnesisUntilReview(page: Page) {
 test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe, vê, exporta e pede reavaliação', async ({ page }) => {
   // Escolhe o plano e cria a conta.
   await page.goto('/planos')
-  await page.locator('.plan', { hasText: 'Trimestral' }).getByRole('link', { name: 'Quero este plano' }).click()
+  await page.locator('.tl-plan', { hasText: 'Trimestral' }).getByRole('link', { name: 'Escolher plano' }).click()
   await expect(page).toHaveURL(/\/criar-conta\?plano=/)
   await expect(page.getByText('Plano escolhido:')).toContainText('Trimestral')
   await page.getByLabel('Nome completo').fill('Cliente Novo Teste')
@@ -127,10 +127,10 @@ test('permissões: paciente sem acesso ao painel e equipe fora da área do clien
   // Logado no site: avatar com menu no lugar de "Entrar".
   await page.goto('/')
   await expect(page.locator('.site-header').getByRole('link', { name: 'Entrar' })).toHaveCount(0)
-  await page.locator('.site-nav .user-menu summary').click()
-  await expect(page.locator('.site-nav .user-menu').getByRole('link', { name: 'Minha área' })).toHaveAttribute('href', '/paciente')
+  await page.locator('.tl-nav .user-menu summary').click()
+  await expect(page.locator('.tl-nav .user-menu').getByRole('link', { name: 'Minha área' })).toHaveAttribute('href', '/paciente')
   // Logado, "Agendar consulta" vai direto para a agenda.
-  await expect(page.locator('#apresentacao').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/agendar')
+  await expect(page.locator('#inicio').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/agendar')
 
   await login(page, 'admin')
   await page.goto('/app')

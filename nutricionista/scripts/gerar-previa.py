@@ -13,16 +13,17 @@ get = lambda u: urllib.request.urlopen(BASE + u).read()
 home = BeautifulSoup(get('/').decode(), 'html.parser')
 priv = BeautifulSoup(get('/privacidade').decode(), 'html.parser')
 plans = BeautifulSoup(get('/planos').decode(), 'html.parser')
-about = BeautifulSoup(get('/sobre').decode(), 'html.parser')
+faqp = BeautifulSoup(get('/duvidas').decode(), 'html.parser')
 demo_css = open(os.path.join(ROOT, 'previa/src/demo.css'), encoding='utf-8').read()
 with tempfile.TemporaryDirectory() as tmp:
     bundle = os.path.join(tmp, 'app.js')
     subprocess.run(['node', os.path.join(ROOT, 'scripts/build-previa.mjs'), bundle], check=True)
     demo_js = open(bundle, encoding='utf-8').read().replace('</script', '<\\/script')
+    fx_js = subprocess.run(['npx', 'esbuild', os.path.join(ROOT, 'previa/src/site-fx.ts'), '--bundle', '--format=iife', '--minify', '--target=es2020'],
+                           check=True, capture_output=True, text=True, cwd=ROOT).stdout.replace('</script', '<\\/script')
 
 # ---- CSS com fontes embutidas ----
-css_href = home.find('link', rel='stylesheet')['href']
-css = get(css_href).decode()
+css = '\n'.join(get(l['href']).decode() for l in home.find_all('link', rel='stylesheet'))
 def embed(m):
     rel = m.group(1)
     path = '/_next/static/' + rel.replace('../', '')
@@ -32,7 +33,7 @@ def embed(m):
 def keep_face(m):
     block = m.group(0)
     src = re.search(r'url\(([^)]+)\)', block)
-    return block if not src or re.search(r'-latin-', src.group(1)) else ''
+    return block if not src or re.search(r'-latin-(?!ext)', src.group(1)) else ''
 css = re.sub(r'@font-face\{[^}]*\}', keep_face, css)
 css = re.sub(r'url\((\.\./media/[^)]+\.woff2)\)', embed, css)
 
@@ -42,14 +43,6 @@ for t in home.find_all('link'): t.decompose()
 for c in home.find_all(string=lambda s: isinstance(s, Comment)): c.extract()
 for t in home.select('div[hidden]'): t.decompose()
 for t in home.select('meta[name=robots]'): t.decompose()
-# Animações de entrada (framer-motion) dependem de JavaScript: no arquivo estático o conteúdo já aparece pronto.
-def show_all(doc):
-    # Mantém a posição (top/left…) e tira só o estado inicial da animação (opacidade e transformações).
-    for t in doc.select('[data-reveal]'):
-        keep = [d for d in (t.get('style') or '').split(';') if d.strip() and d.split(':')[0].strip() not in ('opacity', 'transform', 'translate', 'scale', 'rotate')]
-        if keep: t['style'] = ';'.join(keep)
-        else: t.attrs.pop('style', None)
-show_all(home); show_all(plans); show_all(about)
 html_tag = home.find('html')
 if html_tag.get('id') == '__next_error__': del html_tag['id']
 
@@ -73,7 +66,7 @@ for a in home.find_all('a', href=True):
     elif h.startswith('/agendar') or h.startswith('/criar-conta'): a['href'] = '#'; a['data-agendar'] = '1'
     elif h == '/planos': a['href'] = '#planos'
     elif h == '/sobre': a['href'] = '#sobre'
-    elif h == '/como-funciona': a['href'] = '#como-funciona'
+    elif h == '/como-funciona': a['href'] = '#consultoria'
     elif h == '/duvidas': a['href'] = '#duvidas'
     elif h.startswith('/entrar'): a['href'] = '#cliente'
     elif h.startswith('/login'): a['href'] = '#cliente'
@@ -89,39 +82,32 @@ if form:
 # Seções extras: área do paciente (explicação) + política de privacidade
 main = home.find('main')
 area = BeautifulSoup('''
-<section class="section section--alt" id="area-do-paciente">
-  <div class="container" style="max-width:860px">
-    <span class="eyebrow">Área do paciente</span>
-    <h2>Acompanhamento também entre as consultas</h2>
-    <p>Pacientes em acompanhamento recebem acesso exclusivo ao app: a tela <strong>Hoje</strong> mostra a próxima refeição e permite marcar
-    o que foi feito, o <strong>Plano</strong> traz as opções e substituições aprovadas pelo André, e há contador de água, registro de peso,
-    gráficos de progresso, calculadoras e mensagens.</p>
-    <p>No painel, o André monta o plano com cálculo automático de calorias e macros (base de alimentos com medidas caseiras),
-    recebe sugestões de substituições equivalentes e só então ativa o plano no app do paciente. O painel de
-    <strong>Acompanhamento</strong> mostra quem está em dia, com dificuldade ou sem progresso, e o chat permite responder a cada registro do diário.
-    O paciente também tem lista de compras gerada do plano, receitas, materiais e a agenda com confirmação de presença e videochamada.</p>
-    <div class="demo-links"><a class="btn btn--primary" href="#cliente">Ver a área do cliente</a><a class="btn" href="#andre">Ver o painel do André</a><a class="btn" href="#andre/acompanhamento">Ver o Acompanhamento</a></div>
-    <p class="muted small" style="margin-top:12px">Nesta prévia, as duas telas funcionam como demonstração e guardam os dados só no seu navegador. Na versão publicada, cada cliente entra com login e senha e só vê os próprios dados.</p>
+<section class="tl-sec" id="area-do-paciente">
+  <div class="tl-container" style="max-width:980px">
+    <p class="sec-label">/ ÁREA DO CLIENTE</p>
+    <h2 class="display">Acompanhamento também entre as consultas</h2>
+    <p class="tl-lead">Clientes em acompanhamento recebem acesso exclusivo ao app: a tela <strong>Hoje</strong> mostra a próxima refeição e permite marcar
+    o que foi feito, o <strong>Plano</strong> traz as opções e substituições, e há contador de água, registro de peso,
+    gráficos de evolução, calculadoras e mensagens.</p>
+    <p class="tl-lead">No painel, o André monta o plano com cálculo automático de calorias e macros, acompanha quem está em dia
+    e responde a cada registro do diário. O cliente também tem lista de compras, receitas, materiais e a agenda com confirmação de presença.</p>
+    <div class="tl-actions"><a class="pill" href="#cliente">Ver a área do cliente <span aria-hidden="true">→</span></a><a class="ulink" href="#andre">Ver o painel do André</a><a class="ulink" href="#andre/acompanhamento">Ver o Acompanhamento</a></div>
+    <p class="tl-note">Nesta prévia, as duas telas funcionam como demonstração e guardam os dados só no seu navegador. Na versão publicada, cada cliente entra com login e senha e só vê os próprios dados.</p>
   </div>
 </section>''', 'html.parser')
 main.append(area)
-# Página "Sobre" (no site publicado fica em /sobre).
-amain = about.find('main')
-for i, sec in enumerate(amain.find_all('section', recursive=False)):
-    if i == 0: sec['id'] = 'sobre'
-    for a in sec.find_all('a', href=True):
-        if a['href'].startswith('/criar-conta') or a['href'].startswith('/agendar'):
-            a['href'] = '#'; a['data-agendar'] = '1'
-        elif a['href'] == '/planos': a['href'] = '#planos'
-    main.append(sec.extract())
-# Página de planos (no site publicado fica em /planos).
-pmain = plans.find('main')
-for sec in pmain.find_all('section', recursive=False):
-    if 'plans-hero' in (sec.get('class') or []): sec['id'] = 'planos'
-    for a in sec.find_all('a', href=True):
-        if a['href'].startswith('/criar-conta') or a['href'].startswith('/agendar'):
-            a['href'] = '#'; a['data-agendar'] = '1'
-    main.append(sec.extract())
+def bring(doc, first_id):
+    # Seções de outra página do site, com os links trocados para dentro do arquivo.
+    for i, sec in enumerate(doc.find('main').find_all('section', recursive=False)):
+        if i == 0: sec['id'] = first_id
+        for a in sec.find_all('a', href=True):
+            if a['href'].startswith('/criar-conta') or a['href'].startswith('/agendar'):
+                a['href'] = '#'; a['data-agendar'] = '1'
+            elif a['href'] == '/planos': a['href'] = '#planos'
+        main.append(sec.extract())
+# Páginas de planos e dúvidas (no site publicado ficam em /planos e /duvidas).
+bring(plans, 'planos')
+bring(faqp, 'duvidas')
 psec = priv.find('main').find('section')
 psec['id'] = 'privacidade'
 psec['class'] = ['section', 'section--alt']
@@ -147,57 +133,17 @@ script.string = r'''
 
   // Botões de agendamento: abrem o WhatsApp com o serviço escolhido.
   document.querySelectorAll('a[data-agendar]').forEach(function (a) {
-    var card = a.closest('article');
-    var name = card && card.querySelector('.plan__name, h3');
+    var card = a.closest('li, article');
+    var name = card && card.querySelector('.tl-plan__name');
     var svc = name ? name.textContent.trim() : '';
     a.href = waLink(svc ? 'Olá! Vim pelo site e tenho interesse no plano ' + svc + '.' : 'Olá! Vim pelo site e gostaria de agendar uma consulta.');
     a.target = '_blank'; a.rel = 'noopener noreferrer';
   });
 
-  // Cabeçalho fixo ganha fundo ao rolar.
-  var header = document.getElementById('site-header');
-  if (header) {
-    var onScroll = function () { header.toggleAttribute('data-scrolled', window.scrollY > 8); };
-    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
-  }
-
   // Menu do celular fecha ao escolher um item.
   document.querySelectorAll('.mobile-menu a, .site-menu a').forEach(function (a) {
     a.addEventListener('click', function () { a.closest('details').removeAttribute('open'); });
   });
-
-  // Storytelling: troca de palavras, revelação ao rolar e capítulos ativos.
-  var story = document.querySelector('.story');
-  if (story) {
-    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    story.setAttribute('data-ready', 'true');
-    var words = ['complicado', 'restritivo', 'sem graça', 'uma dieta da moda'], i = 0;
-    var w = story.querySelector('.story-word__item');
-    if (!reduce && w) setInterval(function () {
-      i = (i + 1) %% words.length;
-      var n = w.cloneNode(false); n.textContent = words[i]; w.parentNode.replaceChild(n, w); w = n;
-    }, 2400);
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) e.target.classList.add('is-visible'); });
-      }, { threshold: 0.15 });
-      story.querySelectorAll('.reveal').forEach(function (n) { io.observe(n); });
-      var scenes = story.querySelectorAll('.story-stage .scene');
-      var prog = story.querySelectorAll('.story-progress li');
-      var chapters = story.querySelectorAll('[data-index]');
-      var setActive = function (k) {
-        chapters.forEach(function (c, j) { c.classList.toggle('is-active', j === k); });
-        scenes.forEach(function (s, j) { s.classList.toggle('is-on', j === k); });
-        prog.forEach(function (p, j) { p.classList.toggle('on', j <= k); });
-      };
-      var co = new IntersectionObserver(function (es) {
-        es.forEach(function (e) { if (e.isIntersecting) setActive(Number(e.target.getAttribute('data-index'))); });
-      }, { rootMargin: '-45%% 0px -45%% 0px' });
-      chapters.forEach(function (c) { co.observe(c); });
-    } else {
-      story.querySelectorAll('.reveal').forEach(function (n) { n.classList.add('is-visible'); });
-    }
-  }
 
   // Contato pelo WhatsApp: a mensagem é montada enquanto a pessoa digita.
   var waName = document.getElementById('wa-name');
@@ -238,6 +184,8 @@ script.string = r'''
 })();
 ''' % (repr(wa_base).replace("'", '"'))
 home.body.append(script)
+fx = home.new_tag('script'); fx.string = fx_js
+home.body.append(fx)
 demo = home.new_tag('script'); demo.string = demo_js
 home.body.append(demo)
 

@@ -4,48 +4,62 @@ import type { Page } from '@playwright/test'
 
 const WA = 'https://wa.me/5541991551789'
 
-test('página principal: storytelling animado, quem é o André, método, app, como funciona, dúvidas e agendar', async ({ page }) => {
+test('página principal: hero com fundo líquido, storytelling em capítulos, Sobre, Consultoria, Resultados e Contato', async ({ page }) => {
   await page.goto('/')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Comer bem não precisa ser')
-  await expect(page.getByRole('heading', { name: 'Segunda-feira, 7h. O dia já começou correndo.' })).toBeAttached()
-  // Quem é: "Coach", sem foto/monograma e sem "Nutricionista" ou CRN em lugar nenhum.
-  const about = page.locator('#apresentacao')
-  await expect(about.getByRole('heading', { level: 2 })).toHaveAccessibleName('André Farion')
-  await expect(about.locator('.eyebrow')).toHaveText('Coach')
-  await expect(page.locator('.monogram, .home-photo')).toHaveCount(0)
+  // Hero: nome gigante (preenchido + contorno), rótulo "Coach", frase, serviços e "Agendar consulta".
+  const hero = page.locator('#inicio')
+  await expect(hero.getByRole('heading', { level: 1 })).toHaveAccessibleName('André Farion')
+  await expect(hero.locator('.wm__solid')).toHaveText('ANDRÉ')
+  await expect(hero.locator('.wm__out')).toHaveText('FARION')
+  await expect(hero.locator('.mono-label')).toHaveText('COACH')
+  await expect(hero).toContainText('Nutrição baseada em evidência, pensada para a sua rotina.')
+  await expect(hero.getByRole('list', { name: 'Serviços' }).getByRole('listitem')).toHaveText(['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar'])
+  await expect(hero.getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
+  // O fundo líquido (WebGL) fica ligado, e o nome ocupa a largura disponível.
+  await expect(hero).toHaveClass(/liquid--(on|fallback)/)
+  const [wmWidth, boxWidth] = await hero.locator('.wm').evaluate((el) => [el.querySelector('.wm__inner')!.getBoundingClientRect().width, el.clientWidth])
+  expect(Math.abs(boxWidth - wmWidth)).toBeLessThan(boxWidth * 0.03)
+  // Sem "Nutricionista", CRN, monograma nem frutas.
   await expect(page.locator('body')).not.toContainText(/nutricionista|CRN/i)
-  // Frutas animadas no site e na história.
-  expect(await page.locator('.story svg, .hero-decor svg').count()).toBeGreaterThan(6)
-  // Seções curtas, cada uma levando à sua página.
-  for (const id of ['#metodo', '#app', '#como-funciona', '#duvidas']) await expect(page.locator(id)).toBeAttached()
-  await expect(page.getByRole('link', { name: 'Ver o passo a passo completo →' })).toHaveAttribute('href', '/como-funciona')
-  await expect(page.getByRole('link', { name: 'Ver todas as dúvidas →' })).toHaveAttribute('href', '/duvidas')
+  await expect(page.locator('.monogram, .fruit-float, .floaty')).toHaveCount(0)
+  // Storytelling: abertura, quatro capítulos com ilustração e o fecho.
+  const story = page.locator('#historia')
+  await expect(story.getByRole('heading', { level: 2 }).first()).toContainText('Comer bem não precisa ser')
+  await expect(story.locator('.chap')).toHaveCount(4)
+  await expect(story.locator('.chap svg.art')).toHaveCount(4)
+  await expect(story.getByRole('heading', { name: 'Segunda-feira, 7h. O dia já começou correndo.' })).toBeAttached()
+  await expect(story.getByText('CAPÍTULO 03 — A VIRADA')).toBeAttached()
+  await expect(story.getByRole('link', { name: 'Escrever o próximo capítulo' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
+  await expect(story.getByRole('link', { name: 'Conhecer o André' })).toHaveAttribute('href', '#sobre')
+  // Seções numeradas.
+  for (const [id, label] of [['#sobre', '/ 01 — SOBRE'], ['#consultoria', '/ 02 — CONSULTORIA'], ['#resultados', '/ 03 — RESULTADOS'], ['#contato', '/ 04 — CONTATO']])
+    await expect(page.locator(`${id} .sec-label`)).toHaveText(label)
+  await expect(page.locator('#consultoria .step')).toHaveCount(4)
+  await expect(page.locator('#consultoria .tl-plan__name')).toHaveText(['Mensal', 'Trimestral', 'Semestral', 'Anual'])
+  await expect(page.locator('#resultados .numbers__item').first()).toBeAttached()
+  await expect(page.locator('#resultados')).toContainText('Resultados variam de pessoa para pessoa.')
+  await expect(page.locator('#contato').getByRole('link', { name: '(41) 99155-1789' })).toHaveAttribute('href', new RegExp(`^${WA}`))
   await expect(page.locator('a[href*="forms.gle"]')).toHaveCount(0)
-  // Agendar: visitante passa pelo cadastro; "Ver planos" leva a /planos.
-  await expect(page.locator('.story-open').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
-  await expect(about.getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
-  await expect(about.getByRole('link', { name: 'Ver planos' })).toHaveAttribute('href', '/planos')
-  await expect(page.locator('#agendar').getByRole('link', { name: 'Começar agora' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
-  // Rodapé: páginas, área do cliente, privacidade e WhatsApp.
-  const footer = page.locator('.site-footer')
-  await expect(footer.getByRole('link', { name: 'Política de privacidade' })).toHaveAttribute('href', '/privacidade')
-  await expect(footer.getByRole('link', { name: 'Planos' })).toHaveAttribute('href', '/planos')
-  await expect(footer.getByRole('link', { name: 'Área do cliente' })).toHaveAttribute('href', '/entrar')
-  await expect(footer.getByRole('link', { name: 'WhatsApp' }).first()).toHaveAttribute('href', new RegExp(`^${WA}`))
+  // Rodapé: nome de novo, páginas, área do cliente, privacidade e o crédito da TIMELESS por último.
+  const footer = page.locator('.tl-footer')
+  await expect(footer.getByRole('link', { name: '/ Política de privacidade' })).toHaveAttribute('href', '/privacidade')
+  await expect(footer.getByRole('link', { name: '/ Planos' })).toHaveAttribute('href', '/planos')
+  await expect(footer.getByRole('link', { name: '/ Entrar' })).toHaveAttribute('href', '/entrar')
+  await expect(footer.getByRole('link', { name: /^WhatsApp \(/ })).toHaveAttribute('href', new RegExp(`^${WA}`))
   await expect(footer).toContainText('André Farion · Coach')
-  // Menu do cabeçalho com as páginas e "Entrar".
-  const nav = page.locator('.site-nav')
-  for (const [name, href] of [['Sobre', '/sobre'], ['Como funciona', '/como-funciona'], ['Planos', '/planos'], ['Dúvidas', '/duvidas'], ['Entrar', '/entrar']])
+  await expect(footer.locator('p').last()).toHaveText(/Site por\s*TIMELESS/i)
+  // Menu do cabeçalho: seções da página e "Entrar".
+  const nav = page.locator('.tl-nav')
+  for (const [name, href] of [['Sobre', '/#sobre'], ['Consultoria', '/#consultoria'], ['Resultados', '/#resultados'], ['Contato', '/#contato'], ['Entrar', '/entrar']])
     await expect(nav.getByRole('link', { name, exact: true })).toHaveAttribute('href', href)
 })
 
 test('páginas Sobre, Como funciona e Dúvidas', async ({ page }) => {
   await page.goto('/sobre')
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('André Farion')
-  await expect(page.getByRole('heading', { name: 'Como eu trabalho' })).toBeVisible()
-  await expect(page.locator('.site-nav').getByRole('link', { name: 'Sobre' })).toHaveAttribute('aria-current', 'page')
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('André Farion')
+  await expect(page.getByRole('heading', { name: 'Mais que dieta, um estilo de vida.' })).toBeVisible()
   await page.goto('/como-funciona')
-  await expect(page.locator('.timeline__item')).toHaveCount(6)
+  await expect(page.locator('.timeline-tl').first().locator('li')).toHaveCount(6)
   await expect(page.getByText('Dieta personalizada')).toBeVisible()
   await page.goto('/duvidas')
   await expect(page.locator('.faq__item').first()).toBeVisible()
@@ -54,15 +68,15 @@ test('páginas Sobre, Como funciona e Dúvidas', async ({ page }) => {
   await expect(page.getByRole('link', { name: 'Tirar dúvida pelo WhatsApp' })).toHaveAttribute('href', new RegExp(`^${WA}`))
 })
 
-test('menu do celular abre com as páginas e fecha ao navegar', async ({ page }) => {
+test('menu do celular abre com as seções e fecha ao navegar', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 760 })
-  await page.goto('/')
-  await expect(page.locator('.site-nav')).toBeHidden()
-  await page.locator('.site-menu summary').click()
+  await page.goto('/planos')
+  await expect(page.locator('.tl-nav')).toBeHidden()
+  await page.getByText('Menu', { exact: true }).click()
   const panel = page.locator('.site-menu__panel')
   await expect(panel.getByRole('link', { name: 'Entrar na área do cliente' })).toHaveAttribute('href', '/entrar')
-  await panel.getByRole('link', { name: 'Como funciona' }).click()
-  await expect(page).toHaveURL(/\/como-funciona$/)
+  await panel.getByRole('link', { name: 'Consultoria', exact: true }).click()
+  await expect(page).toHaveURL(/\/#consultoria$/)
   await expect(page.locator('.site-menu')).not.toHaveAttribute('open', '')
 })
 
@@ -90,26 +104,25 @@ test('logo e nome levam à página principal em todas as áreas', async ({ page 
 test('/planos: cards com valores, selo "Mais escolhido", comparação e botão para o cadastro', async ({ page }) => {
   await page.goto('/planos')
   await expect(page.getByRole('heading', { name: 'Escolha o seu plano' })).toBeVisible()
-  await expect(page.locator('.plan__name')).toHaveText(['Mensal', 'Trimestral', 'Semestral', 'Anual'])
-  const tri = page.locator('.plan', { hasText: 'Trimestral' })
-  await expect(tri).toContainText('15% de desconto')
+  await expect(page.locator('.tl-plan__name')).toHaveText(['Mensal', 'Trimestral', 'Semestral', 'Anual'])
+  const tri = page.locator('.tl-plan', { hasText: 'Trimestral' })
+  await expect(tri.locator('.tl-plan__price')).toHaveText(/^R\$\s637,50$/)
   await expect(tri).toContainText(/R\$\s212,50\/mês/)
-  await expect(tri).toContainText(/de R\$\s750,00/)
-  await expect(tri.locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s637,50$/)
-  const anual = page.locator('.plan', { hasText: 'Anual' })
-  await expect(anual.locator('.plan__ribbon')).toHaveText('Mais escolhido')
-  await expect(page.locator('.plan__ribbon')).toHaveCount(1)
-  await expect(anual.locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s2\.250,00$/)
-  await expect(page.locator('.plan', { hasText: 'Semestral' }).locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s1\.200,00$/)
-  await expect(page.locator('.plan', { hasText: 'Mensal' }).locator('.plan__price')).toHaveAttribute('aria-label', /^R\$\s250,00$/)
-  await expect(anual.getByRole('link', { name: 'Quero este plano' })).toHaveAttribute('href', /^\/criar-conta\?plano=[0-9a-f-]{36}$/)
+  const anual = page.locator('.tl-plan', { hasText: 'Anual' })
+  await expect(anual.locator('.tl-plan__badge')).toHaveText('MAIS ESCOLHIDO')
+  await expect(page.locator('.tl-plan__badge')).toHaveCount(1)
+  await expect(anual.locator('.tl-plan__price')).toHaveText(/^R\$\s2\.250,00$/)
+  await expect(anual).toContainText(/R\$\s187,50\/mês/)
+  await expect(page.locator('.tl-plan', { hasText: 'Semestral' }).locator('.tl-plan__price')).toHaveText(/^R\$\s1\.200,00$/)
+  await expect(page.locator('.tl-plan', { hasText: 'Mensal' }).locator('.tl-plan__price')).toHaveText(/^R\$\s250,00$/)
+  await expect(anual.getByRole('link', { name: 'Escolher plano' })).toHaveAttribute('href', /^\/criar-conta\?plano=[0-9a-f-]{36}$/)
+  // Bônus só no Semestral e no Anual.
+  await expect(page.locator('.tl-plan', { hasText: 'Semestral' })).toContainText('Vale avaliação física')
+  await expect(tri).not.toContainText('Vale avaliação física')
   // Comparação: itens comuns com check em todos; benefícios exclusivos só no Semestral e no Anual.
-  const table = page.locator('.compare__table')
-  await expect(table.locator('tr', { hasText: 'Dieta personalizada' }).locator('.compare__yes')).toHaveCount(4)
-  await expect(table.locator('tr', { hasText: 'Vale avaliação física' }).locator('.compare__yes')).toHaveCount(2)
-  // Na página principal, só o "a partir de" dos planos (valores das consultas continuam fora do site).
-  await page.goto('/')
-  await expect(page.locator('.home-plans')).toContainText(/a partir de R\$\s187,50\/mês/)
+  const table = page.locator('.compare-tl')
+  await expect(table.locator('tr', { hasText: 'Dieta personalizada' }).getByRole('img', { name: 'Incluso' })).toHaveCount(4)
+  await expect(table.locator('tr', { hasText: 'Vale avaliação física' }).getByRole('img', { name: 'Incluso', exact: true })).toHaveCount(2)
 })
 
 test('agendamento pelo site e bloqueio de conflito no mesmo horário', async ({ page }) => {
@@ -151,7 +164,7 @@ test('opção do painel: agendamento pelo WhatsApp', async ({ page }) => {
   await bookingChannel(page, 'whatsapp')
   try {
     await page.goto('/')
-    await expect(page.locator('#apresentacao').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', new RegExp(`^${WA}\\?text=`))
+    await expect(page.locator('#inicio').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', new RegExp(`^${WA}\\?text=`))
     const res = await page.request.get('/agendar', { maxRedirects: 0 })
     expect(res.status()).toBe(307)
     expect(res.headers().location).toMatch(new RegExp(`^${WA}\\?text=`))

@@ -67,9 +67,9 @@ async function main() {
     ],
     howItWorks: [
       { title: 'Escolha seu plano', text: 'Mensal, trimestral, semestral ou anual.' },
-      { title: 'Crie sua conta', text: 'E responda a anamnese no próprio site.' },
-      { title: 'Avaliação', text: 'Conversa, avaliação física e definição de metas.' },
-      { title: 'Plano no app', text: 'Com ajustes a cada 15 dias.' },
+      { title: 'Responda a anamnese', text: 'No próprio site, em etapas curtas, depois de criar sua conta.' },
+      { title: 'Avaliação e metas', text: 'Conversa, avaliação física e definição de metas.' },
+      { title: 'Plano no app', text: 'Ajustado a cada 15 dias.' },
     ],
     address: 'Rua Exemplo, 123 — sala 45, Centro, Cidade/UF (endereço fictício)',
     hoursText: 'Segunda a sexta, 8h às 18h · Sábados, 8h às 12h',
@@ -162,21 +162,21 @@ async function main() {
 
   await db.insert(s.testimonials).values([
     {
-      authorDisplay: 'M. S. (exemplo)',
+      authorDisplay: 'M. S. · Reeducação alimentar (exemplo)',
       text: 'Pela primeira vez consegui manter uma alimentação organizada sem sentir que estava de dieta. As substituições no plano fazem muita diferença.',
       authorizedAt: day(-60),
       published: true,
       sort: 1,
     },
     {
-      authorDisplay: 'R. A. (exemplo)',
+      authorDisplay: 'R. A. · Performance esportiva (exemplo)',
       text: 'O acompanhamento entre as consultas me ajudou a ajustar a alimentação nos dias de treino. Atendimento atencioso e muito claro.',
       authorizedAt: day(-40),
       published: true,
       sort: 2,
     },
     {
-      authorDisplay: 'J. P. (exemplo)',
+      authorDisplay: 'J. P. · Emagrecimento (exemplo)',
       text: 'Gosto de ver minha evolução na área do cliente e de ter o plano sempre à mão no celular.',
       authorizedAt: day(-20),
       published: true,

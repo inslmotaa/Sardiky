@@ -4,80 +4,92 @@ import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'
 import { bookingLink } from '@/lib/format'
 import { BookingLink } from '@/components/BookingLink'
-import { FloatingFruit } from '@/components/Fruits'
-import { FadeUp, Stagger, StaggerItem } from '@/components/motion'
-import { IconCheck } from '@/components/icons'
+import { PageHead } from '@/components/SiteBlocks'
 
 export const metadata: Metadata = { title: 'Sobre' }
 
-/** Quem é o André: apresentação, especialidades, método e diferenciais (textos editáveis em Configurações). */
+/** Quem é o André: apresentação, método, diferenciais e objetivos (textos editáveis em Configurações). */
 export default async function AboutPage() {
   const [s, user] = await Promise.all([getSettings(), getCurrentUser()])
   const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
   const first = s.professionalName.split(' ')[0]
   return (
     <>
-      <section className="page-hero">
-        <FloatingFruit name="abacate" size={48} style={{ top: '22%', right: '8%' }} duration={8} desktopOnly />
-        <FloatingFruit name="laranja" size={40} style={{ bottom: '12%', left: '6%' }} delay={0.3} duration={7} desktopOnly />
-        <FadeUp className="container page-hero__inner">
-          <span className="eyebrow">Sobre</span>
-          <h1>
-            {s.professionalName}
-            <span>{s.professionalTitle}</span>
-          </h1>
-          <p className="page-hero__lead">{s.bio}</p>
-        </FadeUp>
-      </section>
+      <PageHead label={`SOBRE · ${s.professionalTitle.toLocaleUpperCase('pt-BR')}`} title={s.professionalName} lead={s.bio} />
 
-      <section className="section">
-        <div className="container about-grid">
-          <FadeUp className="about-card">
-            <h2>Como eu trabalho</h2>
-            {s.method && <p>{s.method}</p>}
-            {s.differentials.length > 0 && (
-              <ul className="checklist">
-                {s.differentials.map((d) => (
-                  <li key={d}>
-                    <IconCheck /> {d}
-                  </li>
-                ))}
-              </ul>
+      <section className="tl-page">
+        <div className="tl-container about">
+          <div>
+            <p className="sec-label" data-rv="">
+              / COMO EU TRABALHO
+            </p>
+            <h2 className="display" data-rv="">
+              Mais que dieta, um estilo de vida.
+            </h2>
+          </div>
+          <div className="about__text">
+            {s.method && (
+              <p className="tl-lead" data-rv="">
+                {s.method}
+              </p>
             )}
-          </FadeUp>
-          {s.specialties.length > 0 && (
-            <FadeUp delay={0.1} className="about-card about-card--mint">
-              <h2>Para quem é</h2>
-              <Stagger className="chips-grid">
-                {s.specialties.map((sp) => (
-                  <StaggerItem key={sp} className="chip-card">
-                    <IconCheck width={16} height={16} /> {sp}
-                  </StaggerItem>
-                ))}
-              </Stagger>
-              {s.modalityText && <p className="small muted" style={{ margin: '14px 0 0' }}>{s.modalityText}</p>}
-            </FadeUp>
-          )}
+            {s.differentials.length > 0 && (
+              <div className="about__block" data-rv="">
+                <h3 className="mono-label">DIFERENCIAIS</h3>
+                <ul className="mono-list mono-list--wrap">
+                  {s.differentials.map((d) => (
+                    <li key={d}>{d}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
-      <section className="section section--tight">
-        <FadeUp className="container">
-          <div className="home-book__card">
+      {s.specialties.length > 0 && (
+        <section className="tl-page">
+          <div className="tl-container about">
             <div>
-              <h2>Vamos começar?</h2>
-              <p>Agende a sua primeira consulta e conte ao {first} onde você quer chegar.</p>
+              <p className="sec-label" data-rv="">
+                / PARA QUEM É
+              </p>
+              <h2 className="display" data-rv="">
+                Objetivos que acompanhamos
+              </h2>
             </div>
-            <div className="row">
-              <BookingLink to={booking} className="btn btn--light btn--lg btn--fx">
-                Agendar consulta
-              </BookingLink>
-              <Link href="/planos" className="btn btn--lg btn--ghost-light">
-                Ver planos
-              </Link>
+            <div className="about__text">
+              <ol className="timeline-tl">
+                {s.specialties.map((sp, i) => (
+                  <li key={sp} data-rv="" style={{ '--d': `${i * 70}ms` } as React.CSSProperties}>
+                    <span className="step__n">{String(i + 1).padStart(2, '0')}</span>
+                    <h3 className="step__title">{sp}</h3>
+                  </li>
+                ))}
+              </ol>
+              {s.modalityText && <p className="tl-note">{s.modalityText}</p>}
             </div>
           </div>
-        </FadeUp>
+        </section>
+      )}
+
+      <section className="tl-page">
+        <div className="tl-container">
+          <p className="sec-label" data-rv="">
+            / VAMOS COMEÇAR?
+          </p>
+          <h2 className="display" data-rv="">
+            Conte ao {first} onde você quer chegar.
+          </h2>
+          <div className="tl-actions" data-rv="">
+            <BookingLink to={booking} className="pill">
+              Agendar consulta <span aria-hidden>→</span>
+            </BookingLink>
+            <Link href="/planos" className="ulink">
+              Ver planos
+            </Link>
+          </div>
+        </div>
       </section>
     </>
   )

@@ -22,16 +22,16 @@
         "texto": "Mensal, trimestral, semestral ou anual."
       },
       {
-        "titulo": "Crie sua conta",
-        "texto": "E responda a anamnese no próprio site."
+        "titulo": "Responda a anamnese",
+        "texto": "No próprio site, em etapas curtas, depois de criar sua conta."
       },
       {
-        "titulo": "Avaliação",
+        "titulo": "Avaliação e metas",
         "texto": "Conversa, avaliação física e definição de metas."
       },
       {
         "titulo": "Plano no app",
-        "texto": "Com ajustes a cada 15 dias."
+        "texto": "Ajustado a cada 15 dias."
       }
     ],
     "corDaMarca": "#2f8f57",

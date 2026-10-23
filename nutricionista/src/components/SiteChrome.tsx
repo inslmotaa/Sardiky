@@ -4,19 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useRef } from 'react'
 import { SITE_NAV } from '@/lib/constants'
-
-/** Cabeçalho fixo: ganha fundo com desfoque e sombra depois que a página rola. */
-export function HeaderScrollWatcher({ target }: { target: string }) {
-  useEffect(() => {
-    const el = document.getElementById(target)
-    if (!el) return
-    const onScroll = () => el.toggleAttribute('data-scrolled', window.scrollY > 8)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [target])
-  return null
-}
+import { initSiteFx } from '@/lib/site-fx'
 
 /** Avatar com menu (Minha área / Sair) no lugar de "Entrar" quando há sessão. */
 export function UserMenu({ name, area, logout }: { name: string; area: string; logout: () => Promise<void> }) {
@@ -48,27 +36,58 @@ export function UserMenu({ name, area, logout }: { name: string; area: string; l
           Minha área
         </Link>
         <form action={logout}>
-          <button type="submit">
-            Sair
-          </button>
+          <button type="submit">Sair</button>
         </form>
       </div>
     </details>
   )
 }
 
-/** Links do menu principal, com a página atual marcada. */
+/** Links do menu principal (seções da página inicial), no estilo "/ Sobre". */
 export function SiteNavLinks({ className }: { className?: string }) {
-  const pathname = usePathname()
   return (
     <>
       {SITE_NAV.map((n) => (
-        <Link key={n.href} href={n.href} className={className} aria-current={pathname === n.href ? 'page' : undefined}>
+        <Link key={n.href} href={n.href} className={className}>
+          <span aria-hidden>/ </span>
           {n.label}
         </Link>
       ))}
     </>
   )
+}
+
+/** Nome pequeno com o traço verde: leva ao início (já no início, rola suavemente até o topo). */
+export function SiteBrand({ name, logoFileId }: { name: string; logoFileId?: string | null }) {
+  const pathname = usePathname()
+  return (
+    <Link
+      href="/"
+      className="tl-brand"
+      aria-label={`${name}: ir para a página inicial`}
+      onClick={(e) => {
+        if (pathname !== '/') return
+        e.preventDefault()
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        window.scrollTo({ top: 0, behavior: reduce ? 'auto' : 'smooth' })
+        if (window.location.hash) history.replaceState(null, '', '/')
+      }}
+    >
+      {logoFileId && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="tl-brand__logo" src={`/arquivos/${logoFileId}`} alt="" />
+      )}
+      <span>{name}</span>
+      <span className="tl-brand__dash" aria-hidden />
+    </Link>
+  )
+}
+
+/** Liga os efeitos do site (fundo líquido, nome, storytelling, entradas) a cada página. */
+export function SiteFx() {
+  const pathname = usePathname()
+  useEffect(() => initSiteFx(document), [pathname])
+  return null
 }
 
 /** Menu do celular: abre por cima da página e fecha ao escolher um item. */
@@ -80,14 +99,7 @@ export function MobileMenu({ children }: { children: React.ReactNode }) {
   }, [pathname])
   return (
     <details className="site-menu" ref={ref}>
-      <summary aria-label="Abrir menu">
-        <span className="site-menu__icon" aria-hidden>
-          <span />
-          <span />
-          <span />
-        </span>
-        Menu
-      </summary>
+      <summary aria-label="Abrir menu">Menu</summary>
       <div className="site-menu__panel" onClick={(e) => (e.target as HTMLElement).closest('a') && ref.current?.removeAttribute('open')}>
         {children}
       </div>

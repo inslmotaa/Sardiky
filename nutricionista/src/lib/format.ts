@@ -97,6 +97,12 @@ export function bookingLink(s: { whatsapp: string | null; bookingChannel: string
   return { href: opts.loggedIn === false ? '/criar-conta?next=/agendar' : '/agendar', external: false }
 }
 
+/** Número do WhatsApp para exibir: 5541991551789 → (41) 99155-1789. */
+export function phoneLabel(v: string | null | undefined) {
+  const d = (v ?? '').replace(/\D/g, '')
+  return maskPhone(d.length > 11 && d.startsWith('55') ? d.slice(2) : d)
+}
+
 /** Máscara de WhatsApp: (00) 00000-0000 (ou (00) 0000-0000 para fixo). */
 export function maskPhone(v: string) {
   const d = v.replace(/\D/g, '').slice(0, 11)

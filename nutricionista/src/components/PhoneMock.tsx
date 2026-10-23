@@ -1,5 +1,3 @@
-import { Fruit } from './Fruits'
-
 /** Ilustração do app no celular (conteúdo de exemplo, só visual). */
 export function PhoneMock() {
   return (
@@ -10,17 +8,17 @@ export function PhoneMock() {
         <strong className="phone-mock__title">Lanche da tarde</strong>
         <ul>
           <li>
-            <Fruit name="banana" size={22} />
+            <i className="phone-mock__dot" data-tone="1" />
             <span>Banana prata</span>
             <em>1 unidade</em>
           </li>
           <li>
-            <Fruit name="morango" size={22} />
+            <i className="phone-mock__dot" data-tone="2" />
             <span>Morangos</span>
             <em>10 unidades</em>
           </li>
           <li>
-            <Fruit name="folha" size={22} />
+            <i className="phone-mock__dot" data-tone="3" />
             <span>Iogurte natural</span>
             <em>1 pote</em>
           </li>
