@@ -49,7 +49,7 @@ export default async function HowItWorksPage() {
           <ol className="timeline-tl">
             {STEPS.map((st, i) => (
               <li key={st.title} data-rv="" style={{ '--d': `${i * 60}ms` } as React.CSSProperties}>
-                <span className="step__n">{String(i + 1).padStart(2, '0')}</span>
+                <span className="step__mark" aria-hidden />
                 <div>
                   <h2>{st.title}</h2>
                   <p>{st.text}</p>
@@ -71,9 +71,9 @@ export default async function HowItWorksPage() {
             </h2>
             {s.plansIncluded.length > 0 ? (
               <ol className="timeline-tl tl-gap">
-                {s.plansIncluded.map((it, i) => (
+                {s.plansIncluded.map((it) => (
                   <li key={it.title} data-rv="">
-                    <span className="step__n">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="step__mark" aria-hidden />
                     <div>
                       <h3 className="step__title">{it.title}</h3>
                       {it.text && <p>{it.text}</p>}

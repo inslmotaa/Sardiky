@@ -67,7 +67,6 @@ export function PlanGrid({ plans, showPrices, href }: { plans: Plan[]; showPrice
             style={{ '--d': `${i * 70}ms` } as React.CSSProperties}
           >
             <div className="tl-plan__top">
-              <span className="tl-plan__n">{String(i + 1).padStart(2, '0')}</span>
               {isFeatured && <span className="tl-plan__badge">{(pk.highlight || 'Mais escolhido').toUpperCase()}</span>}
             </div>
             <h3 className="tl-plan__name">{pk.name}</h3>

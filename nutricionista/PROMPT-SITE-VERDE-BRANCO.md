@@ -52,6 +52,14 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
   - Um traço verde-claro piscando devagar no fim.
   - O JavaScript ajusta o tamanho para ocupar exatamente a largura disponível. No celular, o nome quebra em duas linhas.
   - No hover, as letras vazadas ganham um verde transparente.
+- **Toques de nutrição:**
+  - uma faixa fina logo abaixo do menu, com temas passando devagar em mono: Proteínas ● Fibras ● Hidratação ● Vegetais ● Frutas da estação ● Grãos integrais ● Gorduras boas ● Rotina e sono;
+  - um cartão de vidro no alto à direita, "Prato equilibrado · exemplo", com:
+    - um gráfico em rosca (Vegetais ½, Proteína ¼, Carboidrato ¼);
+    - barras de macronutrientes (Proteínas 30%, Carboidratos 45%, Gorduras 25%);
+    - a água por dia, em ml por kg;
+  - ilustrações botânicas em linha fina verde (ramo de folhas, rodela de cítrico e espiga) que se desenham ao abrir e balançam de leve;
+  - no celular, o cartão aparece no topo, sem as barras, e as ilustrações ficam escondidas.
 - **Nav:** "ANDRÉ FARION —" à esquerda e, à direita, em mono: / Sobre / Consultoria / Resultados / Contato / Entrar. No celular, vira um botão "Menu".
 - **Linha inferior,** separada por uma linha fina:
   - a frase "Nutrição baseada em evidência, pensada para a sua rotina. Planos alimentares que você consegue seguir de verdade.";
@@ -62,28 +70,29 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
 
 - **Abertura:** o título "Comer bem não precisa ser ___." com a palavra em contorno trocando: complicado → restritivo → sem graça → uma dieta da moda.
 - **Quatro capítulos.** No computador, ficam em duas colunas:
-  - à esquerda, painel fixo (sticky) com um número gigante vazado e uma ilustração em linha fina que se desenha conforme a rolagem;
+  - à esquerda, painel fixo (sticky) com uma ilustração em linha fina que se desenha conforme a rolagem;
   - à direita, o texto do capítulo;
-  - na lateral, uma linha de progresso com 4 marcadores.
+  - na lateral, uma linha de progresso com o nome de cada capítulo;
+  - sem numeração (nada de 01, 02, 03…) em capítulos, seções, passos ou planos.
 
 | Capítulo | Título | Ilustração |
 |---|---|---|
-| 01 · A rotina | "Segunda-feira, 7h. O dia já começou correndo." | relógio com os ponteiros girando |
-| 02 · As tentativas | "Você já tentou de tudo." | três tentativas sendo riscadas |
-| 03 · A virada | "Até que o plano passa a ser seu." | prato com setores Vegetais, Proteína e Carboidrato |
-| 04 · O caminho | "Acompanhamento que enxerga cada passo." | gráfico subindo, com o rótulo "a cada 15 dias" |
+| A rotina | "Segunda-feira, 7h. O dia já começou correndo." | relógio com os ponteiros girando |
+| As tentativas | "Você já tentou de tudo." | três tentativas sendo riscadas |
+| A virada | "Até que o plano passa a ser seu." | prato com setores Vegetais, Proteína e Carboidrato |
+| O caminho | "Acompanhamento que enxerga cada passo." | gráfico subindo, com o rótulo "a cada 15 dias" |
 
 - **Fecho,** com o fundo líquido de novo: "A sua história começa na primeira consulta." e os botões "Escrever o próximo capítulo →" e "Conhecer o André".
 
 ### 3. Seções numeradas
 
-Cada seção abre com um rótulo mono ("/ 01 — SOBRE") e é separada da anterior por uma linha fina.
+Cada seção abre com um rótulo mono sem número ("/ SOBRE") e é separada da anterior por uma linha fina.
 
-- **/ 01 Sobre:**
+- **/ Sobre:**
   - foto ou bloco líquido;
   - "Mais que dieta, um estilo de vida.", seguido de biografia, método e objetivos em mono.
-- **/ 02 Consultoria:**
-  - 4 passos: Escolha seu plano, Responda a anamnese, Avaliação e metas, Plano no app;
+- **/ Consultoria:**
+  - 4 passos marcados com um traço verde, sem número: Escolha seu plano, Responda a anamnese, Avaliação e metas, Plano no app;
   - 4 planos em cartões de borda fina:
     - Mensal R$ 250;
     - Trimestral R$ 637,50 (R$ 212,50/mês);
@@ -91,11 +100,11 @@ Cada seção abre com um rótulo mono ("/ 01 — SOBRE") e é separada da anteri
     - Anual R$ 2.250 (R$ 187,50/mês), com o selo "MAIS ESCOLHIDO";
   - bônus no Semestral e no Anual;
   - a lista do que está incluso em todos.
-- **/ 03 Resultados:**
+- **/ Resultados:**
   - números que contam ao aparecer: 15 dias entre revisões, até 12 meses, 100% individual, e também clientes e anos de experiência, quando configurados;
   - depoimentos, só os autorizados;
   - o aviso "Resultados variam de pessoa para pessoa."
-- **/ 04 Contato:** WhatsApp, Instagram, horário e modalidade, com a pílula de agendar.
+- **/ Contato:** WhatsApp, Instagram, horário e modalidade, com a pílula de agendar.
 
 ### 4. Rodapé
 

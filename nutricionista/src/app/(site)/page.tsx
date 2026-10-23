@@ -9,6 +9,7 @@ import { BookingLink } from '@/components/BookingLink'
 import { Wordmark } from '@/components/Wordmark'
 import { Liquid, MonoLabel, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
+import { HeroBotanicals, HeroTicker, PlateCard } from '@/components/HeroArt'
 
 const SERVICES = ['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar']
 
@@ -51,7 +52,6 @@ const DEFAULT_STEPS = [
 const DEFAULT_GOALS = ['Ganho de massa muscular', 'Emagrecimento saudável', 'Mais energia e disposição', 'Melhor qualidade de vida']
 
 const d = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties
-const two = (n: number) => String(n).padStart(2, '0')
 
 /** Página inicial: hero com fundo líquido, storytelling em capítulos, Sobre, Consultoria, Resultados e Contato. */
 export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
@@ -98,7 +98,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       {/* --------------------------------- HERO --------------------------------- */}
       <section className="hero" id="inicio" data-liquid-host="">
         <Liquid />
+        <HeroTicker />
+        <HeroBotanicals />
         <div className="tl-container hero__inner">
+          <PlateCard waterMlPerKg={s.waterMlPerKg} />
           <MonoLabel className="hero__label">
             {s.professionalTitle.toLocaleUpperCase('pt-BR')}
             {s.registry ? ` · ${s.registry.toLocaleUpperCase('pt-BR')}` : ''}
@@ -150,9 +153,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <i data-rail-fill="" />
               </span>
               <ol>
-                {CHAPTERS.map((c, i) => (
+                {CHAPTERS.map((c) => (
                   <li key={c.label} data-rail-mark="">
-                    {two(i + 1)} {c.label.toLocaleUpperCase('pt-BR')}
+                    {c.label.toLocaleUpperCase('pt-BR')}
                   </li>
                 ))}
               </ol>
@@ -162,14 +165,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {CHAPTERS.map(({ Art, ...c }, i) => (
               <li key={c.label} className="chap" data-chap={i}>
                 <div className="chap__art">
-                  <span className="chap__num" aria-hidden>
-                    {two(i + 1)}
-                  </span>
                   <Art />
                 </div>
                 <div className="chap__text">
                   <p className="mono-label" data-rv="">
-                    CAPÍTULO {two(i + 1)} — {c.label.toLocaleUpperCase('pt-BR')}
+                    {c.label.toLocaleUpperCase('pt-BR')}
                   </p>
                   <h3 className="display chap__title" data-rv="" style={d(90)}>
                     {c.title}
@@ -206,7 +206,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <section className="tl-sec" id="sobre" aria-labelledby="sobre-titulo">
         <div className="tl-container">
           <p className="sec-label" data-rv="">
-            / 01 — SOBRE
+            / SOBRE
           </p>
           <div className="about">
             {s.photoFileId ? (
@@ -255,7 +255,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <section className="tl-sec" id="consultoria" aria-labelledby="consultoria-titulo">
         <div className="tl-container">
           <p className="sec-label" data-rv="">
-            / 02 — CONSULTORIA
+            / CONSULTORIA
           </p>
           <div className="sec-head">
             <h2 id="consultoria-titulo" className="display" data-rv="">
@@ -268,7 +268,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <ol className="steps">
             {steps.map((st, i) => (
               <li key={st.title} className="step" data-rv="" style={d(i * 80)}>
-                <span className="step__n">{two(i + 1)}</span>
+                <span className="step__mark" aria-hidden />
                 <h3>{st.title}</h3>
                 {st.text && <p>{st.text}</p>}
               </li>
@@ -306,7 +306,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <section className="tl-sec" id="resultados" aria-labelledby="resultados-titulo">
         <div className="tl-container">
           <p className="sec-label" data-rv="">
-            / 03 — RESULTADOS
+            / RESULTADOS
           </p>
           <div className="sec-head">
             <h2 id="resultados-titulo" className="display" data-rv="">
@@ -345,7 +345,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
       <section className="tl-sec tl-sec--last" id="contato" aria-labelledby="contato-titulo">
         <div className="tl-container">
           <p className="sec-label" data-rv="">
-            / 04 — CONTATO
+            / CONTATO
           </p>
           <div className="contact">
             <div>

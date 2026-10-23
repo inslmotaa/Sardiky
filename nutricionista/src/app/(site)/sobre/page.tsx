@@ -62,7 +62,7 @@ export default async function AboutPage() {
               <ol className="timeline-tl">
                 {s.specialties.map((sp, i) => (
                   <li key={sp} data-rv="" style={{ '--d': `${i * 70}ms` } as React.CSSProperties}>
-                    <span className="step__n">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="step__mark" aria-hidden />
                     <h3 className="step__title">{sp}</h3>
                   </li>
                 ))}

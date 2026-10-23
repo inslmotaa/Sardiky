@@ -11,7 +11,11 @@ test('página principal: hero com fundo líquido, storytelling em capítulos, So
   await expect(hero.getByRole('heading', { level: 1 })).toHaveAccessibleName('André Farion')
   await expect(hero.locator('.wm__solid')).toHaveText('ANDRÉ')
   await expect(hero.locator('.wm__out')).toHaveText('FARION')
-  await expect(hero.locator('.mono-label')).toHaveText('COACH')
+  await expect(hero.locator('.hero__label')).toHaveText('COACH')
+  // Toques de nutrição: faixa de temas, cartão do prato equilibrado e ilustrações em linha.
+  await expect(hero.locator('.ticker')).toContainText('HIDRATAÇÃO')
+  await expect(hero.getByRole('complementary', { name: 'Exemplo de prato equilibrado' })).toContainText('Vegetais')
+  await expect(hero.locator('.botan svg')).toHaveCount(3)
   await expect(hero).toContainText('Nutrição baseada em evidência, pensada para a sua rotina.')
   await expect(hero.getByRole('list', { name: 'Serviços' }).getByRole('listitem')).toHaveText(['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar'])
   await expect(hero.getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
@@ -28,11 +32,13 @@ test('página principal: hero com fundo líquido, storytelling em capítulos, So
   await expect(story.locator('.chap')).toHaveCount(4)
   await expect(story.locator('.chap svg.art')).toHaveCount(4)
   await expect(story.getByRole('heading', { name: 'Segunda-feira, 7h. O dia já começou correndo.' })).toBeAttached()
-  await expect(story.getByText('CAPÍTULO 03 — A VIRADA')).toBeAttached()
+  await expect(story.locator('.chap .mono-label')).toHaveText(['A ROTINA', 'AS TENTATIVAS', 'A VIRADA', 'O CAMINHO'])
+  // Sem numeração (01, 02…) nos capítulos, seções, passos e planos.
+  await expect(page.locator('.chap__num, .step__n, .tl-plan__n')).toHaveCount(0)
   await expect(story.getByRole('link', { name: 'Escrever o próximo capítulo' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
   await expect(story.getByRole('link', { name: 'Conhecer o André' })).toHaveAttribute('href', '#sobre')
   // Seções numeradas.
-  for (const [id, label] of [['#sobre', '/ 01 — SOBRE'], ['#consultoria', '/ 02 — CONSULTORIA'], ['#resultados', '/ 03 — RESULTADOS'], ['#contato', '/ 04 — CONTATO']])
+  for (const [id, label] of [['#sobre', '/ SOBRE'], ['#consultoria', '/ CONSULTORIA'], ['#resultados', '/ RESULTADOS'], ['#contato', '/ CONTATO']])
     await expect(page.locator(`${id} .sec-label`)).toHaveText(label)
   await expect(page.locator('#consultoria .step')).toHaveCount(4)
   await expect(page.locator('#consultoria .tl-plan__name')).toHaveText(['Mensal', 'Trimestral', 'Semestral', 'Anual'])
