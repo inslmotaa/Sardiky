@@ -1,26 +1,40 @@
-# Fonseca Team · Consultoria Online Premium
+# Rock Me Mamma · Pizza Bar Experience
 
-Site da consultoria online Fonseca Team (Maicon Fonseca). É um site estático (HTML, CSS e JavaScript puros), sem build, pronto para publicar na Netlify.
+Site cardápio do Rock Me Mamma, pizza bar na Al. Júlia da Costa, 1829, no Bigorrilho, em Curitiba. É um site estático (HTML, CSS e JavaScript puros), sem build, pronto para publicar na Netlify.
 
 ## Estrutura
 
 ```
-index.html        Página única com todas as seções
-css/style.css     Estilos (cores no topo, em :root)
-js/config.js      Seus dados: WhatsApp, Instagram, e-mail e planos
-js/main.js        Interações: menu, planos, comparativo, calculadora, formulário
-assets/           Favicon e fotos
+index.html        Página única: abertura, cardápio, como chegar e rodapé
+css/style.css     Estilos (cores e fontes no topo, em :root)
+js/menu.js        O cardápio completo: categorias, pratos, drinks e preços
+js/config.js      WhatsApp, Instagram, endereço e aviso da taxa de serviço
+js/main.js        Monta o cardápio, busca, filtros e navegação por categoria
+assets/           Logo (branca e preta), favicon e imagem de compartilhamento
 ```
 
-## Seções
+## Recursos
 
-Hero com foto · Objetivos · Método Fonseca Team + como começar · Benefícios · Planos + tabela comparativa · Depoimentos · Sobre o profissional · Calculadora de IMC e calorias · Perguntas frequentes · Formulário de contato (envia para o WhatsApp) · Rodapé · Botão flutuante do WhatsApp.
+- Cardápio inteiro do PDF, separado em **Cozinha** e **Bar**, com títulos em letra cursiva como no cardápio impresso.
+- Barra de categorias fixa que acompanha a rolagem.
+- Busca por nome ou ingrediente (sem diferenciar acentos) e filtros **Vegetariano**, **Vegano** e **Zero lactose**.
+- Seção "Visite" com endereço, mapa, rota no Google Maps, WhatsApp e Instagram.
+- Botão flutuante do WhatsApp.
 
-## O que editar antes de publicar
+## Como atualizar o cardápio
 
-1. **`js/config.js`**: troque `whatsapp` (só números, com 55 + DDD), `whatsappDisplay` e `instagram`. Os preços e itens dos planos também ficam aqui; o valor por protocolo, a economia e a tabela comparativa são calculados sozinhos.
-2. **Foto**: salve a foto do Maicon como `assets/coach.jpg` (de preferência quadrada). Enquanto não existir, aparece o símbolo do logo.
-3. **Cores**: no início de `css/style.css`, altere `--accent`, `--accent-2` e `--grad`.
+Abra `js/menu.js`. Cada prato é uma linha como esta:
+
+```js
+{ name: "Calabresa", desc: "Molho de tomate, mozzarela, ...", price: 67 },
+```
+
+- Mudar preço: troque o número em `price`.
+- Item vegetariano, vegano ou sem lactose: adicione `tags: ["veg"]`, `["vegan"]` ou `["lac"]`.
+- Vários tamanhos: use `prices: [{ label: "350 ml", value: 18 }, { label: "500 ml", value: 22 }]`.
+- Remover um item: apague a linha.
+
+Contatos (WhatsApp e Instagram) ficam em `js/config.js`.
 
 ## Publicar na Netlify
 
