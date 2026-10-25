@@ -17,7 +17,7 @@ O cardápio e os contatos estão escritos direto no `index.html`, então aparece
 
 - Cardápio inteiro do PDF, separado em **Cozinha** e **Bar**, com títulos em letra cursiva como no cardápio impresso.
 - Barra de categorias fixa que acompanha a rolagem.
-- Busca por nome ou ingrediente (sem diferenciar acentos) e filtros **Vegetariano**, **Vegano** e **Zero lactose**.
+- Busca por nome ou ingrediente (sem diferenciar acentos), com botão de busca no topo do site e na barra de categorias, contador de resultados e filtros **Vegetariano**, **Vegano** e **Zero lactose**.
 - Seção "Visite" com endereço, mapa (com alternativa caso o mapa não carregue), rota no Google Maps, WhatsApp e Instagram.
 - Botão flutuante do WhatsApp.
 

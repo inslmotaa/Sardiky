@@ -26,8 +26,32 @@
   /* ---------- search & filters ---------- */
 
   var search = document.getElementById("search");
+  var form = document.getElementById("searchForm");
+  var clear = document.getElementById("searchClear");
+  var count = document.getElementById("menuCount");
   var empty = document.getElementById("menuEmpty");
   var active = [];
+
+  function showCount(total) {
+    count.textContent = "";
+    if (!search.value.trim() && !active.length) return;
+    var strong = document.createElement("strong");
+    strong.textContent = total === 1 ? "1 item encontrado" : total + " itens encontrados";
+    var reset = document.createElement("button");
+    reset.type = "button";
+    reset.textContent = "Limpar";
+    reset.addEventListener("click", resetAll);
+    count.appendChild(strong);
+    count.appendChild(reset);
+  }
+
+  function resetAll() {
+    search.value = "";
+    active = [];
+    document.querySelectorAll(".filter").forEach(function (b) { b.setAttribute("aria-pressed", "false"); });
+    applyFilters();
+    search.focus();
+  }
 
   function applyFilters() {
     var q = fold(search.value.trim());
@@ -54,10 +78,36 @@
     });
 
     empty.hidden = anyVisible;
+    clear.hidden = !search.value;
+    showCount(itemNodes.filter(function (li) { return !li.hidden; }).length);
     spy();
   }
 
   search.addEventListener("input", applyFilters);
+
+  clear.addEventListener("click", function () {
+    search.value = "";
+    applyFilters();
+    search.focus();
+  });
+
+  // "Buscar" (or Enter): close the phone keyboard and jump to the first result
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    applyFilters();
+    search.blur();
+    var first = categoryNodes.filter(function (n) { return !n.hidden; })[0];
+    if (first && search.value.trim()) scrollToNode(first);
+  });
+
+  // search buttons in the header and in the category bar
+  document.querySelectorAll(".js-open-search").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var intro = document.getElementById("busca");
+      window.scrollTo({ top: intro.getBoundingClientRect().top + window.scrollY - header.offsetHeight, behavior: "smooth" });
+      search.focus({ preventScroll: true });
+    });
+  });
 
   document.querySelectorAll(".filter").forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -83,10 +133,13 @@
     var chip = e.target.closest(".chip");
     if (!chip) return;
     e.preventDefault();
-    var target = document.getElementById(chip.dataset.target);
-    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - offset() + 8, behavior: "smooth" });
+    scrollToNode(document.getElementById(chip.dataset.target));
     history.replaceState(null, "", "#" + chip.dataset.target);
   });
+
+  function scrollToNode(node) {
+    window.scrollTo({ top: node.getBoundingClientRect().top + window.scrollY - offset() + 8, behavior: "smooth" });
+  }
 
   function spy() {
     var line = offset() + 48;

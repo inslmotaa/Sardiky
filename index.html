@@ -63,6 +63,9 @@
         <a href="#bar">Bar</a>
         <a href="#visite">Visite</a>
       </nav>
+      <button type="button" class="icon-btn js-open-search" aria-label="Buscar no cardápio">
+        <svg aria-hidden="true"><use href="#i-search"/></svg>
+      </button>
       <a class="btn btn--light btn--sm js-whatsapp" href="https://wa.me/554184311020?text=Ol%C3%A1%2C%20Rock%20Me%20Mamma!%20Vim%20pelo%20card%C3%A1pio%20do%20site." target="_blank" rel="noopener">
         <svg aria-hidden="true"><use href="#i-whatsapp"/></svg><span>WhatsApp</span>
       </a>
@@ -93,23 +96,29 @@
     </section>
 
     <section class="menu paper" id="cardapio" aria-label="Cardápio">
-      <div class="container menu__intro">
+      <div class="container menu__intro" id="busca">
         <p class="eyebrow">Cardápio</p>
         <div class="menu__tools">
-          <label class="search">
+          <form class="search" id="searchForm" role="search">
             <svg aria-hidden="true"><use href="#i-search"/></svg>
-            <span class="sr-only">Buscar no cardápio</span>
-            <input type="search" id="search" placeholder="Buscar pizza, drink, ingrediente…" autocomplete="off">
-          </label>
+            <label class="sr-only" for="search">Buscar no cardápio</label>
+            <input type="search" id="search" placeholder="Buscar pizza, drink, ingrediente…" autocomplete="off" enterkeyhint="search">
+            <button type="button" class="search__clear" id="searchClear" aria-label="Limpar busca" hidden>&times;</button>
+            <button type="submit" class="search__submit">Buscar</button>
+          </form>
           <div class="filters" role="group" aria-label="Filtrar por dieta">
             <button type="button" class="filter" data-tag="veg" aria-pressed="false"><svg aria-hidden="true"><use href="#i-leaf"/></svg>Vegetariano</button>
             <button type="button" class="filter" data-tag="vegan" aria-pressed="false"><svg aria-hidden="true"><use href="#i-vegan"/></svg>Vegano</button>
             <button type="button" class="filter" data-tag="lac" aria-pressed="false"><svg aria-hidden="true"><use href="#i-lac"/></svg>Zero lactose</button>
           </div>
         </div>
+        <p class="menu__count" id="menuCount" aria-live="polite"></p>
       </div>
       <div class="menu__bar" id="menuBar">
-        <div class="container">
+        <div class="container menu__bar-inner">
+          <button type="button" class="bar-search js-open-search" aria-label="Buscar no cardápio">
+            <svg aria-hidden="true"><use href="#i-search"/></svg>
+          </button>
           <nav class="chips" id="chips" aria-label="Categorias do cardápio">
             <div class="chips__group">
               <span class="chips__label">Cozinha</span>
