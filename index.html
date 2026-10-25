@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -63,7 +63,7 @@
         <a href="#bar">Bar</a>
         <a href="#visite">Visite</a>
       </nav>
-      <a class="btn btn--light btn--sm js-whatsapp" href="#" target="_blank" rel="noopener">
+      <a class="btn btn--light btn--sm js-whatsapp" href="https://wa.me/554184311020?text=Ol%C3%A1%2C%20Rock%20Me%20Mamma!%20Vim%20pelo%20card%C3%A1pio%20do%20site." target="_blank" rel="noopener">
         <svg aria-hidden="true"><use href="#i-whatsapp"/></svg><span>WhatsApp</span>
       </a>
     </div>
@@ -110,12 +110,663 @@
       </div>
       <div class="menu__bar" id="menuBar">
         <div class="container">
-          <nav class="chips" id="chips" aria-label="Categorias do cardápio"></nav>
+          <nav class="chips" id="chips" aria-label="Categorias do cardápio">
+            <div class="chips__group">
+              <span class="chips__label">Cozinha</span>
+              <a class="chip" href="#entradas" data-target="entradas">Entradas</a>
+              <a class="chip" href="#pizzas-tradicionais" data-target="pizzas-tradicionais">Pizzas Tradicionais</a>
+              <a class="chip" href="#pizzas-especiais" data-target="pizzas-especiais">Pizzas Especiais</a>
+              <a class="chip" href="#pizzas-doces" data-target="pizzas-doces">Pizzas Doces</a>
+              <a class="chip" href="#saladas" data-target="saladas">Saladas</a>
+              <a class="chip" href="#kids" data-target="kids">Menu Kids</a>
+              <a class="chip" href="#sobremesas" data-target="sobremesas">Sobremesas</a>
+            </div>
+            <div class="chips__group">
+              <span class="chips__label">Bar</span>
+              <a class="chip" href="#drinks-originais" data-target="drinks-originais">Drinks Originais</a>
+              <a class="chip" href="#caipirinhas" data-target="caipirinhas">Caipirinhas</a>
+              <a class="chip" href="#classicos" data-target="classicos">Clássicos</a>
+              <a class="chip" href="#refrescantes" data-target="refrescantes">Drinks Refrescantes</a>
+              <a class="chip" href="#gin" data-target="gin">Gin</a>
+              <a class="chip" href="#mocktails" data-target="mocktails">Mocktails</a>
+              <a class="chip" href="#cervejas" data-target="cervejas">Cervejas</a>
+              <a class="chip" href="#doses" data-target="doses">Doses</a>
+              <a class="chip" href="#vinho" data-target="vinho">Vinho</a>
+              <a class="chip" href="#softdrinks" data-target="softdrinks">Softdrinks</a>
+            </div>
+          </nav>
         </div>
       </div>
 
       <div class="container menu__body" id="menuBody">
-        <noscript><p class="menu__empty">Ative o JavaScript para ver o cardápio.</p></noscript>
+
+        <section class="part" id="cozinha" aria-labelledby="cozinha-title">
+          <h2 class="part__title" id="cozinha-title"><span>Cozinha</span></h2>
+
+          <!-- Entradas -->
+          <section class="category" id="entradas" aria-labelledby="entradas-title">
+            <h3 class="category__title" id="entradas-title">Entradas</h3>
+            <ul class="items">
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Pizzeta<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">31</span></span></div></div>
+                <p class="item__desc">Massa da nossa pizza, temperada com azeite de ervas, sal rosa e queijo grana padano.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Steak Tartare</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">71</span></span></div></div>
+                <p class="item__desc">Filé mignon batido na ponta da faca com os temperos da Chef, acompanha nossa massa de pizza crocante.</p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Pastéis de Brie com geleia de pimentões<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">37</span></span></div></div>
+                <p class="item__desc">Porção de 4 mini pastéis, com geleia de pimentões da casa.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Bolinhos de carne seca com queijo Canastra</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">42</span></span></div></div>
+                <p class="item__desc">Porção com 3 bolinhos, servidos com molho campana.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Croquetes de costela defumada</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Porção de 3 croquetes com emulsão de leite e gremolata.</p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Burrata com tomates confitados<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">89</span></span></div></div>
+                <p class="item__desc">Coberta por pesto genovês e rúcula, acompanha nossa massa crocante e flor de sal.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Dadinhos de tapioca</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">39</span></span></div></div>
+                <p class="item__desc">Porção de 6 dadinhos, acompanha geleia de maçã com pimenta dedo-de-moça.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Carpaccio</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">53</span></span></div></div>
+                <p class="item__desc">Servido com alcaparras, molho da casa, parmesão capa preta, rúcula fresca e massa crocante de pizzeta.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Fish &amp; Chips</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">46</span></span></div></div>
+                <p class="item__desc">Batata rústica e peixe empanado temperado com lemon pepper e molho sour cream.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Costela desfiada com batata</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">49</span></span></div></div>
+                <p class="item__desc">Costela desfiada, batata palito e creme de queijo.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Pizzas Tradicionais -->
+          <section class="category" id="pizzas-tradicionais" aria-labelledby="pizzas-tradicionais-title">
+            <h3 class="category__title" id="pizzas-tradicionais-title">Pizzas Tradicionais</h3>
+            <ul class="items">
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Mozzarela<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">55</span></span></div></div>
+                <p class="item__desc">Molho de tomate e mozzarela.</p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Caprese<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">68</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, manjericão, queijo grana padano e azeite de oliva.</p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Margherita Tradicional<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">63</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, manjericão, grana padano e azeite de oliva extravirgem.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Lusa à Portuguesa do Mamma</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">65</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, presunto, ovos, cebola roxa e azeitonas.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Calabresa</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">67</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, calabresa defumada, cebola roxa e orégano.</p>
+              </li>
+              <li class="item" data-tags="vegan lac">
+                <div class="item__head"><h4 class="item__name">Marinara<span class="tag tag--vegan" title="Vegano"><svg aria-hidden="true"><use href="#i-vegan"/></svg><span class="sr-only">Vegano</span></span><span class="tag tag--lac" title="Zero lactose"><svg aria-hidden="true"><use href="#i-lac"/></svg><span class="sr-only">Zero lactose</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">65</span></span></div></div>
+                <p class="item__desc">Molho de tomate, alho negro, orégano, manjericão e azeite de oliva extravirgem. Sem queijo.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Pierot</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">68</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, gorgonzola e peras confitadas.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Candy Bacon</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">68</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, gorgonzola e bacon caramelizado.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Corn &amp; Bacon</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">68</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, milho e fatias de bacon.</p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Milho Cremoso<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">68</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, milho e requeijão cremoso.</p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Zucchini do Mamma<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">62</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, fatias de abobrinha grelhadas, queijo grana padano, finalizada com alho crispy e semente de girassol.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Margherita do Mamma</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">66</span></span></div></div>
+                <p class="item__desc">Molho de tomate, queijo mozzarela, grana padano, rodelas de tomate e folhas de manjericão.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Pepperoni / Diavola</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">71</span></span></div></div>
+                <p class="item__desc">Pepperoni: molho de tomate, mozzarela e pepperoni. Diavola: molho de tomate, mozzarela, pepperoni e geleia de pimenta da casa.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">3 Queijos</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">74</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, gorgonzola e brie.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">La Reina</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">72</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, cogumelos frescos, presunto e azeitonas.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Rúcula e Tomate Seco</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">68</span></span></div></div>
+                <p class="item__desc">Molho de tomate, queijo mozzarela, finalizada com rúcula, mozzarela de búfala, tapenade de azeitonas e tomate seco.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Caprese Specialle</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">72</span></span></div></div>
+                <p class="item__desc">Molho de tomate, queijo mozzarela, rodelas de tomate com requeijão cremoso e tapenade de azeitonas.</p>
+              </li>
+              <li class="item" data-tags="lac">
+                <div class="item__head"><h4 class="item__name">Pizza Specialle LAC FREE<span class="tag tag--lac" title="Zero lactose"><svg aria-hidden="true"><use href="#i-lac"/></svg><span class="sr-only">Zero lactose</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price__label">adicional</span><span class="price"><span class="price__cur">R$</span><span class="price__val">14</span></span></div></div>
+                <p class="item__desc">Peça qualquer uma das nossas pizzas em versão sem lactose.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Pizzas Especiais do Mamma -->
+          <section class="category" id="pizzas-especiais" aria-labelledby="pizzas-especiais-title">
+            <h3 class="category__title" id="pizzas-especiais-title">Pizzas Especiais do Mamma</h3>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Tartufi</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">88</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, scamorza de búfala, cogumelos frescos, crocante de parma e azeite trufado.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Brie e Abricot</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">88</span></span></div></div>
+                <p class="item__desc">Molho de tomate, presunto di Parma, brie e damascos.</p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Burrata<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">92</span></span></div></div>
+                <p class="item__desc">Molho de tomate, burrata, pesto genovês, tomatinhos confitados e rúcula.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Lusa Lux</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">85</span></span></div></div>
+                <p class="item__desc">Molho de tomate, mozzarela, presunto de Parma, ovo cozido, cebola roxa e tapenade de azeitona preta.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Alcachofra do Mamma</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">89</span></span></div></div>
+                <p class="item__desc">Molho de tomate, queijo mozzarela, coração de alcachofra, finalizada com cebola crispy e orégano.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Truffle Rock</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">79</span></span></div></div>
+                <p class="item__desc">Molho de tomate, queijo brie, cogumelos refogados à moda oriental, finalizada com mel trufado.</p>
+                <p class="item__extra"><span>Sugestão do chef: Parma Crispy</span><span class="price"><span class="price__label">+</span><span class="price__cur">R$</span><span class="price__val">9</span></span></p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Salmão</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">99</span></span></div></div>
+                <p class="item__desc">Sour cream, raspas de limão, brotos variados e salmão curado. Pizza fria de molho branco.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Burrata com Pesto Rosso</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">89</span></span></div></div>
+                <p class="item__desc">Massa, molho de tomate, queijo mozzarela, burrata fatiada, finalizada com pesto rosso.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Pizzas Doces -->
+          <section class="category" id="pizzas-doces" aria-labelledby="pizzas-doces-title">
+            <h3 class="category__title" id="pizzas-doces-title">Pizzas Doces</h3>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Paraíso</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">89</span></span></div></div>
+                <p class="item__desc">Pizza de chocolate suíço ao leite, Nutella, mini Oreo e xerém de castanha de caju.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Delícia de Frutas</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">89</span></span></div></div>
+                <p class="item__desc">Queijo brie, chocolate branco suíço, geleia de frutas vermelhas e bolacha amanteigada.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Sonho de Valsa / Ouro Branco</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">72</span></span></div></div>
+                <p class="item__desc">Brigadeiro do chef, Sonho de Valsa ou Ouro Branco, topping de bolacha Negresco.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Pizza Snickers</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">72</span></span></div></div>
+                <p class="item__desc">Ganache de chocolate, amendoim tostado, doce de leite, bombom Snickers e granulados.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Saladas -->
+          <section class="category" id="saladas" aria-labelledby="saladas-title">
+            <h3 class="category__title" id="saladas-title">Saladas</h3>
+            <ul class="items">
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Caesar Salad<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">40</span></span></div></div>
+                <p class="item__desc">Alface americana, croutons artesanais de parmesão, molho Caesar e raspas de parmesão.</p>
+                <p class="item__extra"><span>Com lascas de frango</span><span class="price"><span class="price__cur">R$</span><span class="price__val">47</span></span></p>
+              </li>
+              <li class="item" data-tags="veg">
+                <div class="item__head"><h4 class="item__name">Gorgonzola, pera e nozes<span class="tag tag--veg" title="Vegetariano"><svg aria-hidden="true"><use href="#i-leaf"/></svg><span class="sr-only">Vegetariano</span></span></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">44</span></span></div></div>
+                <p class="item__desc">Mix de folhas, gorgonzola, pera confitada e nozes caramelizadas, acompanha emulsão de balsâmico, azeite de oliva e mel.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Menu Kids -->
+          <section class="category" id="kids" aria-labelledby="kids-title">
+            <h3 class="category__title" id="kids-title">Menu Kids</h3>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Chicken &amp; Chips</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">45</span></span></div></div>
+                <p class="item__desc">Nuggets com batata palito e molho rosé.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Spaghetti &amp; Nuggets</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">45</span></span></div></div>
+                <p class="item__desc">Spaghetti na manteiga, acompanha nuggets.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Sobremesas -->
+          <section class="category" id="sobremesas" aria-labelledby="sobremesas-title">
+            <h3 class="category__title" id="sobremesas-title">Sobremesas</h3>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Banoffee Desconstruída</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">35</span></span></div></div>
+                <p class="item__desc">Banoffee desconstruída com bananas flambadas.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Brownie com Crumble Doce</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Brownie servido com sorvete de creme, brigadeiro mole e crumble.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Petit Gâteau Chocolate / Doce de Leite</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">A tradicional sobremesa francesa, acompanha sorvete de creme e calda de doce de leite.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Domo de Chocolate</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">47</span></span></div></div>
+                <p class="item__desc">Esfera regada com calda de chocolate quente, sorvete de pistache e crocante de amendoim.</p>
+              </li>
+            </ul>
+          </section>
+
+        </section>
+
+        <section class="part" id="bar" aria-labelledby="bar-title">
+          <h2 class="part__title" id="bar-title"><span>Bar</span></h2>
+
+          <!-- Drinks Originais do Mamma -->
+          <section class="category" id="drinks-originais" aria-labelledby="drinks-originais-title">
+            <h3 class="category__title" id="drinks-originais-title">Drinks Originais do Mamma</h3>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Mamma Fashion</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">37</span></span></div></div>
+                <p class="item__desc">Rum, kiwi, pera e espuma de gengibre.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Jack Lemon</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Jack Daniel's, licor Curaçao, suco de limão e Schweppes Citrus.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Loneliness</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">44</span></span></div></div>
+                <p class="item__desc">Whisky The Singleton 12 anos, licor de café e Licor 43.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Red Velvet</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">39</span></span></div></div>
+                <p class="item__desc">Vodka Ketel One, suco de limão e purê de frutas vermelhas.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Margarita de Morango</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">39</span></span></div></div>
+                <p class="item__desc">Tequila prata, Monin de morango, redução de pimenta, suco e espuma de limão.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Creta</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Gin, amora, cranberry, suco de limão-siciliano, suco de limão-taiti e frutas vermelhas.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Red Mamma</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Gin, purê de frutas vermelhas, grenadine, suco de limão e Schweppes.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Aperol Bucko</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Aperol, gin Bucko, Monin de tangerina, tônica e laranja desidratada.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Jack 43</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Whiskey Jack Daniel's, Licor 43, polpa de maracujá e alecrim.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Tequila Sunrise</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Tequila, Monin de toranja e suco de laranja.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Caipirinhas -->
+          <section class="category" id="caipirinhas" aria-labelledby="caipirinhas-title">
+            <h3 class="category__title" id="caipirinhas-title">Caipirinhas</h3>
+            <p class="category__note">Com cachaça Ypióca, vodka Smirnoff ou saquê.</p>
+            <ul class="items items--compact">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Limão</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">29</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Morango</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Frutas vermelhas</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Maracujá com hortelã e gengibre</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">35</span></span></div></div>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Clássicos -->
+          <section class="category" id="classicos" aria-labelledby="classicos-title">
+            <h3 class="category__title" id="classicos-title">Clássicos</h3>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Aperol Spritz</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Aperol, espumante brut, água tônica e laranja-baía.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Boulevardier</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Bulleit Bourbon, vermute tinto, Campari, bitter e laranja-baía.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Cosmopolitan</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Vodka, licor Curaçao, suco de limão, cranberry e cereja.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Bulleit &amp; Coke / Jack n' Coke</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__label">Bulleit</span><span class="price__cur">R$</span><span class="price__val">39</span></span><span class="price"><span class="price__label">Jack</span><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Bourbon e Coca-Cola.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Dry Martini</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">33</span></span></div></div>
+                <p class="item__desc">Gin, vermute dry e azeitona.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Paloma</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Tequila Don Julio, xarope de toranja, limão e água com gás.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Kir Royal</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">35</span></span></div></div>
+                <p class="item__desc">Espumante brut, licor de creme de cassis e cereja.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Manhattan</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Whiskey bourbon, vermute tinto, bitter e cereja.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Margarita</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Tequila, licor Curaçao, suco de limão, licor Curaçao Blue e sal.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Whisky Sour</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Black Label, limão, xarope simples e albumina.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Mojito</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Rum, suco de limão, açúcar invertido, água com gás e hortelã.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Moscow Mule</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">37</span></span></div></div>
+                <p class="item__desc">Vodka Ketel One, açúcar invertido, gengibre, suco de limão, bitter e espuma de gengibre.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Negroni</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">41</span></span></div></div>
+                <p class="item__desc">Gin, vermute tinto, Campari, bitter e laranja-baía.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Piña Colada</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Rum, leite de coco, leite condensado, creme de leite e suco de abacaxi com coco ralado.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Penicillin</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Black Label, limão-siciliano, mel e gengibre.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Pink Lemonade</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Vodka Smirnoff, morango, melancia, suco de limão e suco de gengibre.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Amaretto Sour</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Amaretto, suco de limão, açúcar invertido, bitter e albumina.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Campari Soda</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">28</span></span></div></div>
+                <p class="item__desc">Campari e Schweppes Citrus.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Drinks Refrescantes -->
+          <section class="category" id="refrescantes" aria-labelledby="refrescantes-title">
+            <h3 class="category__title" id="refrescantes-title">Drinks Refrescantes</h3>
+            <p class="category__note">Servidos na jarra.</p>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Clericot</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__label">Vinho branco</span><span class="price__cur">R$</span><span class="price__val">79</span></span><span class="price"><span class="price__label">Espumante</span><span class="price__cur">R$</span><span class="price__val">93</span></span></div></div>
+                <p class="item__desc">Licor amaretto, frutas da estação e água com gás, com vinho branco ou espumante.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Sangria de Vinho Tinto</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">93</span></span></div></div>
+                <p class="item__desc">Vinho tinto, Stock Curaçao e conhaque.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Gin -->
+          <section class="category" id="gin" aria-labelledby="gin-title">
+            <h3 class="category__title" id="gin-title">Gin</h3>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Gin Tônica Bucko / Tanqueray</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__label">Bucko</span><span class="price__cur">R$</span><span class="price__val">33</span></span><span class="price"><span class="price__label">Tanqueray</span><span class="price__cur">R$</span><span class="price__val">38</span></span></div></div>
+                <p class="item__desc">Gin, tônica, limão-siciliano e zimbro.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Gin Tônica Ginger Lemon</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">35</span></span></div></div>
+                <p class="item__desc">Gin, Schweppes, Monin de gengibre e suco de limão-siciliano.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Gin Tônica de Frutas Vermelhas</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">36</span></span></div></div>
+                <p class="item__desc">Gin, Schweppes, Monin de frutas vermelhas e hibisco.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Gin Tropical</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">39</span></span></div></div>
+                <p class="item__desc">Gin e Red Bull.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Mocktails -->
+          <section class="category" id="mocktails" aria-labelledby="mocktails-title">
+            <h3 class="category__title" id="mocktails-title">Mocktails</h3>
+            <p class="category__note">Coquetéis sem álcool.</p>
+            <ul class="items">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Piña Descolada</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">27</span></span></div></div>
+                <p class="item__desc">Suco de abacaxi, leite de coco, creme de leite e leite condensado.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Mojito Virgem</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">25</span></span></div></div>
+                <p class="item__desc">Schweppes Citrus, suco de limão e hortelã.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Pink Lemonade</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">33</span></span></div></div>
+                <p class="item__desc">Schweppes, Monin de morango e melancia, e suco de limão.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Shirley Temple</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">35</span></span></div></div>
+                <p class="item__desc">Schweppes, Monin de grenadine e gengibre, e suco de limão.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Soda Italiana</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">19</span></span></div></div>
+                <p class="item__desc">Refrigerante de soda com sabor a escolher: maçã verde, cranberry, tangerina, amora, maracujá ou gengibre.</p>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Cervejas -->
+          <section class="category" id="cervejas" aria-labelledby="cervejas-title">
+            <h3 class="category__title" id="cervejas-title">Cervejas</h3>
+            <div class="category__groups">
+              <div class="subgroup">
+                <h4 class="subgroup__title">Chopes e garrafas</h4>
+                <ul class="items items--compact">
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Chopp Brahma</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__label">350 ml</span><span class="price__cur">R$</span><span class="price__val">18</span></span><span class="price"><span class="price__label">500 ml</span><span class="price__cur">R$</span><span class="price__val">22</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Chopp Bonato Pilsen</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__label">350 ml</span><span class="price__cur">R$</span><span class="price__val">14</span></span><span class="price"><span class="price__label">500 ml</span><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Chopp Bonato IPA</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__label">350 ml</span><span class="price__cur">R$</span><span class="price__val">22</span></span><span class="price"><span class="price__label">500 ml</span><span class="price__cur">R$</span><span class="price__val">25</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Baden Baden IPA Maracujá<small class="item__size">600 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">28</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Baden Baden Cristal Pilsen<small class="item__size">600 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">28</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Baden Baden Witbier de trigo, coentro e laranja<small class="item__size">600 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">28</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Patagonia IPA<small class="item__size">740 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">28</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Patagonia Amber Lager<small class="item__size">740 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">28</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Patagonia Weisse<small class="item__size">740 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">28</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Antarctica Original<small class="item__size">600 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">24</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Heineken<small class="item__size">600 ml</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">24</span></span></div></div>
+                  </li>
+                </ul>
+              </div>
+              <div class="subgroup">
+                <h4 class="subgroup__title">Long necks</h4>
+                <ul class="items items--compact">
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Stella Artois</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">17</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Stella Artois<small class="item__size">sem glúten</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Heineken</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Patagonia IPA</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Patagonia Amber Lager</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Patagonia Weisse</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Blue Moon</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">20</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Heineken 0.0</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Corona Cero</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+                  </li>
+                  <li class="item">
+                    <div class="item__head"><h4 class="item__name">Lagunitas IPA</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">20</span></span></div></div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- Doses -->
+          <section class="category" id="doses" aria-labelledby="doses-title">
+            <h3 class="category__title" id="doses-title">Doses</h3>
+            <ul class="items items--compact">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Singleton<small class="item__size">12 anos</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">25</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Johnnie Walker Black Label<small class="item__size">12 anos</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">25</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Johnnie Walker Red Label<small class="item__size">8 anos</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">22</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Jack Daniel's</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">25</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Jägermeister</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">22</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Campari</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">15</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Vodka<small class="item__size">Smirnoff ou Bacco</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">15</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Vodka Ketel One</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">25</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Gin Tanqueray</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">25</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Cachaça<small class="item__size">Hambre ou Salinissima</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__label">Hambre</span><span class="price__cur">R$</span><span class="price__val">15</span></span><span class="price"><span class="price__label">Salinissima</span><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Vinho -->
+          <section class="category" id="vinho" aria-labelledby="vinho-title">
+            <h3 class="category__title" id="vinho-title">Vinho</h3>
+            <ul class="items items--compact">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Taça de vinho tinto ou branco</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">27</span></span></div></div>
+              </li>
+            </ul>
+          </section>
+
+          <!-- Softdrinks -->
+          <section class="category" id="softdrinks" aria-labelledby="softdrinks-title">
+            <h3 class="category__title" id="softdrinks-title">Softdrinks</h3>
+            <ul class="items items--compact">
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Limonada Suíça<small class="item__size">com hortelã</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">14</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Limonada Suíça<small class="item__size">com leite condensado</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">16</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Suco de laranja</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">14</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Refrigerantes</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">9,90</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Água mineral<small class="item__size">com ou sem gás</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">9</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Chá mate gelado</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">10</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Chá mate gelado com limão</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">12</span></span></div></div>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Chá mate gelado saborizado</h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">16</span></span></div></div>
+                <p class="item__desc">Tangerina, maçã verde, pêssego, amora, grenadine ou melancia.</p>
+              </li>
+              <li class="item">
+                <div class="item__head"><h4 class="item__name">Red Bull<small class="item__size">tradicional, Zero ou Tropical</small></h4><span class="item__dots"></span><div class="item__prices"><span class="price"><span class="price__cur">R$</span><span class="price__val">18</span></span></div></div>
+              </li>
+            </ul>
+          </section>
+
+        </section>
       </div>
       <p class="container menu__empty" id="menuEmpty" hidden>Nada encontrado. Tente outra palavra ou limpe os filtros.</p>
 
@@ -125,7 +776,7 @@
           <li><span class="tag tag--vegan"><svg aria-hidden="true"><use href="#i-vegan"/></svg></span>Vegano</li>
           <li><span class="tag tag--lac"><svg aria-hidden="true"><use href="#i-lac"/></svg></span>Zero lactose</li>
         </ul>
-        <p class="menu__fee" id="serviceFee"></p>
+        <p class="menu__fee">Nossa taxa de serviço sugerida é de 10% e é opcional. Agradecemos pela colaboração!</p>
       </div>
     </section>
 
@@ -136,16 +787,21 @@
           <h2 id="visit-title"><span class="script">Te esperamos</span> no Bigorrilho</h2>
           <address class="visit__address">
             <svg aria-hidden="true"><use href="#i-pin"/></svg>
-            <span id="address"></span>
+            <span>Al. Júlia da Costa, 1829 - Bigorrilho, Curitiba - PR, 80730-070</span>
           </address>
           <div class="visit__actions">
-            <a class="btn btn--light" id="directions" href="#" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-pin"/></svg> Traçar rota</a>
-            <a class="btn btn--ghost js-whatsapp" href="#" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> <span class="js-whatsapp-label">WhatsApp</span></a>
-            <a class="btn btn--ghost" id="instagram" href="#" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-instagram"/></svg> <span id="instagramLabel">Instagram</span></a>
+            <a class="btn btn--light" id="directions" href="https://www.google.com/maps/dir/?api=1&amp;destination=Rock%20Me%20Mamma%2C%20Al.%20J%C3%BAlia%20da%20Costa%2C%201829%20-%20Bigorrilho%2C%20Curitiba%20-%20PR%2C%2080730-070" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-pin"/></svg> Traçar rota</a>
+            <a class="btn btn--ghost js-whatsapp" href="https://wa.me/554184311020?text=Ol%C3%A1%2C%20Rock%20Me%20Mamma!%20Vim%20pelo%20card%C3%A1pio%20do%20site." target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-whatsapp"/></svg> <span>(41) 8431-1020</span></a>
+            <a class="btn btn--ghost" id="instagram" href="https://www.instagram.com/rockmemammacwb/" target="_blank" rel="noopener"><svg aria-hidden="true"><use href="#i-instagram"/></svg> <span>@rockmemammacwb</span></a>
           </div>
         </div>
         <div class="visit__map">
-          <iframe id="map" title="Mapa: Rock Me Mamma no Bigorrilho, Curitiba" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <a class="visit__map-fallback" href="https://www.google.com/maps/search/?api=1&amp;query=Rock%20Me%20Mamma%2C%20Al.%20J%C3%BAlia%20da%20Costa%2C%201829%2C%20Curitiba">
+            <svg aria-hidden="true"><use href="#i-pin"/></svg>
+            <span>Al. Júlia da Costa, 1829<br>Bigorrilho · Curitiba</span>
+            <span class="visit__map-link">Abrir no Google Maps</span>
+          </a>
+          <iframe src="https://www.google.com/maps?q=Rock%20Me%20Mamma%2C%20Al.%20J%C3%BAlia%20da%20Costa%2C%201829%20-%20Bigorrilho%2C%20Curitiba%20-%20PR%2C%2080730-070&amp;output=embed" title="Mapa: Rock Me Mamma no Bigorrilho, Curitiba" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
         </div>
       </div>
     </section>
@@ -154,17 +810,15 @@
   <footer class="footer">
     <div class="container footer__inner">
       <img src="assets/logo-white.png" alt="Rock Me Mamma" width="88" height="88" loading="lazy">
-      <p>Rock Me Mamma · Pizza Bar Experience<br><span id="footerAddress"></span></p>
+      <p>Rock Me Mamma · Pizza Bar Experience<br><span>Al. Júlia da Costa, 1829 - Bigorrilho, Curitiba - PR, 80730-070</span></p>
       <p class="footer__small">Preços em reais. Cardápio sujeito a alteração sem aviso prévio. Beba com moderação.</p>
     </div>
   </footer>
 
-  <a class="wa-float js-whatsapp" href="#" target="_blank" rel="noopener" aria-label="Falar com o Rock Me Mamma no WhatsApp">
+  <a class="wa-float js-whatsapp" href="https://wa.me/554184311020?text=Ol%C3%A1%2C%20Rock%20Me%20Mamma!%20Vim%20pelo%20card%C3%A1pio%20do%20site." target="_blank" rel="noopener" aria-label="Falar com o Rock Me Mamma no WhatsApp">
     <svg aria-hidden="true"><use href="#i-whatsapp"/></svg>
   </a>
 
-  <script src="js/config.js"></script>
-  <script src="js/menu.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>
