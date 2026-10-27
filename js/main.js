@@ -236,6 +236,7 @@
 
   function onScroll() {
     header.classList.toggle("is-scrolled", window.scrollY > 10);
+    document.documentElement.classList.toggle("show-top", window.scrollY > window.innerHeight * 0.6);
     spy();
   }
 

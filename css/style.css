@@ -381,8 +381,6 @@ svg { width: 1em; height: 1em; flex: none; }
 .footer img { width: 88px; height: 88px; opacity: .9; }
 .footer p { margin: 0; font-size: .92rem; }
 .footer__small { font-size: .8rem !important; opacity: .7; }
-.footer__top { margin-top: 8px; }
-.footer__top svg { transform: rotate(-90deg); }
 
 /* ---------- floating whatsapp ---------- */
 .wa-float {
@@ -393,6 +391,19 @@ svg { width: 1em; height: 1em; flex: none; }
 }
 .wa-float svg { width: 28px; height: 28px; }
 .wa-float:hover { transform: scale(1.06); }
+
+/* floating "back to top", stacked above the WhatsApp button; shows up after the opening section */
+.to-top {
+  position: fixed; right: 24px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 60;
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--ink); color: var(--on-dark); border: 1px solid rgba(244, 240, 233, .35);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .28);
+  opacity: 0; pointer-events: none; transform: translateY(12px);
+  transition: opacity .25s, transform .25s, background .2s, color .2s;
+}
+.to-top svg { width: 20px; height: 20px; transform: rotate(-90deg); }
+.show-top .to-top, .no-js .to-top { opacity: 1; pointer-events: auto; transform: none; }
+.to-top:hover { background: var(--on-dark); color: var(--ink); }
 
 /* ==========================================================
    Cardápio em livro (js/book.js)
@@ -613,7 +624,7 @@ svg { width: 1em; height: 1em; flex: none; }
 
 /* on phones the floating WhatsApp button would cover the navigation */
 @media (max-width: 699px) {
-  .book-pinned .wa-float { opacity: 0; pointer-events: none; transform: translateY(16px); transition: opacity .25s, transform .25s; }
+  .book-pinned .wa-float, .book-pinned .to-top { opacity: 0; pointer-events: none; transform: translateY(16px); transition: opacity .25s, transform .25s; }
   .book-nav { gap: 10px; }
   .book-nav__btn { width: 42px; height: 42px; }
 }

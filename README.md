@@ -23,7 +23,7 @@ O cardápio e os contatos estão escritos direto no `index.html`, então aparece
 - Barra de categorias fixa que acompanha a rolagem.
 - Busca por nome ou ingrediente (sem diferenciar acentos), com botão de busca no topo do site e na barra de categorias, contador de resultados e filtros **Vegetariano**, **Vegano** e **Zero lactose**. No modo livro, os resultados aparecem em lista com a página de cada item; tocar em um resultado abre o livro nessa página e destaca o prato.
 - Seção "Visite" com endereço, mapa (com alternativa caso o mapa não carregue), rota no Google Maps, WhatsApp e Instagram.
-- Botão flutuante do WhatsApp.
+- Botões flutuantes do WhatsApp e de **voltar ao início** (aparece depois da abertura e leva direto ao topo, sem folhear o livro). No celular, os dois se escondem enquanto o livro está na tela, para não cobrir os botões de página; o logo do topo também leva ao início.
 
 ## Como atualizar o cardápio
 
