@@ -10,7 +10,7 @@ css/style.css     Estilos (cores e fontes no topo, em :root)
 js/main.js        Busca, filtros e destaque da categoria durante a rolagem
 js/book.js        Cardápio em formato de livro, com páginas que viram com a rolagem
 js/vendor/        GSAP 3.12.5 e ScrollTrigger (licença gratuita da GSAP), servidos pelo próprio site
-assets/           Logo (branca e preta), favicon e imagem de compartilhamento
+assets/           Logo (branca e preta), favicon, imagem de compartilhamento e textura do papel
 ```
 
 O cardápio e os contatos estão escritos direto no `index.html`, então aparecem em qualquer celular ou navegador, mesmo com o JavaScript bloqueado. Com o JavaScript ativo, essa mesma lista é montada como um livro; sem ele, ou em telas baixas demais para um livro legível (celular deitado), a lista aparece normalmente.

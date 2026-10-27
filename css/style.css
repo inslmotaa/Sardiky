@@ -22,7 +22,9 @@
 
   --radius: 999px;
   --header-h: 68px;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* paper grain: small ready-made tiles, drawn without blend modes so animations stay smooth */
+  --grain-dark: url("../assets/grain-dark.png");
+  --grain-light: url("../assets/grain-light.png");
   color-scheme: light;
 }
 
@@ -65,11 +67,7 @@ svg { width: 1em; height: 1em; flex: none; }
 }
 
 /* paper texture (menu background, like the printed card) */
-.paper { background-color: var(--paper); position: relative; isolation: isolate; }
-.paper::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background-image: var(--grain); opacity: .09; mix-blend-mode: multiply;
-}
+.paper { background: var(--grain-dark) var(--paper); position: relative; }
 
 /* ---------- buttons ---------- */
 .btn {
@@ -94,9 +92,6 @@ svg { width: 1em; height: 1em; flex: none; }
   transition: background .3s, box-shadow .3s;
 }
 .header.is-scrolled { background: rgba(20, 18, 16, .94); box-shadow: 0 1px 0 rgba(244, 240, 233, .08); }
-@supports (backdrop-filter: blur(8px)) {
-  .header.is-scrolled { background: rgba(20, 18, 16, .82); backdrop-filter: blur(12px); }
-}
 /* without JavaScript the header never gets .is-scrolled, so keep it solid */
 .no-js .header { background: rgba(20, 18, 16, .94); }
 .header__inner { height: 100%; display: flex; align-items: center; gap: 24px; }
@@ -133,8 +128,8 @@ svg { width: 1em; height: 1em; flex: none; }
   padding: calc(var(--header-h) + 40px) 0 72px;
 }
 .hero__grain {
-  position: absolute; inset: 0; pointer-events: none; opacity: .14;
-  background-image: var(--grain); mix-blend-mode: screen;
+  position: absolute; inset: 0; pointer-events: none; opacity: .8;
+  background-image: var(--grain-light);
 }
 .hero__inner { position: relative; display: grid; gap: 40px; align-items: center; }
 @media (min-width: 900px) {
@@ -167,10 +162,7 @@ svg { width: 1em; height: 1em; flex: none; }
 .menu { padding-bottom: 72px; }
 .menu__bar {
   position: sticky; top: var(--header-h); z-index: 30;
-  background: rgba(241, 237, 230, .95); border-bottom: 1px solid var(--line);
-}
-@supports (backdrop-filter: blur(8px)) {
-  .menu__bar { background: rgba(241, 237, 230, .86); backdrop-filter: blur(12px); }
+  background: rgba(241, 237, 230, .97); border-bottom: 1px solid var(--line);
 }
 .menu__intro { padding-top: 48px; padding-bottom: 20px; }
 .menu__intro .eyebrow { color: var(--muted); margin-bottom: 14px; }
@@ -435,12 +427,9 @@ svg { width: 1em; height: 1em; flex: none; }
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
   padding: 14px 16px 16px; color: var(--on-dark);
   background:
+    var(--grain-light),
     radial-gradient(ellipse 70% 60% at 50% 45%, rgba(244, 240, 233, .07), transparent 70%),
     radial-gradient(120% 100% at 50% 0%, #2a2522 0%, var(--ink) 70%);
-}
-.book-wrap::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .12;
-  background-image: var(--grain); mix-blend-mode: screen;
 }
 .book-stage { position: relative; display: flex; justify-content: center; }
 
@@ -462,12 +451,16 @@ svg { width: 1em; height: 1em; flex: none; }
 }
 .is-spread .leaf { left: var(--pw); }
 .face {
-  position: absolute; inset: 0; overflow: hidden;
+  position: absolute; inset: 0;
   -webkit-backface-visibility: hidden; backface-visibility: hidden;
-  border-radius: 2px 6px 6px 2px;
 }
-.face--back { transform: rotateY(180deg); border-radius: 6px 2px 2px 6px; }
+.face--back { transform: rotateY(180deg); }
 .face__shade, .face__cast { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+/* only the sheets around the open pages are drawn; their shadows animate on their own layer,
+   so the text underneath is not repainted on every frame */
+.leaf.is-far { visibility: hidden; }
+.leaf.is-near { will-change: transform; }
+.leaf.is-near .face__shade, .leaf.is-near .face__cast { will-change: opacity; }
 .face--front .face__shade { background: linear-gradient(90deg, rgba(20, 18, 16, .55), rgba(20, 18, 16, .2) 55%, rgba(20, 18, 16, .08)); }
 .face--back .face__shade { background: linear-gradient(270deg, rgba(20, 18, 16, .55), rgba(20, 18, 16, .2) 55%, rgba(20, 18, 16, .08)); }
 .face--front .face__cast { background: linear-gradient(90deg, rgba(20, 18, 16, .6), rgba(20, 18, 16, .18) 30%, transparent 65%); }
@@ -476,11 +469,7 @@ svg { width: 1em; height: 1em; flex: none; }
 /* ---------- a page ---------- */
 .page {
   position: absolute; inset: 0; overflow: hidden;
-  background-color: var(--paper); color: var(--text); font-size: var(--fs);
-}
-.page::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .1;
-  background-image: var(--grain); mix-blend-mode: multiply;
+  background: var(--grain-dark) var(--paper); color: var(--text); font-size: var(--fs);
 }
 /* fold of the paper near the spine */
 .face--front .page::after, .face--back .page::after {
@@ -537,10 +526,10 @@ svg { width: 1em; height: 1em; flex: none; }
 /* cover and back cover */
 .page--cover {
   background:
+    var(--grain-light),
     radial-gradient(120% 80% at 30% 20%, #2c2724 0%, var(--ink) 65%);
   color: var(--on-dark);
 }
-.page--cover::before { opacity: .16; mix-blend-mode: screen; }
 .page--cover .page__inner { padding: 1.4em; }
 .cover__frame {
   position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;

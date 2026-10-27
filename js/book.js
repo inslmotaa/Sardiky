@@ -510,7 +510,8 @@
     S.labels = labels;
     S.mids = mids;
 
-    var unit = window.innerHeight * (g.spread ? 0.55 : 0.42);
+    // scroll distance for one page turn plus its reading pause (about 60% of the screen height)
+    var unit = window.innerHeight * (g.spread ? 0.34 : 0.3);
     // after the reader stops scrolling, finish the page turn in the direction they were going;
     // a jump from the buttons already lands on a page, so it is left alone
     var toPage = ScrollTrigger.snapDirectional(labels.map(function (l) { return l / tl.duration(); }));
@@ -520,7 +521,7 @@
       end: function () { return "+=" + Math.round(tl.duration() * unit); },
       pin: true,
       anticipatePin: 1,
-      scrub: reduceMotion ? true : 0.7,
+      scrub: reduceMotion ? true : 0.35,
       animation: tl,
       snap: {
         snapTo: function (value, self) {
@@ -532,8 +533,8 @@
           return toPage(value, self.direction);
         },
         inertia: false,
-        duration: { min: 0.25, max: 0.7 },
-        delay: 0.2,
+        duration: { min: 0.2, max: 0.45 },
+        delay: 0.12,
         ease: "power1.inOut"
       },
       onRefresh: update
@@ -595,16 +596,28 @@
     navPrev.disabled = s === 0;
     navNext.disabled = s === S.flips;
 
+    // only the open pages can be read or focused; only touch the pages that changed
     S.pages.forEach(function (p, i) {
       var shown = vis.indexOf(i) !== -1;
+      if (p._shown === shown) return;
+      p._shown = shown;
       p.setAttribute("aria-hidden", String(!shown));
       p.inert = !shown;
     });
 
+    // draw only the sheets around the open pages (the one turning and those just under it);
+    // the rest of the stack is fully covered, so skipping it saves work on every frame
+    S.leaves.forEach(function (leaf, i) {
+      var near = i >= s - 2 && i <= s + 1;
+      leaf.classList.toggle("is-near", near);
+      leaf.classList.toggle("is-far", !near);
+    });
+
     S.underL.style.display = S.g.spread && s > 0 ? "" : "none";
     S.underR.style.display = s < S.flips ? "" : "none";
-    S.underL.style.boxShadow = stack(Math.min(6, s), -1);
-    S.underR.style.boxShadow = stack(Math.min(6, S.flips - s), 1);
+    var left = stack(Math.min(6, s), -1), right = stack(Math.min(6, S.flips - s), 1);
+    if (S.underL._shadow !== left) S.underL.style.boxShadow = S.underL._shadow = left;
+    if (S.underR._shadow !== right) S.underR.style.boxShadow = S.underR._shadow = right;
 
     if (window.MenuUI) window.MenuUI.setActive(cats.length ? cats[cats.length - 1] : null);
   }
