@@ -1,8 +1,7 @@
 /**
  * Efeitos do site público em JavaScript puro (sem React), usados no Next e na prévia em arquivo único:
- * fundo de natureza e alimentos (abertura, fecho da história e topo das páginas), nome que ocupa
- * a largura disponível, palavra que troca, storytelling ligado à rolagem, entrada suave, números que
- * contam e cabeçalho que ganha fundo ao rolar.
+ * fundo de natureza e alimentos (abertura, fecho da história e topo das páginas), palavra que troca,
+ * storytelling ligado à rolagem, entrada suave, números que contam e cabeçalho que ganha fundo ao rolar.
  * initSiteFx devolve a função que desfaz tudo (troca de página no Next).
  */
 
@@ -47,7 +46,7 @@ function mountNature(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
   const shapes = [...SHAPES.map((d) => new Path2D(d)), citrus()]
   // Gerador pseudoaleatório com semente: cada bloco tem a sua composição, sempre a mesma.
   let r = 9301 + seed * 49297
-  const rand = () => ((r = (r * 9301 + 49297) % 233280) / 233280)
+  const rand = () => (r = (r * 9301 + 49297) % 233280) / 233280
   const GREEN = '31, 94, 59'
   const LIGHT = '141, 191, 139'
   let w = 0
@@ -70,7 +69,7 @@ function mountNature(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
     canvas.height = Math.round(h * dpr)
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     r = 9301 + seed * 49297
-    const n = Math.max(5, Math.min(16, Math.round((w * h) / 70000)))
+    const n = Math.max(4, Math.min(16, Math.round(((w * h) / 70000) * (Number(canvas.dataset.density) || 1))))
     foods = Array.from({ length: n }, (_, i) => ({
       x: rand() * w,
       y: rand() * h,
@@ -82,7 +81,13 @@ function mountNature(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
       shape: i % shapes.length,
       ph: rand() * Math.PI * 2,
     }))
-    seeds = Array.from({ length: Math.round(n * 2.2) }, () => ({ x: rand() * w, y: rand() * h, r: 1 + rand() * 1.8, vy: 10 + rand() * 16, ph: rand() * 6 }))
+    seeds = Array.from({ length: Math.round(n * 2.2) }, () => ({
+      x: rand() * w,
+      y: rand() * h,
+      r: 1 + rand() * 1.8,
+      vy: 10 + rand() * 16,
+      ph: rand() * 6,
+    }))
     blades = []
     for (let x = -4; x < w + 8; x += 7 + rand() * 5) blades.push({ x, hgt: 14 + rand() * 30, ph: rand() * Math.PI * 2, lean: (rand() - 0.5) * 6 })
   }
@@ -206,37 +211,6 @@ function mountNature(canvas: HTMLCanvasElement, reduce: boolean, seed: number): 
     host.removeEventListener('pointermove', onMove)
     host.removeEventListener('pointerleave', onLeave)
     host.classList.remove('nature--on')
-  }
-}
-
-/* ---------------------- nome que ocupa toda a largura ---------------------- */
-
-function mountFit(el: HTMLElement): Cleanup {
-  const inner = el.querySelector<HTMLElement>('.wm__inner')
-  if (!inner) return () => {}
-  let last = -1
-  const fit = () => {
-    const avail = el.clientWidth
-    if (!avail || avail === last) return
-    el.style.fontSize = '100px'
-    const w = inner.getBoundingClientRect().width
-    if (w > 0) el.style.fontSize = `${Math.floor(((100 * avail * 0.995) / w) * 100) / 100}px`
-    last = avail
-  }
-  const refit = () => {
-    last = -1
-    fit()
-  }
-  fit()
-  el.classList.add('is-fit')
-  const ro = new ResizeObserver(fit)
-  ro.observe(el)
-  // As medidas mudam quando as fontes terminam de carregar.
-  document.fonts?.ready.then(refit)
-  document.fonts?.addEventListener?.('loadingdone', refit)
-  return () => {
-    ro.disconnect()
-    document.fonts?.removeEventListener?.('loadingdone', refit)
   }
 }
 
@@ -410,7 +384,6 @@ export function initSiteFx(root: ParentNode = document): Cleanup {
   const reduce = prefersReducedMotion()
   const cleanups: Cleanup[] = [mountHeader()]
   root.querySelectorAll<HTMLCanvasElement>('canvas[data-nature]').forEach((c, i) => cleanups.push(mountNature(c, reduce, i + 1)))
-  root.querySelectorAll<HTMLElement>('[data-fit]').forEach((el) => cleanups.push(mountFit(el)))
   root.querySelectorAll<HTMLElement>('[data-rotate]').forEach((el) => cleanups.push(mountRotate(el, reduce)))
   root.querySelectorAll<HTMLElement>('[data-story]').forEach((el) => cleanups.push(mountStory(el, reduce)))
   cleanups.push(mountReveal(root, reduce))

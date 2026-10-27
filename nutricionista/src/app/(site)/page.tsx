@@ -6,12 +6,13 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
 import { planPrices } from '@/lib/planos'
 import { BookingLink } from '@/components/BookingLink'
-import { Wordmark } from '@/components/Wordmark'
 import { MonoLabel, NatureBg, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
-import { HeroTicker, PlateCard } from '@/components/HeroArt'
+import { AppMock, HeroTicker, PanelMock } from '@/components/HeroArt'
 
 const SERVICES = ['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar']
+
+const PROOF = ['Anamnese on-line', 'Plano no app', 'Ajustes a cada 15 dias', 'Dados protegidos (LGPD)']
 
 const WORDS = ['complicado', 'restritivo', 'sem graça', 'uma dieta da moda']
 
@@ -53,7 +54,7 @@ const DEFAULT_GOALS = ['Ganho de massa muscular', 'Emagrecimento saudável', 'Ma
 
 const d = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties
 
-/** Página inicial: hero com fundo líquido, storytelling em capítulos, Sobre, Consultoria, Resultados e Contato. */
+/** Página inicial: hero com a plataforma (painel e app), storytelling em capítulos, Sobre, Consultoria, Resultados e Contato. */
 export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
   const [s, user, packages, testimonials] = await Promise.all([
@@ -97,30 +98,43 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
       {/* --------------------------------- HERO --------------------------------- */}
       <section className="hero" id="inicio" data-nature-host="">
-        {/* O sol fica no meio, porque o canto direito é do cartão do prato. */}
-        <NatureBg sunX={0.5} />
+        <NatureBg sunX={0.08} density={0.45} />
         <HeroTicker />
-        <div className="tl-container hero__inner">
-          <PlateCard waterMlPerKg={s.waterMlPerKg} />
-          <MonoLabel className="hero__label">
-            {s.professionalTitle.toLocaleUpperCase('pt-BR')}
-            {s.registry ? ` · ${s.registry.toLocaleUpperCase('pt-BR')}` : ''}
-          </MonoLabel>
-          <Wordmark as="h1" name={s.professionalName} className="wm--hero" />
-          <div className="hero__bottom">
-            <p className="hero__lead" data-rv="" style={d(120)}>
-              Nutrição baseada em evidência, pensada para a sua rotina. Planos alimentares que você consegue seguir de verdade.
+        <div className="tl-container hero__grid">
+          <div className="hero__copy">
+            <MonoLabel className="hero__label">
+              {s.professionalTitle.toLocaleUpperCase('pt-BR')}
+              {s.registry ? ` · ${s.registry.toLocaleUpperCase('pt-BR')}` : ''} · ALIMENTAÇÃO, ROTINA E BEM-ESTAR
+            </MonoLabel>
+            <h1 className="display hero__title" data-rv="" style={d(80)}>
+              Nutrição estratégica, <span className="hero__accent">acompanhada de perto.</span>
+            </h1>
+            <p className="hero__lead" data-rv="" style={d(160)}>
+              Avaliação completa, plano individual e ajustes a cada 15 dias em uma plataforma própria: o {first} acompanha tudo pelo painel, e você
+              segue o plano, registra as refeições e vê a sua evolução pelo app.
             </p>
-            <ul className="mono-list" aria-label="Serviços" data-rv="" style={d(200)}>
+            <div className="tl-actions hero__actions" data-rv="" style={d(220)}>
+              <BookingLink to={booking} className="pill pill--solid">
+                Agendar consulta <span aria-hidden>→</span>
+              </BookingLink>
+              <Link href="/como-funciona" className="ulink">
+                Conhecer a plataforma
+              </Link>
+            </div>
+            <ul className="hero__proof" aria-label="Destaques" data-rv="" style={d(280)}>
+              {PROOF.map((p) => (
+                <li key={p}>{p}</li>
+              ))}
+            </ul>
+            <ul className="mono-list hero__services" aria-label="Serviços" data-rv="" style={d(320)}>
               {SERVICES.map((sv) => (
                 <li key={sv}>{sv}</li>
               ))}
             </ul>
-            <div data-rv="" style={d(280)}>
-              <BookingLink to={booking} className="pill">
-                Agendar consulta <span aria-hidden>→</span>
-              </BookingLink>
-            </div>
+          </div>
+          <div className="hero__stage" role="img" aria-label="Prévia da plataforma: painel do coach e app do cliente, com dados de exemplo">
+            <PanelMock />
+            <AppMock />
           </div>
         </div>
       </section>

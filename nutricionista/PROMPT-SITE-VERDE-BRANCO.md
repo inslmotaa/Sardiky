@@ -34,28 +34,37 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
 
 ## Site público
 
-### 1. Hero (100svh)
+### 1. Hero (100svh): profissional, no estilo de software de nutrição (inspirado no DietSystem)
 
-- **Fundo de natureza, alimentos e bem-estar** (sem fundo líquido e sem batimentos): vale para a hero, o fecho da história, o bloco do Sobre (enquanto não houver foto) e o topo das páginas internas. Na hero, o sol fica no centro, porque o canto direito é do cartão do prato.
-  - Base clara com brilhos verde-claro.
-  - Um sol que "respira" num ciclo de 8 s (inspira e expira), com anéis finos.
-  - Alimentos em linha fina verde que sobem devagar, balançando e girando de leve: maçã, folha, cenoura, espiga, abacate, rodela de cítrico, coração e broto.
-  - Sementes que sobem pelo fundo.
-  - Grama na base, balançando com o vento e se afastando do mouse.
-  - Grão bem sutil por cima (SVG feTurbulence, cerca de 6%).
-  - O fundo pausa fora da tela e fica parado com "reduzir movimento".
-- **Toques de nutrição:**
-  - uma faixa fina logo abaixo do menu, com temas passando devagar em mono: Proteínas ● Fibras ● Hidratação ● Vegetais ● Frutas da estação ● Grãos integrais ● Gorduras boas ● Rotina e sono;
-  - um cartão de vidro no alto à direita, "Prato equilibrado · exemplo", com:
-    - um gráfico em rosca (Vegetais ½, Proteína ¼, Carboidrato ¼);
-    - barras de macronutrientes (Proteínas 30%, Carboidratos 45%, Gorduras 25%);
-    - a água por dia, em ml por kg;
-  - no celular, o cartão aparece no topo, sem as barras.
+- **Sem o nome gigante.** O nome aparece só no menu ("ANDRÉ FARION —"); o rodapé também não repete o nome.
+- **Duas colunas no computador:** texto à esquerda, vitrine da plataforma à direita. Em telas menores, a vitrine vai para baixo do texto.
+- **Texto:**
+  - rótulo mono "● COACH · ALIMENTAÇÃO, ROTINA E BEM-ESTAR" (o título vem das Configurações);
+  - título: "Nutrição estratégica, **acompanhada de perto.**", com o final só no contorno verde;
+  - texto de apoio: "Avaliação completa, plano individual e ajustes a cada 15 dias em uma plataforma própria: o André acompanha tudo pelo painel, e você segue o plano, registra as refeições e vê a sua evolução pelo app.";
+  - botões: "Agendar consulta →" (pílula verde cheia) e "Conhecer a plataforma" (link sublinhado para /como-funciona);
+  - destaques com ícone de check: Anamnese on-line, Plano no app, Ajustes a cada 15 dias, Dados protegidos (LGPD);
+  - serviços em mono: Emagrecimento / Performance esportiva / Reeducação alimentar.
+- **Vitrine da plataforma** (dados de exemplo, desenhada em HTML e CSS):
+  - **Painel do coach**, numa janela de navegador:
+    - menu lateral (Início, Clientes, Planos, Agenda, Mensagens, Financeiro);
+    - indicadores que contam ao abrir: Clientes ativos 48, Adesão média 86%, Consultas hoje 6;
+    - gráfico "Evolução · peso" que se desenha;
+    - cartão "Plano alimentar" com as refeições, os horários, as kcal e a barra de macronutrientes.
+  - **App do cliente**, num celular na frente da janela, flutuando devagar:
+    - "Olá! Bom almoço" e a refeição de agora, com os itens sendo marcados um a um e o botão "Marcar como feita";
+    - copos de água, anel de meta e as abas Hoje, Plano, Diário e Evolução.
+  - No celular, o aparelho fica menor e à direita, e o painel mostra só o essencial.
+- **Faixa de temas** logo abaixo do menu, passando devagar em mono: Proteínas ● Fibras ● Hidratação ● Vegetais ● Frutas da estação ● Grãos integrais ● Gorduras boas ● Rotina e sono.
+- **Fundo de natureza, alimentos e bem-estar** (sem fundo líquido e sem batimentos), mais discreto na hero. É o mesmo do fecho da história, do bloco do Sobre (enquanto não houver foto) e do topo das páginas internas:
+  - base clara com brilhos verde-claro;
+  - um sol que "respira" num ciclo de 8 s (inspira e expira), com anéis finos;
+  - alimentos em linha fina verde que sobem devagar, balançando e girando de leve: maçã, folha, cenoura, espiga, abacate, rodela de cítrico, coração e broto;
+  - sementes que sobem pelo fundo;
+  - grama na base, balançando com o vento e se afastando do mouse;
+  - grão bem sutil por cima (SVG feTurbulence, cerca de 6%);
+  - o fundo pausa fora da tela e fica parado com "reduzir movimento".
 - **Nav:** "ANDRÉ FARION —" à esquerda e, à direita, em mono: / Sobre / Consultoria / Resultados / Contato / Entrar. No celular, vira um botão "Menu".
-- **Linha inferior,** separada por uma linha fina:
-  - a frase "Nutrição baseada em evidência, pensada para a sua rotina. Planos alimentares que você consegue seguir de verdade.";
-  - os serviços em mono: Emagrecimento / Performance esportiva / Reeducação alimentar;
-  - a pílula "Agendar consulta →", que leva ao cadastro, depois à anamnese e por fim ao agendamento.
 
 ### 2. Storytelling
 
@@ -99,7 +108,6 @@ Cada seção abre com um rótulo mono sem número ("/ SOBRE") e é separada da a
 
 ### 4. Rodapé
 
-- O nome de novo, menor.
 - Colunas: lema e redes, Seções, Páginas, Área do cliente e Contato.
 - O aviso de que as informações são educativas.
 - Na última linha: **"SITE POR TIMELESS ●"**, com as letras de TIMELESS alternando entre sólidas e vazadas. O link fica em `TIMELESS_URL`, em `src/lib/constants.ts`.

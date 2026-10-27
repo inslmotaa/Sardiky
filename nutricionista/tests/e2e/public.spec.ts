@@ -4,25 +4,25 @@ import type { Page } from '@playwright/test'
 
 const WA = 'https://wa.me/5541991551789'
 
-test('página principal: hero com fundo líquido, storytelling em capítulos, Sobre, Consultoria, Resultados e Contato', async ({ page }) => {
+test('página principal: hero com a plataforma, storytelling em capítulos, Sobre, Consultoria, Resultados e Contato', async ({ page }) => {
   await page.goto('/')
-  // Hero: nome gigante (preenchido + contorno), rótulo "Coach", frase, serviços e "Agendar consulta".
+  // Hero: título profissional (sem o nome gigante), rótulo "Coach", texto, botões, destaques e serviços.
   const hero = page.locator('#inicio')
-  await expect(hero.getByRole('heading', { level: 1 })).toHaveAccessibleName('André Farion')
-  await expect(hero.locator('.wm__solid')).toHaveText('ANDRÉ')
-  await expect(hero.locator('.wm__out')).toHaveText('FARION')
-  await expect(hero.locator('.hero__label')).toHaveText('COACH')
-  // Toques de nutrição (faixa de temas e cartão do prato) sobre o fundo de natureza e alimentos, sem batimentos.
-  await expect(hero.locator('.ticker')).toContainText('HIDRATAÇÃO')
-  await expect(hero.getByRole('complementary', { name: 'Exemplo de prato equilibrado' })).toContainText('Vegetais')
-  await expect(hero).toHaveClass(/nature--on/)
-  await expect(hero.locator('[data-action], .act-chip, .action__rings')).toHaveCount(0)
-  await expect(hero).toContainText('Nutrição baseada em evidência, pensada para a sua rotina.')
-  await expect(hero.getByRole('list', { name: 'Serviços' }).getByRole('listitem')).toHaveText(['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar'])
+  await expect(hero.getByRole('heading', { level: 1 })).toHaveText('Nutrição estratégica, acompanhada de perto.')
+  await expect(hero).not.toContainText('ANDRÉ FARION')
+  await expect(hero.locator('.hero__label')).toHaveText('COACH · ALIMENTAÇÃO, ROTINA E BEM-ESTAR')
+  await expect(hero).toContainText('Avaliação completa, plano individual e ajustes a cada 15 dias')
   await expect(hero.getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/criar-conta?next=/agendar')
-  // O nome ocupa a largura disponível.
-  const [wmWidth, boxWidth] = await hero.locator('.wm').evaluate((el) => [el.querySelector('.wm__inner')!.getBoundingClientRect().width, el.clientWidth])
-  expect(Math.abs(boxWidth - wmWidth)).toBeLessThan(boxWidth * 0.03)
+  await expect(hero.getByRole('link', { name: 'Conhecer a plataforma' })).toHaveAttribute('href', '/como-funciona')
+  await expect(hero.getByRole('list', { name: 'Destaques' }).getByRole('listitem')).toHaveText(['Anamnese on-line', 'Plano no app', 'Ajustes a cada 15 dias', 'Dados protegidos (LGPD)'])
+  await expect(hero.getByRole('list', { name: 'Serviços' }).getByRole('listitem')).toHaveText(['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar'])
+  // Vitrine da plataforma (painel do coach e app do cliente) sobre o fundo de natureza e alimentos.
+  await expect(hero.getByRole('img', { name: /Prévia da plataforma/ })).toBeVisible()
+  await expect(hero.locator('.mock-win')).toContainText('Acompanhamento')
+  await expect(hero.locator('.mock-phone')).toContainText('Marcar como feita')
+  await expect(hero.locator('.ticker')).toContainText('HIDRATAÇÃO')
+  await expect(hero).toHaveClass(/nature--on/)
+  await expect(hero.locator('.plate-card, .wm, [data-action]')).toHaveCount(0)
   // Sem "Nutricionista", CRN, monograma nem frutas.
   await expect(page.locator('body')).not.toContainText(/nutricionista|CRN/i)
   await expect(page.locator('.monogram, .fruit-float, .floaty')).toHaveCount(0)
@@ -54,6 +54,7 @@ test('página principal: hero com fundo líquido, storytelling em capítulos, So
   await expect(footer.getByRole('link', { name: /^WhatsApp \(/ })).toHaveAttribute('href', new RegExp(`^${WA}`))
   await expect(footer).toContainText('André Farion · Coach')
   await expect(footer.locator('p').last()).toHaveText(/Site por\s*TIMELESS/i)
+  await expect(footer.locator('.wm')).toHaveCount(0)
   // Menu do cabeçalho: seções da página e "Entrar".
   const nav = page.locator('.tl-nav')
   for (const [name, href] of [['Sobre', '/#sobre'], ['Consultoria', '/#consultoria'], ['Resultados', '/#resultados'], ['Contato', '/#contato'], ['Entrar', '/entrar']])

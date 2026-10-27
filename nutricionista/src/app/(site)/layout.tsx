@@ -10,7 +10,6 @@ import { BookingLink } from '@/components/BookingLink'
 import { MobileMenu, SiteBrand, SiteFx, SiteNavLinks, UserMenu } from '@/components/SiteChrome'
 import { SITE_NAV, SITE_PAGES, TIMELESS_URL } from '@/lib/constants'
 import { MotionRoot } from '@/components/motion'
-import { Wordmark } from '@/components/Wordmark'
 import { IconInstagram, IconWhatsApp } from '@/components/icons'
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
@@ -64,9 +63,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
         <footer className="tl-footer">
           <div className="tl-container">
-            <Link href="/" className="tl-footer__mark" aria-label={`${s.professionalName}: página inicial`}>
-              <Wordmark name={s.professionalName} />
-            </Link>
             <div className="tl-footer__cols">
               <div className="tl-footer__brand">
                 <p className="tl-footer__motto">Mais que dieta, um estilo de vida.</p>

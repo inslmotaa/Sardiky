@@ -1,6 +1,6 @@
 /**
- * Elementos da abertura: faixa com temas que passa devagar, cartão de prato equilibrado
- * (gráfico em rosca e macronutrientes de exemplo).
+ * Elementos da abertura: faixa com temas que passa devagar e a vitrine da plataforma
+ * (painel do coach e app do cliente, com dados de exemplo), no estilo dos softwares de nutrição.
  * Ficam parados para quem prefere menos movimento.
  */
 
@@ -23,68 +23,154 @@ export function HeroTicker() {
   )
 }
 
-const PLATE = [
-  { label: 'Vegetais', part: '½', value: 50, cls: 'a' },
-  { label: 'Proteína', part: '¼', value: 25, cls: 'b' },
-  { label: 'Carboidrato', part: '¼', value: 25, cls: 'c' },
+const SIDE = ['Início', 'Clientes', 'Planos', 'Agenda', 'Mensagens', 'Financeiro']
+
+const KPIS = [
+  { label: 'Clientes ativos', to: 48, suffix: '' },
+  { label: 'Adesão média', to: 86, suffix: '%' },
+  { label: 'Consultas hoje', to: 6, suffix: '' },
 ]
 
-const MACROS = [
-  { label: 'Proteínas', value: 30 },
-  { label: 'Carboidratos', value: 45 },
-  { label: 'Gorduras', value: 25 },
+const MEALS = [
+  { name: 'Café da manhã', time: '07:00', kcal: 420 },
+  { name: 'Almoço', time: '12:30', kcal: 640 },
+  { name: 'Lanche', time: '16:00', kcal: 230 },
+  { name: 'Jantar', time: '19:30', kcal: 510 },
 ]
 
-/** Cartão "prato equilibrado": rosca do prato, macros e água por dia. */
-export function PlateCard({ waterMlPerKg }: { waterMlPerKg?: number | null }) {
-  let offset = 0
+const WEIGHT = [82.4, 81.6, 81.9, 80.7, 80.1, 79.2, 78.6]
+
+/** Janela do painel do coach: menu, indicadores, gráfico de evolução e plano alimentar (exemplo). */
+export function PanelMock() {
+  const min = 78
+  const max = 83
+  const pts = WEIGHT.map((v, i) => [10 + i * (280 / (WEIGHT.length - 1)), 10 + ((max - v) / (max - min)) * 90] as const)
+  const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' ')
   return (
-    <aside className="plate-card" aria-label="Exemplo de prato equilibrado">
-      <p className="plate-card__label">
-        <span className="mono-label__dot" aria-hidden />
-        PRATO EQUILIBRADO · EXEMPLO
-      </p>
-      <div className="plate-card__body">
-        <svg className="plate-card__donut" viewBox="0 0 120 120" aria-hidden focusable="false">
-          <circle cx="60" cy="60" r="44" className="plate-card__track" />
-          {PLATE.map((p) => {
-            const seg = (
-              <circle
-                key={p.cls}
-                cx="60"
-                cy="60"
-                r="44"
-                pathLength={100}
-                className={`plate-card__seg plate-card__seg--${p.cls}`}
-                style={{ '--len': p.value - 1.5, '--off': -offset } as React.CSSProperties}
-              />
-            )
-            offset += p.value
-            return seg
-          })}
-          <circle cx="60" cy="60" r="30" className="plate-card__inner" />
-        </svg>
-        <ul className="plate-card__legend">
-          {PLATE.map((p) => (
-            <li key={p.cls}>
-              <i className={`plate-card__sw plate-card__sw--${p.cls}`} aria-hidden />
-              {p.label} <b>{p.part}</b>
-            </li>
-          ))}
-        </ul>
+    <div className="mock-win">
+      <div className="mock-win__bar">
+        <i />
+        <i />
+        <i />
+        <span>Painel do coach</span>
       </div>
-      <dl className="plate-card__macros">
-        {MACROS.map((m) => (
-          <div key={m.label}>
-            <dt>{m.label}</dt>
-            <dd>
-              <span className="plate-card__bar" style={{ '--v': m.value / 100 } as React.CSSProperties} aria-hidden />
-              {m.value}%
-            </dd>
+      <div className="mock-win__body">
+        <aside className="mock-side">
+          <span className="mock-side__brand" />
+          {SIDE.map((item, i) => (
+            <span key={item} className={i === 0 ? 'is-on' : undefined}>
+              <b />
+              {item}
+            </span>
+          ))}
+        </aside>
+        <div className="mock-main">
+          <div className="mock-head">
+            <strong>Acompanhamento</strong>
+            <span>Semana 6 · dados de exemplo</span>
           </div>
-        ))}
-      </dl>
-      {waterMlPerKg ? <p className="plate-card__water">ÁGUA · {waterMlPerKg} ML POR KG/DIA</p> : null}
-    </aside>
+          <div className="mock-kpis">
+            {KPIS.map((k) => (
+              <div key={k.label}>
+                <span>{k.label}</span>
+                <strong>
+                  <span data-count={k.to}>{k.to}</span>
+                  {k.suffix}
+                </strong>
+              </div>
+            ))}
+          </div>
+          <div className="mock-grid">
+            <div className="mock-card">
+              <p className="mock-card__title">Evolução · peso (kg)</p>
+              <svg viewBox="0 0 300 110" className="mock-chart" focusable="false">
+                {[30, 60, 90].map((y) => (
+                  <line key={y} x1="0" x2="300" y1={y} y2={y} className="mock-chart__grid" />
+                ))}
+                <polygon points={`10,110 ${line} 290,110`} className="mock-chart__area" />
+                <polyline points={line} pathLength={1} className="mock-chart__line" />
+                {pts.map(([x, y], i) => (
+                  <circle key={i} cx={x} cy={y} r="3.2" className="mock-chart__dot" style={{ '--i': i } as React.CSSProperties} />
+                ))}
+              </svg>
+            </div>
+            <div className="mock-card">
+              <p className="mock-card__title">Plano alimentar · exemplo</p>
+              <ul className="mock-plan">
+                {MEALS.map((m) => (
+                  <li key={m.name}>
+                    <span>{m.time}</span>
+                    <b>{m.name}</b>
+                    <em>{m.kcal} kcal</em>
+                  </li>
+                ))}
+              </ul>
+              <div className="mock-macros" title="Proteínas, carboidratos e gorduras">
+                <i style={{ flex: 30 }} />
+                <i style={{ flex: 45 }} />
+                <i style={{ flex: 25 }} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const LUNCH = [
+  { food: 'Arroz integral', qty: '4 col. sopa', done: true },
+  { food: 'Frango grelhado', qty: '120 g', done: true },
+  { food: 'Salada de folhas', qty: 'à vontade', done: true },
+  { food: 'Azeite de oliva', qty: '1 col. chá', done: false },
+]
+
+/** Celular com o app do cliente: próxima refeição, água e meta da semana (exemplo). */
+export function AppMock() {
+  return (
+    <div className="mock-phone">
+      <div className="mock-phone__notch" />
+      <div className="mock-phone__screen">
+        <p className="mp-hi">Olá! Bom almoço</p>
+        <p className="mp-sub">Hoje · plano da semana 6</p>
+        <div className="mp-card">
+          <span className="mp-now">AGORA · 12H30</span>
+          <strong>Almoço</strong>
+          <ul>
+            {LUNCH.map((l, i) => (
+              <li key={l.food} className={l.done ? 'is-done' : undefined} style={{ '--i': i } as React.CSSProperties}>
+                <i />
+                <span>{l.food}</span>
+                <em>{l.qty}</em>
+              </li>
+            ))}
+          </ul>
+          <span className="mp-btn">Marcar como feita</span>
+        </div>
+        <div className="mp-row">
+          <div className="mp-water">
+            <span>Água</span>
+            <div>
+              {Array.from({ length: 8 }, (_, i) => (
+                <i key={i} className={i < 6 ? 'is-full' : undefined} />
+              ))}
+            </div>
+          </div>
+          <div className="mp-goal">
+            <svg viewBox="0 0 40 40" focusable="false">
+              <circle cx="20" cy="20" r="16" className="mp-goal__track" />
+              <circle cx="20" cy="20" r="16" pathLength={100} className="mp-goal__bar" />
+            </svg>
+            <span>Meta</span>
+          </div>
+        </div>
+        <nav className="mp-tabs">
+          <span className="is-on">Hoje</span>
+          <span>Plano</span>
+          <span>Diário</span>
+          <span>Evolução</span>
+        </nav>
+      </div>
+    </div>
   )
 }

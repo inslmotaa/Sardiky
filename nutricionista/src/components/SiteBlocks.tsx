@@ -2,10 +2,10 @@ import { money } from '@/lib/format'
 import type { PlanPrice } from '@/lib/planos'
 
 /** Fundo de natureza, alimentos e bem-estar (canvas, ligado pelo site-fx) com o grão por cima. */
-export function NatureBg({ sunX }: { sunX?: number }) {
+export function NatureBg({ sunX, density }: { sunX?: number; density?: number }) {
   return (
     <>
-      <canvas className="nature" data-nature="" data-sun-x={sunX} aria-hidden />
+      <canvas className="nature" data-nature="" data-sun-x={sunX} data-density={density} aria-hidden />
       <div className="grain" aria-hidden />
     </>
   )
