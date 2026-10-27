@@ -234,8 +234,17 @@ svg { width: 1em; height: 1em; flex: none; }
   position: sticky; top: var(--header-h); z-index: 30;
   background: rgba(241, 237, 230, .97); border-bottom: 1px solid var(--line);
 }
-.menu__intro { padding-top: 48px; padding-bottom: 20px; }
-.menu__intro .eyebrow { color: var(--muted); margin-bottom: 14px; }
+.menu__intro { padding-top: 56px; padding-bottom: 20px; }
+/* section title, centred between two thin lines */
+.menu__title {
+  display: flex; align-items: center; justify-content: center; gap: 22px; margin: 0 0 28px;
+  font-family: var(--f-label); font-weight: 600; text-transform: uppercase; color: var(--ink);
+  font-size: clamp(1.5rem, 4.2vw, 2.1rem); letter-spacing: .32em; line-height: 1.1;
+}
+/* letter-spacing leaves a gap after the last letter: pull it back so the word sits centred */
+.menu__title { text-indent: .32em; }
+.menu__title::before, .menu__title::after { content: ""; flex: 1; max-width: 140px; height: 1px; background: var(--line); }
+@media (max-width: 560px) { .menu__title { gap: 14px; letter-spacing: .26em; text-indent: .26em; } }
 .no-js .menu__tools { display: none; }
 .menu__tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 
