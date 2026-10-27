@@ -1,7 +1,7 @@
 /*
  * O cardápio e os contatos estão escritos direto no index.html, então tudo
- * aparece mesmo sem JavaScript. Este arquivo só acrescenta a busca, os filtros
- * e o destaque da categoria na barra durante a rolagem.
+ * aparece mesmo sem JavaScript. Este arquivo acrescenta a busca, os filtros
+ * e o destaque da categoria na barra. O livro (book.js) usa essa mesma lista.
  */
 (function () {
   "use strict";
@@ -17,7 +17,12 @@
   var itemNodes = Array.prototype.slice.call(document.querySelectorAll(".item"));
   var categoryNodes = Array.prototype.slice.call(document.querySelectorAll(".category"));
 
-  itemNodes.forEach(function (li) {
+  function bookActive() {
+    return !!(window.MenuBook && window.MenuBook.active);
+  }
+
+  itemNodes.forEach(function (li, i) {
+    li.dataset.i = i;
     var parts = li.querySelectorAll(".item__name, .item__size, .item__desc, .item__extra > span:first-child");
     li._search = fold(Array.prototype.map.call(parts, function (n) { return n.textContent; }).join(" "));
     li._tags = (li.dataset.tags || "").split(" ").filter(Boolean);
@@ -30,7 +35,9 @@
   var clear = document.getElementById("searchClear");
   var count = document.getElementById("menuCount");
   var empty = document.getElementById("menuEmpty");
+  var results = document.getElementById("results");
   var active = [];
+  var matches = [];
 
   function showCount(total) {
     count.textContent = "";
@@ -53,14 +60,55 @@
     search.focus();
   }
 
+  // in book mode the results are listed above the book, each one opens its page
+  function renderResults(filtering) {
+    results.textContent = "";
+    results.hidden = !filtering;
+    if (!filtering) return;
+    if (!matches.length) {
+      results.appendChild(Object.assign(document.createElement("p"), { className: "results__empty", textContent: empty.textContent }));
+      return;
+    }
+    var list = document.createElement("ul");
+    list.className = "results__list";
+    matches.forEach(function (li) {
+      var i = li.dataset.i;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "result";
+      var info = document.createElement("span");
+      info.className = "result__info";
+      var name = document.createElement("span");
+      name.className = "result__name";
+      name.textContent = li.querySelector(".item__name").firstChild.textContent;
+      var size = li.querySelector(".item__size");
+      if (size) name.textContent += " · " + size.textContent;
+      var meta = document.createElement("span");
+      meta.className = "result__meta";
+      meta.textContent = li.closest(".category").querySelector(".category__title").textContent + " · pág. " + window.MenuBook.pageOf(i);
+      info.appendChild(name);
+      info.appendChild(meta);
+      btn.appendChild(info);
+      btn.appendChild(li.querySelector(".item__prices").cloneNode(true));
+      btn.addEventListener("click", function () { window.MenuBook.goToItem(i); });
+      var row = document.createElement("li");
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+    results.appendChild(list);
+  }
+
   function applyFilters() {
     var q = fold(search.value.trim());
     var words = q ? q.split(/\s+/) : [];
+    var filtering = words.length > 0 || active.length > 0;
+    var book = bookActive();
 
-    itemNodes.forEach(function (li) {
+    matches = itemNodes.filter(function (li) {
       var okText = words.every(function (w) { return li._search.indexOf(w) !== -1; });
       var okTags = active.every(function (t) { return li._tags.indexOf(t) !== -1; });
-      li.hidden = !(okText && okTags);
+      li.hidden = !book && !(okText && okTags);
+      return okText && okTags;
     });
 
     var anyVisible = false;
@@ -79,7 +127,8 @@
 
     empty.hidden = anyVisible;
     clear.hidden = !search.value;
-    showCount(itemNodes.filter(function (li) { return !li.hidden; }).length);
+    showCount(matches.length);
+    renderResults(book && filtering);
     spy();
   }
 
@@ -96,8 +145,13 @@
     e.preventDefault();
     applyFilters();
     search.blur();
+    if (!search.value.trim()) return;
+    if (bookActive()) {
+      if (matches.length) window.MenuBook.goToItem(matches[0].dataset.i);
+      return;
+    }
     var first = categoryNodes.filter(function (n) { return !n.hidden; })[0];
-    if (first && search.value.trim()) scrollToNode(first);
+    if (first) scrollToNode(first);
   });
 
   // search buttons in the header and in the category bar
@@ -133,7 +187,8 @@
     var chip = e.target.closest(".chip");
     if (!chip) return;
     e.preventDefault();
-    scrollToNode(document.getElementById(chip.dataset.target));
+    if (bookActive()) window.MenuBook.goToCategory(chip.dataset.target);
+    else scrollToNode(document.getElementById(chip.dataset.target));
     history.replaceState(null, "", "#" + chip.dataset.target);
   });
 
@@ -142,6 +197,7 @@
   }
 
   function spy() {
+    if (bookActive()) return; // the book reports its own page
     var line = offset() + 48;
     var found = null;
     categoryNodes.forEach(function (node) {
@@ -151,6 +207,10 @@
       var first = categoryNodes.filter(function (n) { return !n.hidden; })[0];
       found = first && first.id;
     }
+    setActive(found);
+  }
+
+  function setActive(found) {
     if (found === current) return;
     current = found;
     chips.querySelectorAll(".chip").forEach(function (chip) {
@@ -178,4 +238,6 @@
   }, { passive: true });
   window.addEventListener("resize", spy);
   onScroll();
+
+  window.MenuUI = { refresh: applyFilters, setActive: setActive };
 })();
