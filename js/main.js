@@ -154,6 +154,15 @@
     if (first) scrollToNode(first);
   });
 
+  // "Voltar ao início": jump straight to the top, without scrolling back through every page of the book
+  document.querySelectorAll(".js-back-top").forEach(function (link) {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: "auto" });
+      if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+    });
+  });
+
   // search buttons in the header and in the category bar
   document.querySelectorAll(".js-open-search").forEach(function (btn) {
     btn.addEventListener("click", function () {

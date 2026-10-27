@@ -381,6 +381,8 @@ svg { width: 1em; height: 1em; flex: none; }
 .footer img { width: 88px; height: 88px; opacity: .9; }
 .footer p { margin: 0; font-size: .92rem; }
 .footer__small { font-size: .8rem !important; opacity: .7; }
+.footer__top { margin-top: 8px; }
+.footer__top svg { transform: rotate(-90deg); }
 
 /* ---------- floating whatsapp ---------- */
 .wa-float {
