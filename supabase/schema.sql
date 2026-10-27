@@ -187,6 +187,18 @@ begin
 end;
 $$;
 
+-- e-mail sempre em minúsculas (o convite e o vínculo com o login usam o e-mail)
+create or replace function public.normalize_email()
+returns trigger language plpgsql as $$
+begin
+  new.email = lower(trim(new.email));
+  return new;
+end;
+$$;
+drop trigger if exists students_email on public.students;
+create trigger students_email before insert or update of email on public.students
+  for each row execute function public.normalize_email();
+
 drop trigger if exists students_touch on public.students;
 create trigger students_touch before update on public.students
   for each row execute function public.touch_updated_at();

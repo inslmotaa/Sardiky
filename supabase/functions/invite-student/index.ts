@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
   const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 
   // O aluno precisa estar cadastrado antes do convite
-  const { data: student } = await admin.from("students").select("id, full_name, user_id").ilike("email", email).maybeSingle();
+  const { data: student } = await admin.from("students").select("id, full_name, user_id").eq("email", email).maybeSingle();
   if (!student) return json({ error: "Cadastre o aluno antes de enviar o convite." }, 404);
 
   // 3) Convite. Se o e-mail já tem conta, manda o link de redefinir senha.
