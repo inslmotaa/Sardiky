@@ -1,0 +1,19 @@
+/*
+ * Archivo em instâncias ESTÁTICAS (geradas a partir do arquivo oficial do
+ * Google Fonts, com sobreposições removidas). A versão variável tem contornos
+ * sobrepostos que aparecem como riscos quando usamos -webkit-text-stroke.
+ */
+@font-face {
+  font-family: "Archivo Expanded";
+  src: url("../fonts/archivo-expanded-800.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Archivo";
+  src: url("../fonts/archivo-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
