@@ -43,11 +43,13 @@ Contatos (WhatsApp, Instagram e endereço) também ficam no `index.html`; procur
 
 ## Como colocar as fotos no carrossel
 
-1. Salve as fotos em `assets/galeria/` (ex.: `salao-1.jpg`, `pizza-burrata.jpg`). De preferência na vertical (4:5) ou quadradas, com até uns 1600 px de altura, para carregar rápido.
-2. No `index.html`, procure por `gallery__track`. Troque cada slide de exemplo (`gallery__slide--empty`) por:
+O carrossel já tem 5 fotos (salão, pizza Burrata e três drinks), em `assets/galeria/`. Para trocar ou adicionar:
+
+1. Salve a foto em `assets/galeria/`. De preferência na vertical (4:5), com pelo menos 900 px de altura para ficar nítida em telas de alta resolução, e no máximo uns 1600 px, para carregar rápido.
+2. No `index.html`, procure por `gallery__track` e copie uma das linhas de foto, trocando o arquivo e a descrição:
 
 ```html
-<figure class="gallery__slide"><img src="assets/galeria/salao-1.jpg" alt="Salão do Rock Me Mamma à noite" loading="lazy"></figure>
+<figure class="gallery__slide"><img src="assets/galeria/salao.webp" alt="Salão do Rock Me Mamma" width="680" height="510" decoding="async"></figure>
 ```
 
 Pode colocar quantas fotos quiser; os pontinhos se ajustam sozinhos. O `alt` descreve a foto para quem usa leitor de tela.

@@ -113,14 +113,15 @@
         <div class="gallery" role="region" aria-roledescription="carrossel" aria-label="Fotos do ambiente e dos pratos">
           <div class="gallery__track" tabindex="0">
             <!--
-              Fotos do carrossel: para cada foto, troque um slide de exemplo por
-              <figure class="gallery__slide"><img src="assets/galeria/salao-1.jpg" alt="Descrição da foto" loading="lazy"></figure>
-              Use fotos na vertical (4:5) ou quadradas; o carrossel corta as bordas se precisar.
+              Fotos do carrossel (em assets/galeria/). Para adicionar outra, copie uma linha abaixo
+              e troque o arquivo e a descrição (alt). Fotos na vertical (4:5) ficam melhores;
+              as outras são cortadas nas bordas para caber.
             -->
-            <figure class="gallery__slide gallery__slide--empty"><div class="gallery__placeholder"><svg aria-hidden="true"><use href="#i-camera"/></svg><span>Foto do ambiente</span></div></figure>
-            <figure class="gallery__slide gallery__slide--empty"><div class="gallery__placeholder"><svg aria-hidden="true"><use href="#i-camera"/></svg><span>Foto de prato</span></div></figure>
-            <figure class="gallery__slide gallery__slide--empty"><div class="gallery__placeholder"><svg aria-hidden="true"><use href="#i-camera"/></svg><span>Foto do ambiente</span></div></figure>
-            <figure class="gallery__slide gallery__slide--empty"><div class="gallery__placeholder"><svg aria-hidden="true"><use href="#i-camera"/></svg><span>Foto de prato</span></div></figure>
+            <figure class="gallery__slide"><img src="assets/galeria/salao.webp" alt="Salão do Rock Me Mamma, com sofá de couro capitonê, mesas postas e o bar ao fundo" width="680" height="510" decoding="async" fetchpriority="low"></figure>
+            <figure class="gallery__slide"><img src="assets/galeria/pizza-burrata.webp" alt="Pizza Burrata com pesto, tomatinhos confitados e rúcula" width="607" height="510" decoding="async" fetchpriority="low"></figure>
+            <figure class="gallery__slide"><img src="assets/galeria/drink-campari.webp" alt="Drink alaranjado com Campari servido no balcão do bar" width="287" height="510" decoding="async" fetchpriority="low"></figure>
+            <figure class="gallery__slide"><img src="assets/galeria/drink-canela.webp" alt="Drink com gelo, canela e cereja" width="382" height="510" decoding="async" fetchpriority="low"></figure>
+            <figure class="gallery__slide"><img src="assets/galeria/drink-cereja.webp" alt="Drink com gelo, cereja e biscoito" width="382" height="510" decoding="async" fetchpriority="low"></figure>
           </div>
           <button type="button" class="gallery__btn gallery__btn--prev" aria-label="Foto anterior"><svg aria-hidden="true"><use href="#i-chevron"/></svg></button>
           <button type="button" class="gallery__btn gallery__btn--next" aria-label="Próxima foto"><svg aria-hidden="true"><use href="#i-chevron"/></svg></button>

@@ -208,7 +208,7 @@ svg { width: 1em; height: 1em; flex: none; }
 .gallery {
   position: relative; border-radius: 22px; overflow: hidden; background: var(--ink);
   box-shadow: 0 30px 60px -28px rgba(20, 18, 16, .55);
-  width: 100%; max-width: 520px; justify-self: center;
+  width: 100%; max-width: 440px; justify-self: center; /* close to the photos' own size, so they stay sharp */
 }
 .gallery__track {
   position: relative; display: flex; overflow-x: auto; overscroll-behavior-x: contain;
