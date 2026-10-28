@@ -104,9 +104,14 @@
   const heroInfo = Media.parse(hero.video);
 
   function heroPhoto() {
+    $$("video, iframe", frame).forEach((el) => el.remove());
+    if (!hero.photo) {
+      media.hidden = true;
+      window.dispatchEvent(new Event("resize")); // o nome passa a ocupar a largura toda
+      return;
+    }
     media.classList.add("is-photo");
     media.classList.toggle("is-cutout", /\.png(\?.*)?$/i.test(hero.photo || ""));
-    $$("video, iframe", frame).forEach((el) => el.remove());
     soundBtn.hidden = true;
     $("#heroOpen").hidden = true;
     label.textContent = `${S.coach} · Treinador`;
@@ -114,7 +119,7 @@
     img.src = hero.photo || hero.poster;
     img.alt = `${S.coach}, treinador da Fonseca Team`;
     img.fetchPriority = "high";
-    img.onerror = () => { img.remove(); media.hidden = true; };
+    img.onerror = () => { img.remove(); media.hidden = true; window.dispatchEvent(new Event("resize")); };
     frame.prepend(img);
   }
 

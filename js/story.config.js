@@ -46,8 +46,8 @@ window.STORY = {
       marker: "Hoje · Fonseca Team",
       title: "A Fonseca Team hoje",
       text: "Consultoria online com treino individualizado e acompanhamento de perto. Cada aluno com um plano, um objetivo e alguém olhando a evolução.",
-      media: "media/story/capitulo-4.jpg",
-      alt: "Maicon Fonseca de braços cruzados com a camiseta da Fonseca Team"
+      media: "media/story/capitulo-4.svg",
+      alt: "A Fonseca Team hoje"
     }
   ],
 

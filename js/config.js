@@ -22,15 +22,15 @@ window.SITE = {
   /*
    * HERO — vídeo vertical (9:16) à direita do nome.
    * video: arquivo MP4 (ex.: "media/hero/hero.mp4") OU link do YouTube/Vimeo.
-   *        Deixe "" para mostrar só a foto.
+   *        Sem vídeo e sem foto, o bloco some e o nome ocupa a largura toda.
    * poster: imagem exibida enquanto o vídeo carrega.
    * photo:  foto usada quando não há vídeo. Um PNG sem fundo
    *         (ex.: "media/hero/maicon-recorte.png") fica recortado sobre o líquido.
    */
   hero: {
     video: "media/hero/hero.mp4",
-    poster: "media/hero/hero-poster.jpg",
-    photo: "media/hero/hero-poster.jpg",
+    poster: "",
+    photo: "",
     label: "Ao vivo no treino"
   },
 

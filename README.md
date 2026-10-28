@@ -68,14 +68,14 @@ Em `js/config.js`, bloco `hero`:
 hero: {
   video: "media/hero/hero.mp4",          // ou "https://youtube.com/shorts/XXXX" / link do Vimeo / "" (sem vídeo)
   poster: "media/hero/hero-poster.jpg",  // capa enquanto o vídeo carrega
-  photo: "media/hero/hero-poster.jpg",   // usada quando não há vídeo
+  photo: "",                             // foto usada quando não há vídeo ("" = nenhuma)
   label: "Ao vivo no treino"
 }
 ```
 
 1. Salve o vídeo vertical (9:16) como `media/hero/hero.mp4`. Ele toca sem som, em loop; o botão de alto-falante liga o som e o clique abre em tela cheia.
-2. Troque `media/hero/hero-poster.jpg` por um frame do vídeo (1080×1920).
-3. Sem vídeo? Deixe `video: ""`. Se `hero.mp4` não existir, o site mostra a foto automaticamente.
+2. Salve um frame do vídeo (1080×1920) como `media/hero/hero-poster.jpg` e coloque esse caminho em `poster`.
+3. Sem vídeo? Deixe `video: ""`. Se `hero.mp4` não existir, o site mostra a foto de `photo`; sem foto, o bloco some e o nome ocupa a largura toda.
 4. Para a foto **recortada** (sem fundo), salve um PNG transparente, por exemplo `media/hero/maicon-recorte.png`, e use `photo: "media/hero/maicon-recorte.png"`. Com PNG, a moldura some e o Maicon fica "solto" sobre o líquido.
 
 ### História do Maicon
