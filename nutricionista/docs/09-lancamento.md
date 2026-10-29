@@ -19,7 +19,6 @@ Tudo isto vai aparecer no site e nos PDFs. Nada aqui é senha.
 | Instagram | Rodapé e contato | @andrefarion |
 | E-mail de contato | Contato e política de privacidade | contato@andrefarion.com.br |
 | E-mail para pedidos da LGPD | Política de privacidade | pode ser o mesmo |
-| Endereço do consultório, ou "somente on-line" | Contato e confirmações de consulta | Rua…, sala…, bairro, cidade/UF |
 | Biografia curta (3 a 5 frases) | Seção "Sobre" | Formação, tempo de atuação, público, o que valoriza |
 | Especialidades e diferenciais | Seção "Sobre" | Reeducação alimentar, nutrição esportiva… |
 | Serviços e duração (preço opcional, não aparece no site) | Seção de serviços e financeiro | Primeira consulta, 60 min |

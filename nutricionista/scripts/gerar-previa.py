@@ -56,7 +56,7 @@ head.append(icon)
 banner = home.select_one('.demo-banner')
 if banner:
     banner.clear()
-    banner.append(BeautifulSoup('Prévia em arquivo único. Veja também a <a href="#cliente">área do cliente</a> e o <a href="#andre">painel do André</a> (demonstração local). Registro, endereço e depoimentos são fictícios; o WhatsApp é o real.', 'html.parser'))
+    banner.append(BeautifulSoup('Prévia em arquivo único. Veja também a <a href="#cliente">área do cliente</a> e o <a href="#andre">painel do André</a> (demonstração local). Clientes e depoimentos são fictícios; o WhatsApp é o real.', 'html.parser'))
 
 # Links internos
 for a in home.find_all('a', href=True):

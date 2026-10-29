@@ -19,7 +19,8 @@ import { day, email, optEmail, optStr, phone, str, time, uuid } from '@/lib/vali
 
 const bookingSchema = z.object({
   serviceId: uuid,
-  modality: z.enum(['presencial', 'online'], 'Escolha a modalidade'),
+  // Atendimento 100% on-line.
+  modality: z.enum(['online'], 'Escolha a modalidade'),
   day,
   time,
   name: str(120, 'Informe seu nome'),
@@ -44,7 +45,6 @@ export async function createBooking(_: ActionState, fd: FormData): Promise<Actio
     const s = await getSettings()
     const svc = await getService(d.serviceId)
     if (!svc || !svc.isPublic) return { error: 'Serviço indisponível.' }
-    if (svc.modality !== 'ambos' && svc.modality !== d.modality) return { error: 'Modalidade não disponível para este serviço.' }
 
     const start = zonedToUtc(d.day, d.time, s.timezone)
     const slots = await slotsForDay(d.day, svc.durationMinutes)

@@ -67,7 +67,7 @@ export async function GET(req: Request) {
       const ok = await sendEmail(
         a.contactEmail,
         'Sua consulta é daqui a pouco',
-        `Olá, ${a.contactName.split(' ')[0]}! Lembrete: sua consulta (${a.serviceName}) é hoje às ${p.time}.${a.modality === 'online' && a.meetingUrl ? `\nLink da videochamada: ${a.meetingUrl}` : s.address ? `\nEndereço: ${s.address}` : ''}`,
+        `Olá, ${a.contactName.split(' ')[0]}! Lembrete: sua consulta (${a.serviceName}) é hoje às ${p.time}.${a.meetingUrl ? `\nLink da videochamada: ${a.meetingUrl}` : ''}`,
       )
       if (ok) {
         await db.update(schema.appointments).set({ reminder2hSentAt: new Date() }).where(eq(schema.appointments.id, a.id))

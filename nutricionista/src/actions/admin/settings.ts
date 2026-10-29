@@ -36,9 +36,6 @@ const profileSchema = z.object({
   method: z.string().trim().max(3000),
   differentials: z.string().max(3000).optional(),
   howItWorks: z.string().max(3000).optional(),
-  address: optStr(300),
-  hoursText: optStr(200),
-  modalityText: optStr(200),
   whatsapp: z
     .string()
     .optional()
@@ -125,7 +122,7 @@ const serviceSchema = z.object({
   id: z.string().optional(),
   name: str(120, 'Informe o nome'),
   description: z.string().trim().max(500),
-  modality: z.enum(['presencial', 'online', 'ambos']),
+  modality: z.enum(['online']).default('online'),
   durationMinutes: int(10, 240),
   price: z
     .string()
@@ -309,7 +306,7 @@ export async function inviteStaff(_: ActionState, fd: FormData): Promise<ActionS
     const token = newToken()
     await db.insert(schema.authTokens).values({ id: hashToken(token), userId: u.id, type: 'convite', expiresAt: new Date(Date.now() + 3 * 86_400_000) })
     const url = `${process.env.APP_URL ?? 'http://localhost:3000'}/redefinir-senha?token=${token}`
-    const sent = await sendEmail(parsed.data.email, 'Acesso ao painel do consultório', `Olá, ${parsed.data.name}! Crie sua senha de acesso (link válido por 3 dias):\n${url}`)
+    const sent = await sendEmail(parsed.data.email, 'Acesso ao painel', `Olá, ${parsed.data.name}! Crie sua senha de acesso (link válido por 3 dias):\n${url}`)
     await audit(user, 'membro_equipe_convidado', 'usuario', { entityId: u.id, details: { permissions } })
     revalidatePath('/admin/configuracoes')
     return { ok: true, message: `${sent ? 'Convite enviado por e-mail. ' : ''}Link de primeiro acesso (válido por 3 dias, uso único): ${url}` }

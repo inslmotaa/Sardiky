@@ -68,7 +68,7 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
 
   return (
     <div className="stack" style={{ ['--gap' as string]: '16px' }}>
-      <PageHead title="Sua anamnese" subtitle={sent?.submittedAt ? `Enviada em ${fmtDateTime(sent.submittedAt, s.timezone)}.` : 'Recebida pelo consultório.'} />
+      <PageHead title="Sua anamnese" subtitle={sent?.submittedAt ? `Enviada em ${fmtDateTime(sent.submittedAt, s.timezone)}.` : 'Recebida pelo seu coach.'} />
       {sent ? (
         ANAMNESIS_STEPS.map((st) => (
           <section key={st.key} className="card anam__review">
@@ -84,7 +84,7 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
           </section>
         ))
       ) : (
-        <p className="card">Sua anamnese já foi recebida pelo consultório. Quando for a hora de uma reavaliação, ela aparece aqui para você atualizar.</p>
+        <p className="card">Sua anamnese já foi recebida pelo seu coach. Quando for a hora de uma reavaliação, ela aparece aqui para você atualizar.</p>
       )}
       <p className="small muted">Precisa corrigir algo? Fale com o coach pelas mensagens: na reavaliação você atualiza as respostas.</p>
     </div>

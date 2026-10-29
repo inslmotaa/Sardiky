@@ -99,9 +99,9 @@ describe('planos de acompanhamento', () => {
     expect(t).toMatchObject({ monthlyCents: 21250, discountPct: 15, fullCents: 75000 })
     expect(s).toMatchObject({ monthlyCents: 20000, discountPct: 20, fullCents: 150000 })
     expect(a).toMatchObject({ monthlyCents: 18750, discountPct: 25, fullCents: 300000 })
-    const items = titledLines('Avaliação física | Presencial ou online.\n\n  Dieta | A cada 15 dias | revisada ')
+    const items = titledLines('Avaliação física | Por videochamada.\n\n  Dieta | A cada 15 dias | revisada ')
     expect(items).toEqual([
-      { title: 'Avaliação física', text: 'Presencial ou online.' },
+      { title: 'Avaliação física', text: 'Por videochamada.' },
       { title: 'Dieta', text: 'A cada 15 dias | revisada' },
     ])
     expect(titledLines(titledText(items))).toEqual(items)

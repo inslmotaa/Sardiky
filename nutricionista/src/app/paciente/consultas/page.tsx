@@ -39,7 +39,7 @@ export default async function PatientAppointments() {
                   <div>
                     <strong>{fmtDateTime(a.startAt, s.timezone)}</strong> <StatusBadge status={a.status} />
                     <div className="muted">
-                      {a.serviceName} · {a.modality === 'online' ? 'On-line' : `Presencial${s.address ? ` · ${s.address}` : ''}`}
+                      {a.serviceName} · On-line, por videochamada
                     </div>
                   </div>
                   {a.modality === 'online' && a.meetingUrl && a.status === 'confirmada' && (
@@ -106,7 +106,7 @@ export default async function PatientAppointments() {
       {toRate.length > 0 && (
         <section className="card">
           <h2 style={{ fontSize: '1.15rem' }}>Como foi a sua última consulta?</h2>
-          <p className="muted small">Sua avaliação ajuda o consultório a melhorar. Ela não é publicada no site.</p>
+          <p className="muted small">Sua avaliação ajuda a melhorar o atendimento. Ela não é publicada no site.</p>
           <ActionForm action={rateAppointment} className="stack">
             <input type="hidden" name="id" value={toRate[0].id} />
             <fieldset>
@@ -153,7 +153,7 @@ export default async function PatientAppointments() {
                   <tr key={a.id}>
                     <td className="nowrap">{fmtDateTime(a.startAt, s.timezone)}</td>
                     <td>{a.serviceName}</td>
-                    <td>{a.modality === 'online' ? 'On-line' : 'Presencial'}</td>
+                    <td>On-line</td>
                     <td>
                       <StatusBadge status={a.status} />
                     </td>

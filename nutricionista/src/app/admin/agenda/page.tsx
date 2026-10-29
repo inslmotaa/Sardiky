@@ -175,7 +175,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
                 <li key={a.id}>
                   <time>{fmtTime(a.startAt, tz)}</time>
                   <Link href={`/admin/agenda/${a.id}`} className={`cal-event cal-event--${a.status}`}>
-                    <strong>{a.contactName}</strong> · {a.serviceName} · {a.modality === 'online' ? 'on-line' : 'presencial'} · até {fmtTime(a.endAt, tz)}
+                    <strong>{a.contactName}</strong> · {a.serviceName} · on-line · até {fmtTime(a.endAt, tz)}
                     <div>
                       <StatusBadge status={a.status} />
                     </div>
@@ -204,7 +204,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
                 <Link key={a.id} href={`/admin/agenda/${a.id}`} className={`cal-event cal-event--${a.status}`} title={STATUS_LABEL[a.status]}>
                   <strong>{fmtTime(a.startAt, tz)}</strong> {a.contactName}
                   <div className="small">
-                    {a.modality === 'online' ? 'On-line' : 'Presencial'} · {STATUS_LABEL[a.status]}
+                    On-line · {STATUS_LABEL[a.status]}
                   </div>
                 </Link>
               ))}
@@ -272,7 +272,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
                       {!a.patientId && <span className="badge badge--info" style={{ marginLeft: 6 }}>Sem cadastro</span>}
                     </td>
                     <td>{a.serviceName}</td>
-                    <td>{a.modality === 'online' ? 'On-line' : 'Presencial'}</td>
+                    <td>On-line</td>
                     <td>
                       <StatusBadge status={a.status} />
                     </td>

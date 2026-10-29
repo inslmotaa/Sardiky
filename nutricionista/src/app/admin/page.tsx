@@ -210,7 +210,7 @@ export default async function AdminHome() {
                   <li key={a.id}>
                     <time>{fmtTime(a.startAt, tz)}</time>
                     <Link href={`/admin/agenda/${a.id}`} className={`cal-event cal-event--${a.status}`}>
-                      <strong>{a.contactName}</strong> · {a.serviceName} · {a.modality === 'online' ? 'on-line' : 'presencial'}
+                      <strong>{a.contactName}</strong> · {a.serviceName} · on-line
                       <div>
                         <StatusBadge status={a.status} />
                       </div>

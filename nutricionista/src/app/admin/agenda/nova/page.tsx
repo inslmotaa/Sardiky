@@ -60,12 +60,7 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
                 ))}
               </select>
             </Field>
-            <Field label="Modalidade" name="modality" required>
-              <select name="modality">
-                <option value="presencial">Presencial</option>
-                <option value="online">On-line</option>
-              </select>
-            </Field>
+            <input type="hidden" name="modality" value="online" />
             <Field label="Data" name="day" required>
               <input type="date" name="day" defaultValue={todayIn(s.timezone)} />
             </Field>

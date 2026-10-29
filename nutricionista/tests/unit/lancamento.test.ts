@@ -21,7 +21,6 @@ const filled = () => {
     instagram: '@andre.farion',
     email: 'contato@andrefarion.com.br',
     emailPrivacidade: 'contato@andrefarion.com.br',
-    endereco: 'Atendimento somente on-line',
   })
   p.servicos.forEach((s: { preco: unknown; descricao: string }, i: number) => {
     s.preco = 100 + i

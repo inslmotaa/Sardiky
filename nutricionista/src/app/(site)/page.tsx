@@ -399,18 +399,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </dd>
                 </div>
               )}
-              {s.hoursText && (
-                <div>
-                  <dt>HORÁRIO</dt>
-                  <dd>{s.hoursText}</dd>
-                </div>
-              )}
-              {s.modalityText && (
-                <div>
-                  <dt>MODALIDADE</dt>
-                  <dd>{s.modalityText}</dd>
-                </div>
-              )}
+              <div>
+                <dt>ATENDIMENTO</dt>
+                <dd>On-line, por videochamada e pelo app</dd>
+              </div>
             </dl>
           </div>
         </div>

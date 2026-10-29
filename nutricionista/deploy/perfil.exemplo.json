@@ -12,7 +12,7 @@
     "metodo": "Tudo começa por uma anamnese completa e uma avaliação física. A partir delas, definimos metas realistas e uma estratégia individual, revista a cada 15 dias conforme a sua evolução.",
     "diferenciais": [
       "Dieta personalizada, atualizada a cada 15 dias",
-      "Avaliação física presencial ou on-line",
+      "Avaliação completa por videochamada",
       "Aplicativo com plano, diário, lembretes e mensagens",
       "Acompanhamento próximo, com ajustes conforme o seu progresso"
     ],
@@ -35,16 +35,13 @@
       }
     ],
     "corDaMarca": "#2f8f57",
-    "assinatura": "Coach · atendimento presencial e on-line"
+    "assinatura": "Coach · atendimento on-line"
   },
   "contato": {
     "whatsapp": "(41) 99155-1789",
     "instagram": "PREENCHER: ex. @andrefarion",
     "email": "PREENCHER: ex. contato@andrefarion.com.br",
-    "emailPrivacidade": "PREENCHER: e-mail para pedidos da LGPD (pode ser o mesmo)",
-    "endereco": "PREENCHER: rua, número, sala, bairro, cidade/UF — ou \"Atendimento somente on-line\"",
-    "horarioTexto": "Segunda a sexta, 8h às 18h",
-    "modalidadeTexto": "Presencial no consultório e on-line por videochamada"
+    "emailPrivacidade": "PREENCHER: e-mail para pedidos da LGPD (pode ser o mesmo)"
   },
   "site": {
     "agendamento": "site",
@@ -122,7 +119,7 @@
         "sexta"
       ]
     },
-    "respostaAutomatica": "Oi! Recebi sua mensagem e respondo no próximo horário de atendimento (segunda a sexta, 8h às 18h). Em caso de urgência, procure um serviço de saúde.",
+    "respostaAutomatica": "Oi! Recebi sua mensagem e respondo assim que possível. Em caso de urgência, procure um serviço de saúde.",
     "respostasRapidas": [
       "Ótima escolha!",
       "Vamos ajustar isso no retorno.",
@@ -152,13 +149,13 @@
     {
       "nome": "Primeira consulta",
       "descricao": "Avaliação completa, definição de metas e elaboração do plano alimentar individualizado.",
-      "modalidade": "ambos",
+      "modalidade": "online",
       "duracaoMinutos": 60
     },
     {
       "nome": "Retorno",
       "descricao": "Reavaliação, análise da evolução e ajustes no plano.",
-      "modalidade": "ambos",
+      "modalidade": "online",
       "duracaoMinutos": 40
     },
     {
@@ -214,7 +211,7 @@
   "planosIncluem": [
     {
       "titulo": "Avaliação física",
-      "texto": "Presencial ou online."
+      "texto": "Por videochamada, com medidas orientadas."
     },
     {
       "titulo": "Anamnese completa",

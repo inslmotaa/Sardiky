@@ -445,7 +445,7 @@ function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
                 waterMl: c.water[t] ?? 0,
                 waterGoalMl: w ? waterGoalMl(w.value) : 2000,
                 features: f,
-                nextAppointment: { when: c.nextAppointment, label: 'Retorno · presencial · confirmada', meetingUrl: null },
+                nextAppointment: { when: c.nextAppointment, label: 'Retorno · on-line · confirmada', meetingUrl: null },
                 guidance: content?.guidance ?? null,
                 lastWeight: w ? { value: w.value, date: fmtDay(w.date) } : null,
               }

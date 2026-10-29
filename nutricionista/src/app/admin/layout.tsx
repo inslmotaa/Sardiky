@@ -90,7 +90,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         Pular para o conteúdo
       </a>
       <aside className="sidebar">
-        <Brand name={s.professionalName} sub="Painel do consultório" logoFileId={s.logoFileId} />
+        <Brand name={s.professionalName} sub="Painel do coach" logoFileId={s.logoFileId} />
         <nav aria-label="Painel">{nav}</nav>
         <div className="sidebar__foot">
           <div style={{ marginBottom: 6 }}>

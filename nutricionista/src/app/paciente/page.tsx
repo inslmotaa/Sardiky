@@ -78,7 +78,7 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
     nextAppointment: next
       ? {
           when: fmtDateTime(next.startAt, s.timezone),
-          label: `${next.serviceName} · ${next.modality === 'online' ? 'on-line' : 'presencial'} · ${next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}`,
+          label: `${next.serviceName} · $on-line · ${next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}`,
           meetingUrl: next.modality === 'online' && next.status === 'confirmada' ? next.meetingUrl : null,
         }
       : null,
@@ -198,7 +198,7 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
               <>
                 <p className="hub-big">{fmtDateTime(next.startAt, s.timezone)}</p>
                 <p className="muted" style={{ margin: 0 }}>
-                  {next.serviceName} · {next.modality === 'online' ? 'on-line' : 'presencial'} · {next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}
+                  {next.serviceName} · on-line · {next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}
                 </p>
                 <div className="row" style={{ marginTop: 12 }}>
                   {next.modality === 'online' && next.status === 'confirmada' && next.meetingUrl && (

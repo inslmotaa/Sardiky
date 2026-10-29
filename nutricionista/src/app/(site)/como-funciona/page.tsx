@@ -16,7 +16,7 @@ const STEPS = [
     title: 'Responda a anamnese',
     text: 'No próprio site, em etapas curtas: saúde, rotina, alimentação e objetivo. Dá para parar e continuar depois.',
   },
-  { title: 'Avaliação', text: 'Presencial ou on-line: conversa, avaliação física e definição das primeiras metas.' },
+  { title: 'Avaliação', text: 'Por videochamada: conversa, avaliação com medidas orientadas e definição das primeiras metas.' },
   { title: 'Plano no app', text: 'Seu plano aparece na área do cliente, com refeições por horário, quantidades e substituições.' },
   {
     title: 'Acompanhamento e ajustes',

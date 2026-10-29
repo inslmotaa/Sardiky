@@ -11,7 +11,7 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
         <p className="muted">
           {forbidden
             ? 'Você não tem permissão para ver este conteúdo.'
-            : 'Não foi possível carregar esta página. Tente novamente; se o problema continuar, avise o consultório.'}
+            : 'Não foi possível carregar esta página. Tente novamente; se o problema continuar, fale com o seu coach.'}
           {error.digest && <span className="small"> Código: {error.digest}</span>}
         </p>
         <div className="row">

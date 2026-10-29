@@ -80,9 +80,6 @@ const Perfil = z.object({
     instagram: instagram.optional(),
     email: z.email('e-mail inválido'),
     emailPrivacidade: z.email('e-mail inválido'),
-    endereco: texto(300),
-    horarioTexto: texto(200),
-    modalidadeTexto: texto(200),
   }),
   site: z
     .object({
@@ -115,7 +112,8 @@ const Perfil = z.object({
       z.object({
         nome: texto(120),
         descricao: z.string().trim().max(1000).default(''),
-        modalidade: z.enum(['presencial', 'online', 'ambos'], { error: 'use presencial, online ou ambos' }),
+        // Atendimento 100% on-line: todo serviço é por videochamada.
+        modalidade: z.enum(['online'], { error: 'o atendimento é só on-line: use online' }).default('online'),
         duracaoMinutos: z.number().int().min(10).max(300),
         // Opcional: usado no financeiro e só aparece no site com site.mostrarValores = true.
         preco: reais.default(0),
@@ -186,9 +184,9 @@ const settings = {
   instagram: p.contato.instagram ?? null,
   contact_email: p.contato.email.toLowerCase(),
   privacy_contact: p.contato.emailPrivacidade.toLowerCase(),
-  address: p.contato.endereco,
-  hours_text: p.contato.horarioTexto,
-  modality_text: p.contato.modalidadeTexto,
+  address: null,
+  hours_text: null,
+  modality_text: null,
   anamnese_url: p.anamneseUrl ?? null,
   timezone: p.agenda.fusoHorario,
   slot_step_minutes: p.agenda.intervaloMinutos,

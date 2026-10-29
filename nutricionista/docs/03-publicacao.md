@@ -28,7 +28,7 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
    Como preencher o perfil: [09-lancamento.md](09-lancamento.md). Foto, logo e assinatura são enviadas pelo painel (**Configurações**).
 7. **Checklist antes de divulgar**
    - [ ] Política de privacidade revisada por profissional jurídico
-   - [ ] CRN, endereço, contatos e serviços reais em Configurações
+   - [ ] Contatos e serviços reais em Configurações (atendimento 100% on-line)
    - [ ] Faixa “versão de demonstração” desativada
    - [ ] Depoimentos somente com autorização registrada
    - [ ] E-mail configurado e testado (recuperação de senha)

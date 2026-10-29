@@ -123,15 +123,6 @@ function ProfileSection({ s }: { s: S }) {
       <section className="card stack">
         <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Atendimento e contato</h2>
         <div className="form-grid">
-          <Field label="Endereço" name="address">
-            <input name="address" defaultValue={s.address ?? ''} />
-          </Field>
-          <Field label="Horários (texto do site)" name="hoursText">
-            <input name="hoursText" defaultValue={s.hoursText ?? ''} />
-          </Field>
-          <Field label="Modalidades (texto do site)" name="modalityText">
-            <input name="modalityText" defaultValue={s.modalityText ?? ''} />
-          </Field>
           <Field label="WhatsApp" name="whatsapp" hint="Com 55 e DDD, só números. Ex.: 5511999999999">
             <input name="whatsapp" inputMode="numeric" defaultValue={s.whatsapp ?? ''} />
           </Field>
@@ -165,7 +156,7 @@ function ProfileSection({ s }: { s: S }) {
         </div>
         <Field label="Botão “Agendar consulta” do site" name="bookingChannel" hint="Pelo WhatsApp, a agenda on-line fica desligada e todos os botões de agendar e o contato abrem a conversa.">
           <select name="bookingChannel" defaultValue={s.bookingChannel}>
-            <option value="whatsapp">Abre o WhatsApp do consultório</option>
+            <option value="whatsapp">Abre o WhatsApp</option>
             <option value="site">Abre a agenda on-line do site</option>
           </select>
         </Field>
@@ -198,13 +189,8 @@ async function ServicesSection() {
         <Field label="Nome" name="name">
           <input name="name" defaultValue={svc?.name} />
         </Field>
-        <Field label="Modalidade" name="modality">
-          <select name="modality" defaultValue={svc?.modality ?? 'ambos'}>
-            <option value="ambos">Presencial e on-line</option>
-            <option value="presencial">Somente presencial</option>
-            <option value="online">Somente on-line</option>
-          </select>
-        </Field>
+        {/* Atendimento 100% on-line: todo serviço é por videochamada. */}
+        <input type="hidden" name="modality" value="online" />
         <Field label="Duração (min)" name="durationMinutes">
           <input name="durationMinutes" inputMode="numeric" defaultValue={svc?.durationMinutes ?? 60} />
         </Field>

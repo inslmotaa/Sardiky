@@ -192,7 +192,7 @@ const createSchema = z.object({
   email: z.string().optional(),
   phone: z.string().optional(),
   serviceId: uuid,
-  modality: z.enum(['presencial', 'online']),
+  modality: z.enum(['online']).default('online'),
   day,
   time,
   status: z.enum(['pendente', 'confirmada']),

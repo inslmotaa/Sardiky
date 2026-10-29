@@ -58,7 +58,7 @@ export async function planPdf(plan: PlanContent, o: Opts) {
   const doc = await PDFDocument.create()
   doc.setTitle(pdfSafe(`${o.title}${o.patientName ? ` — ${o.patientName}` : ''}`))
   doc.setAuthor(pdfSafe(o.professionalName))
-  doc.setCreator('Sistema do consultório')
+  doc.setCreator('Área do cliente')
   doc.setLanguage('pt-BR')
   const regular = await doc.embedFont(StandardFonts.Helvetica)
   const bold = await doc.embedFont(StandardFonts.HelveticaBold)

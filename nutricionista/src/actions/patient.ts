@@ -362,7 +362,7 @@ export async function cancelOwnAppointment(_: ActionState, fd: FormData): Promis
   const s = await getSettings()
   const hoursLeft = (a.startAt.getTime() - Date.now()) / 3_600_000
   if (hoursLeft < 24) {
-    return { error: 'Cancelamentos com menos de 24 horas de antecedência devem ser combinados diretamente com o consultório.' }
+    return { error: 'Cancelamentos com menos de 24 horas de antecedência devem ser combinados diretamente com o seu coach.' }
   }
   await db
     .update(schema.appointments)
@@ -374,7 +374,7 @@ export async function cancelOwnAppointment(_: ActionState, fd: FormData): Promis
   return { ok: true, message: 'Consulta cancelada. O horário foi liberado.' }
 }
 
-/** O paciente confirma presença numa consulta confirmada pelo consultório. */
+/** O paciente confirma presença numa consulta já confirmada. */
 export async function confirmPresence(id: string): Promise<void> {
   const user = await requirePatient()
   if (!uuid.safeParse(id).success) return
@@ -390,7 +390,7 @@ export async function confirmPresence(id: string): Promise<void> {
   revalidatePath('/paciente/consultas')
 }
 
-/** Pedido de remarcação: o consultório recebe o aviso e combina o novo horário. */
+/** Pedido de remarcação: a equipe recebe o aviso e combina o novo horário. */
 export async function requestReschedule(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
   const parsed = z.object({ id: uuid, note: optStr(500) }).safeParse(formObject(fd))
@@ -409,7 +409,7 @@ export async function requestReschedule(_: ActionState, fd: FormData): Promise<A
   await pushToTeam('agenda', { title: 'Pedido de remarcação', body: `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, url: `/admin/agenda/${a.id}` }, user.patientId)
   await audit(user, 'remarcacao_pedida', 'consulta', { entityId: a.id, patientId: user.patientId })
   revalidatePath('/paciente/consultas')
-  return { ok: true, message: 'Pedido enviado. O consultório vai entrar em contato para combinar o novo horário.' }
+  return { ok: true, message: 'Pedido enviado. Seu coach vai entrar em contato para combinar o novo horário.' }
 }
 
 /** Avaliação da consulta realizada (1 a 5 estrelas e comentário opcional). */

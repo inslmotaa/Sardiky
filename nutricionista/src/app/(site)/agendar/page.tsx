@@ -19,7 +19,7 @@ const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)
 export default async function BookingPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams
   const [s, user] = await Promise.all([getSettings(), getCurrentUser()])
-  // Agendamento pelo WhatsApp: a agenda on-line fica desligada e o endereço leva à conversa.
+  // Agendamento pelo WhatsApp: a agenda do site fica desligada e o link leva à conversa.
   const booking = bookingLink(s)
   if (booking.external) redirect(booking.href)
   // Plano escolhido em /planos (?plano=) e dados do cliente conectado para pré-preencher.
@@ -33,8 +33,8 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
     .orderBy(asc(schema.services.sort))
 
   const service = services.find((x) => x.id === one(sp.servico))
-  const modParam = one(sp.modalidade)
-  const modality = service ? (service.modality === 'ambos' ? (modParam === 'presencial' || modParam === 'online' ? modParam : null) : service.modality) : null
+  // Atendimento 100% on-line: toda consulta é por videochamada.
+  const modality = service ? 'online' : null
 
   const days = service && modality ? await slotsForRange(todayIn(s.timezone), s.maxDaysAhead + 1, service.durationMinutes) : []
   const dayParam = one(sp.data)
@@ -46,20 +46,20 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
   const base = (extra: Record<string, string>) => {
     const p = new URLSearchParams()
     if (service) p.set('servico', service.id)
-    if (modality && service?.modality === 'ambos') p.set('modalidade', modality)
     if (plan) p.set('plano', plan.id)
     for (const [k, v] of Object.entries(extra)) p.set(k, v)
     return `/agendar?${p.toString()}`
   }
 
-  const step = !service ? 1 : !modality ? 2 : !selectedDay ? 3 : !selectedTime ? 4 : 5
+  const step = !service ? 1 : !selectedDay ? 2 : !selectedTime ? 3 : 4
 
   return (
     <section className="section section--tight">
       <div className="container" style={{ maxWidth: 900 }}>
         <h1>Agendar consulta</h1>
         <p className="muted">
-          Escolha o serviço, a data e o horário. O pedido fica <strong>pendente</strong> até a confirmação pela equipe.
+          Escolha o serviço, a data e o horário. O atendimento é on-line, por videochamada. O pedido fica <strong>pendente</strong> até a
+          confirmação.
         </p>
         {plan && (
           <p className="alert alert--ok">
@@ -67,7 +67,7 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
           </p>
         )}
         <ol className="stepper" aria-label="Etapas do agendamento">
-          {['Serviço', 'Modalidade', 'Data', 'Horário', 'Seus dados'].map((label, i) => (
+          {['Serviço', 'Data', 'Horário', 'Seus dados'].map((label, i) => (
             <li key={label} aria-current={step === i + 1 ? 'step' : undefined} className={step > i + 1 ? 'done' : undefined}>
               {i + 1}. {label}
             </li>
@@ -83,32 +83,17 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
                 <strong>{svc.name}</strong>
                 <div className="muted small">
                   {svc.durationMinutes} min · {s.showPrices ? `${svc.priceCents ? money(svc.priceCents) : 'valor sob consulta'} · ` : ''}
-                  {svc.modality === 'ambos' ? 'presencial ou on-line' : svc.modality === 'online' ? 'on-line' : 'presencial'}
+                  on-line, por videochamada
                 </div>
               </Link>
             ))}
           </div>
         </div>
 
-        {/* 2. Modalidade */}
-        {service && service.modality === 'ambos' && (
-          <div className="card stack" style={{ marginTop: 16 }}>
-            <h2 style={{ fontSize: '1.15rem', margin: 0 }}>2. Modalidade</h2>
-            <div className="grid-2">
-              {(['presencial', 'online'] as const).map((m) => (
-                <Link key={m} href={`/agendar?servico=${service.id}&modalidade=${m}`} className="option-card" aria-current={modality === m ? 'true' : undefined}>
-                  <strong>{m === 'presencial' ? 'Presencial' : 'On-line (videochamada)'}</strong>
-                  <div className="muted small">{m === 'presencial' ? s.address ?? 'No consultório' : 'O link da chamada é enviado após a confirmação.'}</div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* 3. Data */}
+        {/* 2. Data */}
         {service && modality && (
           <div className="card stack" style={{ marginTop: 16 }} id="data">
-            <h2 style={{ fontSize: '1.15rem', margin: 0 }}>3. Data</h2>
+            <h2 style={{ fontSize: '1.15rem', margin: 0 }}>2. Data</h2>
             {days.every((d) => d.slots.length === 0) ? (
               <p className="alert alert--info">Não há horários livres nos próximos dias. Fale conosco pelo WhatsApp para verificar outras opções.</p>
             ) : (
@@ -136,10 +121,10 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
           </div>
         )}
 
-        {/* 4. Horário */}
+        {/* 3. Horário */}
         {selectedDay && (
           <div className="card stack" style={{ marginTop: 16 }} id="horario">
-            <h2 style={{ fontSize: '1.15rem', margin: 0 }}>4. Horário — {fmtDayLong(selectedDay.day)}</h2>
+            <h2 style={{ fontSize: '1.15rem', margin: 0 }}>3. Horário — {fmtDayLong(selectedDay.day)}</h2>
             <div className="slots">
               {selectedDay.slots.map((x) => {
                 const t = zonedParts(x, s.timezone).time
@@ -156,12 +141,12 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
           </div>
         )}
 
-        {/* 5. Dados */}
+        {/* 4. Dados */}
         {service && modality && selectedDay && selectedTime && (
           <div className="card" style={{ marginTop: 16 }} id="dados">
-            <h2 style={{ fontSize: '1.15rem' }}>5. Seus dados</h2>
+            <h2 style={{ fontSize: '1.15rem' }}>4. Seus dados</h2>
             <p className="alert alert--info">
-              <strong>{service.name}</strong> · {modality === 'online' ? 'on-line' : 'presencial'} · {fmtDayLong(selectedDay.day)} às {selectedTime}
+              <strong>{service.name}</strong> · on-line, por videochamada · {fmtDayLong(selectedDay.day)} às {selectedTime}
               {s.showPrices && service.priceCents ? ` · ${money(service.priceCents)}` : ''}
             </p>
             <ActionForm action={createBooking} className="stack">

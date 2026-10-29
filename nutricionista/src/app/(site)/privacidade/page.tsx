@@ -17,7 +17,7 @@ export default async function PrivacyPage() {
         <p className="muted">Versão {PRIVACY_VERSION}.</p>
         <p className="alert alert--warn small">
           Modelo inicial para orientar a implantação. Antes de divulgar o site, revise o texto com um profissional jurídico e ajuste-o à realidade do
-          consultório.
+          atendimento.
         </p>
 
         <h2>1. Quem cuida dos seus dados</h2>
@@ -69,7 +69,7 @@ export default async function PrivacyPage() {
 
         <h2>4. Onde ficam guardados</h2>
         <ul>
-          <li>Em servidor contratado pelo consultório, num banco de dados protegido por senha e acessível apenas pelo próprio sistema.</li>
+          <li>Em servidor contratado pelo responsável pelo atendimento, num banco de dados protegido por senha e acessível apenas pelo próprio sistema.</li>
           <li>Exames e fotos ficam em área privada: só abrem para você e para o coach, depois de conferido o login.</li>
           <li>Toda a comunicação usa conexão criptografada (HTTPS). Senhas nunca são guardadas em texto: só um resumo criptográfico.</li>
           <li>Há cópia de segurança diária, guardada de forma protegida, e registro das ações sensíveis no painel.</li>

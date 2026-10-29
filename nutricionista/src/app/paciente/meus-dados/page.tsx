@@ -44,7 +44,7 @@ export default async function MyDataPage() {
             <dd>{fmtDay(patient.birthDate)}</dd>
           </dl>
           <p className="muted small" style={{ marginBottom: 0 }}>
-            Algo errado? Use “Correção de dados” abaixo ou avise o consultório.
+            Algo errado? Use “Correção de dados” abaixo ou avise o seu coach.
           </p>
         </section>
         <section className="card">

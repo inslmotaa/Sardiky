@@ -45,7 +45,7 @@ export async function AppointmentsTab({ patient }: { patient: typeof schema.pati
                 <tr key={a.id}>
                   <td className="nowrap">{fmtDateTime(a.startAt, s.timezone)}</td>
                   <td>{a.serviceName}</td>
-                  <td>{a.modality === 'online' ? 'On-line' : 'Presencial'}</td>
+                  <td>On-line</td>
                   <td className="num">{money(a.priceCents)}</td>
                   <td>
                     <StatusBadge status={a.status} />

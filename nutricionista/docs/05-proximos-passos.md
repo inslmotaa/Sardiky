@@ -22,9 +22,7 @@ Tudo pode ser preenchido em **Painel → Configurações**, sem mexer no código
 - [ ] WhatsApp (com DDD), por exemplo 55 + DDD + número
 - [ ] Instagram (link do perfil)
 - [ ] E-mail de contato e e-mail para assuntos de privacidade (LGPD)
-- [ ] Endereço do consultório (se houver atendimento presencial)
 - [ ] Dias e horários de atendimento
-- [ ] Modalidades: presencial, on-line ou ambas
 
 **Serviços**
 - [ ] Lista de serviços com duração e valor (consulta, retorno, planos de consultoria)

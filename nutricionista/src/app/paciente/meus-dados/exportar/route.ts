@@ -29,7 +29,7 @@ export async function GET() {
   ])
   const data = {
     geradoEm: new Date().toISOString(),
-    observacao: 'Cópia dos seus dados pessoais. Observações clínicas internas do profissional não são incluídas neste arquivo; solicite-as ao consultório, se desejar.',
+    observacao: 'Cópia dos seus dados pessoais. Observações clínicas internas do profissional não são incluídas neste arquivo; solicite-as ao seu coach, se desejar.',
     cadastro: patient,
     consultas: appointments.map(({ internalNotes: _i, ...a }) => a),
     medidas: measurements,

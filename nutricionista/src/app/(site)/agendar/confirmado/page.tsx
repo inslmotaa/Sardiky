@@ -40,8 +40,8 @@ export default async function ConfirmedPage({ searchParams }: { searchParams: Pr
               <dd>{a.serviceName}</dd>
               <dt>Quando</dt>
               <dd>{fmtDateTime(a.startAt, s.timezone)}</dd>
-              <dt>Modalidade</dt>
-              <dd>{a.modality === 'online' ? 'On-line' : 'Presencial'}</dd>
+              <dt>Atendimento</dt>
+              <dd>On-line, por videochamada</dd>
               <dt>Situação</dt>
               <dd>
                 <StatusBadge status={a.status} />
@@ -55,7 +55,7 @@ export default async function ConfirmedPage({ searchParams }: { searchParams: Pr
             </p>
             {!email && (
               <p className="alert alert--info small">
-                Envio automático de e-mails e lembretes ainda não configurado neste consultório.
+                Envio automático de e-mails e lembretes ainda não configurado neste site.
               </p>
             )}
             <div className="card card--soft card--flat">

@@ -43,7 +43,7 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
         title={a.contactName}
         subtitle={
           <>
-            {fmtDateTime(a.startAt, s.timezone)} até {fmtTime(a.endAt, s.timezone)} · {a.serviceName} · {a.modality === 'online' ? 'on-line' : 'presencial'}
+            {fmtDateTime(a.startAt, s.timezone)} até {fmtTime(a.endAt, s.timezone)} · {a.serviceName} · on-line
           </>
         }
         actions={<StatusBadge status={a.status} />}

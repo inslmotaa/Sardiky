@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: 'Entrar', robots: { index: false } }
 
 const ERRORS: Record<string, string> = {
   google: 'Não foi possível entrar com o Google. Tente novamente ou use e-mail e senha.',
-  inativo: 'Esta conta está desativada. Fale com o consultório.',
+  inativo: 'Esta conta está desativada. Fale com o seu coach.',
 }
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {

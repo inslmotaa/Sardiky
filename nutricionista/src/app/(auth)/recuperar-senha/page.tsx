@@ -17,7 +17,7 @@ export default function ForgotPage() {
       {!email && (
         <p className="alert alert--warn small">
           O envio de e-mails ainda não foi configurado neste ambiente. Em demonstração, o link aparece apenas no registro
-          (log) do servidor. Pacientes podem pedir ao consultório um novo link de acesso.
+          (log) do servidor. Clientes podem pedir ao coach um novo link de acesso.
         </p>
       )}
       <ActionForm action={requestPasswordReset} className="stack">

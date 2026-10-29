@@ -26,7 +26,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         </a>
         {s.demoBanner && (
           <div className="demo-banner" role="note">
-            Versão de demonstração: endereço, e-mail e clientes são fictícios.
+            Versão de demonstração: e-mail e clientes são fictícios.
           </div>
         )}
         <header className="tl-header" id="site-header">
@@ -113,8 +113,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                     WhatsApp {phoneLabel(s.whatsapp)}
                   </a>
                 )}
-                {s.hoursText && <p>{s.hoursText}</p>}
-                {s.modalityText && <p>{s.modalityText}</p>}
+                <p>Atendimento on-line, por videochamada e pelo app</p>
               </div>
             </div>
             <p className="tl-footer__copy">

@@ -25,6 +25,9 @@ test('página principal: hero com a plataforma, storytelling em capítulos, Sobr
   await expect(hero.locator('.plate-card, .wm, [data-action]')).toHaveCount(0)
   // Sem "Nutricionista", CRN, monograma nem frutas.
   await expect(page.locator('body')).not.toContainText(/nutricionista|CRN/i)
+  // Atendimento 100% on-line: sem endereço, horário de atendimento ou presencial.
+  await expect(page.locator('body')).not.toContainText(/presencial|consultório|segunda a sexta|endereço/i)
+  await expect(page.locator('#contato')).toContainText('On-line, por videochamada e pelo app')
   await expect(page.locator('.monogram, .fruit-float, .floaty')).toHaveCount(0)
   // Storytelling: abertura, quatro capítulos com ilustração e o fecho.
   const story = page.locator('#historia')
@@ -135,7 +138,6 @@ test('/planos: cards com valores, selo "Mais escolhido", comparação e botão p
 test('agendamento pelo site e bloqueio de conflito no mesmo horário', async ({ page }) => {
   await page.goto('/agendar')
   await page.getByRole('link', { name: /Retorno/ }).click()
-  await page.getByRole('link', { name: /Presencial/ }).first().click()
   const day = page.locator('.day-btn:not([aria-disabled="true"])').first()
   await day.click()
   const slot = page.locator('.slot').first()

@@ -20,20 +20,20 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
     .where(and(eq(schema.appointments.id, id), eq(schema.appointments.patientId, user.patientId)))
   if (!a) return new Response('Não encontrado', { status: 404 })
   const s = await getSettings()
-  const where = a.modality === 'online' ? (a.meetingUrl ?? 'On-line (link no app)') : (s.address ?? 'Consultório')
+  const where = a.meetingUrl ?? 'On-line (link no app)'
   const body = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Consultorio//Agenda//PT-BR',
+    'PRODID:-//AreaDoCliente//Agenda//PT-BR',
     'CALSCALE:GREGORIAN',
     'BEGIN:VEVENT',
-    `UID:${a.id}@consultorio`,
+    `UID:${a.id}@agenda`,
     `DTSTAMP:${ics(new Date())}`,
     `DTSTART:${ics(a.startAt)}`,
     `DTEND:${ics(a.endAt)}`,
     `SUMMARY:${esc(`${a.serviceName} · ${s.professionalName}`)}`,
     `LOCATION:${esc(where)}`,
-    `DESCRIPTION:${esc(`Consulta ${a.modality === 'online' ? 'on-line' : 'presencial'}. Código ${a.code ?? ''}`)}`,
+    `DESCRIPTION:${esc(`Consulta on-line, por videochamada. Código ${a.code ?? ''}`)}`,
     'BEGIN:VALARM',
     'TRIGGER:-PT2H',
     'ACTION:DISPLAY',

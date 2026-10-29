@@ -67,7 +67,7 @@ export default async function AboutPage() {
                   </li>
                 ))}
               </ol>
-              {s.modalityText && <p className="tl-note">{s.modalityText}</p>}
+              <p className="tl-note">Atendimento on-line, por videochamada e pelo app.</p>
             </div>
           </div>
         </section>
