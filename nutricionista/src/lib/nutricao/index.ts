@@ -92,7 +92,10 @@ export function searchFoods<T extends { name: string }>(foods: T[], query: strin
         break
       }
     }
-    if (ok) scored.push({ f, score })
+    // Desempate: alimentos com medida caseira cadastrada são os de uso no dia a dia
+    // (ex.: "Arroz, tipo 1, cozido" aparece antes de "Arroz, tipo 1, cru").
+    const measures = (f as { measures?: unknown[] }).measures
+    if (ok) scored.push({ f, score: score + (measures?.length ? 0.5 : 0) })
   }
   return scored
     .sort((a, b) => b.score - a.score || a.f.name.length - b.f.name.length)

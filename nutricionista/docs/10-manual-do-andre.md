@@ -103,3 +103,13 @@ O menu lateral tem quatro grupos, do que se usa todo dia ao que se configura uma
 - **Sistema:** Configurações e Privacidade e auditoria.
 
 O atendimento é 100% on-line: as consultas são por videochamada e o link é gerado ao confirmar a consulta. No app, o cliente encontra no topo do "Hoje" os atalhos Meu plano, Registrar refeição, Meu progresso e Falar com o coach.
+
+## Alimentos e tabela nutricional
+
+A base de alimentos é a **TACO 4ª ed. completa** (597 alimentos, Unicamp). Em **Alimentos**, busque pelo nome e abra a ficha do alimento para ver:
+
+- a tabela nutricional inteira (energia, macronutrientes, minerais e vitaminas), por 100 g ou por medida caseira;
+- as medidas caseiras do alimento e as **sugestões do IBGE** (clique em "Usar" para adicionar);
+- o fator de cocção e se o alimento aparece nos planos.
+
+Para produtos de marca, use **Cadastrar alimento próprio** com os dados do rótulo. No editor de planos, o cartão **Vitaminas e minerais** mostra o total do dia. Detalhes e fontes em `docs/12-tabelas-de-alimentos.md`.

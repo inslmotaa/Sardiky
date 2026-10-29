@@ -622,7 +622,14 @@ export const foods = pgTable(
     /** Nome sem acentos e em minúsculas, para busca. */
     search: text('search').notNull(),
     group: text('group').notNull(),
-    source: text('source').notNull().default('TACO'), // TACO | TBCA | proprio
+    /** TACO (tabela oficial) | Complementar (fora da TACO, a conferir) | proprio (rótulo cadastrado pelo coach). */
+    source: text('source').notNull().default('TACO'),
+    /** Número do alimento na TACO 4ª ed. */
+    code: integer('code'),
+    /** Categoria oficial da tabela de origem (ex.: "Cereais e derivados"). */
+    category: text('category'),
+    /** Tabela nutricional completa por 100 g (chaves de TACO_NUTRIENTS); "Tr" = traços, "NA" = não se aplica, null = não analisado. */
+    nutrients: jsonb('nutrients').$type<Record<string, number | 'Tr' | 'NA' | null>>().notNull().default({}),
     kcal: numeric('kcal', { mode: 'number' }).notNull(),
     protein: numeric('protein', { mode: 'number' }).notNull(),
     carbs: numeric('carbs', { mode: 'number' }).notNull(),
@@ -649,6 +656,24 @@ export const householdMeasures = pgTable(
     grams: numeric('grams', { mode: 'number' }).notNull(),
   },
   (t) => [index('measures_food_idx').on(t.foodId)],
+)
+
+/**
+ * Medidas caseiras de referência do IBGE (POF 2008-2009, "Tabela de medidas referidas para os
+ * alimentos consumidos no Brasil"). Servem de sugestão ao cadastrar medidas de um alimento.
+ */
+export const measureRefs = pgTable(
+  'measure_refs',
+  {
+    id: id(),
+    food: text('food').notNull(),
+    preparation: text('preparation').notNull().default(''),
+    measure: text('measure').notNull(),
+    grams: numeric('grams', { mode: 'number' }).notNull(),
+    /** Alimento e preparo sem acentos e em minúsculas, para busca. */
+    search: text('search').notNull(),
+  },
+  (t) => [index('measure_refs_search_idx').on(t.search)],
 )
 
 /** Refeição do plano marcada pelo paciente no dia (feita, parcial ou pulada). */

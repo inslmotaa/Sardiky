@@ -78,6 +78,13 @@
       "when": 1793304109614,
       "tag": "0010_marca_verde",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793307951918,
+      "tag": "0011_tabela_taco",
+      "breakpoints": true
     }
   ]
 }

@@ -17,6 +17,8 @@ COPY --from=build /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/drizzle ./drizzle
 COPY --from=build /app/scripts ./scripts
+# Tabelas de alimentos (TACO 4ª ed. e medidas do IBGE), lidas por scripts/tabelas/importar.mjs ao subir.
+COPY --from=build /app/src/db/data ./src/db/data
 COPY --from=build /app/next.config.ts ./next.config.ts
 RUN addgroup -S app && adduser -S app -G app && mkdir -p /data/uploads && chown -R app:app /data /app/.next
 USER app

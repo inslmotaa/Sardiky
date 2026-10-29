@@ -37,6 +37,8 @@ export function recipesAsFoods(recipes: Recipe[]): FoodOption[] {
         per100: info.per100,
         cookingFactor: null,
         measures: [{ name: 'porção', grams: Math.round(info.portionGrams) }],
+        // Receitas não têm vitaminas e minerais calculados: entram como "sem dado" na análise do plano.
+        micros: {},
       }
     })
 }

@@ -14,7 +14,7 @@ import { newCode } from '../lib/auth/tokens'
 import { normalize, bmr as calcBmr, tdee as calcTdee, bodyFatFromSkinfolds, leanMass as leanMassOf } from '../lib/nutricao'
 import { buildDemoPlans } from './demo-plans'
 import { jitsiRoom } from '../lib/feriados'
-import { TACO_FOODS } from './foods-taco'
+import { importTables } from './import-tables'
 import type { FormField } from '../lib/forms'
 
 loadEnv()
@@ -44,7 +44,7 @@ async function main() {
   console.log('Limpando dados…')
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
-      form_templates, anamneses, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, foods, measurements, goals, leads,
+      form_templates, anamneses, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, measure_refs, foods, measurements, goals, leads,
       appointments, patients, packages, faqs, testimonials, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
@@ -505,35 +505,18 @@ async function main() {
   ])
 
   /* --------------------------- base de alimentos ---------------------- */
-  const foodRows = await db
-    .insert(s.foods)
-    .values(
-      TACO_FOODS.map((f) => ({
-        name: f.name,
-        search: normalize(f.name),
-        group: f.group,
-        source: 'TACO',
-        kcal: f.kcal,
-        protein: f.protein,
-        carbs: f.carbs,
-        fat: f.fat,
-        fiber: f.fiber,
-        sodium: f.sodium ?? null,
-        cookingFactor: f.cookingFactor ?? null,
-      })),
-    )
-    .returning()
-  await db.insert(s.householdMeasures).values(
-    TACO_FOODS.flatMap((f) => {
-      const row = foodRows.find((r) => r.name === f.name)!
-      return f.measures.map(([name, grams]) => ({ foodId: row.id, name, grams }))
-    }),
-  )
+  // TACO 4ª ed. completa (597 alimentos) + medidas caseiras de referência do IBGE.
+  const { byCuratedName } = await importTables(conn, db)
+  // Busca pelo nome curto dos alimentos iniciais (ex.: "Banana prata" → "Banana, prata, crua").
+  const seedFood = (name: string) => {
+    const row = [...byCuratedName.entries()].find(([curated]) => curated.startsWith(name))?.[1]
+    if (!row) throw new Error(`Alimento não encontrado no seed: ${name}`)
+    return row
+  }
 
   /* --------------------------- planos alimentares ---------------------- */
   const { beatrizPlan, beatrizV1, lucasPlan, vegetarianoPlan, emagrecimentoPlan } = buildDemoPlans((name) => {
-    const row = foodRows.find((r) => r.name.startsWith(name))
-    if (!row) throw new Error(`Alimento não encontrado no seed: ${name}`)
+    const row = seedFood(name)
     return { id: row.id, name: row.name, group: row.group, per100: { kcal: row.kcal, protein: row.protein, carbs: row.carbs, fat: row.fat, fiber: row.fiber } }
   })
 
@@ -625,7 +608,7 @@ async function main() {
 
   /* ------------------------------ diário ------------------------------- */
   const diaryItem = (name: string, grams: number) => {
-    const f = foodRows.find((r) => r.name.startsWith(name))!
+    const f = seedFood(name)
     return { foodId: f.id, name: f.name, grams, per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber } }
   }
   await db.insert(s.diaryEntries).values([
@@ -787,7 +770,7 @@ async function main() {
   /* ----------------------------- financeiro ---------------------------- */
   /* ---------------- receitas, materiais, prescrições e anamnese ---------------- */
   const ing = (name: string, grams: number) => {
-    const f = foodRows.find((r) => r.name.startsWith(name))!
+    const f = seedFood(name)
     return { foodId: f.id, name: f.name, grams, per100: { kcal: f.kcal, protein: f.protein, carbs: f.carbs, fat: f.fat, fiber: f.fiber } }
   }
   await db.insert(s.recipes).values([

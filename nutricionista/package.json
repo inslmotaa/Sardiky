@@ -16,7 +16,8 @@
     "db:seed": "tsx src/db/seed.ts",
     "setup": "npm run db:migrate && npm run db:seed",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:tabelas": "tsx src/db/import-tables-cli.ts"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.10",

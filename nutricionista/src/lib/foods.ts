@@ -2,6 +2,7 @@ import 'server-only'
 import { asc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import type { Nutrients } from './nutricao'
+import { PLAN_MICROS, type NutrientTable } from './tabela-nutricional'
 
 export type FoodOption = {
   id: string
@@ -11,6 +12,8 @@ export type FoodOption = {
   per100: Nutrients
   cookingFactor: number | null
   measures: { name: string; grams: number }[]
+  /** Vitaminas e minerais por 100 g usados na análise do plano (TACO 4ª ed.). */
+  micros: NutrientTable
 }
 
 /** Base de alimentos ativa com medidas caseiras (usada no editor e nas calculadoras). */
@@ -26,5 +29,6 @@ export async function loadFoods(): Promise<FoodOption[]> {
     per100: { kcal: r.kcal, protein: r.protein, carbs: r.carbs, fat: r.fat, fiber: r.fiber },
     cookingFactor: r.cookingFactor,
     measures: measures.filter((m) => m.foodId === r.id).map((m) => ({ name: m.name, grams: m.grams })),
+    micros: Object.fromEntries(PLAN_MICROS.map((k) => [k, r.nutrients[k] ?? null])),
   }))
 }

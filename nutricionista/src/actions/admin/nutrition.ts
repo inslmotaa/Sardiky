@@ -143,6 +143,7 @@ export async function createFood(_: ActionState, fd: FormData): Promise<ActionSt
         fiber: d.fiber ?? 0,
         sodium: d.sodium,
         cookingFactor: d.cookingFactor,
+        nutrients: { kcal: d.kcal, proteina: d.protein, carboidrato: d.carbs, lipideos: d.fat, fibra: d.fiber ?? null, sodio: d.sodium ?? null },
         createdBy: user.id,
       })
       .returning({ id: schema.foods.id })
@@ -165,6 +166,7 @@ export async function addMeasure(foodId: string, _: ActionState, fd: FormData): 
     await db.insert(schema.householdMeasures).values({ foodId, name: parsed.data.name, grams: parsed.data.grams })
     await audit(user, 'medida_caseira_criada', 'alimento', { entityId: foodId })
     revalidatePath('/admin/alimentos')
+    revalidatePath(`/admin/alimentos/${foodId}`)
     return { ok: true, message: 'Medida adicionada.' }
   } catch (err) {
     return failure(err)
@@ -177,6 +179,7 @@ export async function deleteMeasure(foodId: string, measureId: string): Promise<
   await db.delete(schema.householdMeasures).where(and(eq(schema.householdMeasures.id, measureId), eq(schema.householdMeasures.foodId, foodId)))
   await audit(user, 'medida_caseira_excluida', 'alimento', { entityId: foodId })
   revalidatePath('/admin/alimentos')
+  revalidatePath(`/admin/alimentos/${foodId}`)
 }
 
 export async function updateCookingFactor(foodId: string, _: ActionState, fd: FormData): Promise<ActionState> {
@@ -188,6 +191,7 @@ export async function updateCookingFactor(foodId: string, _: ActionState, fd: Fo
     await db.update(schema.foods).set({ cookingFactor: parsed.data.cookingFactor, active: parsed.data.active }).where(eq(schema.foods.id, foodId))
     await audit(user, 'alimento_editado', 'alimento', { entityId: foodId })
     revalidatePath('/admin/alimentos')
+    revalidatePath(`/admin/alimentos/${foodId}`)
     return { ok: true, message: 'Alimento atualizado.' }
   } catch (err) {
     return failure(err)

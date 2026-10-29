@@ -276,3 +276,62 @@ table th {
     padding: 12px;
   }
 }
+
+/* Vitaminas e minerais do dia (editor de plano) */
+.micro-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+.micro-list > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.86rem;
+}
+.micro-list dt {
+  color: var(--muted);
+}
+.micro-list dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.micro-list__partial {
+  margin-left: 2px;
+  color: var(--warn);
+}
+
+/* Tabela nutricional do alimento */
+.nutri-table th[scope="row"] {
+  font-weight: 500;
+}
+.nutri-table__section th {
+  padding-top: 14px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
+  background: transparent;
+}
+.ibge-list {
+  max-height: 420px;
+  overflow-y: auto;
+}
+.ibge-list li {
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+.nutri-table tbody th[scope="row"] {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+  background: transparent;
+}
