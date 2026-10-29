@@ -26,7 +26,7 @@ const bookingSchema = z.object({
   name: str(120, 'Informe seu nome'),
   email,
   phone,
-  returning: z.enum(['sim', 'nao'], 'Informe se já é paciente'),
+  returning: z.enum(['sim', 'nao'], 'Informe se já é cliente'),
   notes: optStr(1000),
   consent: z.literal('on', 'É preciso concordar com a Política de Privacidade'),
   plano: z.string().optional(),

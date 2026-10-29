@@ -15,8 +15,8 @@ export async function AnamnesisTab({ patient, version }: { patient: typeof schem
     return (
       <Empty>
         {patient.userId
-          ? 'O paciente ainda não começou a anamnese. Ela aparece no primeiro acesso dele ao app.'
-          : 'A anamnese fica disponível quando o paciente tiver acesso ao app (botão “Liberar acesso” no Resumo).'}
+          ? 'O cliente ainda não começou a anamnese. Ela aparece no primeiro acesso dele ao app.'
+          : 'A anamnese fica disponível quando o cliente tiver acesso ao app (botão “Liberar acesso” no Resumo).'}
       </Empty>
     )
   const current = versions.find((v) => String(v.version) === version) ?? versions.find((v) => v.status === 'enviada') ?? versions[0]
@@ -47,11 +47,11 @@ export async function AnamnesisTab({ patient, version }: { patient: typeof schem
         <p className="small muted" style={{ margin: 0 }}>
           {current.submittedAt
             ? `Enviada em ${fmtDateTime(current.submittedAt, s.timezone)}.`
-            : `Em preenchimento pelo paciente (etapa ${Math.min(current.step + 1, ANAMNESIS_STEPS.length + 1)} de ${ANAMNESIS_STEPS.length + 1}), atualizado em ${fmtDateTime(current.updatedAt, s.timezone)}.`}
+            : `Em preenchimento pelo cliente (etapa ${Math.min(current.step + 1, ANAMNESIS_STEPS.length + 1)} de ${ANAMNESIS_STEPS.length + 1}), atualizado em ${fmtDateTime(current.updatedAt, s.timezone)}.`}
         </p>
         {latest.status === 'rascunho' && latest.id !== current.id && (
           <p className="alert alert--info small" style={{ margin: '10px 0 0' }}>
-            Reavaliação pedida: a versão {latest.version} está com o paciente, que já recebeu as respostas anteriores para atualizar.
+            Reavaliação pedida: a versão {latest.version} está com o cliente, que já recebeu as respostas anteriores para atualizar.
           </p>
         )}
         {versions.length > 1 && (

@@ -10,15 +10,18 @@ import { Brand } from '@/components/Brand'
 import { PwaClient } from '@/components/pwa'
 import { CloseOnNavigate, NavLinks, type NavItem } from '@/components/NavLinks'
 import {
-  IconBook,
+  IconApple,
+  IconCalculator,
   IconCalendar,
   IconChart,
   IconChat,
+  IconFolder,
   IconForm,
   IconHome,
   IconInbox,
   IconMoney,
   IconPlate,
+  IconRecipe,
   IconReport,
   IconSettings,
   IconShield,
@@ -37,26 +40,38 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           .select({ n: count() })
           .from(schema.messages)
           .innerJoin(schema.patients, eq(schema.patients.id, schema.messages.patientId))
-          .where(and(eq(schema.messages.fromPatient, true), isNull(schema.messages.readAt), isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined))
+          .where(
+            and(
+              eq(schema.messages.fromPatient, true),
+              isNull(schema.messages.readAt),
+              isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined,
+            ),
+          )
       : Promise.resolve([{ n: 0 }]),
     db.select({ n: count() }).from(schema.leads).where(eq(schema.leads.status, 'novo')),
   ])
 
+  // Menu em quatro grupos curtos, do que se usa todo dia ao que se configura uma vez.
   const groups: { title: string; items: (NavItem & { show: boolean })[] }[] = [
     {
-      title: 'Atendimento',
+      title: 'Dia a dia',
       items: [
         { href: '/admin', label: 'Início', icon: <IconHome />, exact: true, show: true },
         { href: '/admin/agenda', label: 'Agenda', icon: <IconCalendar />, count: pendingAppts.n, show: can(user, 'agenda') },
-        { href: '/admin/pacientes', label: 'Pacientes', icon: <IconUsers />, show: can(user, 'cadastro') || can(user, 'clinico') },
-        { href: '/admin/acompanhamento', label: 'Acompanhamento', icon: <IconChart />, show: can(user, 'clinico') },
+        { href: '/admin/pacientes', label: 'Clientes', icon: <IconUsers />, show: can(user, 'cadastro') || can(user, 'clinico') },
         { href: '/admin/mensagens', label: 'Mensagens', icon: <IconChat />, count: unread.n, show: can(user, 'clinico') },
+        { href: '/admin/acompanhamento', label: 'Acompanhamento', icon: <IconChart />, show: can(user, 'clinico') },
+      ],
+    },
+    {
+      title: 'Planos e conteúdo',
+      items: [
         { href: '/admin/planos', label: 'Planos alimentares', icon: <IconPlate />, show: can(user, 'clinico') },
-        { href: '/admin/alimentos', label: 'Alimentos', icon: <IconBook />, show: can(user, 'clinico') },
-        { href: '/admin/receitas', label: 'Receitas', icon: <IconPlate />, show: can(user, 'clinico') },
-        { href: '/admin/materiais', label: 'Materiais', icon: <IconBook />, show: can(user, 'clinico') },
-        { href: '/admin/calculadoras', label: 'Calculadoras', icon: <IconChart />, show: can(user, 'clinico') },
+        { href: '/admin/alimentos', label: 'Alimentos', icon: <IconApple />, show: can(user, 'clinico') },
+        { href: '/admin/receitas', label: 'Receitas', icon: <IconRecipe />, show: can(user, 'clinico') },
+        { href: '/admin/materiais', label: 'Materiais', icon: <IconFolder />, show: can(user, 'clinico') },
         { href: '/admin/formularios', label: 'Formulários', icon: <IconForm />, show: can(user, 'clinico') },
+        { href: '/admin/calculadoras', label: 'Calculadoras', icon: <IconCalculator />, show: can(user, 'clinico') },
       ],
     },
     {
@@ -93,13 +108,22 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <Brand name={s.professionalName} sub="Painel do coach" logoFileId={s.logoFileId} />
         <nav aria-label="Painel">{nav}</nav>
         <div className="sidebar__foot">
-          <div style={{ marginBottom: 6 }}>
-            <strong style={{ color: '#fff' }}>{user.name}</strong>
-            <div style={{ color: '#9fb0a9' }}>{user.role === 'admin' ? 'Coach (administrador)' : 'Equipe'}</div>
+          <div className="sidebar__user">
+            <span className="avatar" aria-hidden>
+              {user.name
+                .split(/\s+/)
+                .slice(0, 2)
+                .map((w) => w[0]?.toUpperCase())
+                .join('')}
+            </span>
+            <div>
+              <strong>{user.name}</strong>
+              <span>{user.role === 'admin' ? 'Coach (administrador)' : 'Equipe'}</span>
+            </div>
           </div>
-          <div className="row" style={{ gap: 14 }}>
-            <a href="/" target="_blank" style={{ color: '#fff' }}>
-              Ver site
+          <div className="sidebar__links">
+            <a href="/" target="_blank">
+              Ver site ↗
             </a>
             <form action={logout}>
               <button className="link-btn" type="submit">

@@ -5,17 +5,17 @@ test('nutricionista revisa e publica plano; paciente passa a vê-lo', async ({ p
   await login(page, 'admin')
   await page.goto('/admin/planos')
   await page.getByRole('link', { name: /Lucas Fictício/ }).first().click()
-  await expect(page.getByText('Rascunho — o paciente não vê esta versão')).toBeVisible()
+  await expect(page.getByText('Rascunho — o cliente não vê esta versão')).toBeVisible()
 
   // Paciente ainda não vê o rascunho.
   // Publicar sem confirmar a revisão é bloqueado.
   page.once('dialog', (d) => d.accept())
-  await page.getByRole('button', { name: 'Ativar no app do paciente' }).click()
+  await page.getByRole('button', { name: 'Ativar no app do cliente' }).click()
   await expect(page.getByText('Confirme que revisou o plano antes de publicar.')).toBeVisible()
 
   await page.getByLabel('Revisei e aprovo este plano').check()
   page.once('dialog', (d) => d.accept())
-  await page.getByRole('button', { name: 'Ativar no app do paciente' }).click()
+  await page.getByRole('button', { name: 'Ativar no app do cliente' }).click()
   // Após publicar, a página passa a exibir a versão publicada (somente leitura).
   await expect(page.getByRole('button', { name: 'Criar nova versão' })).toBeVisible()
   await expect(page.locator('.page-head .badge').first()).toHaveText('Publicado')
@@ -42,7 +42,7 @@ test('nutricionista cadastra paciente e libera acesso por link', async ({ page, 
   await page.goto('/admin/pacientes/novo')
   await page.getByLabel('Nome completo').fill('Nova Paciente Teste')
   await page.getByLabel('E-mail').fill('nova.teste@example.com')
-  await page.getByRole('button', { name: 'Cadastrar paciente' }).click()
+  await page.getByRole('button', { name: 'Cadastrar cliente' }).click()
   await expect(page.getByRole('heading', { name: 'Nova Paciente Teste' })).toBeVisible()
   await page.getByRole('button', { name: 'Liberar acesso' }).click()
   const msg = await page.getByText(/Link de primeiro acesso/).textContent()

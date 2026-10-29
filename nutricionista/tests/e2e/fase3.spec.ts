@@ -12,13 +12,13 @@ test('restrições da ficha geram alerta no editor de planos', async ({ page }) 
   const published = page.url()
   await page.getByRole('button', { name: 'Criar nova versão' }).click()
   await page.waitForURL((u) => u.href !== published)
-  await expect(page.locator('p', { hasText: 'Restrições do paciente:' })).toContainText('Lactose')
+  await expect(page.locator('p', { hasText: 'Restrições do cliente:' })).toContainText('Lactose')
   await expect(page.getByText('⚠ Restrição: Lactose').first()).toBeVisible()
   const meal = page.locator('section[aria-label^="Refeição"]').first()
   const name = (await meal.getAttribute('aria-label'))!.replace('Refeição ', '')
   await meal.getByLabel(`Adicionar alimento em ${name}`).fill('queijo minas')
   await page.keyboard.press('Enter')
-  await expect(meal.getByRole('alert')).toContainText('conflita com a restrição do paciente (Lactose)')
+  await expect(meal.getByRole('alert')).toContainText('conflita com a restrição do cliente (Lactose)')
 })
 
 test('anamnese nativa: consentimento, seções e restrições levadas à ficha', async ({ page }) => {
@@ -98,7 +98,7 @@ test('prescrições: item com dose, texto escrito livremente e edição aparecem
   await form.getByLabel('Dose').fill('1 g')
   await form.getByLabel('Horário').fill('No jantar')
   await form.getByRole('button', { name: 'Registrar prescrição' }).click()
-  await expect(page.getByText('Prescrição registrada e visível no app do paciente.')).toBeVisible()
+  await expect(page.getByText('Prescrição registrada e visível no app do cliente.')).toBeVisible()
 
   // Prescrição escrita (tipo padrão), com várias linhas; sem texto não registra.
   await page.reload()
@@ -107,7 +107,7 @@ test('prescrições: item com dose, texto escrito livremente e edição aparecem
   await expect(form.getByText('Escreva a prescrição')).toBeVisible()
   await form.getByLabel('Prescrição').fill('Creatina 5 g por dia, com água.\nCafeína 200 mg, 30 min antes do treino.')
   await form.getByRole('button', { name: 'Registrar prescrição' }).click()
-  await expect(page.getByText('Prescrição registrada e visível no app do paciente.')).toBeVisible()
+  await expect(page.getByText('Prescrição registrada e visível no app do cliente.')).toBeVisible()
 
   // Edição do texto.
   await page.reload()
@@ -115,7 +115,7 @@ test('prescrições: item com dose, texto escrito livremente e edição aparecem
   await item.getByText('Editar').click()
   await item.getByLabel('Prescrição').fill('Creatina 5 g por dia, com água.\nCafeína 150 mg, 30 min antes do treino.')
   await item.getByRole('button', { name: 'Salvar alterações' }).click()
-  await expect(page.getByText('Prescrição atualizada no app do paciente.')).toBeVisible()
+  await expect(page.getByText('Prescrição atualizada no app do cliente.')).toBeVisible()
 
   await login(page, 'beatriz')
   await page.goto('/paciente/plano')

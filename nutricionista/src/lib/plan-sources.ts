@@ -16,7 +16,7 @@ export async function planSources(patientId?: string) {
       : Promise.resolve([]),
   ])
   return [
-    ...own.map((p) => ({ id: p.id, label: `Versão ${p.version} deste paciente (${p.publishedAt ? fmtDay(p.publishedAt.toISOString().slice(0, 10)) : ''})` })),
+    ...own.map((p) => ({ id: p.id, label: `Versão ${p.version} deste cliente (${p.publishedAt ? fmtDay(p.publishedAt.toISOString().slice(0, 10)) : ''})` })),
     ...templates.map((t) => ({ id: t.id, label: `Modelo: ${t.title}` })),
   ]
 }

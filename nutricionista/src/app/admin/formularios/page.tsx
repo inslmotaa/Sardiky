@@ -18,7 +18,7 @@ export default async function FormsPage() {
     <div className="stack">
       <PageHead
         title="Formulários"
-        subtitle="Modelos de anamnese, questionários e termos. Envie a um paciente pela aba “Formulários” do prontuário. A anamnese principal é preenchida pelo cliente no próprio site (aba “Anamnese”)."
+        subtitle="Modelos de anamnese, questionários e termos. Envie a um cliente pela aba “Formulários” da ficha. A anamnese principal é preenchida pelo cliente no próprio site (aba “Anamnese”)."
         actions={
           <Link href="/admin/formularios/novo" className="btn btn--primary">
             Novo modelo

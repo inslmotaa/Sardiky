@@ -6,7 +6,7 @@
  */
 export const STAFF_PERMISSIONS = {
   agenda: 'Agenda e agendamentos',
-  cadastro: 'Dados cadastrais de pacientes',
+  cadastro: 'Dados cadastrais de clientes',
   clinico: 'Dados clínicos (avaliações, planos, diário, formulários, mensagens)',
   financeiro: 'Financeiro',
   relatorios: 'Relatórios',

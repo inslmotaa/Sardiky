@@ -15,7 +15,7 @@ export function PaymentsTable({ rows, showPatient = true, today = todayIn() }: {
         <thead>
           <tr>
             <th>Descrição</th>
-            {showPatient && <th>Paciente</th>}
+            {showPatient && <th>Cliente</th>}
             <th className="num">Valor</th>
             <th>Situação</th>
             <th>Origem</th>

@@ -86,7 +86,7 @@ export default async function PlansPage() {
             <table>
               <thead>
                 <tr>
-                  <th>Paciente</th>
+                  <th>Cliente</th>
                   <th>Plano</th>
                   <th>Versão</th>
                   <th>Situação</th>

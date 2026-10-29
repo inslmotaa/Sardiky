@@ -7,7 +7,7 @@ import { DEFAULT_FEATURES, type AppFeatures } from '@/db/schema'
 /** Cadastro do paciente logado, com os recursos do app liberados (memorizado por requisição). */
 export const getPatient = cache(async (patientId: string) => {
   const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, patientId))
-  if (!p) throw new Error('Paciente não encontrado')
+  if (!p) throw new Error('Cliente não encontrado')
   return { ...p, features: { ...DEFAULT_FEATURES, ...p.features } as AppFeatures }
 })
 

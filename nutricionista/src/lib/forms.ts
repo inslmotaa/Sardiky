@@ -17,7 +17,7 @@ export const FIELD_TYPES = {
 /** Para onde a resposta é levada na ficha do paciente. */
 export const FIELD_MAPS = {
   restricoes: 'Restrições alimentares (gera alerta no editor de planos)',
-  objetivo: 'Objetivo do paciente',
+  objetivo: 'Objetivo do cliente',
 } as const
 export type FieldMap = keyof typeof FIELD_MAPS
 

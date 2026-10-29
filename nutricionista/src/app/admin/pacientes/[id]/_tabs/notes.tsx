@@ -16,7 +16,7 @@ export async function NotesTab({ patient }: { patient: typeof schema.patients.$i
     .orderBy(desc(schema.clinicalNotes.createdAt))
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
-      <p className="alert alert--info small">Notas clínicas são privadas: nunca aparecem na área do paciente nem na exportação automática de dados.</p>
+      <p className="alert alert--info small">Notas clínicas são privadas: nunca aparecem na área do cliente nem na exportação automática de dados.</p>
       <section className="card">
         <ActionForm action={addClinicalNote.bind(null, patient.id)} className="stack" resetOnSuccess>
           <Field label="Nova anotação" name="body">

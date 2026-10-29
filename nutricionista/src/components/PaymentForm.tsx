@@ -15,7 +15,7 @@ export function PaymentForm({
       {patientId ? (
         <input type="hidden" name="patientId" value={patientId} />
       ) : (
-        <Field label="Paciente" name="patientId">
+        <Field label="Cliente" name="patientId">
           <select name="patientId" defaultValue="">
             <option value="">— Sem vínculo —</option>
             {patients?.map((p) => (

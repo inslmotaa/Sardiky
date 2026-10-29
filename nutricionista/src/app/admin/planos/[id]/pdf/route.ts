@@ -57,7 +57,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     brandColor: s.brandColor,
     patientName: patient?.fullName ?? null,
     title: plan.title,
-    validity: plan.validUntil ? `Válido até ${fmtDay(plan.validUntil)}` : plan.status === 'rascunho' ? 'RASCUNHO — não enviado ao paciente' : null,
+    validity: plan.validUntil ? `Válido até ${fmtDay(plan.validUntil)}` : plan.status === 'rascunho' ? 'RASCUNHO — não enviado ao cliente' : null,
     generatedAt: fmtDateTime(new Date(), s.timezone),
     showKcal: asPatient ? f.calorias : true,
     showMacros: asPatient ? f.macros : true,

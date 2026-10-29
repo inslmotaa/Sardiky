@@ -17,7 +17,7 @@ export async function MessagesTab({ patient }: { patient: typeof schema.patients
   return (
     <section className="card">
       <LiveUpdates scope={`p=${patient.id}`} />
-      {!patient.userId && <p className="alert alert--warn small">O paciente ainda não tem acesso à área exclusiva; ele verá as mensagens quando o acesso for liberado.</p>}
+      {!patient.userId && <p className="alert alert--warn small">O cliente ainda não tem acesso à área exclusiva; ele verá as mensagens quando o acesso for liberado.</p>}
       <ChatThread
         messages={msgs}
         action={sendTeamMessage.bind(null, patient.id)}

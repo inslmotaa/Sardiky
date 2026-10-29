@@ -47,12 +47,12 @@ export default async function PatientsPage({ searchParams }: { searchParams: Pro
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <PageHead
-        title="Pacientes"
-        subtitle={`${rows.length} ${rows.length === 1 ? 'paciente' : 'pacientes'}`}
+        title="Clientes"
+        subtitle={`${rows.length} ${rows.length === 1 ? 'cliente' : 'clientes'}`}
         actions={
           can(user, 'cadastro') && (
             <Link href="/admin/pacientes/novo" className="btn btn--primary">
-              Novo paciente
+              Novo cliente
             </Link>
           )
         }
@@ -95,13 +95,13 @@ export default async function PatientsPage({ searchParams }: { searchParams: Pro
       </form>
 
       {rows.length === 0 ? (
-        <Empty>Nenhum paciente encontrado.</Empty>
+        <Empty>Nenhum cliente encontrado.</Empty>
       ) : (
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Paciente</th>
+                <th>Cliente</th>
                 <th>Situação</th>
                 <th>Etapa</th>
                 <th>Última consulta</th>

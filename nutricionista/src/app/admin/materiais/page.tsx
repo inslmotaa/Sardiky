@@ -26,7 +26,7 @@ export default async function MaterialsPage() {
   ])
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px' }}>
-      <PageHead title="Materiais educativos" subtitle="E-books, vídeos e guias liberados para todos os pacientes ou para pacientes escolhidos." />
+      <PageHead title="Materiais educativos" subtitle="E-books, vídeos e guias liberados para todos os clientes ou para clientes escolhidos." />
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <section>
           {list.length === 0 ? (
@@ -39,7 +39,7 @@ export default async function MaterialsPage() {
                     <strong>{m.title}</strong> <span className="badge badge--plain">{MATERIAL_KINDS[m.kind] ?? m.kind}</span>
                     {m.description && <div className="small">{m.description}</div>}
                     <div className="small muted">
-                      {m.audience === 'todos' ? 'Todos os pacientes' : `${m.patientIds.length} ${m.patientIds.length === 1 ? 'paciente' : 'pacientes'}: ${patients.filter((p) => m.patientIds.includes(p.id)).map((p) => p.name).join(', ')}`} ·{' '}
+                      {m.audience === 'todos' ? 'Todos os clientes' : `${m.patientIds.length} ${m.patientIds.length === 1 ? 'cliente' : 'clientes'}: ${patients.filter((p) => m.patientIds.includes(p.id)).map((p) => p.name).join(', ')}`} ·{' '}
                       {fmtDateTime(m.createdAt, s.timezone)}
                     </div>
                     {m.fileId && (
@@ -90,10 +90,10 @@ export default async function MaterialsPage() {
             <fieldset>
               <legend>Para quem</legend>
               <label className="check">
-                <input type="radio" name="audience" value="todos" defaultChecked /> Todos os pacientes
+                <input type="radio" name="audience" value="todos" defaultChecked /> Todos os clientes
               </label>
               <label className="check">
-                <input type="radio" name="audience" value="pacientes" /> Apenas os pacientes marcados abaixo
+                <input type="radio" name="audience" value="pacientes" /> Apenas os clientes marcados abaixo
               </label>
               <div className="choice-grid" style={{ maxHeight: 180, overflowY: 'auto', marginTop: 6 }}>
                 {patients.map((p) => (

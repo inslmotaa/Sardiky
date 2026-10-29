@@ -389,7 +389,7 @@ function WaterRing({ ml, goal }: { ml: number; goal: number }) {
         <defs>
           <linearGradient id="water-grad" x1="0" x2="1">
             <stop offset="0" stopColor="#6cc48a" />
-            <stop offset="1" stopColor="#2f8f57" />
+            <stop offset="1" stopColor="#1f5e3b" />
           </linearGradient>
         </defs>
       </svg>

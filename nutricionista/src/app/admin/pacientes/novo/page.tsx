@@ -11,12 +11,12 @@ export default async function NewPatientPage() {
   if (!can(user, 'cadastro')) return <NoAccess />
   return (
     <div style={{ maxWidth: 820 }}>
-      <PageHead title="Novo paciente" crumbs={[{ href: '/admin/pacientes', label: 'Pacientes' }]} subtitle="Depois de salvar, você pode liberar o acesso à área do paciente." />
+      <PageHead title="Novo cliente" crumbs={[{ href: '/admin/pacientes', label: 'Clientes' }]} subtitle="Depois de salvar, você pode liberar o acesso à área do cliente." />
       <div className="card">
         <ActionForm action={createPatient} className="stack">
           <PatientFormFields nutritionists={await nutritionistOptions()} />
           <div>
-            <SubmitButton>Cadastrar paciente</SubmitButton>
+            <SubmitButton>Cadastrar cliente</SubmitButton>
           </div>
         </ActionForm>
       </div>

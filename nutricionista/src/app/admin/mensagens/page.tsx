@@ -31,7 +31,7 @@ export default async function InboxPage() {
     .orderBy(desc(sql`max(${schema.messages.createdAt})`))
   return (
     <div className="stack">
-      <PageHead title="Mensagens" subtitle="Conversas com pacientes. Responda pelo prontuário de cada um." />
+      <PageHead title="Mensagens" subtitle="Conversas com clientes. Responda pela ficha de cada um." />
       <LiveUpdates scope="" intervalMs={8000} />
       <section className="card row row--between" style={{ alignItems: 'center' }}>
         <strong className="small">Avisos de novas mensagens neste aparelho</strong>

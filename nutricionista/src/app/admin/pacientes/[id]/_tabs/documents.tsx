@@ -27,7 +27,7 @@ export async function DocumentsTab({ patient }: { patient: typeof schema.patient
             </Field>
           </div>
           <label className="check">
-            <input type="checkbox" name="share" /> Disponibilizar para o paciente em “Meus dados”
+            <input type="checkbox" name="share" /> Disponibilizar para o cliente em “Meus dados”
           </label>
           <div>
             <SubmitButton pendingText="Enviando…">Anexar</SubmitButton>
@@ -43,7 +43,7 @@ export async function DocumentsTab({ patient }: { patient: typeof schema.patient
               <tr>
                 <th>Documento</th>
                 <th>Enviado em</th>
-                <th>Paciente vê?</th>
+                <th>Cliente vê?</th>
                 <th></th>
               </tr>
             </thead>

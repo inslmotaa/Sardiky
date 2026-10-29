@@ -77,7 +77,7 @@ export default async function PrivacyPage() {
 
         <h2>5. Por quanto tempo</h2>
         <p>
-          Enquanto você estiver em acompanhamento. Depois, o prontuário nutricional é mantido pelo prazo exigido pelas normas profissionais e pela
+          Enquanto você estiver em acompanhamento. Depois, a ficha de acompanhamento é mantida pelo prazo exigido pelas normas profissionais e pela
           legislação aplicável e, ao fim desse prazo, é eliminado ou anonimizado. Contatos de quem não se tornou cliente são eliminados em até{' '}
           {s.leadRetentionDays} dias.
         </p>
@@ -92,7 +92,7 @@ export default async function PrivacyPage() {
             <strong>Corrigir</strong> dados incompletos ou desatualizados: pela área do cliente ou pelo e-mail abaixo.
           </li>
           <li>
-            <strong>Excluir</strong> sua conta: em Perfil, “Excluir minha conta”. O acesso é encerrado na hora; os registros do prontuário que a lei manda
+            <strong>Excluir</strong> sua conta: em Perfil, “Excluir minha conta”. O acesso é encerrado na hora; os registros da ficha que a lei manda
             guardar ficam protegidos até o fim do prazo e depois são anonimizados.
           </li>
           <li>Pedir portabilidade, informações sobre o compartilhamento e revogar o consentimento.</li>

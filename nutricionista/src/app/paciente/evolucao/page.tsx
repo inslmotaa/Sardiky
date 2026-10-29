@@ -67,7 +67,7 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
       <section className="card" id="registrar">
         <h2 style={{ fontSize: '1.15rem' }}>Registrar uma medida em casa</h2>
         <p className="muted small">
-          Esses valores ficam identificados como “informados pelo paciente” e não substituem a avaliação profissional. Para o peso, prefira
+          Esses valores ficam identificados como “informados pelo cliente” e não substituem a avaliação profissional. Para o peso, prefira
           pesar-se pela manhã, em jejum e na mesma balança.
         </p>
         <ActionForm action={addSelfMeasurement} className="stack" resetOnSuccess>

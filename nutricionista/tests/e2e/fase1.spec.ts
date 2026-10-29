@@ -28,7 +28,7 @@ test('editor: 150 g de arroz = 192 kcal; 3 colheres de sopa recalcula; substitui
   await meal.locator('.suggestions button').first().click()
   await expect(meal.locator('.subs-box').first()).toContainText('↔')
   await page.getByRole('button', { name: 'Salvar rascunho' }).click()
-  await expect(page.getByText('Rascunho salvo. O paciente ainda não vê esta versão.')).toBeVisible()
+  await expect(page.getByText('Rascunho salvo. O cliente ainda não vê esta versão.')).toBeVisible()
 })
 
 test('app do paciente: marcar refeição, água e peso na tela Hoje', async ({ page }) => {
@@ -76,7 +76,7 @@ test('recursos por paciente: ocultar calorias some com os números no app', asyn
   await login(page, 'admin')
   await page.goto('/admin/pacientes')
   await page.getByRole('link', { name: 'Beatriz Exemplo' }).click()
-  const form = page.locator('section', { has: page.getByRole('heading', { name: 'Recursos do app do paciente' }) })
+  const form = page.locator('section', { has: page.getByRole('heading', { name: 'Recursos do app do cliente' }) })
   await form.getByLabel('Calorias visíveis').uncheck()
   await form.getByLabel('Macros visíveis').uncheck()
   await form.getByRole('button', { name: 'Salvar recursos' }).click()

@@ -33,7 +33,7 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
     <div className="stack" style={{ ['--gap' as string]: '18px' }}>
       <PageHead
         title="Acompanhamento"
-        subtitle={`Pacientes ativos pela adesão nos últimos 7 dias completos (até ontem): em dia (≥ ${s.adherenceGood}% das refeições feitas), com dificuldade (${s.adherenceLow}–${s.adherenceGood - 1}%) e sem progresso (< ${s.adherenceLow}% ou sem registro).`}
+        subtitle={`Clientes ativos pela adesão nos últimos 7 dias completos (até ontem): em dia (≥ ${s.adherenceGood}% das refeições feitas), com dificuldade (${s.adherenceLow}–${s.adherenceGood - 1}%) e sem progresso (< ${s.adherenceLow}% ou sem registro).`}
       />
       <div className="stat-row">
         {ORDER.map((k) => (
@@ -51,13 +51,13 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
       />
 
       {shown.length === 0 ? (
-        <Empty>Nenhum paciente neste grupo.</Empty>
+        <Empty>Nenhum cliente neste grupo.</Empty>
       ) : (
         <div className="table-wrap">
           <table className="tracking-table">
             <thead>
               <tr>
-                <th>Paciente</th>
+                <th>Cliente</th>
                 <th>Situação</th>
                 <th className="num">Adesão (7 dias)</th>
                 <th>Último registro</th>
@@ -141,7 +141,7 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
               <SubmitButton>Salvar limites</SubmitButton>
             </div>
           </ActionForm>
-          <p className="small muted">Refeição feita conta 1, parcial conta ½. Só entram os dias desde o primeiro plano ativado do paciente.</p>
+          <p className="small muted">Refeição feita conta 1, parcial conta ½. Só entram os dias desde o primeiro plano ativado do cliente.</p>
         </div>
       </details>
     </div>

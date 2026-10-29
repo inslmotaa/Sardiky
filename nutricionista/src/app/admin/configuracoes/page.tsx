@@ -138,7 +138,7 @@ function ProfileSection({ s }: { s: S }) {
           <Field label="CPF/CNPJ do responsável (Política de privacidade)" name="responsibleDocument">
             <input name="responsibleDocument" defaultValue={s.responsibleDocument ?? ''} placeholder="[PREENCHER]" />
           </Field>
-          <Field label="Pacientes atendidos (contador do site)" name="statsPatients" hint="Só números reais. Vazio: o contador não aparece.">
+          <Field label="Clientes atendidos (contador do site)" name="statsPatients" hint="Só números reais. Vazio: o contador não aparece.">
             <input name="statsPatients" inputMode="numeric" defaultValue={s.statsPatients ?? ''} placeholder="[PREENCHER]" />
           </Field>
           <Field label="Anos de experiência (contador do site)" name="statsYears" hint="Só números reais. Vazio: o contador não aparece.">
@@ -322,7 +322,7 @@ async function ClinicalSection({ s }: { s: S }) {
         <Field label="Refeições padrão dos planos novos (uma por linha: nome e horário)" name="defaultMeals" hint="Ex.: Café da manhã 07:00. Um plano “em branco” já começa com essas refeições.">
           <textarea name="defaultMeals" rows={6} defaultValue={s.defaultMeals.map((m) => `${m.name} ${m.time}`).join('\n')} />
         </Field>
-        <Field label="Anamnese enviada automaticamente a cada paciente novo" name="autoAnamnesisTemplateId" hint="Modelos criados em Formulários. Com o link externo (Google Forms) configurado no Perfil, os dois convivem.">
+        <Field label="Anamnese enviada automaticamente a cada cliente novo" name="autoAnamnesisTemplateId" hint="Modelos criados em Formulários. Com o link externo (Google Forms) configurado no Perfil, os dois convivem.">
           <select name="autoAnamnesisTemplateId" defaultValue={s.autoAnamnesisTemplateId ?? ''}>
             <option value="">Não enviar automaticamente</option>
             {templates
@@ -368,7 +368,7 @@ function ChatSection({ s }: { s: S }) {
   return (
     <section className="card">
       <ActionForm action={saveChatSettings} className="stack">
-        <Field label="Respostas rápidas (uma por linha)" name="quickReplies" hint="Aparecem como atalhos no chat e no painel de Acompanhamento. Use {nome} para o primeiro nome do paciente.">
+        <Field label="Respostas rápidas (uma por linha)" name="quickReplies" hint="Aparecem como atalhos no chat e no painel de Acompanhamento. Use {nome} para o primeiro nome do cliente.">
           <textarea name="quickReplies" rows={5} defaultValue={s.quickReplies.join('\n')} />
         </Field>
         <fieldset>
@@ -389,7 +389,7 @@ function ChatSection({ s }: { s: S }) {
             </Field>
           </div>
         </fieldset>
-        <Field label="Resposta automática fora do horário" name="chatAutoReply" hint="Enviada no máximo uma vez a cada 12 horas por paciente.">
+        <Field label="Resposta automática fora do horário" name="chatAutoReply" hint="Enviada no máximo uma vez a cada 12 horas por cliente.">
           <textarea
             name="chatAutoReply"
             rows={2}
@@ -412,7 +412,7 @@ function TemplatesSection({ s }: { s: S }) {
     <section className="card">
       <p className="muted small">
         Variáveis disponíveis: <code>{'{nome}'}</code> <code>{'{data}'}</code> <code>{'{hora}'}</code> <code>{'{servico}'}</code> <code>{'{codigo}'}</code>.{' '}
-        {email ? 'As mensagens são enviadas por e-mail.' : 'Enquanto o e-mail não estiver configurado, os textos são usados no botão “Enviar pelo WhatsApp” da consulta e nos avisos da área do paciente.'}
+        {email ? 'As mensagens são enviadas por e-mail.' : 'Enquanto o e-mail não estiver configurado, os textos são usados no botão “Enviar pelo WhatsApp” da consulta e nos avisos da área do cliente.'}
       </p>
       <ActionForm action={saveTemplates} className="stack">
         <Field label="Confirmação de consulta" name="confirmacao">
@@ -441,7 +441,7 @@ async function SiteSection() {
     <div className="grid-2" style={{ alignItems: 'start' }}>
       <section className="stack">
         <h2 style={{ fontSize: '1.1rem' }}>Depoimentos</h2>
-        <p className="alert alert--info small">Publique apenas depoimentos com autorização expressa do paciente, sem promessas de resultado e sem expor dados de saúde identificáveis.</p>
+        <p className="alert alert--info small">Publique apenas depoimentos com autorização expressa do cliente, sem promessas de resultado e sem expor dados de saúde identificáveis.</p>
         <ul className="card list">
           {testimonials.map((t) => (
             <li key={t.id}>
@@ -584,7 +584,7 @@ async function TeamSection({ tz }: { tz: string }) {
                 <input type="checkbox" name="isActive" defaultChecked={u.isActive} /> Acesso ativo
               </label>
               <label className="check">
-                <input type="checkbox" name="ownPatientsOnly" defaultChecked={u.ownPatientsOnly} /> Coach: vê só os próprios pacientes (ficha, planos, diário, chat, acompanhamento e agenda)
+                <input type="checkbox" name="ownPatientsOnly" defaultChecked={u.ownPatientsOnly} /> Coach: vê só os próprios clientes (ficha, planos, diário, chat, acompanhamento e agenda)
               </label>
               <div>
                 <SubmitButton className="btn btn--sm btn--primary">Salvar permissões</SubmitButton>
@@ -614,7 +614,7 @@ async function TeamSection({ tz }: { tz: string }) {
               ))}
             </div>
             <label className="check">
-              <input type="checkbox" name="ownPatientsOnly" /> Coach: vê só os próprios pacientes
+              <input type="checkbox" name="ownPatientsOnly" /> Coach: vê só os próprios clientes
             </label>
           </fieldset>
           <div>

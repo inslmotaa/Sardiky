@@ -109,7 +109,7 @@ export function Calculators({ foods, mode, allow = { calorias: true }, defaults 
       <legend>Dados</legend>
       {pro && patients.length > 0 && (
         <div className="field" style={{ marginBottom: 10 }}>
-          <label htmlFor="c-patient">Preencher com dados do paciente</label>
+          <label htmlFor="c-patient">Preencher com dados do cliente</label>
           <select
             id="c-patient"
             defaultValue=""
@@ -595,8 +595,8 @@ function Energy({
       )}
       {pro && onSave && b && g && target && (
         <div className="row">
-          <select aria-label="Paciente" value={patientId} onChange={(e) => setPatientId(e.target.value)} style={{ maxWidth: 260 }}>
-            <option value="">Escolher paciente…</option>
+          <select aria-label="Cliente" value={patientId} onChange={(e) => setPatientId(e.target.value)} style={{ maxWidth: 260 }}>
+            <option value="">Escolher cliente…</option>
             {patients.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.name}
@@ -614,7 +614,7 @@ function Energy({
               })
             }
           >
-            {pending ? 'Salvando…' : 'Salvar na ficha do paciente'}
+            {pending ? 'Salvando…' : 'Salvar na ficha do cliente'}
           </button>
         </div>
       )}

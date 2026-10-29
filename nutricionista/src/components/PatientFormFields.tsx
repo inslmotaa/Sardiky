@@ -11,7 +11,7 @@ export function PatientFormFields({ p, nutritionists = [] }: { p?: typeof schema
         <Field label="Nome completo" name="fullName" required className="span-2">
           <input name="fullName" defaultValue={p?.fullName} maxLength={160} />
         </Field>
-        <Field label="E-mail" name="email" hint="Necessário para liberar a área do paciente.">
+        <Field label="E-mail" name="email" hint="Necessário para liberar a área do cliente.">
           <input type="email" name="email" defaultValue={p?.email ?? ''} />
         </Field>
         <Field label="Telefone / WhatsApp" name="phone">
@@ -31,7 +31,7 @@ export function PatientFormFields({ p, nutritionists = [] }: { p?: typeof schema
           <input name="heightCm" inputMode="decimal" defaultValue={p?.heightCm ?? ''} />
         </Field>
         {nutritionists.length > 1 && (
-          <Field label="Coach responsável" name="nutritionistId" hint="Coaches marcados como “só os próprios pacientes” veem apenas os seus.">
+          <Field label="Coach responsável" name="nutritionistId" hint="Coaches marcados como “só os próprios clientes” veem apenas os seus.">
             <select name="nutritionistId" defaultValue={p?.nutritionistId ?? ''}>
               <option value="">Sem responsável definido</option>
               {nutritionists.map((n) => (

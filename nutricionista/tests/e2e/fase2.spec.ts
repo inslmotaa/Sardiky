@@ -137,7 +137,7 @@ test('plano ativado aparece no app do paciente em até 5 segundos, sem recarrega
   await admin.page.getByLabel('Título').first().fill('Plano alimentar — ajuste de outubro')
   await admin.page.getByLabel('Revisei e aprovo este plano').check()
   admin.page.once('dialog', (d) => d.accept())
-  await admin.page.getByRole('button', { name: 'Ativar no app do paciente' }).click()
+  await admin.page.getByRole('button', { name: 'Ativar no app do cliente' }).click()
   // Ativado: o painel passa a mostrar a versão publicada.
   await expect(admin.page.locator('h1')).toHaveText('Plano alimentar — ajuste de outubro')
   await expect(admin.page.getByText('Publicado', { exact: true }).first()).toBeVisible()

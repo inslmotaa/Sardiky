@@ -367,13 +367,6 @@ function DemoBar({ children }: { children?: React.ReactNode }) {
   )
 }
 
-const Leaf = () => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-    <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
-    <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12" />
-  </svg>
-)
-
 /* ------------------------------ área do cliente ------------------------------ */
 
 function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
@@ -409,14 +402,15 @@ function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
       <header className="patient-header no-print">
         <div className="container patient-header__inner">
           <a className="brand" href="#cliente">
-            <span className="brand__mark">
-              <Leaf />
-            </span>
             <span className="brand__name">
-              André Farion<span className="brand__sub">App do paciente</span>
+              <span className="brand__title">
+                André Farion
+                <span className="brand__dash" aria-hidden />
+              </span>
+              <span className="brand__sub">App do cliente</span>
             </span>
           </a>
-          <nav className="patient-nav" aria-label="Área do paciente">
+          <nav className="patient-nav" aria-label="Área do cliente">
             {tabs.map(([k, l]) => (
               <a key={k} href={`#cliente/${k}`} aria-current={tab === k ? 'page' : undefined}>
                 {l}
@@ -889,11 +883,12 @@ function AndreArea({ page, extra }: { page?: string; extra?: string }) {
       <header className="demo-appbar no-print">
         <div className="container row row--between">
           <a className="brand" href="#andre">
-            <span className="brand__mark">
-              <Leaf />
-            </span>
             <span className="brand__name">
-              André Farion<span className="brand__sub">Painel do coach</span>
+              <span className="brand__title">
+                André Farion
+                <span className="brand__dash" aria-hidden />
+              </span>
+              <span className="brand__sub">Painel do coach</span>
             </span>
           </a>
           <nav className="row" style={{ gap: 6 }}>
@@ -1191,7 +1186,7 @@ function ClientPlanEditor({ clientId }: { clientId: string }) {
       cl.draft = null
     })
     setTimeout(() => setRev((r) => r + 1), 1200)
-    return { ok: true, message: 'Plano ativado no app do paciente.' }
+    return { ok: true, message: 'Plano ativado no app do cliente.' }
   }
 
   return (
@@ -1220,7 +1215,7 @@ function ClientPlanEditor({ clientId }: { clientId: string }) {
         </button>
       </div>
       <p className="alert alert--warn">
-        Você está editando um <strong>rascunho</strong>. O cliente só vê o plano depois que você revisa e clica em “Ativar no app do paciente”.
+        Você está editando um <strong>rascunho</strong>. O cliente só vê o plano depois que você revisa e clica em “Ativar no app do cliente”.
       </p>
       <PlanEditor
         key={`${clientId}-${rev}`}

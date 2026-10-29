@@ -193,7 +193,7 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
       onSubmit={(e) => {
         e.preventDefault()
         const fd = new FormData(e.currentTarget, (e.nativeEvent as SubmitEvent).submitter)
-        if (fd.get('intent') === 'publish' && !window.confirm('Ativar este plano no app do paciente? A versão atual passará para o histórico.')) return
+        if (fd.get('intent') === 'publish' && !window.confirm('Ativar este plano no app do cliente? A versão atual passará para o histórico.')) return
         startTransition(() => formAction(fd))
       }}
       className="stack"
@@ -355,7 +355,7 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
 
       {!!patient?.restrictions?.length && (
         <p className="alert alert--warn small" style={{ margin: 0 }}>
-          <strong>Restrições do paciente:</strong> {patient.restrictions.map((r) => RESTRICTIONS[r as RestrictionKey]?.label ?? r).join(', ')}. Alimentos que conflitam aparecem com ⚠.
+          <strong>Restrições do cliente:</strong> {patient.restrictions.map((r) => RESTRICTIONS[r as RestrictionKey]?.label ?? r).join(', ')}. Alimentos que conflitam aparecem com ⚠.
         </p>
       )}
       <div className="plan-editor">
@@ -495,7 +495,7 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
                     })
                   }
                 >
-                  Usar a meta do paciente ({fmt(patient.energyTarget, 0)} kcal)
+                  Usar a meta do cliente ({fmt(patient.energyTarget, 0)} kcal)
                 </button>
               ) : (
                 <p className="small muted" style={{ margin: 0 }}>
@@ -571,7 +571,7 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
             </button>
             {!isTemplate && (
               <button type="submit" name="intent" value="publish" className="btn btn--primary" disabled={pending}>
-                Ativar no app do paciente
+                Ativar no app do cliente
               </button>
             )}
           </div>
@@ -592,7 +592,7 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
         <div className="phone-preview" role="dialog" aria-modal="true" aria-label="Prévia no celular" onClick={() => setPreview(false)}>
           <div className="phone-preview__frame" onClick={(e) => e.stopPropagation()}>
             <div className="row row--between" style={{ marginBottom: 12 }}>
-              <strong>Como {patient?.name.split(' ')[0] ?? 'o paciente'} vai ver</strong>
+              <strong>Como {patient?.name.split(' ')[0] ?? 'o cliente'} vai ver</strong>
               <button type="button" className="btn btn--sm" onClick={() => setPreview(false)} autoFocus>
                 Fechar
               </button>
@@ -1031,7 +1031,7 @@ function MealEditor(p: MealEditorProps) {
           onPick={(f) => {
             const food = p.foodById.get(f.id)!
             const alerts = restrictionAlerts(food, p.restrictions)
-            setPickAlert(alerts.length ? `Atenção: “${food.name}” conflita com a restrição do paciente (${alerts.join(', ')}). Confirme se é isso mesmo.` : null)
+            setPickAlert(alerts.length ? `Atenção: “${food.name}” conflita com a restrição do cliente (${alerts.join(', ')}). Confirme se é isso mesmo.` : null)
             update((c) => {
               optAt(c, mi).items.push(itemFromFood(food))
             })
@@ -1149,7 +1149,7 @@ function RestrictionBadges({ name, group, restrictions }: { name: string; group:
   if (!alerts.length) return null
   return (
     <div>
-      <span className="badge badge--danger" title="Restrição registrada na ficha do paciente">
+      <span className="badge badge--danger" title="Restrição registrada na ficha do cliente">
         ⚠ Restrição: {alerts.join(', ')}
       </span>
     </div>

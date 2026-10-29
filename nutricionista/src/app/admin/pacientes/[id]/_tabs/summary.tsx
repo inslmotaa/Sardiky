@@ -64,7 +64,7 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
       </section>
 
       <section className="card">
-        <h2 style={{ fontSize: '1.1rem' }}>Acesso à área do paciente</h2>
+        <h2 style={{ fontSize: '1.1rem' }}>Acesso à área do cliente</h2>
         {account ? (
           <dl className="kv">
             <dt>Login</dt>
@@ -81,7 +81,7 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
             )}
           </dl>
         ) : (
-          <p className="muted">O paciente ainda não tem acesso. Ao liberar, é gerado um link de primeiro acesso para ele criar a própria senha — a equipe nunca define nem vê senhas.</p>
+          <p className="muted">O cliente ainda não tem acesso. Ao liberar, é gerado um link de primeiro acesso para ele criar a própria senha — a equipe nunca define nem vê senhas.</p>
         )}
         {editable && (
           <div className="stack" style={{ marginTop: 12 }}>
@@ -120,8 +120,8 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
       )}
       {can(user, 'clinico') && (
         <section className="card">
-          <h2 style={{ fontSize: '1.1rem' }}>Recursos do app do paciente</h2>
-          <p className="small muted">Ligue ou desligue por paciente. Ocultar calorias e macros ajuda quem tem relação difícil com números.</p>
+          <h2 style={{ fontSize: '1.1rem' }}>Recursos do app do cliente</h2>
+          <p className="small muted">Ligue ou desligue por cliente. Ocultar calorias e macros ajuda quem tem relação difícil com números.</p>
           <ActionForm action={setPatientFeatures.bind(null, p.id)} className="stack">
             <div className="choice-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
               {(Object.keys(DEFAULT_FEATURES) as (keyof AppFeatures)[]).map((k) => (

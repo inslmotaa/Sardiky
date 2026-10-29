@@ -53,7 +53,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
 
   const crumbs = patient
     ? [
-        { href: '/admin/pacientes', label: 'Pacientes' },
+        { href: '/admin/pacientes', label: 'Clientes' },
         { href: `/admin/pacientes/${patient.id}?aba=planos`, label: patient.fullName },
       ]
     : [{ href: '/admin/planos', label: 'Planos e modelos' }]
@@ -65,7 +65,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           {s.professionalName} · {s.professionalTitle}
         </strong>
         {s.registry && <div>{s.registry}</div>}
-        {patient && <div>Paciente: {patient.fullName}</div>}
+        {patient && <div>Cliente: {patient.fullName}</div>}
         <div>
           Versão {plan.version}
           {plan.publishedAt && ` · publicada em ${fmtDay(plan.publishedAt.toISOString().slice(0, 10))}`}
@@ -103,8 +103,8 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         <>
           <p className="alert alert--warn no-print">
             {plan.isTemplate
-              ? 'Modelo reutilizável: não é visto por pacientes.'
-              : 'Rascunho — o paciente não vê esta versão até você revisar e publicar.'}
+              ? 'Modelo reutilizável: não é visto por clientes.'
+              : 'Rascunho — o cliente não vê esta versão até você revisar e publicar.'}
           </p>
           <PlanEditor
             action={savePlan.bind(null, plan.id)}
@@ -121,10 +121,10 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         <>
           {plan.status === 'arquivado' && (
             <div className="alert alert--info row row--between no-print">
-              <span>Versão anterior. {plan.visibleInHistory ? 'O paciente pode consultá-la no histórico.' : 'Oculta para o paciente.'}</span>
+              <span>Versão anterior. {plan.visibleInHistory ? 'O cliente pode consultá-la no histórico.' : 'Oculta para o cliente.'}</span>
               <form action={setPlanHistoryVisibility.bind(null, plan.id, !plan.visibleInHistory)}>
                 <button className="btn btn--sm" type="submit">
-                  {plan.visibleInHistory ? 'Ocultar do paciente' : 'Liberar para o paciente'}
+                  {plan.visibleInHistory ? 'Ocultar do cliente' : 'Liberar para o cliente'}
                 </button>
               </form>
             </div>
@@ -136,7 +136,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
       <div className="grid-2 no-print" style={{ alignItems: 'start' }}>
         {versions.length > 0 && (
           <section className="card">
-            <h2 style={{ fontSize: '1.05rem' }}>Versões deste paciente</h2>
+            <h2 style={{ fontSize: '1.05rem' }}>Versões deste cliente</h2>
             <ul className="list">
               {versions.map((v) => (
                 <li key={v.id} className="row row--between">
@@ -150,7 +150,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         {!plan.isTemplate && (
           <section className="card">
             <h2 style={{ fontSize: '1.05rem' }}>Salvar como modelo</h2>
-            <p className="muted small">Guarda uma cópia sem os dados do paciente, para reutilizar com outros pacientes.</p>
+            <p className="muted small">Guarda uma cópia sem os dados do cliente, para reutilizar com outros clientes.</p>
             <ActionForm action={savePlanAsTemplate.bind(null, plan.id)} className="stack">
               <Field label="Nome do modelo" name="templateTitle">
                 <input name="templateTitle" maxLength={160} defaultValue={`Modelo — ${plan.title}`} />
@@ -163,7 +163,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
         )}
         <section className="card">
           <h2 style={{ fontSize: '1.05rem' }}>Duplicar</h2>
-          <p className="muted small">Cria um novo rascunho com este conteúdo, para outro paciente ou como modelo.</p>
+          <p className="muted small">Cria um novo rascunho com este conteúdo, para outro cliente ou como modelo.</p>
           <NewPlanForm patients={patients} sources={[{ id: plan.id, label: 'Este plano' }]} defaultTitle={plan.title} />
         </section>
         <section className="card">

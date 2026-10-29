@@ -167,7 +167,7 @@ export async function linkAppointmentPatient(_: ActionState, fd: FormData): Prom
     const existing = String(fd.get('patientId') ?? '')
     let patientId: string
     if (existing) {
-      if (!uuid.safeParse(existing).success) return { error: 'Paciente inválido.' }
+      if (!uuid.safeParse(existing).success) return { error: 'Cliente inválido.' }
       patientId = existing
     } else {
       const [p] = await db
@@ -180,7 +180,7 @@ export async function linkAppointmentPatient(_: ActionState, fd: FormData): Prom
     await db.update(schema.appointments).set({ patientId, updatedAt: new Date() }).where(eq(schema.appointments.id, a.id))
     await db.update(schema.consents).set({ patientId }).where(and(eq(schema.consents.subjectEmail, a.contactEmail)))
     refresh(a.id)
-    return { ok: true, message: 'Agendamento vinculado ao cadastro do paciente.' }
+    return { ok: true, message: 'Agendamento vinculado ao cadastro do cliente.' }
   } catch (err) {
     return failure(err)
   }
@@ -213,7 +213,7 @@ export async function createAppointmentAdmin(_: ActionState, fd: FormData): Prom
     let contact: { name: string; email: string; phone: string; patientId: string | null }
     if (d.patientId) {
       const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, d.patientId))
-      if (!p) return { error: 'Paciente não encontrado.' }
+      if (!p) return { error: 'Cliente não encontrado.' }
       contact = { name: p.fullName, email: p.email ?? '', phone: p.phone ?? '', patientId: p.id }
     } else {
       const c = z.object({ name: str(120, 'Informe o nome'), email, phone }).safeParse({ name: d.name ?? '', email: d.email ?? '', phone: d.phone ?? '' })

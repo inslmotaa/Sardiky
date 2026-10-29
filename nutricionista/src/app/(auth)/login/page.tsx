@@ -27,7 +27,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <p className="muted" style={{ margin: 0 }}>
           {sp['sem-acesso'] === 'painel'
             ? 'O painel é exclusivo do coach e da equipe.'
-            : 'A área do cliente é exclusiva dos pacientes.'}{' '}
+            : 'A área do cliente é exclusiva dos clientes.'}{' '}
           Você está conectado como <strong>{user.name}</strong>.
         </p>
         <Link href={user.role === 'patient' ? '/paciente' : '/admin'} className="btn btn--primary btn--block">

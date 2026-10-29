@@ -281,7 +281,7 @@ export async function toggleOwnGoal(id: string) {
   if (!g || g.status === 'cancelada') return
   const done = g.status !== 'concluida'
   await db.update(schema.goals).set({ status: done ? 'concluida' : 'ativa', completedAt: done ? new Date() : null }).where(eq(schema.goals.id, g.id))
-  if (done) await notifyTeam('clinico', 'Meta concluída pelo paciente', `${user.name} · ${g.title}`, `/admin/pacientes/${user.patientId}?aba=metas`, user.patientId)
+  if (done) await notifyTeam('clinico', 'Meta concluída pelo cliente', `${user.name} · ${g.title}`, `/admin/pacientes/${user.patientId}?aba=metas`, user.patientId)
   revalidatePath('/paciente/evolucao')
 }
 
@@ -336,7 +336,7 @@ export async function submitForm(assignmentId: string, _: ActionState, fd: FormD
     if (a.kind === 'anamnese') {
       await pushToTeam('clinico', { title: 'Anamnese recebida', body: user.name, url: `/admin/pacientes/${user.patientId}?aba=formularios` }, user.patientId)
       const s = await getSettings()
-      if (s.contactEmail) await sendEmail(s.contactEmail, `Anamnese recebida: ${user.name}`, `${user.name} enviou a anamnese pelo app. Veja as respostas no painel, na ficha do paciente.`)
+      if (s.contactEmail) await sendEmail(s.contactEmail, `Anamnese recebida: ${user.name}`, `${user.name} enviou a anamnese pelo app. Veja as respostas no painel, na ficha do cliente.`)
     }
     await audit(user, 'formulario_respondido', 'formulario', { entityId: a.id, patientId: user.patientId })
     revalidatePath('/paciente/formularios')
@@ -366,9 +366,9 @@ export async function cancelOwnAppointment(_: ActionState, fd: FormData): Promis
   }
   await db
     .update(schema.appointments)
-    .set({ status: 'cancelada', cancelReason: reason ? `Cancelada pelo paciente: ${reason}` : 'Cancelada pelo paciente', updatedAt: new Date() })
+    .set({ status: 'cancelada', cancelReason: reason ? `Cancelada pelo cliente: ${reason}` : 'Cancelada pelo cliente', updatedAt: new Date() })
     .where(eq(schema.appointments.id, a.id))
-  await notifyTeam('agenda', 'Consulta cancelada pelo paciente', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
+  await notifyTeam('agenda', 'Consulta cancelada pelo cliente', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
   await audit(user, 'consulta_cancelada', 'consulta', { entityId: a.id, patientId: user.patientId })
   revalidatePath('/paciente/consultas')
   return { ok: true, message: 'Consulta cancelada. O horário foi liberado.' }
@@ -385,7 +385,7 @@ export async function confirmPresence(id: string): Promise<void> {
   if (!a || a.status !== 'confirmada' || a.startAt < new Date()) return
   await db.update(schema.appointments).set({ patientConfirmedAt: new Date(), updatedAt: new Date() }).where(eq(schema.appointments.id, a.id))
   const s = await getSettings()
-  await notifyTeam('agenda', 'Paciente confirmou presença', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
+  await notifyTeam('agenda', 'Cliente confirmou presença', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
   await audit(user, 'presenca_confirmada', 'consulta', { entityId: a.id, patientId: user.patientId })
   revalidatePath('/paciente/consultas')
 }
@@ -539,7 +539,7 @@ export async function deleteMyAccount(_: ActionState, fd: FormData): Promise<Act
       .where(eq(schema.users.id, user.id))
     await tx.update(schema.patients).set({ userId: null, status: 'inativo', updatedAt: new Date() }).where(eq(schema.patients.id, user.patientId))
   })
-  await notifyTeam('config', 'Conta excluída pelo paciente', user.name, '/admin/privacidade')
+  await notifyTeam('config', 'Conta excluída pelo cliente', user.name, '/admin/privacidade')
   await audit(user, 'conta_excluida', 'usuario', { entityId: user.id, patientId: user.patientId })
   await destroySession()
   redirect('/?conta=excluida')

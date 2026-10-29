@@ -27,12 +27,12 @@ import { BODY_FAT_PROTOCOLS, bodyFatFromSkinfolds, leanMass, protocolSites, SKIN
 const patientPath = (id: string, tab?: string) => `/admin/pacientes/${id}${tab ? `?aba=${tab}` : ''}`
 
 async function patientOrThrow(id: string) {
-  if (!uuid.safeParse(id).success) throw new UserError('Paciente inválido.')
+  if (!uuid.safeParse(id).success) throw new UserError('Cliente inválido.')
   const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, id))
-  if (!p || p.anonymizedAt) throw new UserError('Paciente não encontrado.')
+  if (!p || p.anonymizedAt) throw new UserError('Cliente não encontrado.')
   // Nutricionista com “só os próprios pacientes” não age sobre pacientes de outros.
   const user = await getCurrentUser()
-  if (user && !canSeePatient(user, p)) throw new UserError('Paciente não encontrado.')
+  if (user && !canSeePatient(user, p)) throw new UserError('Cliente não encontrado.')
   return p
 }
 
@@ -76,7 +76,7 @@ export async function createPatient(_: ActionState, fd: FormData): Promise<Actio
     const user = await requireTeam('cadastro')
     if (parsed.data.email) {
       const [dup] = await db.select({ id: schema.patients.id }).from(schema.patients).where(eq(schema.patients.email, parsed.data.email))
-      if (dup) return { fieldErrors: { email: 'Já existe um paciente com este e-mail' }, error: 'E-mail já cadastrado.' }
+      if (dup) return { fieldErrors: { email: 'Já existe um cliente com este e-mail' }, error: 'E-mail já cadastrado.' }
     }
     // Nutricionista com pacientes próprios: o paciente que ele cadastra fica sob sua responsabilidade.
     if (isRestricted(user)) parsed.data.nutritionistId = user.id
@@ -120,14 +120,14 @@ export async function invitePatient(id: string, _: ActionState): Promise<ActionS
   try {
     const user = await requireTeam('cadastro')
     const p = await patientOrThrow(id)
-    if (!p.email) return { error: 'Cadastre um e-mail para o paciente antes de liberar o acesso.' }
+    if (!p.email) return { error: 'Cadastre um e-mail para o cliente antes de liberar o acesso.' }
     let userId = p.userId
     if (!userId) {
       const [existing] = await db.select().from(schema.users).where(eq(schema.users.email, p.email))
       if (existing) {
         if (existing.role !== 'patient') return { error: 'Este e-mail pertence a um usuário da equipe.' }
         const [linked] = await db.select({ id: schema.patients.id }).from(schema.patients).where(eq(schema.patients.userId, existing.id))
-        if (linked) return { error: 'Este e-mail já está vinculado a outro paciente.' }
+        if (linked) return { error: 'Este e-mail já está vinculado a outro cliente.' }
         userId = existing.id
       } else {
         const [u] = await db.insert(schema.users).values({ email: p.email, name: p.fullName, role: 'patient' }).returning({ id: schema.users.id })
@@ -140,14 +140,14 @@ export async function invitePatient(id: string, _: ActionState): Promise<ActionS
     await db.insert(schema.authTokens).values({ id: hashToken(token), userId, type: 'convite', expiresAt: new Date(Date.now() + 7 * 86_400_000) })
     const url = `${process.env.APP_URL ?? 'http://localhost:3000'}/redefinir-senha?token=${token}`
     const s = await getSettings()
-    const inviteText = `Olá, ${p.fullName.split(' ')[0]}! ${s.professionalName} liberou seu acesso ao app do paciente. Crie sua senha neste link (válido por 7 dias): ${url}`
-    const sent = await sendEmail(p.email, 'Seu acesso à área do paciente', inviteText)
+    const inviteText = `Olá, ${p.fullName.split(' ')[0]}! ${s.professionalName} liberou seu acesso ao app do cliente. Crie sua senha neste link (válido por 7 dias): ${url}`
+    const sent = await sendEmail(p.email, 'Seu acesso à área do cliente', inviteText)
     const wa = p.phone ? whatsappLink(p.phone.length <= 11 ? `55${p.phone}` : p.phone, inviteText) : null
     await audit(user, 'acesso_paciente_liberado', 'paciente', { entityId: p.id, patientId: p.id })
     revalidatePath(patientPath(p.id))
     return {
       ok: true,
-      message: `${sent ? 'Convite enviado por e-mail. ' : ''}Link de primeiro acesso (válido por 7 dias, uso único — envie apenas ao paciente): ${url}`,
+      message: `${sent ? 'Convite enviado por e-mail. ' : ''}Link de primeiro acesso (válido por 7 dias, uso único — envie apenas ao cliente): ${url}`,
       links: wa ? [{ href: wa, label: 'Enviar convite pelo WhatsApp' }] : undefined,
     }
   } catch (err) {
@@ -223,8 +223,8 @@ export async function addMeasurement(patientId: string, _: ActionState, fd: Form
     // % de gordura: protocolo de dobras (calculado aqui, nunca vindo do navegador) > bioimpedância > valor informado.
     if (skinfoldProtocol) {
       const age = ageFrom(p.birthDate, d.date) ?? null
-      if (p.sex !== 'F' && p.sex !== 'M') return { error: 'Para calcular o percentual por dobras, informe o sexo no cadastro do paciente.' }
-      if (age == null) return { error: 'Para calcular o percentual por dobras, informe a data de nascimento no cadastro do paciente.' }
+      if (p.sex !== 'F' && p.sex !== 'M') return { error: 'Para calcular o percentual por dobras, informe o sexo no cadastro do cliente.' }
+      if (age == null) return { error: 'Para calcular o percentual por dobras, informe a data de nascimento no cadastro do cliente.' }
       const r = bodyFatFromSkinfolds(skinfoldProtocol, p.sex, age, folds)
       if (!r) {
         const missing = protocolSites(skinfoldProtocol, p.sex).filter((k) => !folds[k]).map((k) => SKINFOLDS[k].toLowerCase())
@@ -323,7 +323,7 @@ export async function addGoal(patientId: string, _: ActionState, fd: FormData): 
     if (p.userId) await notifyUser(p.userId, 'Nova meta definida', parsed.data.title, '/paciente/evolucao#metas')
     await audit(user, 'meta_criada', 'meta', { patientId })
     revalidatePath(patientPath(patientId, 'metas'))
-    return { ok: true, message: 'Meta criada e visível na área do paciente.' }
+    return { ok: true, message: 'Meta criada e visível na área do cliente.' }
   } catch (err) {
     return failure(err)
   }
@@ -434,7 +434,7 @@ export async function sendTeamMessage(patientId: string, _: ActionState, fd: For
     await postMessage({ patientId, senderId: user.id, fromPatient: false, body, attachmentFileId, diaryEntryId, isGuidance: fd.get('guidance') === 'on', senderName: user.name })
     revalidatePath(patientPath(patientId, 'mensagens'))
     revalidatePath('/admin/mensagens')
-    return { ok: true, message: p.userId ? 'Mensagem enviada.' : 'Mensagem registrada. O paciente ainda não tem acesso à área exclusiva.' }
+    return { ok: true, message: p.userId ? 'Mensagem enviada.' : 'Mensagem registrada. O cliente ainda não tem acesso à área exclusiva.' }
   } catch (err) {
     return failure(err)
   }
@@ -454,7 +454,7 @@ export async function assignForm(patientId: string, _: ActionState, fd: FormData
     if (p.userId) await notifyUser(p.userId, 'Novo formulário para preencher', t.title, '/paciente/formularios')
     await audit(user, 'formulario_enviado', 'formulario', { patientId, details: { titulo: t.title } })
     revalidatePath(patientPath(patientId, 'formularios'))
-    return { ok: true, message: p.userId ? 'Formulário enviado ao paciente.' : 'Formulário registrado; ficará visível quando o paciente tiver acesso.' }
+    return { ok: true, message: p.userId ? 'Formulário enviado ao cliente.' : 'Formulário registrado; ficará visível quando o cliente tiver acesso.' }
   } catch (err) {
     return failure(err)
   }

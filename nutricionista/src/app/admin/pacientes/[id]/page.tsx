@@ -63,7 +63,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
   return (
     <div>
       <PageHead
-        crumbs={[{ href: '/admin/pacientes', label: 'Pacientes' }]}
+        crumbs={[{ href: '/admin/pacientes', label: 'Clientes' }]}
         title={p.fullName}
         subtitle={
           <>

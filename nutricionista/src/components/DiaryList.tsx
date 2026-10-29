@@ -10,7 +10,7 @@ export type DayMealStatus = { name: string; time: string; status: string | null 
 
 const STATUS = { feita: ['Feita', 'badge--ok'], parcial: ['Parcial', 'badge--warn'], pulada: ['Pulada', 'badge--plain'], outra: ['Outra coisa', 'badge--plain'] } as Record<string, [string, string]>
 
-/** Diário agrupado por dia, para o prontuário: refeições do plano marcadas, registros e consumo. */
+/** Diário agrupado por dia, para a ficha: refeições do plano marcadas, registros e consumo. */
 export function DiaryList({
   days,
   commentAction,

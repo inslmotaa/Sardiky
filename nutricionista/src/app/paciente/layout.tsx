@@ -5,14 +5,14 @@ import { getPatient } from '@/lib/patient-context'
 import { logout } from '@/actions/auth'
 import { completeOnboarding } from '@/actions/patient'
 import { Brand } from '@/components/Brand'
-import { CloseOnNavigate, NavLinks } from '@/components/NavLinks'
+import { NavLinks } from '@/components/NavLinks'
 import { Onboarding } from '@/components/nutri/Onboarding'
 import { LiveUpdates, LogoutForm, PushToggle, PwaClient } from '@/components/pwa'
 import { removePushSubscription, savePushSubscription } from '@/actions/push'
 import { vapidKeys } from '@/lib/push'
 import { IconBook, IconChart, IconHome, IconPlate, IconSettings } from '@/components/icons'
 
-export const metadata: Metadata = { title: 'Área do paciente', robots: { index: false } }
+export const metadata: Metadata = { title: 'Área do cliente', robots: { index: false } }
 
 export default async function PatientLayout({ children }: { children: React.ReactNode }) {
   const user = await requirePatient()
@@ -44,7 +44,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
       <header className="patient-header">
         <div className="container patient-header__inner" style={{ position: 'relative' }}>
           <Brand name={s.professionalName} sub="Área do cliente" logoFileId={s.logoFileId} />
-          <nav className="patient-nav" aria-label="Área do paciente">
+          <nav className="patient-nav" aria-label="Área do cliente">
             <NavLinks items={main} />
           </nav>
           <div className="row" style={{ gap: 8 }}>
@@ -53,14 +53,6 @@ export default async function PatientLayout({ children }: { children: React.Reac
                 Sair
               </button>
             </LogoutForm>
-            <div className="no-print" style={{ display: 'contents' }}>
-              <CloseOnNavigate>
-                <summary aria-label="Mais opções">Menu</summary>
-                <div className="mobile-menu__panel">
-                  <NavLinks items={main} />
-                </div>
-              </CloseOnNavigate>
-            </div>
           </div>
         </div>
       </header>

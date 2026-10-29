@@ -30,7 +30,7 @@ const energySchema = z.object({
 export async function saveEnergy(patientId: string, e: z.input<typeof energySchema>): Promise<{ ok?: boolean; error?: string; message?: string }> {
   try {
     const user = await requireTeam('clinico')
-    if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    if (!uuid.safeParse(patientId).success) return { error: 'Cliente inválido.' }
     await assertPatientAccess(user, patientId)
     const parsed = energySchema.safeParse(e)
     if (!parsed.success) return { error: 'Valores fora da faixa esperada. Revise os dados.' }
@@ -53,7 +53,7 @@ export async function saveEnergy(patientId: string, e: z.input<typeof energySche
 export async function setPatientFeatures(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const user = await requireTeam('clinico')
-    if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    if (!uuid.safeParse(patientId).success) return { error: 'Cliente inválido.' }
     await assertPatientAccess(user, patientId)
     const features = Object.fromEntries((Object.keys(DEFAULT_FEATURES) as (keyof AppFeatures)[]).map((k) => [k, fd.get(k) === 'on'])) as AppFeatures
     await db.update(schema.patients).set({ features, updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
@@ -70,7 +70,7 @@ export async function setPatientFeatures(patientId: string, _: ActionState, fd: 
 export async function setRestrictions(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const user = await requireTeam('clinico')
-    if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    if (!uuid.safeParse(patientId).success) return { error: 'Cliente inválido.' }
     await assertPatientAccess(user, patientId)
     const restrictions = fd.getAll('restriction').map(String).filter((k) => k in RESTRICTIONS)
     await db.update(schema.patients).set({ restrictions, updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
@@ -87,7 +87,7 @@ export async function setRestrictions(patientId: string, _: ActionState, fd: For
 export async function setAnamnesis(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
   try {
     const user = await requireTeam('clinico')
-    if (!uuid.safeParse(patientId).success) return { error: 'Paciente inválido.' }
+    if (!uuid.safeParse(patientId).success) return { error: 'Cliente inválido.' }
     await assertPatientAccess(user, patientId)
     const received = fd.get('received') === 'on'
     const notes = String(fd.get('notes') ?? '').trim().slice(0, 20000) || null

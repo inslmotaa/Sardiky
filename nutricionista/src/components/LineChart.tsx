@@ -80,7 +80,7 @@ export function LineChart({
         {data.map((p, i) => (
           <g key={i}>
             <circle className="hit" cx={x(p.date)} cy={y(p.value)} r={12}>
-              <title>{`${fmtDay(p.date)}: ${num(p.value)} ${unit} — ${p.source === 'profissional' ? 'medição profissional' : 'informado pelo paciente'}`}</title>
+              <title>{`${fmtDay(p.date)}: ${num(p.value)} ${unit} — ${p.source === 'profissional' ? 'medição profissional' : 'informado pelo cliente'}`}</title>
             </circle>
             <circle className={`pt ${p.source === 'paciente' ? 'pt--patient' : ''}`} cx={x(p.date)} cy={y(p.value)} r={p.source === 'paciente' ? 4.5 : 5} pointerEvents="none" />
           </g>
@@ -102,7 +102,7 @@ export function LineChart({
         )}
         {hasPatient && (
           <span>
-            <i className="l-pat" /> Informado pelo paciente
+            <i className="l-pat" /> Informado pelo cliente
           </span>
         )}
         {target != null && (

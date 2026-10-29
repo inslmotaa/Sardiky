@@ -128,7 +128,7 @@ export async function createMaterial(_: ActionState, fd: FormData): Promise<Acti
     .getAll('patientIds')
     .map(String)
     .filter((v) => uuid.safeParse(v).success)
-  if (d.audience === 'pacientes' && patientIds.length === 0) return { fieldErrors: { patientIds: 'Escolha ao menos um paciente' }, error: 'Escolha para quais pacientes liberar.' }
+  if (d.audience === 'pacientes' && patientIds.length === 0) return { fieldErrors: { patientIds: 'Escolha ao menos um cliente' }, error: 'Escolha para quais clientes liberar.' }
   const file = fd.get('file')
   const hasFile = file instanceof File && file.size > 0
   if (!hasFile && !d.url) return { fieldErrors: { url: 'Envie um arquivo ou informe um link' }, error: 'Envie um arquivo (PDF) ou informe um link (vídeo, site).' }
@@ -157,7 +157,7 @@ export async function createMaterial(_: ActionState, fd: FormData): Promise<Acti
     }
     await audit(user, 'material_publicado', 'material', { details: { titulo: d.title, publico: d.audience } })
     revalidatePath('/admin/materiais')
-    return { ok: true, message: 'Material publicado na área dos pacientes.' }
+    return { ok: true, message: 'Material publicado na área dos clientes.' }
   } catch (err) {
     return failure(err)
   }
@@ -193,10 +193,10 @@ export async function savePrescription(patientId: string, _: ActionState, fd: Fo
   const { id, ...data } = parsed.data
   try {
     const user = await requireTeam('clinico')
-    if (!uuid.safeParse(patientId).success || (id && !uuid.safeParse(id).success)) return { error: 'Paciente inválido.' }
+    if (!uuid.safeParse(patientId).success || (id && !uuid.safeParse(id).success)) return { error: 'Cliente inválido.' }
     await assertPatientAccess(user, patientId)
     const [p] = await db.select({ userId: schema.patients.userId }).from(schema.patients).where(eq(schema.patients.id, patientId))
-    if (!p) return { error: 'Paciente não encontrado.' }
+    if (!p) return { error: 'Cliente não encontrado.' }
     if (id) {
       const done = await db
         .update(schema.prescriptions)
@@ -212,7 +212,7 @@ export async function savePrescription(patientId: string, _: ActionState, fd: Fo
       await audit(user, 'prescricao_criada', 'prescricao', { patientId, details: { tipo: data.type } })
     }
     revalidatePath(`/admin/pacientes/${patientId}`)
-    return { ok: true, message: id ? 'Prescrição atualizada no app do paciente.' : 'Prescrição registrada e visível no app do paciente.' }
+    return { ok: true, message: id ? 'Prescrição atualizada no app do cliente.' : 'Prescrição registrada e visível no app do cliente.' }
   } catch (err) {
     return failure(err)
   }

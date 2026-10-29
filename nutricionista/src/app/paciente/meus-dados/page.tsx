@@ -118,7 +118,7 @@ export default async function MyDataPage() {
             <textarea name="details" rows={2} maxLength={2000} />
           </Field>
           <p className="small muted" style={{ margin: 0 }}>
-            Alguns dados do prontuário precisam ser mantidos pelo prazo exigido pelas normas profissionais, mesmo após um pedido de eliminação.
+            Alguns dados da ficha precisam ser mantidos pelo prazo exigido pelas normas profissionais, mesmo após um pedido de eliminação.
           </p>
           <div>
             <SubmitButton>Enviar solicitação</SubmitButton>
@@ -157,7 +157,7 @@ export default async function MyDataPage() {
       <section className="card card--danger" id="excluir-conta">
         <h2 style={{ fontSize: '1.1rem' }}>Excluir minha conta</h2>
         <p className="small">
-          Seu acesso é encerrado na hora: login, sessões e notificações. O prontuário (anamnese, consultas e planos) fica guardado apenas
+          Seu acesso é encerrado na hora: login, sessões e notificações. A sua ficha (anamnese, consultas e planos) fica guardada apenas
           pelo prazo exigido pelas normas profissionais e depois é anonimizado. Esta ação não pode ser desfeita.
         </p>
         <ActionForm action={deleteMyAccount} className="stack" confirm="Excluir sua conta agora? Você perde o acesso ao app.">

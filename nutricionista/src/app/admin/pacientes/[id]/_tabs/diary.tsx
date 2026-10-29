@@ -53,7 +53,7 @@ export async function DiaryTab({ patient }: { patient: typeof schema.patients.$i
         <span className="muted">Sequência: {summary.streak} {summary.streak === 1 ? 'dia' : 'dias'}</span>
         <span className="muted">Último registro: {summary.lastRecord ? fmtDay(summary.lastRecord) : 'nunca'}</span>
       </div>
-      {days.length === 0 ? <Empty>O paciente ainda não registrou refeições nos últimos 14 dias.</Empty> : <DiaryList days={days} commentAction={commentDiary.bind(null, patient.id)} />}
+      {days.length === 0 ? <Empty>O cliente ainda não registrou refeições nos últimos 14 dias.</Empty> : <DiaryList days={days} commentAction={commentDiary.bind(null, patient.id)} />}
     </div>
   )
 }

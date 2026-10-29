@@ -26,7 +26,7 @@ export default async function NewAppointmentPage({ searchParams }: { searchParam
       <PageHead title="Nova consulta" crumbs={[{ href: '/admin/agenda', label: 'Agenda' }]} />
       <div className="card">
         <ActionForm action={createAppointmentAdmin} className="stack">
-          <Field label="Paciente" name="patientId" hint="Ou deixe em branco e preencha os dados de contato abaixo.">
+          <Field label="Cliente" name="patientId" hint="Ou deixe em branco e preencha os dados de contato abaixo.">
             <select name="patientId" defaultValue={sp.paciente ?? ''}>
               <option value="">— Pessoa sem cadastro —</option>
               {patients.map((p) => (

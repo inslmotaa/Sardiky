@@ -107,8 +107,8 @@ export async function runReminders(now = new Date()) {
         const userId = pt.p.userId!
         if (!(await claimReminder(userId, 'inativo', r.lastRecord ?? 'nunca'))) continue
         await pushToUser(userId, 'lembretes', { title: 'Sentimos sua falta 💚', body: 'Que tal registrar como foram as refeições de hoje? Tudo bem se a semana foi corrida.', url: '/paciente/diario', tag: 'inativo' }, { nowHHMM: z.time })
-        await notifyTeam('clinico', 'Paciente sem registrar há 3 dias ou mais', r.name, `/admin/pacientes/${r.id}?aba=diario`, r.id)
-        await pushToTeam('clinico', { title: 'Paciente sem registrar', body: `${r.name} · há ${r.daysWithout} dias`, url: `/admin/acompanhamento?grupo=sem_progresso`, tag: `inativo-${r.id}` }, r.id)
+        await notifyTeam('clinico', 'Cliente sem registrar há 3 dias ou mais', r.name, `/admin/pacientes/${r.id}?aba=diario`, r.id)
+        await pushToTeam('clinico', { title: 'Cliente sem registrar', body: `${r.name} · há ${r.daysWithout} dias`, url: `/admin/acompanhamento?grupo=sem_progresso`, tag: `inativo-${r.id}` }, r.id)
         out.inativos++
       }
     }

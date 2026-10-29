@@ -110,7 +110,7 @@ export async function submitAnamnesis(_: ActionState, fd: FormData): Promise<Act
           updatedAt: new Date(),
         })
         .where(eq(schema.patients.id, user.patientId))
-      // Peso, altura e cintura informados entram na evolução como "informados pelo paciente".
+      // Peso, altura e cintura informados entram na evolução como "informados pelo cliente".
       if (a.medidas?.peso)
         await tx.insert(schema.measurements).values({
           patientId: user.patientId,

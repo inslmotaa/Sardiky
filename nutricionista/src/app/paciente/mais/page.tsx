@@ -9,7 +9,7 @@ export default async function MorePage() {
   const user = await requirePatient()
   const s = await getSettings()
   const p = await getPatient(user.patientId)
-  const wa = whatsappLink(s.whatsapp, 'Olá! Sou paciente e tenho uma dúvida.')
+  const wa = whatsappLink(s.whatsapp, 'Olá! Sou cliente e tenho uma dúvida.')
   const items: [string, string, string][] = [
     ...(p.features.chat ? ([['/paciente/mensagens', 'Mensagens', 'Converse com o coach']] as [string, string, string][]) : []),
     ['/paciente/consultas', 'Agenda', 'Próximas consultas, confirmar presença, remarcar e avaliar'],

@@ -50,7 +50,7 @@ export async function postMessage(p: Post) {
   const preview = p.body.length > 90 ? `${p.body.slice(0, 87)}…` : p.body
 
   if (p.fromPatient) {
-    await notifyTeam('clinico', 'Nova mensagem de paciente', p.senderName, `/admin/pacientes/${p.patientId}?aba=mensagens`, p.patientId)
+    await notifyTeam('clinico', 'Nova mensagem de cliente', p.senderName, `/admin/pacientes/${p.patientId}?aba=mensagens`, p.patientId)
     await pushToTeam('clinico', { title: `Mensagem de ${p.senderName.split(' ')[0]}`, body: preview, url: `/admin/pacientes/${p.patientId}?aba=mensagens`, tag: `chat-${p.patientId}` }, p.patientId)
     if (s.chatAutoReply && !withinChatHours(s.chatHours, now.weekday, now.time)) {
       const [recent] = await db

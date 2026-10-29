@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   if (tipo === 'atendimentos') {
     const rows = await appointmentsInRange(range)
     csv = toCsv(
-      ['data', 'hora', 'paciente', 'servico', 'modalidade', 'situacao', 'valor'],
+      ['data', 'hora', 'cliente', 'servico', 'modalidade', 'situacao', 'valor'],
       rows.map((a) => {
         const p = zonedParts(a.startAt, s.timezone)
         return [p.date, p.time, a.contactName, a.serviceName, a.modality, STATUS_LABEL[a.status], (a.priceCents / 100).toFixed(2).replace('.', ',')]
@@ -39,14 +39,14 @@ export async function GET(req: Request) {
     if (!can(user, 'clinico')) return new Response('Não autorizado', { status: 403 })
     const rows = await weightEvolution()
     csv = toCsv(
-      ['paciente', 'primeira_data', 'primeiro_peso', 'ultima_data', 'ultimo_peso', 'variacao_kg', 'avaliacoes'],
+      ['cliente', 'primeira_data', 'primeiro_peso', 'ultima_data', 'ultimo_peso', 'variacao_kg', 'avaliacoes'],
       rows.map((e) => [e.name, String(e.first_date).slice(0, 10), e.first_w, String(e.last_date).slice(0, 10), e.last_w, (e.last_w - e.first_w).toFixed(1), e.n]),
     )
   } else if (tipo === 'receitas') {
     if (!s.financeEnabled || !can(user, 'financeiro')) return new Response('Não autorizado', { status: 403 })
     const rows = await paymentsInRange(range)
     csv = toCsv(
-      ['data_pagamento', 'paciente', 'descricao', 'valor_bruto', 'desconto', 'valor_liquido', 'forma', 'origem'],
+      ['data_pagamento', 'cliente', 'descricao', 'valor_bruto', 'desconto', 'valor_liquido', 'forma', 'origem'],
       rows.map(({ pay, name }) => [
         pay.paidAt,
         name ?? '',

@@ -1,6 +1,4 @@
 import Link from 'next/link'
-import '@fontsource-variable/archivo/wdth.css'
-import '@fontsource-variable/geist-mono'
 import './site.css'
 import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'

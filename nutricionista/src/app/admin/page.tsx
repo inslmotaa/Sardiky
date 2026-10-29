@@ -118,7 +118,7 @@ export default async function AdminHome() {
             )}
             {cadastro && (
               <Link href="/admin/pacientes/novo" className="btn btn--primary">
-                Novo paciente
+                Novo cliente
               </Link>
             )}
           </>
@@ -161,7 +161,7 @@ export default async function AdminHome() {
             {tracking.inactive.length > 0 && (
               <li>
                 <strong>
-                  {tracking.inactive.length} {tracking.inactive.length === 1 ? 'paciente sem registrar' : 'pacientes sem registrar'} há 3 dias ou mais:
+                  {tracking.inactive.length} {tracking.inactive.length === 1 ? 'cliente sem registrar' : 'clientes sem registrar'} há 3 dias ou mais:
                 </strong>{' '}
                 {tracking.inactive.slice(0, 6).map((r, i) => (
                   <span key={r.id}>
@@ -175,7 +175,7 @@ export default async function AdminHome() {
             {tracking.struggling > 0 && (
               <li>
                 <Link href="/admin/acompanhamento?grupo=dificuldade">
-                  {tracking.struggling} {tracking.struggling === 1 ? 'paciente com dificuldade' : 'pacientes com dificuldade'} na última semana
+                  {tracking.struggling} {tracking.struggling === 1 ? 'cliente com dificuldade' : 'clientes com dificuldade'} na última semana
                 </Link>
               </li>
             )}
@@ -184,7 +184,7 @@ export default async function AdminHome() {
       )}
 
       <div className="grid-4">
-        <Stat value={active.n} label="Pacientes ativos" href={cadastro ? '/admin/pacientes?status=ativo' : undefined} />
+        <Stat value={active.n} label="Clientes ativos" href={cadastro ? '/admin/pacientes?status=ativo' : undefined} />
         <Stat value={newPatients.n} label="Novos cadastros (30 dias)" href={cadastro ? '/admin/pacientes' : undefined} />
         {agenda && <Stat value={activeToday.length} label="Consultas hoje" href="/admin/agenda?view=dia" />}
         {agenda && <Stat value={pending.length} label="Aguardando confirmação" href="/admin/agenda?status=pendente" />}

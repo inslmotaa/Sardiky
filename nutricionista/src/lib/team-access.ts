@@ -25,7 +25,7 @@ export async function visiblePatientIds(user: Pick<CurrentUser, 'id' | 'role' | 
 export async function assertPatientAccess(user: Pick<CurrentUser, 'id' | 'role' | 'ownPatientsOnly'>, patientId: string | null) {
   if (!patientId || !isRestricted(user)) return
   const [p] = await db.select({ n: schema.patients.nutritionistId }).from(schema.patients).where(eq(schema.patients.id, patientId))
-  if (!p || p.n !== user.id) throw new UserError('Paciente não encontrado.')
+  if (!p || p.n !== user.id) throw new UserError('Cliente não encontrado.')
 }
 
 /** Quem pode ser nutricionista responsável: administrador e membros da equipe com acesso clínico. */

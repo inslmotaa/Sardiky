@@ -71,7 +71,7 @@ export default async function RecipesPage({ searchParams }: { searchParams: Prom
                     ))}
                   </span>
                 )}
-                {!r.visibleToAll && <span className="small muted">Só para pacientes com a receita no plano</span>}
+                {!r.visibleToAll && <span className="small muted">Só para clientes com a receita no plano</span>}
               </Link>
             )
           })}

@@ -201,7 +201,7 @@ async function main() {
     {
       question: 'Como funciona o atendimento on-line?',
       answer:
-        'Todo o acompanhamento é on-line: as consultas acontecem por videochamada e as medidas são informadas por você, com orientação; elas aparecem identificadas como “informadas pelo paciente” nos gráficos. Plano, diário e mensagens ficam no app.',
+        'Todo o acompanhamento é on-line: as consultas acontecem por videochamada e as medidas são informadas por você, com orientação; elas aparecem identificadas como “informadas pelo cliente” nos gráficos. Plano, diário e mensagens ficam no app.',
       sort: 2,
     },
     {
@@ -407,7 +407,7 @@ async function main() {
       appt(beatriz, svcReturn, wd(-30), '14:00', 'realizada'),
       appt(lucas, svcSport, wd(-24), '15:00', 'realizada'),
       appt(rafael, svcReturn, wd(-45), '16:00', 'faltou'),
-      appt(helena, svcReturn, wd(-15), '11:00', 'cancelada', { cancelReason: 'Paciente pediu para remarcar' }),
+      appt(helena, svcReturn, wd(-15), '11:00', 'cancelada', { cancelReason: 'Cliente pediu para remarcar' }),
       appt(helena, svcReturn, wd(-10), '11:00', 'realizada'),
     ])
     .returning()

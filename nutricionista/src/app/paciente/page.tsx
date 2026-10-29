@@ -16,7 +16,7 @@ import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { LineChart } from '@/components/LineChart'
 import { FadeUp, MotionRoot, Stagger, StaggerItem } from '@/components/motion'
 import { IlloCalendar, IlloLeaf, IlloPlate, IlloScale } from '@/components/Illustrations'
-import { IconBook, IconCalendar, IconChart, IconChat, IconForm, IconPlate } from '@/components/icons'
+import { IconBook, IconCalendar, IconChart, IconChat, IconPlate } from '@/components/icons'
 
 const STEPS = ['Conta criada', 'Anamnese', 'Consulta', 'Plano alimentar', 'Acompanhamento'] as const
 
@@ -42,8 +42,14 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
       .where(and(eq(schema.messages.patientId, user.patientId), eq(schema.messages.isGuidance, true)))
       .orderBy(desc(schema.messages.createdAt))
       .limit(1),
-    db.select().from(schema.mealLogs).where(and(eq(schema.mealLogs.patientId, user.patientId), eq(schema.mealLogs.date, today))),
-    db.select().from(schema.waterLogs).where(and(eq(schema.waterLogs.patientId, user.patientId), eq(schema.waterLogs.date, today))),
+    db
+      .select()
+      .from(schema.mealLogs)
+      .where(and(eq(schema.mealLogs.patientId, user.patientId), eq(schema.mealLogs.date, today))),
+    db
+      .select()
+      .from(schema.waterLogs)
+      .where(and(eq(schema.waterLogs.patientId, user.patientId), eq(schema.waterLogs.date, today))),
     db
       .select({ items: schema.diaryEntries.items })
       .from(schema.diaryEntries)
@@ -97,21 +103,14 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
   const weights = series(rows, 'weightKg').slice(-8)
   const firstName = user.name.split(' ')[0]
 
-  const shortcuts = [
-    { href: '/paciente/anamnese', label: 'Anamnese', icon: <IconForm /> },
-    { href: '/paciente/plano', label: 'Meu plano', icon: <IconPlate /> },
-    ...(f.diario ? [{ href: '/paciente/diario', label: 'Diário', icon: <IconBook /> }] : []),
-    { href: '/paciente/evolucao', label: 'Progresso', icon: <IconChart /> },
-    ...(f.chat ? [{ href: '/paciente/mensagens', label: 'Mensagens', icon: <IconChat /> }] : []),
-    { href: '/paciente/materiais', label: 'Materiais', icon: <IconBook /> },
-  ]
-
   return (
     <MotionRoot>
       <div className="hub">
         {!anamnesisDone && (
           <div className="hub-banner" role="status">
-            <span>{draft && draft.version > 1 ? 'O André pediu uma reavaliação: atualize sua anamnese.' : 'Falta só sua anamnese para começarmos.'}</span>
+            <span>
+              {draft && draft.version > 1 ? 'O André pediu uma reavaliação: atualize sua anamnese.' : 'Falta só sua anamnese para começarmos.'}
+            </span>
             <Link href="/paciente/anamnese" className="btn btn--light btn--sm">
               {draft && draft.step > 0 ? 'Continuar anamnese' : 'Preencher agora'}
             </Link>
@@ -132,6 +131,42 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
             </blockquote>
           )}
         </FadeUp>
+
+        {/* Atalhos para o que se faz todo dia: o caminho mais curto para cada tarefa. */}
+        <nav className="hub-shortcuts" aria-label="Atalhos">
+          <Link href="/paciente/plano">
+            <IconPlate />
+            <span>
+              <strong>Meu plano</strong>
+              <small>Refeições e substituições</small>
+            </span>
+          </Link>
+          {f.diario && (
+            <Link href="/paciente/diario">
+              <IconBook />
+              <span>
+                <strong>Registrar refeição</strong>
+                <small>Diário com foto</small>
+              </span>
+            </Link>
+          )}
+          <Link href="/paciente/evolucao">
+            <IconChart />
+            <span>
+              <strong>Meu progresso</strong>
+              <small>Peso, medidas e metas</small>
+            </span>
+          </Link>
+          {f.chat && (
+            <Link href="/paciente/mensagens">
+              <IconChat />
+              <span>
+                <strong>Falar com o coach</strong>
+                <small>Tire dúvidas pelo chat</small>
+              </span>
+            </Link>
+          )}
+        </nav>
 
         {notes.length > 0 && (
           <FadeUp className="card card--soft">
@@ -181,7 +216,11 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
           </p>
           <ol className="hub-steps" aria-label="Etapas do acompanhamento">
             {STEPS.map((label, i) => (
-              <li key={label} data-state={i === current ? 'current' : doneSteps[i] ? 'done' : 'todo'} aria-current={i === current ? 'step' : undefined}>
+              <li
+                key={label}
+                data-state={i === current ? 'current' : doneSteps[i] ? 'done' : 'todo'}
+                aria-current={i === current ? 'step' : undefined}
+              >
                 <span className="hub-steps__dot" aria-hidden>
                   {doneSteps[i] && i !== current ? '✓' : i + 1}
                 </span>
@@ -218,7 +257,11 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
               <div className="hub-empty">
                 <IlloCalendar />
                 <p>Você ainda não tem consulta marcada.</p>
-                <a href={booking.href} className="btn btn--primary btn--sm btn--fx" {...(booking.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>
+                <a
+                  href={booking.href}
+                  className="btn btn--primary btn--sm btn--fx"
+                  {...(booking.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+                >
                   Agendar consulta
                 </a>
               </div>
@@ -275,17 +318,6 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
             }
           />
         </FadeUp>
-
-        <Stagger className="hub-shortcuts">
-          {shortcuts.map((sc) => (
-            <StaggerItem key={sc.href}>
-              <Link href={sc.href} className="hub-shortcut">
-                {sc.icon}
-                <span>{sc.label}</span>
-              </Link>
-            </StaggerItem>
-          ))}
-        </Stagger>
 
         <FadeUp className="card hub-tip">
           <IlloLeaf />

@@ -18,7 +18,7 @@ export function NewPlanForm({
       {patientId ? (
         <input type="hidden" name="patientId" value={patientId} />
       ) : (
-        <Field label="Paciente" name="patientId" hint="Ou marque “criar como modelo” abaixo.">
+        <Field label="Cliente" name="patientId" hint="Ou marque “criar como modelo” abaixo.">
           <select name="patientId" defaultValue="">
             <option value="">Selecione</option>
             {patients?.map((p) => (

@@ -256,7 +256,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
               <thead>
                 <tr>
                   <th>Data e hora</th>
-                  <th>Paciente / contato</th>
+                  <th>Cliente / contato</th>
                   <th>Serviço</th>
                   <th>Modalidade</th>
                   <th>Situação</th>

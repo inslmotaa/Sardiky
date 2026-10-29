@@ -88,7 +88,7 @@ export default async function PatientAppointments() {
                         <input name="reason" maxLength={300} />
                       </label>
                       <p className="small muted" style={{ margin: 0 }}>
-                        Cancelamentos pela área do paciente são aceitos com pelo menos 24 horas de antecedência. Para remarcar, cancele e escolha um novo horário.
+                        Cancelamentos pela área do cliente são aceitos com pelo menos 24 horas de antecedência. Para remarcar, cancele e escolha um novo horário.
                       </p>
                       <div>
                         <SubmitButton className="btn btn--danger btn--sm" pendingText="Cancelando…">

@@ -85,7 +85,7 @@ test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe,
   await expect(page.locator('.hub-steps li[aria-current="step"]')).toContainText('Consulta')
   await expect(page.getByText('Seu plano está sendo preparado pelo André')).toBeVisible()
   await expect(page.getByText('Você ainda não tem consulta marcada.')).toBeVisible()
-  for (const sc of ['Anamnese', 'Meu plano', 'Progresso', 'Materiais']) await expect(page.locator('.hub-shortcuts').getByRole('link', { name: sc })).toBeVisible()
+  for (const sc of ['Meu plano', 'Meu progresso']) await expect(page.getByRole('navigation', { name: 'Atalhos' }).getByRole('link', { name: sc })).toBeVisible()
 
   // André: aviso, aba Anamnese, PDF e reavaliação.
   await login(page, 'admin')
@@ -101,7 +101,7 @@ test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe,
   expect(pdf.status()).toBe(200)
   expect(pdf.headers()['content-type']).toContain('application/pdf')
   await page.getByRole('button', { name: 'Pedir reavaliação' }).click()
-  await expect(page.getByText('Reavaliação pedida: a versão 2 está com o paciente')).toBeVisible()
+  await expect(page.getByText('Reavaliação pedida: a versão 2 está com o cliente')).toBeVisible()
   await expect(page.getByRole('link', { name: /^v2 · rascunho/ })).toBeVisible()
 
   // Cliente vê o pedido de reavaliação, com as respostas anteriores já preenchidas.

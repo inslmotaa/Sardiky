@@ -168,10 +168,10 @@ export function RecipeEditor({
           <textarea name="instructions" rows={6} defaultValue={initial.instructions} maxLength={8000} placeholder={'1. …\n2. …'} />
         </label>
         <label className="check">
-          <input type="checkbox" name="visibleToAll" defaultChecked={initial.visibleToAll} /> Mostrar na biblioteca de receitas de todos os pacientes
+          <input type="checkbox" name="visibleToAll" defaultChecked={initial.visibleToAll} /> Mostrar na biblioteca de receitas de todos os clientes
         </label>
         <p className="small muted" style={{ margin: 0 }}>
-          Mesmo desmarcada, a receita aparece para o paciente quando ela está no plano alimentar dele.
+          Mesmo desmarcada, a receita aparece para o cliente quando ela está no plano alimentar dele.
         </p>
       </section>
 

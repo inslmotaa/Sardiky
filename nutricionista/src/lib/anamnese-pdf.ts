@@ -15,7 +15,7 @@ export async function anamnesisPdf(answers: AnamnesisAnswers, o: { professional:
   doc.setLanguage('pt-BR')
   const regular = await doc.embedFont(StandardFonts.Helvetica)
   const bold = await doc.embedFont(StandardFonts.HelveticaBold)
-  const n = parseInt(/^#([0-9a-f]{6})$/i.exec(o.brandColor)?.[1] ?? '2f8f57', 16)
+  const n = parseInt(/^#([0-9a-f]{6})$/i.exec(o.brandColor)?.[1] ?? '1f5e3b', 16)
   const brand = rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255)
   const ink = rgb(0.11, 0.15, 0.14)
   const muted = rgb(0.38, 0.42, 0.4)
@@ -56,7 +56,7 @@ export async function anamnesisPdf(answers: AnamnesisAnswers, o: { professional:
   if (o.registry) text(o.registry, { size: 9.5, color: muted })
   y -= 8
   text('Anamnese', { size: 20, font: bold })
-  text(`Paciente: ${o.patient}   ·   Versão ${o.version}   ·   Enviada em ${o.sentAt}`, { size: 9.5, color: muted })
+  text(`Cliente: ${o.patient}   ·   Versão ${o.version}   ·   Enviada em ${o.sentAt}`, { size: 9.5, color: muted })
   y -= 6
   for (const st of ANAMNESIS_STEPS) {
     if (y < M + 90) newPage()

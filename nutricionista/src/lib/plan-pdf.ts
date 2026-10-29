@@ -126,7 +126,7 @@ export async function planPdf(plan: PlanContent, o: Opts) {
   text([o.professionalTitle, o.registry].filter(Boolean).join(' · '), { size: 10, color: muted })
   y -= 8
   text(o.title, { font: bold, size: 20 })
-  const meta = [o.patientName ? `Paciente: ${o.patientName}` : 'Modelo de plano', o.validity, `Gerado em ${o.generatedAt}`].filter(Boolean).join('   ·   ')
+  const meta = [o.patientName ? `Cliente: ${o.patientName}` : 'Modelo de plano', o.validity, `Gerado em ${o.generatedAt}`].filter(Boolean).join('   ·   ')
   text(meta, { size: 9.5, color: muted })
   y -= 4
   rule(brand)

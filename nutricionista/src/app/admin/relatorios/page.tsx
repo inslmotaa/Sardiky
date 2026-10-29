@@ -103,7 +103,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <section className="card">
           <div className="card__head">
-            <h2>Pacientes por situação</h2>
+            <h2>Clientes por situação</h2>
             <a className="small" href={`/admin/relatorios/csv?tipo=pacientes`}>
               CSV
             </a>
@@ -128,7 +128,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
             </li>
             <li>
               <div className="row row--between">
-                <span>Pacientes ativos com retorno vencido</span>
+                <span>Clientes ativos com retorno vencido</span>
                 <strong>{overdue.length}</strong>
               </div>
               {overdue.length > 0 && (
@@ -148,19 +148,19 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       {clinical && (
         <section className="stack">
           <div className="row row--between">
-            <h2 style={{ fontSize: '1.15rem', margin: 0 }}>Evolução dos pacientes ativos (peso, medições profissionais)</h2>
+            <h2 style={{ fontSize: '1.15rem', margin: 0 }}>Evolução dos clientes ativos (peso, medições profissionais)</h2>
             <a className="btn btn--sm" href="/admin/relatorios/csv?tipo=evolucao">
               Exportar CSV
             </a>
           </div>
           {evolution.length === 0 ? (
-            <p className="muted">Ainda não há pacientes com duas ou mais avaliações.</p>
+            <p className="muted">Ainda não há clientes com duas ou mais avaliações.</p>
           ) : (
             <div className="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Paciente</th>
+                    <th>Cliente</th>
                     <th>Primeira</th>
                     <th>Última</th>
                     <th className="num">Variação</th>

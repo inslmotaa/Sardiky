@@ -79,7 +79,7 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
           )}
           {a.patientId && (can(user, 'cadastro') || can(user, 'clinico')) && (
             <Link href={`/admin/pacientes/${a.patientId}`} className="btn btn--ghost">
-              Abrir prontuário
+              Abrir ficha
             </Link>
           )}
         </div>
@@ -98,7 +98,7 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
             <dd>{a.contactEmail}</dd>
             <dt>Telefone</dt>
             <dd>{a.contactPhone}</dd>
-            <dt>Já é paciente?</dt>
+            <dt>Já é cliente?</dt>
             <dd>{a.isReturning ? 'Sim (informado)' : 'Não, primeira consulta'}</dd>
             <dt>Valor</dt>
             <dd>{money(a.priceCents)}</dd>
@@ -119,7 +119,7 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
               </>
             )}
             <dt>Presença</dt>
-            <dd>{a.patientConfirmedAt ? `Confirmada pelo paciente em ${fmtDateTime(a.patientConfirmedAt, s.timezone)}` : 'Ainda não confirmada pelo paciente'}</dd>
+            <dd>{a.patientConfirmedAt ? `Confirmada pelo cliente em ${fmtDateTime(a.patientConfirmedAt, s.timezone)}` : 'Ainda não confirmada pelo cliente'}</dd>
             {a.rescheduleRequestedAt && (
               <>
                 <dt>Remarcação</dt>
@@ -142,15 +142,15 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
         </section>
 
         <section className="card">
-          <h2 style={{ fontSize: '1.1rem' }}>Cadastro do paciente</h2>
+          <h2 style={{ fontSize: '1.1rem' }}>Cadastro do cliente</h2>
           {a.patientId ? (
             <p>
-              Vinculado ao cadastro. {can(user, 'cadastro') && <Link href={`/admin/pacientes/${a.patientId}`}>Ver paciente</Link>}
+              Vinculado ao cadastro. {can(user, 'cadastro') && <Link href={`/admin/pacientes/${a.patientId}`}>Ver cliente</Link>}
             </p>
           ) : can(user, 'cadastro') ? (
             <ActionForm action={linkAppointmentPatient} className="stack">
               <input type="hidden" name="id" value={a.id} />
-              <Field label="Vincular a paciente existente" name="patientId" hint="Deixe em branco para criar um novo cadastro com os dados do agendamento.">
+              <Field label="Vincular a cliente existente" name="patientId" hint="Deixe em branco para criar um novo cadastro com os dados do agendamento.">
                 <select name="patientId" defaultValue={patients.find((x) => x.email === a.contactEmail)?.id ?? ''}>
                   <option value="">Criar novo cadastro</option>
                   {patients.map((x) => (
@@ -190,7 +190,7 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
         <ActionForm action={updateAppointmentDetails} className="stack">
           <input type="hidden" name="id" value={a.id} />
           {a.modality === 'online' && (
-            <Field label="Link da videochamada" name="meetingUrl" hint="Gerado automaticamente no Jitsi Meet ao confirmar; você também pode colar um link do Google Meet ou Zoom. O paciente vê o botão após a confirmação.">
+            <Field label="Link da videochamada" name="meetingUrl" hint="Gerado automaticamente no Jitsi Meet ao confirmar; você também pode colar um link do Google Meet ou Zoom. O cliente vê o botão após a confirmação.">
               <input name="meetingUrl" type="url" defaultValue={a.meetingUrl ?? ''} placeholder="https://" />
             </Field>
           )}
@@ -236,7 +236,7 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
                 <input name="reason" maxLength={300} />
               </Field>
               <label className="check">
-                <input type="checkbox" name="notify" defaultChecked /> Avisar o paciente (área do paciente e e-mail, se configurado)
+                <input type="checkbox" name="notify" defaultChecked /> Avisar o cliente (área do cliente e e-mail, se configurado)
               </label>
               <div>
                 <SubmitButton className="btn btn--danger" pendingText="Cancelando…">

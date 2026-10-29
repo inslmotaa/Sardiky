@@ -37,7 +37,7 @@ export async function EvolutionTab({ patient, compare, viewerId }: { patient: ty
           upload={addProgressPhotos.bind(null, patient.id)}
           onDelete={deleteProgressPhoto.bind(null, patient.id)}
           today={today}
-          privacyNote="Fotos privadas: visíveis apenas ao paciente e à equipe com permissão clínica."
+          privacyNote="Fotos privadas: visíveis apenas ao cliente e à equipe com permissão clínica."
         />
       </section>
 

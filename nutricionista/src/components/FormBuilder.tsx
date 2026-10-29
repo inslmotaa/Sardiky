@@ -69,7 +69,7 @@ export function FormBuilder({
           </div>
         </div>
         <div className="field">
-          <label htmlFor="fb-desc">Descrição para o paciente</label>
+          <label htmlFor="fb-desc">Descrição para o cliente</label>
           <input id="fb-desc" name="description" defaultValue={initial.description} maxLength={500} />
         </div>
         <p className="small muted" style={{ margin: 0 }}>

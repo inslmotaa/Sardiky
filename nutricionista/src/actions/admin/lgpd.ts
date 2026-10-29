@@ -45,12 +45,12 @@ export async function resolveDataRequest(_: ActionState, fd: FormData): Promise<
  */
 export async function anonymizePatient(_: ActionState, fd: FormData): Promise<ActionState> {
   const id = String(fd.get('patientId') ?? '')
-  if (!uuid.safeParse(id).success) return { error: 'Escolha o paciente.' }
+  if (!uuid.safeParse(id).success) return { error: 'Escolha o cliente.' }
   if (fd.get('confirm') !== 'ANONIMIZAR') return { error: 'Digite ANONIMIZAR para confirmar.', fieldErrors: { confirm: 'Confirmação necessária' } }
   try {
     const user = await requireTeam('config')
     const [p] = await db.select().from(schema.patients).where(and(eq(schema.patients.id, id), isNull(schema.patients.anonymizedAt)))
-    if (!p) return { error: 'Paciente não encontrado.' }
+    if (!p) return { error: 'Cliente não encontrado.' }
     const files = await db.select().from(schema.files).where(eq(schema.files.patientId, id))
     await db.transaction(async (tx) => {
       await tx.delete(schema.diaryEntries).where(eq(schema.diaryEntries.patientId, id))
@@ -63,19 +63,19 @@ export async function anonymizePatient(_: ActionState, fd: FormData): Promise<Ac
       await tx.delete(schema.files).where(eq(schema.files.patientId, id))
       await tx
         .update(schema.appointments)
-        .set({ contactName: 'Paciente anonimizado', contactEmail: 'anonimizado@invalid', contactPhone: '0000000000', patientNotes: null, internalNotes: null, meetingUrl: null })
+        .set({ contactName: 'Cliente anonimizado', contactEmail: 'anonimizado@invalid', contactPhone: '0000000000', patientNotes: null, internalNotes: null, meetingUrl: null })
         .where(eq(schema.appointments.patientId, id))
       if (p.userId) await tx.delete(schema.users).where(eq(schema.users.id, p.userId))
       await tx
         .update(schema.patients)
-        .set({ fullName: 'Paciente anonimizado', email: null, phone: null, birthDate: null, objective: null, userId: null, status: 'inativo', anonymizedAt: new Date() })
+        .set({ fullName: 'Cliente anonimizado', email: null, phone: null, birthDate: null, objective: null, userId: null, status: 'inativo', anonymizedAt: new Date() })
         .where(eq(schema.patients.id, id))
     })
     for (const f of files) await deleteUpload(f.storageKey)
     await audit(user, 'paciente_anonimizado', 'paciente', { entityId: id, patientId: id })
     revalidatePath('/admin/privacidade')
     revalidatePath('/admin/pacientes')
-    return { ok: true, message: 'Dados do paciente anonimizados.' }
+    return { ok: true, message: 'Dados do cliente anonimizados.' }
   } catch (err) {
     return failure(err)
   }

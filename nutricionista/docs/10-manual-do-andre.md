@@ -14,7 +14,7 @@ Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua á
 ### Rotina de um novo cliente
 
 1. **O cliente se cadastra pelo site.** Escolhe um plano em `/planos` (ou clica em "Agendar consulta"), cria a conta e já começa pela anamnese, em etapas. O André recebe "Novo cadastro pelo site" e "Nova anamnese recebida" em **Início → Avisos**.
-2. **Ou o André cadastra.** Em **Pacientes → Novo paciente**, informe nome, telefone e objetivo. Depois, na ficha, clique em **Liberar acesso**: o sistema gera um link de primeiro acesso, que pode ser enviado pelo WhatsApp. No primeiro acesso, o cliente preenche a anamnese.
+2. **Ou o André cadastra.** Em **Clientes → Novo cliente**, informe nome, telefone e objetivo. Depois, na ficha, clique em **Liberar acesso**: o sistema gera um link de primeiro acesso, que pode ser enviado pelo WhatsApp. No primeiro acesso, o cliente preenche a anamnese.
 3. **Anamnese.** Na ficha do cliente, aba **Anamnese**, ficam as respostas por etapa, o histórico de versões, **Exportar PDF** e **Pedir reavaliação**. Restrições e alergias informadas aparecem em destaque no editor de planos.
 4. **Avaliação.** Na ficha do cliente, aba **Avaliações e evolução**, registre peso, circunferências, dobras e bioimpedância. O percentual de gordura é calculado sozinho.
 5. **Montar e enviar a alimentação.** Na ficha do cliente, aba **Planos alimentares → Novo plano**:
@@ -92,3 +92,14 @@ Outras proteções já ativas:
 Mais detalhes em [02-seguranca-lgpd.md](02-seguranca-lgpd.md).
 
 **Sobre o WhatsApp:** as conversas pelo WhatsApp ficam no celular do André e nos servidores da Meta, fora deste sistema. Evite pedir exames e dados de saúde por lá. Para isso, use a anamnese, o chat e o envio de arquivos do app, que ficam no banco protegido.
+
+## Como o painel está organizado
+
+O menu lateral tem quatro grupos, do que se usa todo dia ao que se configura uma vez:
+
+- **Dia a dia:** Início (resumo do dia), Agenda, Clientes, Mensagens e Acompanhamento (quem está em dia ou precisa de atenção).
+- **Planos e conteúdo:** Planos alimentares, Alimentos, Receitas, Materiais, Formulários e Calculadoras.
+- **Gestão:** Financeiro, Relatórios e Interessados (contatos vindos do site).
+- **Sistema:** Configurações e Privacidade e auditoria.
+
+O atendimento é 100% on-line: as consultas são por videochamada e o link é gerado ao confirmar a consulta. No app, o cliente encontra no topo do "Hoje" os atalhos Meu plano, Registrar refeição, Meu progresso e Falar com o coach.

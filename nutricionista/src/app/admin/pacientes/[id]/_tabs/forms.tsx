@@ -21,8 +21,8 @@ export async function FormsTab({ patient, view }: { patient: typeof schema.patie
       <section className="card">
         <h2 style={{ fontSize: '1.1rem' }}>Anamnese recebida por outro meio</h2>
         <p className="small muted">
-          A anamnese do site fica na aba Anamnese. Se receber respostas por outro meio (papel, mensagem), marque aqui e cole o conteúdo para ficar no
-          prontuário.
+          A anamnese do site fica na aba Anamnese. Se receber respostas por outro meio (papel, mensagem), marque aqui e cole o conteúdo para ficar na
+          ficha.
         </p>
         <ActionForm action={setAnamnesis.bind(null, patient.id)} className="stack">
           <label className="check">

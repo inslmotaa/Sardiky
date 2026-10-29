@@ -80,8 +80,8 @@ export function NoAccess() {
     <div className="card">
       <h1>Acesso restrito</h1>
       <p className="muted">
-        Seu usuário não tem permissão para ver esta área. Se precisar dela, peça ao coach responsável para
-        ajustar suas permissões em Configurações → Equipe.
+        Seu usuário não tem permissão para ver esta área. Se precisar dela, peça ao coach responsável para ajustar suas permissões em Configurações →
+        Equipe.
       </p>
       <Link className="btn" href="/admin">
         Voltar ao início
@@ -104,17 +104,17 @@ export function Tabs({ items, current }: { items: { href: string; label: string;
 
 export function Stat({ value, label, href }: { value: ReactNode; label: string; href?: string }) {
   const body = (
-    <div className="stat">
-      <span className="stat__value">{value}</span>
-      <span className="stat__label">{label}</span>
-    </div>
+    <>
+      <span className="kpi__value">{value}</span>
+      <span className="kpi__label">{label}</span>
+    </>
   )
   return href ? (
-    <Link href={href} className="card stat-card">
+    <Link href={href} className="card kpi">
       {body}
     </Link>
   ) : (
-    <div className="card">{body}</div>
+    <div className="card kpi">{body}</div>
   )
 }
 
@@ -122,8 +122,8 @@ export function SourceBadge({ source }: { source: 'profissional' | 'paciente' })
   return source === 'profissional' ? (
     <span className="badge badge--brand">Medição profissional</span>
   ) : (
-    <span className="badge badge--plain" title="Valor informado pelo próprio paciente, não aferido pelo profissional">
-      Informado pelo paciente
+    <span className="badge badge--plain" title="Valor informado pelo próprio cliente, não aferido pelo profissional">
+      Informado pelo cliente
     </span>
   )
 }

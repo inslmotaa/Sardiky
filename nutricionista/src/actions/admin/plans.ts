@@ -47,7 +47,7 @@ export async function createPlan(_: ActionState, fd: FormData): Promise<ActionSt
     const user = await requireTeam('clinico')
     const asTemplate = parsed.data.template === 'on'
     const patientId = asTemplate ? null : parsed.data.patientId || null
-    if (!asTemplate && (!patientId || !uuid.safeParse(patientId).success)) return { error: 'Escolha o paciente.' }
+    if (!asTemplate && (!patientId || !uuid.safeParse(patientId).success)) return { error: 'Escolha o cliente.' }
     await assertPatientAccess(user, patientId)
     let content = emptyPlan((await getSettings()).defaultMeals)
     if (parsed.data.sourceId) {
@@ -99,10 +99,10 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
     if (fd.get('intent') !== 'publish') {
       await audit(user, 'plano_rascunho_salvo', 'plano', { entityId: plan.id, patientId: plan.patientId })
       refresh(plan)
-      return { ok: true, message: 'Rascunho salvo. O paciente ainda não vê esta versão.' }
+      return { ok: true, message: 'Rascunho salvo. O cliente ainda não vê esta versão.' }
     }
 
-    if (plan.isTemplate || !plan.patientId) return { error: 'Modelos não são publicados; use-os para criar planos de pacientes.' }
+    if (plan.isTemplate || !plan.patientId) return { error: 'Modelos não são publicados; use-os para criar planos de clientes.' }
     if (fd.get('reviewed') !== 'on') return { error: 'Confirme que revisou o plano antes de publicar.', fieldErrors: { reviewed: 'Confirmação obrigatória' } }
     if (countItems(content.data) === 0) return { error: 'O plano precisa ter ao menos uma refeição com alimentos.' }
     for (const d of content.data.days) {
@@ -138,13 +138,13 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
         await sendEmail(
           p.email,
           'Seu plano alimentar foi atualizado',
-          `Olá, ${p.name.split(' ')[0]}!\n\n${s.professionalName} ativou uma nova versão do seu plano alimentar (“${meta.data.title}”).\nAbra a área do paciente para ver: ${process.env.APP_URL ?? 'http://localhost:3000'}/paciente/plano\n`,
+          `Olá, ${p.name.split(' ')[0]}!\n\n${s.professionalName} ativou uma nova versão do seu plano alimentar (“${meta.data.title}”).\nAbra a área do cliente para ver: ${process.env.APP_URL ?? 'http://localhost:3000'}/paciente/plano\n`,
         )
       }
     }
     await audit(user, 'plano_publicado', 'plano', { entityId: plan.id, patientId: plan.patientId, details: { versao: plan.version } })
     refresh(plan)
-    return { ok: true, message: 'Plano publicado na área do paciente.' }
+    return { ok: true, message: 'Plano publicado na área do cliente.' }
   } catch (err) {
     return failure(err)
   }

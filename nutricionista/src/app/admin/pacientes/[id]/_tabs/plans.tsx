@@ -18,7 +18,7 @@ export async function PlansTab({ patient }: { patient: typeof schema.patients.$i
       <section>
         <h2 style={{ fontSize: '1.1rem' }}>Histórico de planos</h2>
         {plans.length === 0 ? (
-          <Empty>Nenhum plano criado para este paciente.</Empty>
+          <Empty>Nenhum plano criado para este cliente.</Empty>
         ) : (
           <ul className="card list">
             {plans.map((p) => (
@@ -44,7 +44,7 @@ export async function PlansTab({ patient }: { patient: typeof schema.patients.$i
         <h2 style={{ fontSize: '1.1rem' }}>Novo plano</h2>
         <NewPlanForm patientId={patient.id} sources={sources} />
         <p className="muted small" style={{ margin: '12px 0 0' }}>
-          Todo plano começa como rascunho e só aparece para o paciente depois que você revisa e publica.
+          Todo plano começa como rascunho e só aparece para o cliente depois que você revisa e publica.
         </p>
       </section>
     </div>

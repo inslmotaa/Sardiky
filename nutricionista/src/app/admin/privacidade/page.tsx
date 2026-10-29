@@ -49,7 +49,7 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
                     {r.patientId && (
                       <>
                         {' · '}
-                        <Link href={`/admin/pacientes/${r.patientId}`}>abrir paciente</Link>
+                        <Link href={`/admin/pacientes/${r.patientId}`}>abrir cliente</Link>
                       </>
                     )}
                   </div>
@@ -75,20 +75,20 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
           ))
         )}
         <p className="small muted" style={{ margin: 0 }}>
-          A LGPD prevê resposta em prazo razoável (para confirmação e acesso completo, até 15 dias). Para exportar os dados de um paciente sem acesso à área exclusiva, use os
-          relatórios e o prontuário.
+          A LGPD prevê resposta em prazo razoável (para confirmação e acesso completo, até 15 dias). Para exportar os dados de um cliente sem acesso à área exclusiva, use os
+          relatórios e a ficha do cliente.
         </p>
       </section>
 
       <section className="card">
-        <h2 style={{ fontSize: '1.1rem' }}>Anonimizar paciente</h2>
+        <h2 style={{ fontSize: '1.1rem' }}>Anonimizar cliente</h2>
         <p className="small">
           Remove de forma irreversível nome, contatos, conta de acesso, mensagens, diário, avaliações, planos, formulários, notas e arquivos. Consultas e lançamentos financeiros
-          ficam apenas como registros sem identificação. <strong>Antes, verifique o prazo de guarda do prontuário exigido pelas normas profissionais e pela legislação.</strong>
+          ficam apenas como registros sem identificação. <strong>Antes, verifique o prazo de guarda da ficha exigido pelas normas profissionais e pela legislação.</strong>
         </p>
         <ActionForm action={anonymizePatient} className="stack" confirm="Esta ação é irreversível. Continuar?">
           <div className="form-grid">
-            <Field label="Paciente" name="patientId">
+            <Field label="Cliente" name="patientId">
               <select name="patientId" defaultValue="">
                 <option value="">Selecione</option>
                 {patients.map((p) => (
@@ -140,7 +140,7 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
                     {l.patientId && (
                       <>
                         {' · '}
-                        <Link href={`/admin/pacientes/${l.patientId}`}>paciente</Link>
+                        <Link href={`/admin/pacientes/${l.patientId}`}>cliente</Link>
                       </>
                     )}
                   </td>

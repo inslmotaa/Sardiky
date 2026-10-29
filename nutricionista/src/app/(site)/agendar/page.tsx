@@ -168,13 +168,13 @@ export default async function BookingPage({ searchParams }: { searchParams: SP }
                 </Field>
               </div>
               <fieldset>
-                <legend>Você já é paciente?</legend>
+                <legend>Você já é cliente?</legend>
                 <div className="row" style={{ gap: 20 }}>
                   <label className="check">
                     <input type="radio" name="returning" value="nao" defaultChecked={!me?.anamnesisReceivedAt || !me} /> Não, é minha primeira consulta
                   </label>
                   <label className="check">
-                    <input type="radio" name="returning" value="sim" /> Sim, já sou paciente
+                    <input type="radio" name="returning" value="sim" /> Sim, já sou cliente
                   </label>
                 </div>
                 <FieldError name="returning" />

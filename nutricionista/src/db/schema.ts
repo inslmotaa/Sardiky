@@ -158,7 +158,7 @@ export const settings = pgTable('settings', {
   bio: text('bio').notNull().default(''),
   photoFileId: uuid('photo_file_id'),
   logoFileId: uuid('logo_file_id'),
-  brandColor: text('brand_color').notNull().default('#2f8f57'),
+  brandColor: text('brand_color').notNull().default('#1f5e3b'),
   specialties: jsonb('specialties').$type<string[]>().notNull().default([]),
   method: text('method').notNull().default(''),
   differentials: jsonb('differentials').$type<string[]>().notNull().default([]),
