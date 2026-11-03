@@ -69,8 +69,11 @@ test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe,
   await page.getByLabel(/Li e aceito a/).check()
   await page.getByRole('button', { name: 'Criar conta' }).click()
 
-  // Primeiro acesso: começa pela anamnese.
+  // Primeiro acesso, depois de fechar o plano: escolhe como responder a anamnese (no app ou pelo formulário).
   await expect(page).toHaveURL(/\/paciente\/anamnese$/)
+  await expect(page.getByRole('heading', { name: 'Como você prefere responder a anamnese?' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Abrir o formulário ↗' })).toHaveAttribute('href', /^https:\/\/forms\.gle\//)
+  await page.getByRole('link', { name: 'Responder no app' }).click()
   await fillAnamnesisUntilReview(page)
   await expect(page.locator('.anam__review', { hasText: 'Dados pessoais' })).toContainText('20/05/1990')
   await page.getByRole('button', { name: 'Enviar anamnese' }).click()
@@ -126,7 +129,7 @@ test('permissões: paciente sem acesso ao painel e equipe fora da área do clien
   await expect(page).toHaveURL(/\/paciente$/)
   // Logado no site: avatar com menu no lugar de "Entrar".
   await page.goto('/')
-  await expect(page.locator('.site-header').getByRole('link', { name: 'Entrar' })).toHaveCount(0)
+  await expect(page.locator('.tl-header .login-menu')).toHaveCount(0)
   await page.locator('.tl-nav .user-menu summary').click()
   await expect(page.locator('.tl-nav .user-menu').getByRole('link', { name: 'Minha área' })).toHaveAttribute('href', '/paciente')
   // Logado, "Agendar consulta" vai direto para a agenda.

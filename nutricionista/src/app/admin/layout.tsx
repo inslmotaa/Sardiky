@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import type { Metadata } from 'next'
 import { and, count, eq, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
@@ -151,7 +152,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
         </header>
         <main id="conteudo" className="main">
-          <div className="main__inner">{children}</div>
+          <div className="main__inner">
+            {children}
+            <div className="back-home no-print">
+              <Link href="/" className="btn">
+                <span aria-hidden>←</span> Voltar para a página principal
+              </Link>
+            </div>
+          </div>
         </main>
         <PwaClient offlineText="Sem conexão com a internet. As alterações não serão salvas até a conexão voltar." />
       </div>

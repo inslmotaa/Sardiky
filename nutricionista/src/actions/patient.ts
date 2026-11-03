@@ -13,7 +13,7 @@ import { parseAnswers } from '@/lib/forms'
 import { notifyTeam } from '@/lib/team'
 import { getSettings } from '@/lib/settings'
 import { currentPublishedPlan, featuresOf } from '@/lib/patient-context'
-import { saveUpload, CHAT_TYPES, DOC_TYPES, IMAGE_TYPES } from '@/lib/storage'
+import { deleteUpload, saveUpload, CHAT_TYPES, DOC_TYPES, IMAGE_TYPES } from '@/lib/storage'
 import { applyAnamnesis } from '@/lib/anamnese'
 import { PRIVACY_VERSION } from '@/lib/constants'
 import { chatFileTitle } from '@/lib/format'
@@ -245,10 +245,54 @@ export async function sendPatientMessage(_: ActionState, fd: FormData): Promise<
   }
 }
 
+/* ------------------------------- exames ------------------------------- */
+
+/** O cliente envia um exame (PDF ou foto), opcional. Fica privado: só ele e a equipe clínica veem. */
+export async function uploadOwnExam(_: ActionState, fd: FormData): Promise<ActionState> {
+  const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).exames) return { error: 'O envio de exames não está liberado para você.' }
+  const parsed = z.object({ title: str(120, 'Dê um nome ao exame'), date: z.union([z.literal(''), day]).optional() }).safeParse(formObject(fd))
+  if (!parsed.success) return zodErrors(parsed.error)
+  const file = fd.get('file')
+  if (!(file instanceof File) || file.size === 0) return { fieldErrors: { file: 'Escolha o arquivo' }, error: 'Escolha o arquivo do exame.' }
+  if (!rateLimit(`upload:${user.id}`, 30, 3_600_000)) return { error: 'Limite de envios atingido. Tente mais tarde.' }
+  try {
+    const saved = await saveUpload(file, DOC_TYPES)
+    if ('error' in saved) return { fieldErrors: { file: saved.error! }, error: saved.error }
+    const title = parsed.data.date ? `${parsed.data.title} (${parsed.data.date.split('-').reverse().join('/')})` : parsed.data.title
+    const [f] = await db
+      .insert(schema.files)
+      .values({ patientId: user.patientId, uploadedBy: user.id, kind: 'exame', title, mime: saved.mime, size: saved.size, storageKey: saved.key, visibleToPatient: true })
+      .returning({ id: schema.files.id })
+    await notifyTeam('clinico', 'Novo exame enviado', `${user.name}: ${title}`, `/admin/pacientes/${user.patientId}?aba=documentos`, user.patientId)
+    await audit(user, 'exame_enviado', 'arquivo', { entityId: f.id, patientId: user.patientId })
+    revalidatePath('/paciente/enviar')
+    return { ok: true, message: 'Exame enviado. O coach já pode ver.' }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+/** O cliente apaga um exame que ele mesmo enviou. */
+export async function deleteOwnExam(id: string): Promise<void> {
+  const user = await requirePatient()
+  if (!uuid.safeParse(id).success) return
+  const [f] = await db
+    .select()
+    .from(schema.files)
+    .where(and(eq(schema.files.id, id), eq(schema.files.patientId, user.patientId), eq(schema.files.kind, 'exame'), eq(schema.files.uploadedBy, user.id)))
+  if (!f) return
+  await db.delete(schema.files).where(eq(schema.files.id, f.id))
+  await deleteUpload(f.storageKey)
+  await audit(user, 'exame_excluido', 'arquivo', { entityId: f.id, patientId: user.patientId })
+  revalidatePath('/paciente/enviar')
+}
+
 /* --------------------------- fotos de evolução --------------------------- */
 
 export async function addOwnProgressPhotos(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
+  if (!(await featuresOf(user.patientId)).fotosCorpo) return { error: 'O envio de fotos do corpo não está liberado para você.' }
   const date = day.safeParse(fd.get('date'))
   const s = await getSettings()
   if (!date.success || date.data > todayIn(s.timezone)) return { fieldErrors: { date: 'Data inválida' }, error: 'Revise a data.' }

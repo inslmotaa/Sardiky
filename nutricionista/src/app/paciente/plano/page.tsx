@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
@@ -24,7 +25,25 @@ export default async function PatientPlanPage() {
     return (
       <>
         <PageHead title="Plano alimentar" />
-        <Empty>Seu plano ainda não foi publicado. Assim que o coach concluir a revisão, ele aparecerá aqui.</Empty>
+        <Empty>
+          {history.length > 0
+            ? 'Nenhum plano ativo no momento: o coach encerrou o último plano. Quando ele publicar um novo, ele aparece aqui.'
+            : 'Seu plano ainda não foi publicado. Assim que o coach concluir a revisão, ele aparecerá aqui.'}
+        </Empty>
+        {history.length > 0 && (
+          <ul className="card list" style={{ marginTop: 16 }}>
+            {history.map((h) => (
+              <li key={h.id} className="row row--between">
+                <span>
+                  {h.title} <span className="muted small">· versão {h.version}</span>
+                </span>
+                <Link href={`/paciente/plano/${h.id}`} className="btn btn--sm">
+                  Ver
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </>
     )
   }

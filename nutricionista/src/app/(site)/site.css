@@ -2047,3 +2047,107 @@ html:has(.tl) {
     animation: none;
   }
 }
+
+/* -------------------- Entrar (botão verde com as opções) -------------------- */
+.login-menu {
+  position: relative;
+}
+.login-menu > summary {
+  list-style: none;
+}
+.login-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.login-menu__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  background: var(--tl-green);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+.login-menu__btn::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.2s;
+}
+.login-menu[open] .login-menu__btn::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+.login-menu__btn:hover {
+  background: #174a2e;
+}
+.login-menu__btn:focus-visible {
+  outline: 2px solid var(--tl-green);
+  outline-offset: 3px;
+}
+.login-menu--compact .login-menu__btn {
+  min-height: 38px;
+  padding: 8px 14px;
+  font-size: 12px;
+}
+.login-menu__panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 260px;
+  padding: 8px;
+  display: grid;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid rgb(31 94 59 / 0.18);
+  border-radius: 12px;
+  box-shadow: 0 14px 36px rgb(31 94 59 / 0.18);
+  z-index: 70;
+}
+.login-menu__opt {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: var(--tl-ink, #18271e);
+  text-decoration: none;
+}
+.login-menu__opt strong {
+  font-size: 0.95rem;
+}
+.login-menu__opt span {
+  font-size: 0.8rem;
+  color: #5b6b61;
+}
+.login-menu__opt:hover,
+.login-menu__opt:focus-visible {
+  background: #eef5ee;
+}
+.login-menu__opt--main {
+  background: var(--tl-green);
+  color: #fff;
+}
+.login-menu__opt--main span {
+  color: rgb(255 255 255 / 0.8);
+}
+.login-menu__opt--main:hover,
+.login-menu__opt--main:focus-visible {
+  background: #174a2e;
+}
+.site-menu__auth {
+  display: grid;
+  gap: 8px;
+  margin: 6px 0;
+}

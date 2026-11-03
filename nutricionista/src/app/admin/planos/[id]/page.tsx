@@ -9,7 +9,7 @@ import { getSettings } from '@/lib/settings'
 import { audit } from '@/lib/audit'
 import { fmtDateTime, fmtDay } from '@/lib/time'
 import { uuid } from '@/lib/validation'
-import { deletePlanDraft, newPlanVersion, savePlan, savePlanAsTemplate, setPlanHistoryVisibility } from '@/actions/admin/plans'
+import { deletePlanDraft, endPlan, newPlanVersion, savePlan, savePlanAsTemplate, setPlanHistoryVisibility } from '@/actions/admin/plans'
 import { PlanEditor } from '@/components/PlanEditor'
 import { PatientPlan } from '@/components/nutri/PatientPlan'
 import { loadFoods } from '@/lib/foods'
@@ -17,10 +17,10 @@ import { loadRecipes, recipesAsFoods } from '@/lib/recipes'
 import { normalizePlan } from '@/lib/plan'
 import { measurementsOf, latest } from '@/lib/patient-data'
 import { NewPlanForm } from '@/components/NewPlanForm'
-import { ActionForm, Field, PrintButton, SubmitButton } from '@/components/form'
+import { ActionForm, ConfirmForm, Field, PrintButton, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
 
-export default async function PlanPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ativado?: string; sem?: string }> }) {
+export default async function PlanPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ativado?: string; sem?: string; encerrado?: string }> }) {
   const { id } = await params
   const sp = await searchParams
   const user = await requireTeam()
@@ -70,7 +70,6 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
         <div>
           Versão {plan.version}
           {plan.publishedAt && ` · publicada em ${fmtDay(plan.publishedAt.toISOString().slice(0, 10))}`}
-          {plan.validUntil && ` · válida até ${fmtDay(plan.validUntil)}`}
         </div>
         <hr />
       </div>
@@ -89,6 +88,13 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
               Baixar PDF
             </a>
             {plan.status !== 'rascunho' && <PrintButton label="Imprimir" />}
+            {plan.status === 'publicado' && plan.patientId && (
+              <ConfirmForm action={endPlan.bind(null, plan.id)} confirm="Encerrar este plano? Ele sai da tela Hoje do cliente e fica no histórico.">
+                <button type="submit" className="btn">
+                  Encerrar plano
+                </button>
+              </ConfirmForm>
+            )}
             {plan.status !== 'rascunho' && plan.patientId && (
               <form action={newPlanVersion.bind(null, plan.id)}>
                 <button type="submit" className="btn btn--primary">
@@ -99,6 +105,11 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
           </>
         }
       />
+      {sp.encerrado && plan.status === 'arquivado' && (
+        <p className="alert alert--info" role="status">
+          Plano encerrado. O cliente fica sem plano ativo até você publicar uma nova versão.
+        </p>
+      )}
       {sp.ativado && plan.status === 'publicado' && (
         <p className="alert alert--ok" role="status">
           Plano ativado no app do cliente. Ele já recebe o aviso e vê as refeições na tela Hoje.
@@ -119,8 +130,6 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
             foods={foods}
             patient={patient ? { name: patient.fullName, weightKg: weight?.value ?? null, energyTarget: patient.energy?.targetKcal ?? null, restrictions: patient.restrictions ?? [] } : undefined}
             title={plan.title}
-            validFrom={plan.validFrom}
-            validUntil={plan.validUntil}
             isTemplate={plan.isTemplate}
           />
         </>

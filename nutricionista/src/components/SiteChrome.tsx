@@ -7,6 +7,40 @@ import { SITE_NAV } from '@/lib/constants'
 import { initSiteFx } from '@/lib/site-fx'
 
 /** Avatar com menu (Minha área / Sair) no lugar de "Entrar" quando há sessão. */
+/**
+ * Botão verde "Entrar" do cabeçalho: abre as duas opções, entrar (cliente ou coach) ou criar conta.
+ * Depois de entrar, cada perfil vai para a sua área, separada do site.
+ */
+export function LoginMenu({ compact = false }: { compact?: boolean }) {
+  const ref = useRef<HTMLDetailsElement>(null)
+  const pathname = usePathname()
+  useEffect(() => {
+    ref.current?.removeAttribute('open')
+  }, [pathname])
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current?.open && !ref.current.contains(e.target as Node)) ref.current.open = false
+    }
+    document.addEventListener('click', onDoc)
+    return () => document.removeEventListener('click', onDoc)
+  }, [])
+  return (
+    <details className={`login-menu${compact ? ' login-menu--compact' : ''}`} ref={ref}>
+      <summary className="login-menu__btn">Entrar</summary>
+      <div className="login-menu__panel" role="group" aria-label="Acesso">
+        <Link href="/entrar" className="login-menu__opt login-menu__opt--main">
+          <strong>Entrar</strong>
+          <span>Já tenho conta (cliente ou coach)</span>
+        </Link>
+        <Link href="/criar-conta" className="login-menu__opt">
+          <strong>Criar conta</strong>
+          <span>Primeira vez? Cadastre-se</span>
+        </Link>
+      </div>
+    </details>
+  )
+}
+
 export function UserMenu({ name, area, logout }: { name: string; area: string; logout: () => Promise<void> }) {
   const ref = useRef<HTMLDetailsElement>(null)
   const initials = name

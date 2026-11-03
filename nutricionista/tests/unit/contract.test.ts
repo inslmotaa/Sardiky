@@ -1,19 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { contractInfo } from '@/lib/contract'
-import { addMonthsSameDay } from '@/lib/time'
 
 describe('plano contratado', () => {
-  it('soma meses mantendo o dia, sem passar do fim do mês', () => {
-    expect(addMonthsSameDay('2026-01-31', 1)).toBe('2026-02-28')
-    expect(addMonthsSameDay('2026-10-15', 3)).toBe('2027-01-15')
-    expect(addMonthsSameDay('2028-01-31', 1)).toBe('2028-02-29')
-  })
-  it('vigência, dias restantes e situação', () => {
-    const tri = { name: 'Trimestral', months: 3, sessions: 3 }
-    expect(contractInfo(tri, '2026-10-01', '2026-11-03')).toMatchObject({ end: '2027-01-01', daysLeft: 59, status: 'vigente' })
-    expect(contractInfo(tri, '2026-08-10', '2026-11-03')).toMatchObject({ end: '2026-11-10', daysLeft: 7, status: 'vencendo' })
-    expect(contractInfo(tri, '2026-07-01', '2026-11-03')).toMatchObject({ end: '2026-10-01', status: 'vencido' })
-    expect(contractInfo(tri, null, '2026-11-03')).toMatchObject({ end: null, daysLeft: null, status: 'sem-inicio' })
+  it('sem prazo por padrão; com término definido pelo coach, avisa perto do fim', () => {
+    const tri = { name: 'Trimestral', sessions: 3 }
+    expect(contractInfo(tri, '2026-10-01', null, '2026-11-03')).toMatchObject({ end: null, daysLeft: null, status: 'sem-prazo' })
+    expect(contractInfo(tri, null, null, '2026-11-03')).toMatchObject({ status: 'sem-prazo' })
+    expect(contractInfo(tri, '2026-10-01', '2027-01-01', '2026-11-03')).toMatchObject({ daysLeft: 59, status: 'vigente' })
+    expect(contractInfo(tri, '2026-08-10', '2026-11-10', '2026-11-03')).toMatchObject({ daysLeft: 7, status: 'vencendo' })
+    expect(contractInfo(tri, '2026-07-01', '2026-10-01', '2026-11-03')).toMatchObject({ status: 'vencido' })
   })
 })
 

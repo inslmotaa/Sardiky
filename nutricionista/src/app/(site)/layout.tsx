@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
 import { logout } from '@/actions/auth'
 import { BookingLink } from '@/components/BookingLink'
-import { MobileMenu, SiteBrand, SiteFx, SiteNavLinks, UserMenu } from '@/components/SiteChrome'
+import { LoginMenu, MobileMenu, SiteBrand, SiteFx, SiteNavLinks, UserMenu } from '@/components/SiteChrome'
 import { SITE_NAV, SITE_PAGES, TIMELESS_URL } from '@/lib/constants'
 import { MotionRoot } from '@/components/motion'
 import { IconInstagram, IconWhatsApp } from '@/components/icons'
@@ -35,19 +35,22 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
               {user ? (
                 <UserMenu name={user.name} area={area} logout={logout} />
               ) : (
-                <Link href="/entrar" className="tl-nav__link">
-                  <span aria-hidden>/ </span>Entrar
-                </Link>
+                <LoginMenu />
               )}
             </nav>
             <div className="tl-header__mobile">
-              {user && <UserMenu name={user.name} area={area} logout={logout} />}
+              {user ? <UserMenu name={user.name} area={area} logout={logout} /> : <LoginMenu compact />}
               <MobileMenu>
                 <SiteNavLinks className="site-menu__link" />
                 {!user && (
-                  <Link href="/entrar" className="site-menu__link">
-                    <span aria-hidden>/ </span>Entrar na área do cliente
-                  </Link>
+                  <div className="site-menu__auth">
+                    <Link href="/entrar" className="pill pill--solid pill--block">
+                      Entrar
+                    </Link>
+                    <Link href="/criar-conta" className="pill pill--block">
+                      Criar conta
+                    </Link>
+                  </div>
                 )}
                 <BookingLink to={booking} className="pill pill--block">
                   Agendar consulta <span aria-hidden>→</span>

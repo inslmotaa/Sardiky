@@ -7,7 +7,7 @@ O sistema tem duas áreas:
 
 Os dados ficam num banco só, e cada área enxerga apenas o que lhe cabe.
 
-Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua área. O botão **Mostrar** ao lado da senha ajuda a conferir o que foi digitado no celular. No celular, o cliente pode instalar o app pela opção "Adicionar à tela inicial".
+Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua área. O botão **Mostrar** ao lado da senha ajuda a conferir o que foi digitado no celular. No site, o botão verde **Entrar** do cabeçalho abre as duas opções: **Entrar** (quem já tem conta) e **Criar conta**. No fim de cada área (cliente, painel e telas de acesso) há o botão **Voltar para a página principal**. No celular, o cliente pode instalar o app pela opção "Adicionar à tela inicial".
 
 O nome do site e do app é **Farion** (cabeçalho, aba do navegador e ícone instalado). Ele é alterado em **Configurações → Perfil → Nome do site**. A apresentação, a página Sobre, o PDF do plano e as mensagens continuam com o nome do André.
 
@@ -17,16 +17,17 @@ O nome do site e do app é **Farion** (cabeçalho, aba do navegador e ícone ins
 
 1. **O cliente se cadastra pelo site.** Escolhe um plano em `/planos` (ou clica em "Agendar consulta"), cria a conta e já começa pela anamnese, em etapas. O André recebe "Novo cadastro pelo site" e "Nova anamnese recebida" em **Início → Avisos**.
 2. **Ou o André cadastra.** Em **Clientes → Novo cliente**, informe nome, telefone e objetivo. Depois, na ficha, clique em **Liberar acesso**: o sistema gera um link de primeiro acesso, que pode ser enviado pelo WhatsApp. No primeiro acesso, o cliente preenche a anamnese.
-3. **Anamnese.** Na ficha do cliente, aba **Anamnese**, ficam as respostas por etapa, o histórico de versões, **Exportar PDF** e **Pedir reavaliação**. Restrições e alergias informadas aparecem em destaque no editor de planos.
+3. **Anamnese.** Depois de fechar o plano e criar a conta, o cliente escolhe como responder: **aqui no app** (em etapas, recomendado) ou **pelo formulário** (Google Forms do André, link em **Configurações → Planos, anamnese e PDF**). Quem usa o formulário clica em **Já enviei o formulário**: o André recebe o aviso e as respostas ficam no Google Forms. Na ficha do cliente, aba **Anamnese**, ficam as respostas por etapa, o histórico de versões, **Exportar PDF** e **Pedir reavaliação**. Restrições e alergias informadas aparecem em destaque no editor de planos.
 4. **Avaliação.** Na ficha do cliente, aba **Avaliações e evolução**, registre peso, circunferências, dobras e bioimpedância. O percentual de gordura é calculado sozinho.
-5. **Plano contratado.** Na ficha (aba **Resumo**), escolha o **Plano contratado** (Mensal, Trimestral, Semestral ou Anual) e o **Início do plano**. A vigência aparece no topo da ficha e no **Meu perfil** do cliente. No **Início** do painel, o quadro **Planos para enviar ou renovar** lista quem ainda não tem plano alimentar no app e quem está com o plano contratado a 15 dias ou menos do fim.
+5. **Plano contratado.** Na ficha (aba **Resumo**), escolha o **Plano contratado** (Mensal, Trimestral, Semestral ou Anual) e o **Início do acompanhamento**. **Não há prazo automático**: o acompanhamento segue até você decidir. Se quiser, preencha **Término (opcional)**; vazio = sem prazo. No **Início** do painel, o quadro **Planos para enviar ou renovar** lista quem ainda não tem plano alimentar no app e quem tem término marcado para os próximos 15 dias.
 6. **Montar e enviar a alimentação.** Na ficha do cliente, aba **Planos alimentares → Novo plano**:
    - escolha os alimentos da base, com medidas caseiras, ou as receitas cadastradas;
    - as calorias e os macros são calculados enquanto você monta;
    - cada item pode ter substituições equivalentes sugeridas;
    - marque **Revisei e aprovo este plano** e clique em **Ativar no app do cliente**: o plano aparece na hora no app, com notificação no celular. O PDF com sua assinatura fica disponível para os dois;
    - dá para enviar **só uma parte**, por exemplo só o café da manhã: as refeições ainda sem alimentos não vão para o cliente, e o sistema avisa quais ficaram de fora. Para completar depois, use **Criar nova versão**;
-   - cada plano novo do cliente continua a numeração (versão 1, 2, 3…), e a versão anterior vai para o histórico.
+   - cada plano novo do cliente continua a numeração (versão 1, 2, 3…), e a versão anterior vai para o histórico;
+   - **o plano alimentar não tem data de validade**: fica ativo até você publicar outra versão ou clicar em **Encerrar plano** (o cliente é avisado e o plano fica no histórico dele).
 7. **Extras para o cliente:**
    - receitas e materiais educativos (PDF, vídeo, link);
    - prescrições na aba **Prescrições**. Em **Escrever prescrição**, o André digita livremente: suplementos, manipulados, ergogênicos, alimentos, quantidades, horários e orientações. As quebras de linha são mantidas no app do cliente e no PDF. Há também os tipos Suplemento, Manipulado, Ergogênico, Fitoterápico, Alimentação, Exame e Outro, com dose, horário e duração opcionais. Cada prescrição pode ser editada (o cliente é avisado) ou encerrada;
@@ -65,6 +66,11 @@ O cliente vê **somente os próprios dados**:
   - o coach, a etapa, o objetivo e a próxima consulta;
   - o plano alimentar ativo, com as refeições do dia, **Ver plano completo**, **Baixar PDF** e **Lista de compras**;
   - cadastro, troca de senha e privacidade (LGPD);
+- **Fotos e exames** (em **Mais**), tudo opcional:
+  - foto da refeição, pelo diário;
+  - fotos do corpo (frente, lado e costas), em Progresso;
+  - exames em PDF ou foto, que aparecem na ficha em **Documentos e exames** com o aviso "Exame enviado pelo cliente".
+  O André liga ou desliga as fotos do corpo e os exames por cliente em **Recursos do app do cliente**;
 - **Plano:** opções, quantidades, substituições e o PDF;
 - **Diário:** foto e anotações de cada refeição;
 - **Progresso:** peso, medidas, fotos de evolução e metas;

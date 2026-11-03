@@ -3,7 +3,7 @@ import { desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { planSources } from '@/lib/plan-sources'
 import { getSettings } from '@/lib/settings'
-import { fmtDateTime, fmtDay } from '@/lib/time'
+import { fmtDateTime } from '@/lib/time'
 import { NewPlanForm } from '@/components/NewPlanForm'
 import { StatusBadge, Empty } from '@/components/ui'
 
@@ -31,7 +31,6 @@ export async function PlansTab({ patient }: { patient: typeof schema.patients.$i
                   </Link>
                   <div className="small muted">
                     {p.publishedAt ? `Publicado em ${fmtDateTime(p.publishedAt, s.timezone)}` : `Editado em ${fmtDateTime(p.updatedAt, s.timezone)}`}
-                    {p.validUntil && ` · válido até ${fmtDay(p.validUntil)}`}
                   </div>
                 </div>
                 <StatusBadge status={p.status} />

@@ -423,6 +423,8 @@ export async function saveClinicalSettings(_: ActionState, fd: FormData): Promis
   }
   if (meals.length > 10) return { fieldErrors: { defaultMeals: 'No máximo 10 refeições' }, error: 'No máximo 10 refeições.' }
   const tpl = String(fd.get('autoAnamnesisTemplateId') ?? '')
+  const anamneseUrl = String(fd.get('anamneseUrl') ?? '').trim() || null
+  if (anamneseUrl && !/^https:\/\/\S+$/.test(anamneseUrl)) return { fieldErrors: { anamneseUrl: 'Use o link completo (https://…)' }, error: 'Revise o link do formulário.' }
   const signatureText = String(fd.get('signatureText') ?? '').trim().slice(0, 300) || null
   try {
     const user = await requireTeam('config')
@@ -442,6 +444,7 @@ export async function saveClinicalSettings(_: ActionState, fd: FormData): Promis
       .set({
         defaultMeals: meals,
         autoAnamnesisTemplateId: uuid.safeParse(tpl).success ? tpl : null,
+        anamneseUrl: anamneseUrl?.slice(0, 500) ?? null,
         signatureText,
         ...(signatureFileId ? { signatureFileId } : {}),
         ...(fd.get('removeSignature') === 'on' ? { signatureFileId: null } : {}),

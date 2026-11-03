@@ -79,7 +79,8 @@ async function main() {
     instagram: 'https://instagram.com/',
     contactEmail: 'contato@example.com',
     privacyContact: 'privacidade@example.com',
-    anamneseUrl: null,
+    // Formulário de anamnese do André (o cliente escolhe: no app ou pelo formulário).
+    anamneseUrl: 'https://forms.gle/8EkK8XcNE35ydHYKA',
     waterMlPerKg: 35,
     defaultMeals: [
       { name: 'Café da manhã', time: '07:00' },
@@ -303,9 +304,11 @@ async function main() {
         sex: 'M',
         heightCm: 178,
         nutritionistId: admin.id,
-        // Plano mensal perto de vencer: aparece em "Planos para enviar ou renovar" no Início do coach.
+        // Término marcado pelo coach daqui a 5 dias: aparece em "Planos para enviar ou renovar" no Início.
         packageId: pkgMensal.id,
         packageStart: day(-25),
+        // Término definido pelo coach (opcional): sem ele, o acompanhamento não tem prazo.
+        packageEnd: day(5),
         status: 'ativo',
         stage: 'Avaliação inicial',
         followUpDays: 21,
@@ -533,8 +536,6 @@ async function main() {
       status: 'arquivado',
       version: 1,
       content: beatrizV1,
-      validFrom: day(-150),
-      validUntil: day(-31),
       publishedAt: at(-150, '18:00'),
       publishedBy: admin.id,
       createdBy: admin.id,
@@ -549,8 +550,6 @@ async function main() {
       version: 2,
       parentId: v1.id,
       content: beatrizPlan,
-      validFrom: day(-30),
-      validUntil: day(30),
       publishedAt: at(-30, '18:00'),
       publishedBy: admin.id,
       createdBy: admin.id,
@@ -580,8 +579,6 @@ async function main() {
       status: 'publicado',
       version: 1,
       content: vegetarianoPlan,
-      validFrom: day(-20),
-      validUntil: day(40),
       publishedAt: at(-20, '18:00'),
       publishedBy: admin.id,
       createdBy: admin.id,

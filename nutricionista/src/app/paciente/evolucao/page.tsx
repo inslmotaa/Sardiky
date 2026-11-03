@@ -53,8 +53,11 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
         </section>
       )}
       <Evolution rows={rows} goals={goals} compare={sp} basePath="/paciente/evolucao" onToggleGoal={toggleOwnGoal} />
+      {features.fotosCorpo && (
       <section className="card" id="fotos">
-        <h2 style={{ fontSize: '1.15rem' }}>Fotos de evolução</h2>
+        <h2 style={{ fontSize: '1.15rem' }}>
+          Fotos de evolução <span className="send-card__tag">Opcional</span>
+        </h2>
         <ProgressPhotos
           photos={photos}
           upload={addOwnProgressPhotos}
@@ -63,6 +66,7 @@ export default async function EvolutionPage({ searchParams }: { searchParams: Pr
           privacyNote="Suas fotos são privadas: só você e o seu coach podem vê-las."
         />
       </section>
+      )}
       {features.peso && (
       <section className="card" id="registrar">
         <h2 style={{ fontSize: '1.15rem' }}>Registrar uma medida em casa</h2>

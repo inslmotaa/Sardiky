@@ -37,7 +37,7 @@ const TABS = [
   { key: 'metas', label: 'Metas', perm: 'clinico' },
   { key: 'prescricoes', label: 'Prescrições', perm: 'clinico' },
   { key: 'notas', label: 'Notas clínicas', perm: 'clinico' },
-  { key: 'documentos', label: 'Documentos', perm: 'clinico' },
+  { key: 'documentos', label: 'Documentos e exames', perm: 'clinico' },
   { key: 'mensagens', label: 'Mensagens', perm: 'clinico' },
   { key: 'financeiro', label: 'Financeiro', perm: 'financeiro' },
 ] as const
@@ -60,7 +60,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
   }
   const age = ageFrom(p.birthDate, todayIn(s.timezone))
   const [pkg] = p.packageId ? await db.select().from(schema.packages).where(eq(schema.packages.id, p.packageId)) : []
-  const contract = pkg ? contractInfo(pkg, p.packageStart, todayIn(s.timezone)) : null
+  const contract = pkg ? contractInfo(pkg, p.packageStart, p.packageEnd, todayIn(s.timezone)) : null
   const wa = p.phone ? whatsappLink(p.phone.length <= 11 ? `55${p.phone}` : p.phone) : null
 
   return (

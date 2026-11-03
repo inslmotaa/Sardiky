@@ -9,17 +9,18 @@ test('coach envia o café da manhã; cliente vê no Hoje, no Plano e no Meu perf
   await login(page, 'admin')
   // Início do coach: quem está com o plano contratado perto de vencer.
   await expect(page.getByRole('heading', { name: 'Planos para enviar ou renovar' })).toBeVisible()
-  await expect(page.locator('section[aria-labelledby="planos-pendentes"]')).toContainText(/Lucas Fictício · Plano Mensal vence em/)
+  await expect(page.locator('section[aria-labelledby="planos-pendentes"]')).toContainText(/Lucas Fictício · Plano Mensal termina em/)
 
   // Plano contratado na ficha: Trimestral a partir de hoje.
   await openPatient(page, 'Helena Teste')
   await page.getByLabel('Plano contratado').selectOption({ label: 'Trimestral · 3 meses' })
   const start = await page.evaluate(() => new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' }))
-  await page.getByLabel('Início do plano').fill(start)
+  await page.getByLabel('Início do acompanhamento').fill(start)
   await page.getByRole('button', { name: 'Salvar alterações' }).click()
   await expect(page.getByText('Cadastro atualizado.')).toBeVisible()
   await page.reload()
-  await expect(page.locator('.page-head')).toContainText('Plano Trimestral até')
+  // Sem término marcado: o acompanhamento não tem prazo (o coach decide quando encerrar).
+  await expect(page.locator('.page-head')).toContainText('Plano Trimestral (sem prazo definido)')
 
   // Novo plano em branco: continua a numeração e só o café da manhã é preenchido.
   await page.getByRole('link', { name: 'Planos alimentares', exact: true }).last().click()
@@ -63,7 +64,7 @@ test('coach envia o café da manhã; cliente vê no Hoje, no Plano e no Meu perf
   await expect(page).toHaveURL(/\/paciente\/meus-dados$/)
   const acomp = page.locator('section[aria-labelledby="meu-acompanhamento"]')
   await expect(acomp).toContainText('Plano Trimestral')
-  await expect(acomp).toContainText('faltam')
+  await expect(acomp).toContainText('Sem prazo definido')
   await expect(acomp).toContainText('André Farion')
   const plano = page.locator('section[aria-labelledby="meu-plano-alimentar"]')
   await expect(plano).toContainText('Café da manhã reforçado')
@@ -86,4 +87,81 @@ test('login único com "Mostrar senha" leva cada perfil à sua área', async ({ 
 
   await login(page, 'admin')
   await expect(page.locator('.sidebar .brand__title')).toHaveText('Farion')
+})
+
+test('coach encerra o plano alimentar quando quiser; cliente vê o histórico', async ({ page }) => {
+  await login(page, 'admin')
+  const id = await openPatient(page, 'Beatriz Exemplo')
+  await page.goto(`/admin/pacientes/${id}?aba=planos`)
+  await page.locator('li', { hasText: 'Publicado' }).getByRole('link').first().click()
+  await expect(page.locator('.page-head .badge').first()).toHaveText('Publicado')
+  await expect(page.locator('.page-head')).not.toContainText('válid')
+  page.once('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: 'Encerrar plano' }).click()
+  await expect(page.getByRole('status').filter({ hasText: 'Plano encerrado' })).toBeVisible()
+
+  await login(page, 'beatriz')
+  await page.goto('/paciente/plano')
+  await expect(page.getByText('Nenhum plano ativo no momento')).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ver' }).first()).toBeVisible()
+})
+
+test('cliente envia exame (opcional) e o coach vê na ficha; fotos do corpo podem ser desligadas', async ({ page }) => {
+  await login(page, 'lucas')
+  await page.goto('/paciente/mais')
+  await page.getByRole('link', { name: /Fotos e exames/ }).click()
+  await expect(page.getByRole('heading', { name: 'Fotos e exames', level: 1 })).toBeVisible()
+  for (const h of ['Foto da refeição', 'Foto do corpo', 'Exames']) await expect(page.getByRole('heading', { name: h, exact: true })).toBeVisible()
+  await page.getByLabel('Nome do exame').fill('Hemograma completo')
+  await page.getByLabel('Arquivo').setInputFiles({
+    name: 'hemograma.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n'),
+  })
+  await page.getByRole('button', { name: 'Enviar exame' }).click()
+  await expect(page.getByText('Exame enviado. O coach já pode ver.')).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Exames enviados' })).toContainText('Hemograma completo')
+
+  await login(page, 'admin')
+  const id = await openPatient(page, 'Lucas Fictício')
+  await page.goto(`/admin/pacientes/${id}?aba=documentos`)
+  await expect(page.getByRole('row', { name: /Hemograma completo/ })).toContainText('Exame enviado pelo cliente')
+  // Recurso opcional: o coach desliga as fotos do corpo e elas somem do app.
+  await page.goto(`/admin/pacientes/${id}`)
+  await page.getByLabel('Envio de fotos do corpo (opcional)').uncheck()
+  await page.getByRole('button', { name: 'Salvar recursos' }).click()
+  await expect(page.getByText('Recursos do app atualizados.')).toBeVisible()
+  await login(page, 'lucas')
+  await page.goto('/paciente/enviar')
+  await expect(page.getByRole('heading', { name: 'Foto do corpo' })).toHaveCount(0)
+  await page.goto('/paciente/evolucao')
+  await expect(page.getByRole('heading', { name: /Fotos de evolução/ })).toHaveCount(0)
+})
+
+test('depois de fechar o plano, a anamnese pode ser respondida pelo formulário do coach', async ({ page }) => {
+  await page.goto('/criar-conta')
+  await page.getByLabel('Nome completo').fill('Cliente Formulário')
+  await page.getByLabel('E-mail').fill('formulario.teste@example.com')
+  await page.getByLabel('WhatsApp').fill('41977776666')
+  await page.getByRole('textbox', { name: 'Senha', exact: true }).fill('Formulario#2026')
+  await page.getByLabel('Confirme a senha').fill('Formulario#2026')
+  await page.getByLabel(/Li e aceito a/).check()
+  await page.getByRole('button', { name: 'Criar conta' }).click()
+  await expect(page).toHaveURL(/\/paciente\/anamnese$/)
+  await expect(page.getByRole('heading', { name: 'Como você prefere responder a anamnese?' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Responder no app' })).toBeVisible()
+  await page.getByRole('button', { name: 'Já enviei o formulário' }).click()
+  await expect(page.getByRole('heading', { name: 'Obrigado! Sua anamnese foi enviada.' })).toBeVisible()
+  await expect(page.getByText(/respondeu pelo formulário/)).toBeVisible()
+  await page.getByRole('link', { name: 'Ir para minha área' }).click()
+  await expect(page).toHaveURL(/\/paciente$/)
+  await expect(page.locator('.hub-banner')).toHaveCount(0)
+  // Fim da área do cliente: botão para voltar ao site.
+  await expect(page.getByRole('link', { name: /Voltar para a página principal/ })).toHaveAttribute('href', '/')
+
+  await login(page, 'admin')
+  await expect(page.getByRole('region', { name: 'Avisos' }).getByRole('link', { name: 'Anamnese respondida pelo formulário' }).first()).toBeVisible()
+  const id = await openPatient(page, 'Cliente Formulário')
+  await page.goto(`/admin/pacientes/${id}?aba=anamnese`)
+  await expect(page.getByRole('heading', { name: 'Anamnese respondida pelo formulário' })).toBeVisible()
 })

@@ -11,6 +11,21 @@ import type { schema } from '@/db'
 export async function AnamnesisTab({ patient, version }: { patient: typeof schema.patients.$inferSelect; version?: string }) {
   const s = await getSettings()
   const versions = await anamnesisVersions(patient.id)
+  if (versions.length === 0 && patient.anamnesisVia === 'formulario')
+    return (
+      <section className="card stack" style={{ ['--gap' as string]: '10px' }}>
+        <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Anamnese respondida pelo formulário</h2>
+        <p className="muted" style={{ margin: 0 }}>
+          O cliente informou em {patient.anamnesisReceivedAt ? fmtDateTime(patient.anamnesisReceivedAt, s.timezone) : '—'} que enviou o formulário externo
+          (Google Forms). As respostas ficam na sua conta do Google, em Formulários → Respostas.
+        </p>
+        {s.anamneseUrl && (
+          <a className="btn btn--sm" href={s.anamneseUrl} target="_blank" rel="noopener noreferrer" style={{ justifySelf: 'start' }}>
+            Abrir o formulário ↗
+          </a>
+        )}
+      </section>
+    )
   if (versions.length === 0)
     return (
       <Empty>

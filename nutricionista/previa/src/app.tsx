@@ -1222,8 +1222,6 @@ function ClientPlanEditor({ clientId }: { clientId: string }) {
         action={action}
         initial={startContent}
         title={title}
-        validFrom={null}
-        validUntil={null}
         isTemplate={false}
         foods={FOODS}
         patient={{ name: c.name, weightKg: c.weights[c.weights.length - 1]?.value ?? null, energyTarget: c.energyTarget, restrictions: c.id === 'beatriz' ? ['lactose'] : c.id === 'helena' ? ['vegetariano'] : [] }}

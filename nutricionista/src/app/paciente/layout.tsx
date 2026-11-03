@@ -74,7 +74,12 @@ export default async function PatientLayout({ children }: { children: React.Reac
       <nav className="tabbar no-print" aria-label="Atalhos" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
         <NavLinks items={tabs} />
       </nav>
-      <p className="container small muted no-print" style={{ paddingBottom: 90, marginTop: -60 }}>
+      <div className="container back-home no-print" style={{ marginTop: -60 }}>
+        <Link href="/" className="btn">
+          <span aria-hidden>←</span> Voltar para a página principal
+        </Link>
+      </div>
+      <p className="container small muted no-print" style={{ paddingBottom: 90 }}>
         Este app não substitui atendimento médico. Em caso de urgência, procure um serviço de saúde.
       </p>
       {/* Boas-vindas depois da anamnese (o formulário em etapas vem antes, sem nada por cima). */}

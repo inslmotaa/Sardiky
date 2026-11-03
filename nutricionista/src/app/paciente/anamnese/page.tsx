@@ -10,6 +10,7 @@ import { fmtDateTime } from '@/lib/time'
 import { BookingLink } from '@/components/BookingLink'
 import { AnamnesisWizard } from '@/components/AnamnesisWizard'
 import { PageHead } from '@/components/ui'
+import { confirmExternalAnamnesis } from '@/actions/anamnese'
 
 export const metadata: Metadata = { title: 'Anamnese' }
 
@@ -31,7 +32,9 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
         </div>
         <h1>Obrigado! Sua anamnese foi enviada.</h1>
         <p className="muted">
-          {s.professionalName.split(' ')[0]} já recebeu as suas respostas e vai usá-las para preparar o seu acompanhamento. O próximo passo é a consulta.
+          {sp.via === 'formulario'
+            ? `Avisamos o ${s.professionalName.split(' ')[0]} que você respondeu pelo formulário. Ele vai usar as respostas para preparar o seu acompanhamento. O próximo passo é a consulta.`
+            : `${s.professionalName.split(' ')[0]} já recebeu as suas respostas e vai usá-las para preparar o seu acompanhamento. O próximo passo é a consulta.`}
         </p>
         <div className="row" style={{ justifyContent: 'center' }}>
           <BookingLink to={booking} className="btn btn--primary btn--lg btn--fx btn--pulse">
@@ -50,6 +53,46 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
   const versions = await anamnesisVersions(user.patientId)
   const sent = versions.find((v) => v.status === 'enviada')
 
+  // Primeira anamnese com o formulário do coach configurado: o cliente escolhe como responder
+  // (no app ou pelo Google Forms). Quem já começou no app segue direto para o rascunho.
+  const firstTime = !sent && !patient.anamnesisReceivedAt && (!draft || draft.version === 1)
+  const started = draft ? draft.step > 0 : false
+  if (firstTime && s.anamneseUrl && !started && sp.modo !== 'app') {
+    const q = next ? `&next=${encodeURIComponent(next)}` : ''
+    return (
+      <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 820 }}>
+        <PageHead
+          title="Como você prefere responder a anamnese?"
+          subtitle={`Ela ajuda o ${s.professionalName.split(' ')[0]} a montar o seu plano. As duas opções valem: escolha a mais fácil para você.`}
+        />
+        <div className="anam-choice">
+          <section className="card anam-choice__card" aria-labelledby="anam-app">
+            <span className="send-card__tag">Recomendado</span>
+            <h2 id="anam-app">Aqui no app</h2>
+            <p className="muted">Em etapas, cerca de 10 minutos. Cada etapa é salva: dá para sair e continuar depois. Você também pode anexar exames.</p>
+            <Link href={`/paciente/anamnese?modo=app${q}`} className="btn btn--primary">
+              Responder no app
+            </Link>
+          </section>
+          <section className="card anam-choice__card" aria-labelledby="anam-form">
+            <h2 id="anam-form">Pelo formulário (Google Forms)</h2>
+            <p className="muted">O questionário do {s.professionalName.split(' ')[0]} no Google Forms, que abre em outra aba. Ao terminar, volte aqui e confirme.</p>
+            <a href={s.anamneseUrl} target="_blank" rel="noopener noreferrer" className="btn">
+              Abrir o formulário ↗
+            </a>
+            <form action={confirmExternalAnamnesis}>
+              <input type="hidden" name="next" value={next ?? ''} />
+              <button type="submit" className="btn btn--ghost btn--sm">
+                Já enviei o formulário
+              </button>
+            </form>
+          </section>
+        </div>
+        <p className="small muted">Suas respostas são dados de saúde: ficam protegidas e só o coach tem acesso.</p>
+      </div>
+    )
+  }
+
   // Primeira anamnese: começa o rascunho. Anamnese recebida por outro meio (antes do site) não cria rascunho.
   if (!draft && !sent && !patient.anamnesisReceivedAt) draft = await startFirstDraft(user.patientId)
 
@@ -61,14 +104,35 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
           subtitle="Leva cerca de 10 minutos. Cada etapa é salva quando você avança: pode sair e continuar depois."
         />
         <AnamnesisWizard answers={draft.answers} startAt={draft.step} next={next} version={draft.version} />
-        <p className="small muted">Suas respostas são dados de saúde: ficam protegidas e só o coach tem acesso.</p>
+        <p className="small muted">
+          Suas respostas são dados de saúde: ficam protegidas e só o coach tem acesso.
+          {s.anamneseUrl && draft.version === 1 && (
+            <>
+              {' '}
+              Prefere o formulário?{' '}
+              <a href={s.anamneseUrl} target="_blank" rel="noopener noreferrer">
+                Responder pelo Google Forms
+              </a>
+              .
+            </>
+          )}
+        </p>
       </div>
     )
   }
 
   return (
     <div className="stack" style={{ ['--gap' as string]: '16px' }}>
-      <PageHead title="Sua anamnese" subtitle={sent?.submittedAt ? `Enviada em ${fmtDateTime(sent.submittedAt, s.timezone)}.` : 'Recebida pelo seu coach.'} />
+      <PageHead
+        title="Sua anamnese"
+        subtitle={
+          sent?.submittedAt
+            ? `Enviada em ${fmtDateTime(sent.submittedAt, s.timezone)}.`
+            : patient.anamnesisVia === 'formulario'
+              ? 'Respondida pelo formulário (Google Forms).'
+              : 'Recebida pelo seu coach.'
+        }
+      />
       {sent ? (
         ANAMNESIS_STEPS.map((st) => (
           <section key={st.key} className="card anam__review">

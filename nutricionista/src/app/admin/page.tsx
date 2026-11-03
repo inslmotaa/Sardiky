@@ -105,10 +105,10 @@ export default async function AdminHome() {
 
   const activeToday = todayAppts.filter((a) => a.status !== 'cancelada')
 
-  // Planos para enviar (cliente ativo sem plano alimentar publicado) e planos contratados perto de vencer.
+  // Planos para enviar (cliente ativo sem plano alimentar publicado) e acompanhamentos com término definido pelo coach chegando.
   const actives = clinical
     ? await db
-        .select({ id: schema.patients.id, name: schema.patients.fullName, start: schema.patients.packageStart, pkg: schema.packages })
+        .select({ id: schema.patients.id, name: schema.patients.fullName, start: schema.patients.packageStart, end: schema.patients.packageEnd, pkg: schema.packages })
         .from(schema.patients)
         .leftJoin(schema.packages, eq(schema.packages.id, schema.patients.packageId))
         .where(
@@ -132,7 +132,7 @@ export default async function AdminHome() {
   )
   const withoutPlan = actives.filter((a) => !published.has(a.id))
   const renewals = actives
-    .map((a) => ({ ...a, c: a.pkg ? contractInfo(a.pkg, a.start, today) : null }))
+    .map((a) => ({ ...a, c: a.pkg ? contractInfo(a.pkg, a.start, a.end, today) : null }))
     .filter((a) => a.c && (a.c.status === 'vencendo' || a.c.status === 'vencido'))
 
   return (
@@ -318,10 +318,10 @@ export default async function AdminHome() {
                   <Link href={`/admin/pacientes/${a.id}`}>{a.name}</Link>
                   <span className="small muted">
                     {' '}
-                    · Plano {a.c!.name} {a.c!.status === 'vencido' ? `venceu em ${fmtDay(a.c!.end)}` : `vence em ${fmtDay(a.c!.end)}`}
+                    · Plano {a.c!.name} {a.c!.status === 'vencido' ? `terminou em ${fmtDay(a.c!.end)}` : `termina em ${fmtDay(a.c!.end)}`}
                   </span>
                 </span>
-                <span className={`badge ${a.c!.status === 'vencido' ? 'badge--danger' : 'badge--warn'}`}>{a.c!.status === 'vencido' ? 'Vencido' : 'Renovar'}</span>
+                <span className={`badge ${a.c!.status === 'vencido' ? 'badge--danger' : 'badge--warn'}`}>{a.c!.status === 'vencido' ? 'Encerrado' : 'Renovar'}</span>
               </li>
             ))}
           </ul>

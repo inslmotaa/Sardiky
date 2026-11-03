@@ -52,7 +52,7 @@ export default async function MyDataPage() {
       .orderBy(asc(schema.appointments.startAt))
       .limit(1),
   ])
-  const contract = pkg ? contractInfo(pkg, patient.packageStart, today) : null
+  const contract = pkg ? contractInfo(pkg, patient.packageStart, patient.packageEnd, today) : null
   const content = plan ? normalizePlan(plan.content) : null
   const planDay = content ? dayForWeekday(content, weekdayOf(today)) : null
   const showKcal = patient.features.calorias && content?.mode === 'calculado' && content.targets.kcal
@@ -90,9 +90,6 @@ export default async function MyDataPage() {
               {contract ? (
                 <>
                   <strong>Plano {contract.name}</strong>
-                  <span className="small muted" style={{ display: 'block' }}>
-                    {contract.months} {contract.months === 1 ? 'mês' : 'meses'} · {contract.sessions} {contract.sessions === 1 ? 'consulta' : 'consultas'}
-                  </span>
                 </>
               ) : (
                 'Nenhum plano contratado ainda'
@@ -100,10 +97,14 @@ export default async function MyDataPage() {
             </dd>
             {contract && (
               <>
-                <dt>Vigência</dt>
+                <dt>Período</dt>
                 <dd>
-                  {contract.start && contract.end ? `${fmtDay(contract.start)} a ${fmtDay(contract.end)}` : 'Início a combinar com o coach'}
-                  <span className={`badge ${contract.status === 'vigente' ? 'badge--ok' : contract.status === 'sem-inicio' ? 'badge--plain' : 'badge--warn'}`} style={{ marginLeft: 8 }}>
+                  {contract.end
+                    ? `${contract.start ? `${fmtDay(contract.start)} a ` : 'até '}${fmtDay(contract.end)}`
+                    : contract.start
+                      ? `Desde ${fmtDay(contract.start)}`
+                      : 'Em andamento'}
+                  <span className={`badge ${contract.status === 'vencendo' || contract.status === 'vencido' ? 'badge--warn' : 'badge--ok'}`} style={{ marginLeft: 8 }}>
                     {contract.status === 'vigente' && contract.daysLeft != null
                       ? `faltam ${contract.daysLeft} ${contract.daysLeft === 1 ? 'dia' : 'dias'}`
                       : CONTRACT_STATUS[contract.status]}

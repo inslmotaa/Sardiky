@@ -325,7 +325,14 @@ async function ClinicalSection({ s }: { s: S }) {
         <Field label="Refeições padrão dos planos novos (uma por linha: nome e horário)" name="defaultMeals" hint="Ex.: Café da manhã 07:00. Um plano “em branco” já começa com essas refeições.">
           <textarea name="defaultMeals" rows={6} defaultValue={s.defaultMeals.map((m) => `${m.name} ${m.time}`).join('\n')} />
         </Field>
-        <Field label="Anamnese enviada automaticamente a cada cliente novo" name="autoAnamnesisTemplateId" hint="Modelos criados em Formulários. Com o link externo (Google Forms) configurado no Perfil, os dois convivem.">
+        <Field
+          label="Link do formulário de anamnese (Google Forms)"
+          name="anamneseUrl"
+          hint="Com o link, o cliente escolhe: responder aqui no app ou pelo formulário. Vazio = só no app."
+        >
+          <input name="anamneseUrl" type="url" placeholder="https://forms.gle/…" defaultValue={s.anamneseUrl ?? ''} />
+        </Field>
+        <Field label="Anamnese enviada automaticamente a cada cliente novo" name="autoAnamnesisTemplateId" hint="Modelos criados em Formulários.">
           <select name="autoAnamnesisTemplateId" defaultValue={s.autoAnamnesisTemplateId ?? ''}>
             <option value="">Não enviar automaticamente</option>
             {templates

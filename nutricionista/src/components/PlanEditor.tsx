@@ -50,8 +50,6 @@ type Props = {
   action: (s: ActionState, fd: FormData) => Promise<ActionState>
   initial: PlanContent
   title: string
-  validFrom: string | null
-  validUntil: string | null
   isTemplate: boolean
   foods: EditorFood[]
   patient?: { name: string; weightKg: number | null; energyTarget: number | null; restrictions?: string[] }
@@ -92,7 +90,7 @@ function subFromFood(f: EditorFood, grams: number): Substitution {
   return { foodId: f.id, name: f.name, per100: f.per100, grams, measure: near && near.error < 0.15 ? { name: near.name, grams: near.grams, qty: near.qty } : null, text: '' }
 }
 
-export function PlanEditor({ action, initial, title: initialTitle, validFrom, validUntil, isTemplate, foods, patient }: Props) {
+export function PlanEditor({ action, initial, title: initialTitle, isTemplate, foods, patient }: Props) {
   const [hist, setHist] = useState<{ content: PlanContent; past: PlanContent[]; future: PlanContent[] }>({ content: initial, past: [], future: [] })
   const { content, past, future } = hist
   const [title, setTitle] = useState(initialTitle)
@@ -235,16 +233,9 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
             />
           </div>
           {!isTemplate ? (
-            <>
-              <div className="field">
-                <label htmlFor="plan-from">Válido a partir de</label>
-                <input id="plan-from" type="date" name="validFrom" defaultValue={validFrom ?? ''} onChange={() => setDirty(true)} />
-              </div>
-              <div className="field">
-                <label htmlFor="plan-until">Válido até</label>
-                <input id="plan-until" type="date" name="validUntil" defaultValue={validUntil ?? ''} onChange={() => setDirty(true)} />
-              </div>
-            </>
+            <p className="small muted plan-noterm">
+              Sem prazo: o plano fica ativo no app até você publicar uma nova versão ou encerrá-lo.
+            </p>
           ) : null}
         </div>
         <div className="row row--between">

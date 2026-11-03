@@ -18,8 +18,30 @@ import type { DiaryItem, PlanContent } from '@/lib/plan'
 import type { FormField, FormAnswers } from '@/lib/forms'
 import type { Skinfolds } from '@/lib/nutricao'
 
-export type AppFeatures = { diario: boolean; peso: boolean; chat: boolean; calorias: boolean; macros: boolean; calculadoras: boolean; agua: boolean }
-export const DEFAULT_FEATURES: AppFeatures = { diario: true, peso: true, chat: true, calorias: true, macros: true, calculadoras: true, agua: true }
+export type AppFeatures = {
+  diario: boolean
+  peso: boolean
+  chat: boolean
+  calorias: boolean
+  macros: boolean
+  calculadoras: boolean
+  agua: boolean
+  /** Envio opcional de fotos do corpo (evolução) pelo cliente. */
+  fotosCorpo: boolean
+  /** Envio opcional de exames (PDF ou foto) pelo cliente. */
+  exames: boolean
+}
+export const DEFAULT_FEATURES: AppFeatures = {
+  diario: true,
+  peso: true,
+  chat: true,
+  calorias: true,
+  macros: true,
+  calculadoras: true,
+  agua: true,
+  fotosCorpo: true,
+  exames: true,
+}
 /** Preferências de notificação do paciente (cada tipo liga/desliga) e horário de silêncio. */
 export type NotificationPrefs = {
   refeicoes: boolean
@@ -309,14 +331,18 @@ export const patients = pgTable(
     energy: jsonb('energy').$type<EnergyCalc | null>(),
     anamnesisReceivedAt: timestamp('anamnesis_received_at', { withTimezone: true }),
     anamnesisNotes: text('anamnesis_notes'),
+    /** Por onde a anamnese foi respondida: 'site' (no app) ou 'formulario' (Google Forms, informado pelo cliente). */
+    anamnesisVia: text('anamnesis_via').$type<'site' | 'formulario'>(),
     /** Restrições alimentares (lactose, glúten, vegetariano…): geram alerta no editor de planos. */
     restrictions: jsonb('restrictions').$type<string[]>().notNull().default([]),
     /** Coach responsável (equipe com vários nutricionistas). */
     nutritionistId: uuid('nutritionist_id').references(() => users.id, { onDelete: 'set null' }),
     /** Plano de acompanhamento escolhido no cadastro ou contratado (definido pelo nutricionista). */
     packageId: uuid('package_id').references(() => packages.id, { onDelete: 'set null' }),
-    /** Início do plano contratado (a vigência vai até início + meses do plano). */
+    /** Início do plano contratado. */
     packageStart: date('package_start'),
+    /** Término do acompanhamento, definido pelo coach. Vazio = sem prazo (vale até o coach encerrar). */
+    packageEnd: date('package_end'),
     status: patientStatusEnum('status').notNull().default('ativo'),
     stage: text('stage').notNull().default('Avaliação inicial'),
     followUpDays: integer('follow_up_days'),

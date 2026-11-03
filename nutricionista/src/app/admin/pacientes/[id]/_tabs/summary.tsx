@@ -23,6 +23,8 @@ const FEATURE_LABEL: Record<keyof AppFeatures, string> = {
   macros: 'Macros visíveis',
   calculadoras: 'Calculadoras',
   agua: 'Contador de água',
+  fotosCorpo: 'Envio de fotos do corpo (opcional)',
+  exames: 'Envio de exames (opcional)',
 }
 
 export async function SummaryTab({ patient: p, user }: { patient: P; user: CurrentUser }) {

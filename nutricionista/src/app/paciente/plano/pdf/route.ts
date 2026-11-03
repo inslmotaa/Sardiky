@@ -7,7 +7,7 @@ import { currentPublishedPlan, getPatient } from '@/lib/patient-context'
 import { normalizePlan } from '@/lib/plan'
 import { planPdf } from '@/lib/plan-pdf'
 import { getSettings } from '@/lib/settings'
-import { fmtDateTime, fmtDay } from '@/lib/time'
+import { fmtDateTime } from '@/lib/time'
 import { uuid } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     brandColor: s.brandColor,
     patientName: patient.fullName,
     title: plan.title,
-    validity: plan.validUntil ? `Válido até ${fmtDay(plan.validUntil)}` : null,
+    validity: null,
     generatedAt: fmtDateTime(new Date(), s.timezone),
     showKcal: patient.features.calorias,
     showMacros: patient.features.macros,

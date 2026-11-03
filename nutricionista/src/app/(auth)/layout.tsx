@@ -13,8 +13,11 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           <SiteBrand name={s.siteName} logoFileId={s.logoFileId} />
         </div>
         {children}
+        <Link href="/" className="pill pill--block tl-auth__back">
+          <span aria-hidden>←</span> Voltar para a página principal
+        </Link>
         <p className="tl-auth__foot">
-          <Link href="/">Voltar ao site</Link> · <Link href="/privacidade">Privacidade</Link>
+          <Link href="/privacidade">Privacidade</Link>
         </p>
       </div>
     </main>

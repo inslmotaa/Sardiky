@@ -107,6 +107,7 @@ export async function submitAnamnesis(_: ActionState, fd: FormData): Promise<Act
           objective: String(a.objetivo?.principal || '') || p?.objective,
           restrictions,
           anamnesisReceivedAt: new Date(),
+          anamnesisVia: 'site',
           updatedAt: new Date(),
         })
         .where(eq(schema.patients.id, user.patientId))
@@ -132,6 +133,34 @@ export async function submitAnamnesis(_: ActionState, fd: FormData): Promise<Act
   }
   const next = safeNext(fd.get('next'))
   redirect(`/paciente/anamnese?enviada=1${next ? `&next=${encodeURIComponent(next)}` : ''}`)
+}
+
+/**
+ * O cliente escolheu responder pelo formulário externo (Google Forms) e avisa que já enviou.
+ * As respostas ficam no formulário do coach; aqui só registramos que a anamnese foi feita.
+ */
+export async function confirmExternalAnamnesis(fd: FormData): Promise<void> {
+  const user = await requirePatient()
+  const s = await getSettings()
+  const next = safeNext(fd.get('next'))
+  if (!s.anamneseUrl) redirect('/paciente/anamnese')
+  const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, user.patientId))
+  if (p && !p.anamnesisReceivedAt) {
+    await db
+      .update(schema.patients)
+      .set({ anamnesisReceivedAt: new Date(), anamnesisVia: 'formulario', updatedAt: new Date() })
+      .where(eq(schema.patients.id, user.patientId))
+    // Rascunho da primeira anamnese no app (se começou e trocou de ideia) deixa de valer.
+    await db
+      .delete(schema.anamneses)
+      .where(and(eq(schema.anamneses.patientId, user.patientId), eq(schema.anamneses.status, 'rascunho'), eq(schema.anamneses.version, 1)))
+    const title = 'Anamnese respondida pelo formulário'
+    const link = `/admin/pacientes/${user.patientId}?aba=anamnese`
+    await notifyTeam('clinico', title, `${user.name} informou que enviou o formulário (Google Forms).`, link, user.patientId)
+    await pushToTeam('clinico', { title, body: user.name, url: link, tag: `anamnese-${user.patientId}` }, user.patientId)
+    await audit(user, 'anamnese_formulario_externo', 'anamnese', { patientId: user.patientId })
+  }
+  redirect(`/paciente/anamnese?enviada=1&via=formulario${next ? `&next=${encodeURIComponent(next)}` : ''}`)
 }
 
 /** Nutricionista pede uma reavaliação: nova versão em rascunho, já com as respostas anteriores. */

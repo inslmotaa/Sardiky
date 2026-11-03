@@ -9,7 +9,7 @@ import { DEFAULT_FEATURES } from '@/db/schema'
 import { normalizePlan } from '@/lib/plan'
 import { planPdf } from '@/lib/plan-pdf'
 import { getSettings } from '@/lib/settings'
-import { fmtDateTime, fmtDay } from '@/lib/time'
+import { fmtDateTime } from '@/lib/time'
 import { uuid } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
@@ -57,7 +57,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     brandColor: s.brandColor,
     patientName: patient?.fullName ?? null,
     title: plan.title,
-    validity: plan.validUntil ? `Válido até ${fmtDay(plan.validUntil)}` : plan.status === 'rascunho' ? 'RASCUNHO — não enviado ao cliente' : null,
+    validity: plan.status === 'rascunho' ? 'RASCUNHO — não enviado ao cliente' : null,
     generatedAt: fmtDateTime(new Date(), s.timezone),
     showKcal: asPatient ? f.calorias : true,
     showMacros: asPatient ? f.macros : true,

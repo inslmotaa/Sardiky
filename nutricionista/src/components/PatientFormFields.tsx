@@ -50,7 +50,7 @@ export function PatientFormFields({
             </select>
           </Field>
         )}
-        <Field label="Plano contratado" name="packageId" hint="Aparece no app do cliente, com a vigência.">
+        <Field label="Plano contratado" name="packageId" hint="Aparece no Meu perfil do cliente.">
           <select name="packageId" defaultValue={p?.packageId ?? ''}>
             <option value="">Nenhum plano contratado</option>
             {packages.map((k) => (
@@ -60,8 +60,11 @@ export function PatientFormFields({
             ))}
           </select>
         </Field>
-        <Field label="Início do plano" name="packageStart" hint="A vigência termina após os meses do plano.">
+        <Field label="Início do acompanhamento" name="packageStart">
           <input type="date" name="packageStart" defaultValue={p?.packageStart ?? ''} />
+        </Field>
+        <Field label="Término (opcional)" name="packageEnd" hint="Vazio = sem prazo: o acompanhamento segue até você encerrar.">
+          <input type="date" name="packageEnd" defaultValue={p?.packageEnd ?? ''} />
         </Field>
         <Field label="Situação" name="status">
           <select name="status" defaultValue={p?.status ?? 'ativo'}>

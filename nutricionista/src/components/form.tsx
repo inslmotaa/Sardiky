@@ -198,3 +198,17 @@ export function PrintButton({ label = 'Imprimir / salvar PDF' }: { label?: strin
     </button>
   )
 }
+
+/** Formulário simples (ação do servidor sem retorno) que pede confirmação antes de enviar. */
+export function ConfirmForm({ action, confirm, children }: { action: (fd: FormData) => void | Promise<void>; confirm: string; children: ReactNode }) {
+  return (
+    <form
+      action={action}
+      onSubmit={(e) => {
+        if (!window.confirm(confirm)) e.preventDefault()
+      }}
+    >
+      {children}
+    </form>
+  )
+}

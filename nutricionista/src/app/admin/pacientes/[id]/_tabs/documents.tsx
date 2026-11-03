@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
@@ -11,7 +11,7 @@ export async function DocumentsTab({ patient }: { patient: typeof schema.patient
   const docs = await db
     .select()
     .from(schema.files)
-    .where(and(eq(schema.files.patientId, patient.id), eq(schema.files.kind, 'documento')))
+    .where(and(eq(schema.files.patientId, patient.id), inArray(schema.files.kind, ['documento', 'exame'])))
     .orderBy(desc(schema.files.createdAt))
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
@@ -35,7 +35,7 @@ export async function DocumentsTab({ patient }: { patient: typeof schema.patient
         </ActionForm>
       </section>
       {docs.length === 0 ? (
-        <Empty>Nenhum documento anexado.</Empty>
+        <Empty>Nenhum documento ou exame ainda.</Empty>
       ) : (
         <div className="table-wrap">
           <table>
@@ -54,15 +54,21 @@ export async function DocumentsTab({ patient }: { patient: typeof schema.patient
                     <a href={`/arquivos/${d.id}`} target="_blank" rel="noopener noreferrer">
                       {d.title}
                     </a>
-                    <div className="small muted">{Math.round(d.size / 1024)} KB</div>
+                    <div className="small muted">
+                      {d.kind === 'exame' && <span className="badge badge--plain">Exame enviado pelo cliente</span>} {Math.round(d.size / 1024)} KB
+                    </div>
                   </td>
                   <td className="nowrap">{fmtDateTime(d.createdAt, s.timezone)}</td>
                   <td>
-                    <form action={toggleDocumentShare.bind(null, patient.id, d.id)}>
-                      <button className="link-btn" type="submit">
-                        {d.visibleToPatient ? 'Sim (ocultar)' : 'Não (compartilhar)'}
-                      </button>
-                    </form>
+                    {d.kind === 'exame' ? (
+                      <span className="small muted">Sim (enviado por ele)</span>
+                    ) : (
+                      <form action={toggleDocumentShare.bind(null, patient.id, d.id)}>
+                        <button className="link-btn" type="submit">
+                          {d.visibleToPatient ? 'Sim (ocultar)' : 'Não (compartilhar)'}
+                        </button>
+                      </form>
+                    )}
                   </td>
                   <td>
                     <form action={deleteDocument.bind(null, patient.id, d.id)}>

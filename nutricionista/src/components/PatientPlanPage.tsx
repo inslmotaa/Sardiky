@@ -29,8 +29,7 @@ export function PlanPage({
         subtitle={
           <>
             Versão {plan.version} · publicada em {plan.publishedAt ? fmtDay(plan.publishedAt.toISOString().slice(0, 10)) : '—'}
-            {plan.validFrom && ` · válida de ${fmtDay(plan.validFrom)}`}
-            {plan.validUntil && ` até ${fmtDay(plan.validUntil)}`}
+            {isCurrent && ' · em vigor, sem prazo de término'}
           </>
         }
         actions={
@@ -83,7 +82,6 @@ export function PlanPage({
               <li key={h.id} className="row row--between">
                 <span>
                   Versão {h.version} · {h.publishedAt ? fmtDay(h.publishedAt.toISOString().slice(0, 10)) : '—'}
-                  {h.validUntil && <span className="muted small"> · até {fmtDay(h.validUntil)}</span>}
                 </span>
                 <Link href={`/paciente/plano/${h.id}`} className="btn btn--sm">
                   Ver

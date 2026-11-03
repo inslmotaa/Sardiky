@@ -14,7 +14,7 @@ import { notifyUser, sendEmail } from '@/lib/notify'
 import { getSettings } from '@/lib/settings'
 import { pushToUser } from '@/lib/push'
 import { countItems, dropEmptyMeals, emptyPlan, normalizePlan, planContentSchema } from '@/lib/plan'
-import { optDay, str, uuid } from '@/lib/validation'
+import { str, uuid } from '@/lib/validation'
 
 async function planOrThrow(id: string) {
   if (!uuid.safeParse(id).success) throw new UserError('Plano inválido.')
@@ -88,17 +88,13 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
     }
     const content = planContentSchema.safeParse(json)
     if (!content.success) return { error: `Revise o plano: ${content.error.issues[0].message}` }
-    const meta = z.object({ title: str(160, 'Dê um título ao plano'), validFrom: optDay, validUntil: optDay }).safeParse({
-      title: fd.get('title') ?? '',
-      validFrom: fd.get('validFrom') ?? '',
-      validUntil: fd.get('validUntil') ?? '',
-    })
+    // Sem prazo de validade: o plano vale até o coach publicar outra versão ou encerrá-lo.
+    const meta = z.object({ title: str(160, 'Dê um título ao plano') }).safeParse({ title: fd.get('title') ?? '' })
     if (!meta.success) return { error: meta.error.issues[0].message }
-    if (meta.data.validFrom && meta.data.validUntil && meta.data.validUntil < meta.data.validFrom) return { error: 'A validade final precisa ser depois da inicial.' }
 
     await db
       .update(schema.mealPlans)
-      .set({ content: content.data, ...meta.data, updatedAt: new Date() })
+      .set({ content: content.data, ...meta.data, validFrom: null, validUntil: null, updatedAt: new Date() })
       .where(eq(schema.mealPlans.id, plan.id))
 
     if (fd.get('intent') !== 'publish') {
@@ -156,6 +152,23 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
     return failure(err)
   }
   redirect(destination)
+}
+
+/**
+ * Encerra o plano ativo sem publicar outro: quem decide o fim do plano é o coach.
+ * O plano vai para o histórico (o cliente continua podendo consultar) e sai da tela Hoje.
+ */
+export async function endPlan(planId: string): Promise<void> {
+  const user = await requireTeam('clinico')
+  const plan = await planOrThrow(planId)
+  if (plan.status === 'publicado' && plan.patientId) {
+    await db.update(schema.mealPlans).set({ status: 'arquivado', updatedAt: new Date() }).where(eq(schema.mealPlans.id, plan.id))
+    const [p] = await db.select({ userId: schema.patients.userId }).from(schema.patients).where(eq(schema.patients.id, plan.patientId))
+    await notifyUser(p?.userId, 'Seu plano alimentar foi encerrado', 'O coach encerrou o plano atual. Ele continua no seu histórico.', '/paciente/plano')
+    await audit(user, 'plano_encerrado', 'plano', { entityId: plan.id, patientId: plan.patientId, details: { versao: plan.version } })
+    refresh(plan)
+  }
+  redirect(`/admin/planos/${plan.id}?encerrado=1`)
 }
 
 /** Nova versão editável a partir de uma versão publicada/arquivada (o histórico é preservado). */

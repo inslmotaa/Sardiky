@@ -61,10 +61,20 @@ test('página principal: hero com a plataforma, storytelling em capítulos, Sobr
   // Nome do site no cabeçalho: "Farion" (o conteúdo continua sendo do André).
   await expect(page.locator('.tl-header .tl-brand')).toHaveText('Farion')
   await expect(page).toHaveTitle(/^Farion · André Farion/)
-  // Menu do cabeçalho: seções da página e "Entrar".
+  // Menu do cabeçalho: seções da página e o botão verde "Entrar", que abre entrar ou criar conta.
   const nav = page.locator('.tl-nav')
-  for (const [name, href] of [['Sobre', '/#sobre'], ['Consultoria', '/#consultoria'], ['Resultados', '/#resultados'], ['Contato', '/#contato'], ['Entrar', '/entrar']])
+  for (const [name, href] of [['Sobre', '/#sobre'], ['Consultoria', '/#consultoria'], ['Resultados', '/#resultados'], ['Contato', '/#contato']])
     await expect(nav.getByRole('link', { name, exact: true })).toHaveAttribute('href', href)
+  const entrar = nav.locator('.login-menu')
+  await expect(entrar.locator('summary')).toHaveText('Entrar')
+  expect(await entrar.locator('summary').evaluate((el) => getComputedStyle(el).backgroundColor)).toBe('rgb(31, 94, 59)')
+  await entrar.locator('summary').click()
+  await expect(entrar.getByRole('link', { name: /^Entrar/ })).toHaveAttribute('href', '/entrar')
+  await entrar.getByRole('link', { name: /^Criar conta/ }).click()
+  await expect(page).toHaveURL(/\/criar-conta$/)
+  // Fim da tela de acesso: botão para voltar à página principal.
+  await page.getByRole('link', { name: /Voltar para a página principal/ }).click()
+  await expect(page).toHaveURL(/\/$/)
 })
 
 test('páginas Sobre, Como funciona e Dúvidas', async ({ page }) => {
@@ -87,7 +97,8 @@ test('menu do celular abre com as seções e fecha ao navegar', async ({ page })
   await expect(page.locator('.tl-nav')).toBeHidden()
   await page.getByText('Menu', { exact: true }).click()
   const panel = page.locator('.site-menu__panel')
-  await expect(panel.getByRole('link', { name: 'Entrar na área do cliente' })).toHaveAttribute('href', '/entrar')
+  await expect(panel.getByRole('link', { name: 'Entrar', exact: true })).toHaveAttribute('href', '/entrar')
+  await expect(panel.getByRole('link', { name: 'Criar conta', exact: true })).toHaveAttribute('href', '/criar-conta')
   await panel.getByRole('link', { name: 'Consultoria', exact: true }).click()
   await expect(page).toHaveURL(/\/#consultoria$/)
   await expect(page.locator('.site-menu')).not.toHaveAttribute('open', '')

@@ -1,0 +1,2 @@
+ALTER TABLE "patients" ALTER COLUMN "features" SET DEFAULT '{"diario":true,"peso":true,"chat":true,"calorias":true,"macros":true,"calculadoras":true,"agua":true,"fotosCorpo":true,"exames":true}'::jsonb;--> statement-breakpoint
+ALTER TABLE "patients" ADD COLUMN "anamnesis_via" text;

@@ -65,6 +65,7 @@ const patientSchema = z.object({
     .transform((v) => v || null)
     .refine((v) => v === null || uuid.safeParse(v).success, 'Escolha da lista'),
   packageStart: optDay,
+  packageEnd: optDay,
   stage: str(80, 'Informe a etapa'),
   followUpDays: z
     .string()
