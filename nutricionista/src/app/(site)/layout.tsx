@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
 import { logout } from '@/actions/auth'
 import { BookingLink } from '@/components/BookingLink'
+import { BackToTop } from '@/components/BackToTop'
 import { LoginMenu, MobileMenu, SiteBrand, SiteFx, SiteNavLinks, UserMenu } from '@/components/SiteChrome'
 import { SITE_NAV, SITE_PAGES, TIMELESS_URL } from '@/lib/constants'
 import { MotionRoot } from '@/components/motion'
@@ -139,6 +140,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </div>
         </footer>
 
+        <BackToTop place={wa ? 'site' : 'base'} />
         {wa && (
           <a className="whatsapp-float" href={wa} target="_blank" rel="noopener noreferrer" aria-label="Conversar pelo WhatsApp">
             <IconWhatsApp />

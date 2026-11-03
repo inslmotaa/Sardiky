@@ -9,6 +9,7 @@ import { isRestricted } from '@/lib/team-access'
 import { logout } from '@/actions/auth'
 import { Brand } from '@/components/Brand'
 import { PwaClient } from '@/components/pwa'
+import { BackToTop } from '@/components/BackToTop'
 import { CloseOnNavigate, NavLinks, type NavItem } from '@/components/NavLinks'
 import {
   IconApple,
@@ -162,6 +163,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </div>
         </main>
         <PwaClient offlineText="Sem conexão com a internet. As alterações não serão salvas até a conexão voltar." />
+        <BackToTop />
       </div>
     </div>
   )

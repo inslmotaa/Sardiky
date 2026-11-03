@@ -97,3 +97,7 @@ npm run dev     # http://localhost:3000
 ```
 
 Acessos de demonstração (dados fictícios): `nutri@example.com` / `Nutri#Demo2026`, `recepcao@example.com` / `Equipe#Demo2026`, `paciente@example.com` / `Paciente#Demo2026`.
+
+## Banco de dados em SQL
+
+Para criar o banco sem Docker (ou conferir o esquema), use os arquivos `deploy/banco-de-dados.sql` e `deploy/alimentos.sql`. O passo a passo está em [13-banco-de-dados.md](13-banco-de-dados.md).

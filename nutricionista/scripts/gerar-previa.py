@@ -63,13 +63,14 @@ for a in home.find_all('a', href=True):
     h = a['href']
     if h.startswith('/#'): a['href'] = h[1:]
     elif h == '/': a['href'] = '#'
+    elif h.startswith('/criar-conta') and (a.find_parent(class_='login-menu') or a.find_parent(class_='site-menu__auth')): a['href'] = '#criar-conta'
     elif h.startswith('/agendar') or h.startswith('/criar-conta'): a['href'] = '#'; a['data-agendar'] = '1'
     elif h == '/planos': a['href'] = '#planos'
     elif h == '/sobre': a['href'] = '#sobre'
     elif h == '/como-funciona': a['href'] = '#consultoria'
     elif h == '/duvidas': a['href'] = '#duvidas'
-    elif h.startswith('/entrar'): a['href'] = '#cliente'
-    elif h.startswith('/login'): a['href'] = '#cliente'
+    elif h.startswith('/entrar'): a['href'] = '#entrar'
+    elif h.startswith('/login'): a['href'] = '#entrar'
     elif h.startswith('/privacidade'): a['href'] = '#privacidade'; a.attrs.pop('target', None)
 
 # Formulário de contato -> WhatsApp (só existe com a agenda on-line ligada; no modo WhatsApp o contato já monta a mensagem)

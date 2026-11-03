@@ -8,6 +8,7 @@ import { googleConfigured } from '@/lib/auth/google'
 import { money } from '@/lib/format'
 import { monthsLabel } from '@/lib/planos'
 import { SignUpForm } from '@/components/AuthWidgets'
+import { AuthTabs } from '@/components/AuthTabs'
 
 export const metadata: Metadata = { title: 'Criar conta' }
 
@@ -23,6 +24,7 @@ export default async function CreateAccountPage({ searchParams }: { searchParams
   const [pkg] = plano ? await db.select().from(schema.packages).where(and(eq(schema.packages.id, plano), eq(schema.packages.active, true))) : []
   return (
     <div className="card stack">
+      <AuthTabs current="criar" next={next} />
       <div>
         <h1 style={{ fontSize: '1.6rem' }}>Criar conta</h1>
         <p className="muted" style={{ margin: 0 }}>

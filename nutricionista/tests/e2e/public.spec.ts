@@ -72,9 +72,24 @@ test('página principal: hero com a plataforma, storytelling em capítulos, Sobr
   await expect(entrar.getByRole('link', { name: /^Entrar/ })).toHaveAttribute('href', '/entrar')
   await entrar.getByRole('link', { name: /^Criar conta/ }).click()
   await expect(page).toHaveURL(/\/criar-conta$/)
+  // Tela de acesso de verdade: painel verde e abas Entrar | Criar conta.
+  await expect(page.locator('.tl-auth__aside')).toContainText('Seu acompanhamento, em um só lugar.')
+  const tabs = page.getByRole('navigation', { name: 'Acesso' })
+  await expect(tabs.getByRole('link', { name: 'Criar conta' })).toHaveAttribute('aria-current', 'page')
+  await tabs.getByRole('link', { name: 'Entrar' }).click()
+  await expect(page).toHaveURL(/\/login$/)
+  await expect(page.getByRole('heading', { name: 'Entrar', level: 1 })).toBeVisible()
+  await expect(tabs.getByRole('link', { name: 'Entrar' })).toHaveAttribute('aria-current', 'page')
   // Fim da tela de acesso: botão para voltar à página principal.
   await page.getByRole('link', { name: /Voltar para a página principal/ }).click()
   await expect(page).toHaveURL(/\/$/)
+  // Voltar ao topo: aparece depois de rolar e sobe a página.
+  const toTop = page.getByRole('button', { name: 'Voltar ao topo' })
+  await expect(toTop).toBeHidden()
+  await page.evaluate(() => window.scrollTo({ top: 2400, behavior: 'instant' }))
+  await expect(toTop).toBeVisible()
+  await toTop.click()
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5)
 })
 
 test('páginas Sobre, Como funciona e Dúvidas', async ({ page }) => {

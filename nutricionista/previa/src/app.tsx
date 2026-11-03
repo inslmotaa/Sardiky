@@ -23,6 +23,8 @@ import { shoppingList, shoppingQuantity } from '@/lib/compras'
 import { recipeNutrients, scale } from '@/lib/nutricao'
 import { ShoppingList } from '@/components/nutri/ShoppingList'
 import { NutriInline } from '@/components/nutri/MacroBars'
+import { AuthAside } from '@/components/AuthAside'
+import { BackToTop } from '@/components/BackToTop'
 
 /* ------------------------------ dados ------------------------------ */
 
@@ -331,14 +333,199 @@ const appEl = document.getElementById('view-app')!
 
 function Root() {
   const hash = useHash()
-  const isApp = hash.startsWith('#cliente') || hash.startsWith('#andre')
+  const isAuth = hash === '#entrar' || hash.startsWith('#criar-conta')
+  const isApp = isAuth || hash.startsWith('#cliente') || hash.startsWith('#andre')
   useEffect(() => {
     site.hidden = isApp
     appEl.hidden = !isApp
   }, [isApp])
   if (!isApp) return null
+  if (isAuth) return <DemoAuth mode={hash === '#entrar' ? 'entrar' : hash === '#criar-conta/anamnese' ? 'anamnese' : 'criar'} />
   const [area, sub, extra] = hash.slice(1).split('/')
-  return area === 'cliente' ? <ClientArea tab={sub || 'hoje'} extra={extra} /> : <AndreArea page={sub} extra={extra} />
+  return (
+    <>
+      {area === 'cliente' ? <ClientArea tab={sub || 'hoje'} extra={extra} /> : <AndreArea page={sub} extra={extra} />}
+      <BackToTop place={area === 'cliente' ? 'app' : 'base'} />
+    </>
+  )
+}
+
+/* ------------------------------ tela de acesso (demonstração) ------------------------------ */
+
+const DEMO_LOGINS: Record<string, string> = {
+  'nutri@example.com': 'andre',
+  'paciente@example.com': 'beatriz',
+  'lucas@example.com': 'lucas',
+  'helena@example.com': 'helena',
+}
+const FORM_URL = 'https://forms.gle/8EkK8XcNE35ydHYKA'
+
+/** A mesma tela de acesso do sistema (painel verde + abas Entrar | Criar conta), com contas de exemplo. */
+function DemoAuth({ mode }: { mode: 'entrar' | 'criar' | 'anamnese' }) {
+  const [error, setError] = useState('')
+  const [shown, setShown] = useState(false)
+  useEffect(() => setError(''), [mode])
+  const enter = (who: string) => {
+    if (who === 'andre') location.hash = '#andre'
+    else {
+      commit((st) => void (st.current = who))
+      location.hash = '#cliente'
+    }
+  }
+  return (
+    <main className="tl tl-auth">
+      <div className="tl-auth__shell">
+        <div className="tl-auth__side">
+          <div className="tl-auth__brand">
+            <a href="#" className="tl-brand" aria-label="Farion: ir para a página inicial">
+              <span>Farion</span>
+              <span className="tl-brand__dash" aria-hidden />
+            </a>
+          </div>
+          <AuthAside siteName="Farion" professional="André Farion" />
+        </div>
+        <div className="tl-auth__box stack">
+          <div className="card stack">
+            {mode !== 'anamnese' && (
+              <nav className="auth-tabs" aria-label="Acesso">
+                <a href="#entrar" className="auth-tabs__tab" aria-current={mode === 'entrar' ? 'page' : undefined}>
+                  Entrar
+                </a>
+                <a href="#criar-conta" className="auth-tabs__tab" aria-current={mode === 'criar' ? 'page' : undefined}>
+                  Criar conta
+                </a>
+              </nav>
+            )}
+            {mode === 'entrar' && (
+              <>
+                <div>
+                  <h1 style={{ fontSize: '1.6rem' }}>Entrar</h1>
+                  <p className="muted" style={{ margin: 0 }}>
+                    Um só acesso para clientes e para o coach: depois de entrar, você vai direto para a sua área.
+                  </p>
+                </div>
+                {error && <p className="alert alert--error">{error}</p>}
+                <form
+                  className="stack"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const fd = new FormData(e.currentTarget)
+                    const who = DEMO_LOGINS[String(fd.get('email') ?? '').trim().toLowerCase()]
+                    if (!who || String(fd.get('password') ?? '').length < 4) return setError('E-mail ou senha incorretos.')
+                    enter(who)
+                  }}
+                >
+                  <div className="field">
+                    <label htmlFor="demo-email">E-mail</label>
+                    <input id="demo-email" name="email" type="email" autoComplete="username" required />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="demo-pass">Senha</label>
+                    <div className="password-input">
+                      <input id="demo-pass" name="password" type={shown ? 'text' : 'password'} autoComplete="current-password" required />
+                      <button type="button" className="password-input__toggle" aria-pressed={shown} onClick={() => setShown((v) => !v)}>
+                        {shown ? 'Ocultar' : 'Mostrar'}
+                      </button>
+                    </div>
+                  </div>
+                  <button type="submit" className="btn btn--primary btn--block">
+                    Entrar
+                  </button>
+                </form>
+                <div className="alert alert--info small" style={{ margin: 0 }}>
+                  <strong>Contas de demonstração</strong> (qualquer senha com 4 ou mais caracteres):
+                  <ul style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+                    <li>Coach: nutri@example.com</li>
+                    <li>Cliente: paciente@example.com</li>
+                  </ul>
+                  <div className="row" style={{ marginTop: 8, gap: 8 }}>
+                    <button type="button" className="btn btn--sm" onClick={() => enter('beatriz')}>
+                      Entrar como cliente
+                    </button>
+                    <button type="button" className="btn btn--sm" onClick={() => enter('andre')}>
+                      Entrar como coach
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+            {mode === 'criar' && (
+              <>
+                <div>
+                  <h1 style={{ fontSize: '1.6rem' }}>Criar conta</h1>
+                  <p className="muted" style={{ margin: 0 }}>
+                    Com a conta você preenche a anamnese, agenda a consulta e acompanha o seu plano pelo app.
+                  </p>
+                </div>
+                {error && <p className="alert alert--error">{error}</p>}
+                <form
+                  className="stack"
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    const fd = new FormData(e.currentTarget)
+                    const v = (k: string) => String(fd.get(k) ?? '').trim()
+                    if (!v('name') || !v('email')) return setError('Informe nome e e-mail.')
+                    if (v('phone').replace(/\D/g, '').length < 10) return setError('Informe o WhatsApp com DDD.')
+                    if (v('password').length < 8) return setError('A senha precisa ter ao menos 8 caracteres.')
+                    if (v('password') !== v('confirm')) return setError('As senhas não conferem.')
+                    if (!fd.get('consent')) return setError('É preciso aceitar a Política de privacidade.')
+                    location.hash = '#criar-conta/anamnese'
+                  }}
+                >
+                  <div className="field">
+                    <label htmlFor="demo-name">Nome completo</label>
+                    <input id="demo-name" name="name" autoComplete="name" required />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="demo-mail">E-mail</label>
+                    <input id="demo-mail" name="email" type="email" autoComplete="email" required />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="demo-phone">WhatsApp</label>
+                    <input id="demo-phone" name="phone" type="tel" placeholder="(00) 00000-0000" required />
+                  </div>
+                  <div className="form-grid">
+                    <div className="field">
+                      <label htmlFor="demo-p1">Senha</label>
+                      <input id="demo-p1" name="password" type="password" autoComplete="new-password" required />
+                    </div>
+                    <div className="field">
+                      <label htmlFor="demo-p2">Confirme a senha</label>
+                      <input id="demo-p2" name="confirm" type="password" autoComplete="new-password" required />
+                    </div>
+                  </div>
+                  <label className="check">
+                    <input type="checkbox" name="consent" /> <span>Li e aceito a Política de privacidade.</span>
+                  </label>
+                  <button type="submit" className="btn btn--primary btn--block">
+                    Criar conta
+                  </button>
+                </form>
+              </>
+            )}
+            {mode === 'anamnese' && (
+              <>
+                <div>
+                  <h1 style={{ fontSize: '1.6rem' }}>Como você prefere responder a anamnese?</h1>
+                  <p className="muted" style={{ margin: 0 }}>Conta criada. As duas opções valem: escolha a mais fácil para você.</p>
+                </div>
+                <button type="button" className="btn btn--primary btn--block" onClick={() => enter('beatriz')}>
+                  Responder aqui no app
+                </button>
+                <a href={FORM_URL} target="_blank" rel="noopener noreferrer" className="btn btn--block">
+                  Abrir o formulário (Google Forms) ↗
+                </a>
+                <p className="small muted" style={{ margin: 0 }}>Na demonstração, você entra como a cliente de exemplo.</p>
+              </>
+            )}
+          </div>
+          <a href="#" className="pill pill--block tl-auth__back">
+            <span aria-hidden>←</span> Voltar para a página principal
+          </a>
+        </div>
+      </div>
+    </main>
+  )
 }
 
 function DemoBar({ children }: { children?: React.ReactNode }) {

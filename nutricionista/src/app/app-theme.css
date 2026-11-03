@@ -502,3 +502,73 @@ table th {
   border-top: 1px solid var(--line);
   margin-top: 32px;
 }
+
+/* Voltar ao topo (site, acesso, área do cliente e painel) */
+.back-to-top {
+  position: fixed;
+  right: 18px;
+  bottom: 20px;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px 10px 12px;
+  border: 1px solid var(--brand);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--brand);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 650;
+  box-shadow: 0 8px 24px rgb(31 94 59 / 0.18);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition:
+    opacity 0.25s,
+    transform 0.25s,
+    background 0.2s,
+    color 0.2s;
+}
+.back-to-top[data-show] {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.back-to-top:hover {
+  background: var(--brand);
+  color: #fff;
+}
+.back-to-top:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+/* No site, fica acima do botão do WhatsApp. */
+.back-to-top--site {
+  bottom: 96px;
+}
+/* Na área do cliente (celular), fica acima da barra de abas. */
+@media (max-width: 899px) {
+  .back-to-top--app {
+    bottom: 84px;
+  }
+}
+@media (max-width: 520px) {
+  .back-to-top span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .back-to-top {
+    padding: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .back-to-top {
+    transition: none;
+  }
+}

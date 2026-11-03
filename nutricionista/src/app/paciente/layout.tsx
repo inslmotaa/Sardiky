@@ -8,6 +8,7 @@ import { completeOnboarding } from '@/actions/patient'
 import { Brand } from '@/components/Brand'
 import { NavLinks } from '@/components/NavLinks'
 import { Onboarding } from '@/components/nutri/Onboarding'
+import { BackToTop } from '@/components/BackToTop'
 import { LiveUpdates, LogoutForm, PushToggle, PwaClient } from '@/components/pwa'
 import { removePushSubscription, savePushSubscription } from '@/actions/push'
 import { vapidKeys } from '@/lib/push'
@@ -71,6 +72,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
       <main id="conteudo" className="patient-main">
         <div className="container">{children}</div>
       </main>
+      <BackToTop place="app" />
       <nav className="tabbar no-print" aria-label="Atalhos" style={{ gridTemplateColumns: `repeat(${tabs.length}, 1fr)` }}>
         <NavLinks items={tabs} />
       </nav>

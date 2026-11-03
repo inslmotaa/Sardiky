@@ -8,6 +8,7 @@ import { googleConfigured } from '@/lib/auth/google'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { GoogleLink, PasswordInput } from '@/components/AuthWidgets'
 import { ClearCacheOnMount } from '@/components/pwa'
+import { AuthTabs } from '@/components/AuthTabs'
 
 export const metadata: Metadata = { title: 'Entrar', robots: { index: false } }
 
@@ -46,6 +47,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
   return (
     <div className="card stack">
       <ClearCacheOnMount />
+      <AuthTabs current="entrar" next={sp.next} />
       <div>
         <h1 style={{ fontSize: '1.6rem' }}>Entrar</h1>
         <p className="muted" style={{ margin: 0 }}>
@@ -79,9 +81,6 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div className="auth-links">
         <Link href="/recuperar-senha">Esqueci minha senha</Link>
         {emailVerificationRequired() && <Link href="/criar-conta/confirme">Reenviar confirmação de e-mail</Link>}
-        <span>
-          Ainda não tem conta? <Link href={`/criar-conta${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ''}`}>Criar conta</Link>
-        </span>
       </div>
     </div>
   )
