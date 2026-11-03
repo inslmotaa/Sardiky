@@ -152,6 +152,8 @@ export type MessageTemplates = { confirmacao: string; lembrete: string; cancelam
 
 export const settings = pgTable('settings', {
   id: integer('id').primaryKey().default(1),
+  /** Nome do site e do app (cabeçalho, aba do navegador, app instalado). */
+  siteName: text('site_name').notNull().default('Farion'),
   professionalName: text('professional_name').notNull(),
   professionalTitle: text('professional_title').notNull().default('Coach'),
   registry: text('registry'),
@@ -313,6 +315,8 @@ export const patients = pgTable(
     nutritionistId: uuid('nutritionist_id').references(() => users.id, { onDelete: 'set null' }),
     /** Plano de acompanhamento escolhido no cadastro ou contratado (definido pelo nutricionista). */
     packageId: uuid('package_id').references(() => packages.id, { onDelete: 'set null' }),
+    /** Início do plano contratado (a vigência vai até início + meses do plano). */
+    packageStart: date('package_start'),
     status: patientStatusEnum('status').notNull().default('ativo'),
     stage: text('stage').notNull().default('Avaliação inicial'),
     followUpDays: integer('follow_up_days'),

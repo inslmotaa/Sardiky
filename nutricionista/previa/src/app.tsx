@@ -404,7 +404,7 @@ function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
           <a className="brand" href="#cliente">
             <span className="brand__name">
               <span className="brand__title">
-                André Farion
+                Farion
                 <span className="brand__dash" aria-hidden />
               </span>
               <span className="brand__sub">App do cliente</span>
@@ -885,7 +885,7 @@ function AndreArea({ page, extra }: { page?: string; extra?: string }) {
           <a className="brand" href="#andre">
             <span className="brand__name">
               <span className="brand__title">
-                André Farion
+                Farion
                 <span className="brand__dash" aria-hidden />
               </span>
               <span className="brand__sub">Painel do coach</span>

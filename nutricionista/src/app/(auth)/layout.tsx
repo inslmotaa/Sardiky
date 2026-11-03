@@ -10,7 +10,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
     <main className="tl tl-auth">
       <div className="tl-auth__box stack">
         <div className="tl-auth__brand">
-          <SiteBrand name={s.professionalName} logoFileId={s.logoFileId} />
+          <SiteBrand name={s.siteName} logoFileId={s.logoFileId} />
         </div>
         {children}
         <p className="tl-auth__foot">

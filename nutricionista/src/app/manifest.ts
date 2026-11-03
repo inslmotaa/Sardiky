@@ -8,8 +8,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const s = await getSettings()
   return {
     id: '/paciente',
-    name: `${s.professionalName} · Nutrição`,
-    short_name: s.professionalName.split(' ').slice(0, 2).join(' '),
+    name: `${s.siteName} · ${s.professionalName}`,
+    short_name: s.siteName,
     description: 'Seu plano alimentar, diário, água e conversa com o coach.',
     start_url: '/paciente',
     scope: '/',

@@ -335,3 +335,103 @@ table th {
   color: var(--ink);
   background: transparent;
 }
+
+/* Plano contratado no topo da ficha do cliente */
+.patient-contract[data-status="vencendo"],
+.patient-contract[data-status="vencido"] {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+/* Meu perfil (área do cliente) */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.profile-hero > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.profile-hero__name {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-size: 1.15rem;
+}
+.avatar--lg {
+  width: 56px;
+  height: 56px;
+  font-size: 1.1rem;
+}
+.profile-meals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.profile-meals li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.profile-meals li:last-child {
+  border-bottom: 0;
+}
+.profile-meals__time {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--brand);
+  min-width: 44px;
+  font-variant-numeric: tabular-nums;
+}
+.profile-meals .small {
+  margin-left: auto;
+}
+.patient-me {
+  display: inline-flex;
+  border-radius: 50%;
+  text-decoration: none;
+}
+.patient-me .avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 0.8rem;
+}
+.patient-me:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Senha com "Mostrar/Ocultar" (login e cadastro) */
+.password-input {
+  position: relative;
+}
+.password-input input {
+  width: 100%;
+  padding-right: 84px;
+}
+.password-input__toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  transform: translateY(-50%);
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--brand);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.password-input__toggle:hover {
+  background: var(--brand-soft);
+}
+.password-input__toggle:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}

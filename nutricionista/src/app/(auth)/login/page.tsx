@@ -6,7 +6,7 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { destinationFor, emailVerificationRequired } from '@/lib/auth/accounts'
 import { googleConfigured } from '@/lib/auth/google'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
-import { GoogleLink } from '@/components/AuthWidgets'
+import { GoogleLink, PasswordInput } from '@/components/AuthWidgets'
 import { ClearCacheOnMount } from '@/components/pwa'
 
 export const metadata: Metadata = { title: 'Entrar', robots: { index: false } }
@@ -49,7 +49,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <div>
         <h1 style={{ fontSize: '1.6rem' }}>Entrar</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Acesse a sua área para ver o plano, o diário e as mensagens.
+          Um só acesso para clientes e para o coach: depois de entrar, você vai direto para a sua área.
         </p>
       </div>
       {sp.senha && <p className="alert alert--ok">Senha definida. Entre com a nova senha.</p>}
@@ -62,7 +62,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <input name="email" type="email" autoComplete="username" required />
         </Field>
         <Field label="Senha" name="password">
-          <input name="password" type="password" autoComplete="current-password" required />
+          <PasswordInput name="password" autoComplete="current-password" required />
         </Field>
         <SubmitButton className="btn btn--primary btn--block" pendingText="Entrando…">
           Entrar

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { requirePatient } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
 import { getPatient } from '@/lib/patient-context'
@@ -43,11 +44,20 @@ export default async function PatientLayout({ children }: { children: React.Reac
       </a>
       <header className="patient-header">
         <div className="container patient-header__inner" style={{ position: 'relative' }}>
-          <Brand name={s.professionalName} sub="Área do cliente" logoFileId={s.logoFileId} />
+          <Brand name={s.siteName} sub="Área do cliente" logoFileId={s.logoFileId} />
           <nav className="patient-nav" aria-label="Área do cliente">
             <NavLinks items={main} />
           </nav>
           <div className="row" style={{ gap: 8 }}>
+            <Link href="/paciente/meus-dados" className="patient-me" aria-label={`Meu perfil (${user.name})`}>
+              <span className="avatar" aria-hidden>
+                {user.name
+                  .split(/\s+/)
+                  .slice(0, 2)
+                  .map((w) => w[0]?.toUpperCase())
+                  .join('')}
+              </span>
+            </Link>
             <LogoutForm action={logout}>
               <button className="btn btn--sm" type="submit">
                 Sair

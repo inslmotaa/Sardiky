@@ -103,7 +103,13 @@ export function TodayView({
       {/* Próxima refeição */}
       {next ? (
         <section className="card next-meal" aria-labelledby="next-meal-title">
-          <span className="eyebrow">Agora</span>
+          <span className="eyebrow">
+            {!next.time || (next.time <= data.nowTime && next.time >= minus(data.nowTime, 60))
+              ? 'Agora'
+              : next.time > data.nowTime
+                ? 'Próxima refeição'
+                : 'Ainda sem registro'}
+          </span>
           <h2 id="next-meal-title" style={{ margin: '0 0 4px' }}>
             {next.name}
             {next.time && <span className="muted" style={{ fontWeight: 500 }}> · {next.time.replace(':00', 'h').replace(':', 'h')}</span>}

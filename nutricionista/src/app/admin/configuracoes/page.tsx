@@ -69,7 +69,10 @@ function ProfileSection({ s }: { s: S }) {
       <section className="card stack">
         <h2 style={{ fontSize: '1.1rem', margin: 0 }}>Profissional</h2>
         <div className="form-grid">
-          <Field label="Nome de exibição" name="professionalName" required>
+          <Field label="Nome do site" name="siteName" required hint="Aparece no cabeçalho, na aba do navegador e no app instalado.">
+            <input name="siteName" defaultValue={s.siteName} maxLength={60} />
+          </Field>
+          <Field label="Nome de exibição" name="professionalName" required hint="O seu nome: apresentação, plano em PDF e mensagens.">
             <input name="professionalName" defaultValue={s.professionalName} />
           </Field>
           <Field label="Título" name="professionalTitle" required>

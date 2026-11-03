@@ -58,6 +58,9 @@ test('página principal: hero com a plataforma, storytelling em capítulos, Sobr
   await expect(footer).toContainText('André Farion · Coach')
   await expect(footer.locator('p').last()).toHaveText(/Site por\s*TIMELESS/i)
   await expect(footer.locator('.wm')).toHaveCount(0)
+  // Nome do site no cabeçalho: "Farion" (o conteúdo continua sendo do André).
+  await expect(page.locator('.tl-header .tl-brand')).toHaveText('Farion')
+  await expect(page).toHaveTitle(/^Farion · André Farion/)
   // Menu do cabeçalho: seções da página e "Entrar".
   const nav = page.locator('.tl-nav')
   for (const [name, href] of [['Sobre', '/#sobre'], ['Consultoria', '/#consultoria'], ['Resultados', '/#resultados'], ['Contato', '/#contato'], ['Entrar', '/entrar']])

@@ -18,6 +18,7 @@ import {
 } from '@/lib/nutricao'
 import {
   dayTotals,
+  dropEmptyMeals,
   itemNutrients,
   optionTotals,
   quantityLabel,
@@ -205,7 +206,11 @@ export function PlanEditor({ action, initial, title: initialTitle, validFrom, va
       onSubmit={(e) => {
         e.preventDefault()
         const fd = new FormData(e.currentTarget, (e.nativeEvent as SubmitEvent).submitter)
-        if (fd.get('intent') === 'publish' && !window.confirm('Ativar este plano no app do cliente? A versão atual passará para o histórico.')) return
+        if (fd.get('intent') === 'publish') {
+          const { removed } = dropEmptyMeals(content)
+          const note = removed.length ? `\n\nAinda sem alimentos (não serão enviadas agora): ${removed.join(', ')}.` : ''
+          if (!window.confirm(`Ativar este plano no app do cliente? A versão atual passará para o histórico.${note}`)) return
+        }
         startTransition(() => formAction(fd))
       }}
       className="stack"

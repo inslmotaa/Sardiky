@@ -97,6 +97,15 @@ export function addMonths(day: string, n: number) {
   return dt.toISOString().slice(0, 10)
 }
 
+/** Soma meses mantendo o dia (31/01 + 1 mês = 28 ou 29/02). */
+export function addMonthsSameDay(day: string, n: number) {
+  const [y, m, d] = day.split('-').map(Number)
+  const first = new Date(Date.UTC(y, m - 1 + n, 1))
+  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate()
+  first.setUTCDate(Math.min(d, last))
+  return first.toISOString().slice(0, 10)
+}
+
 export function timeToMinutes(t: string) {
   const [h, m] = t.split(':').map(Number)
   return h * 60 + m

@@ -21,6 +21,19 @@ export function PhoneInput({ name, defaultValue = '' }: { name: string; defaultV
   )
 }
 
+/** Senha com botão para mostrar/ocultar o que foi digitado (ajuda muito no celular). */
+export function PasswordInput({ name, autoComplete, required, minLength }: { name: string; autoComplete: string; required?: boolean; minLength?: number }) {
+  const [shown, setShown] = useState(false)
+  return (
+    <div className="password-input">
+      <input name={name} type={shown ? 'text' : 'password'} autoComplete={autoComplete} required={required} minLength={minLength} autoCapitalize="none" spellCheck={false} />
+      <button type="button" className="password-input__toggle" aria-pressed={shown} onClick={() => setShown((v) => !v)}>
+        {shown ? 'Ocultar' : 'Mostrar'}
+      </button>
+    </div>
+  )
+}
+
 function GoogleMark() {
   return (
     <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden>
@@ -67,7 +80,7 @@ export function SignUpForm({ plano, next, google }: { plano: string | null; next
         </Field>
         <div className="form-grid">
           <Field label="Senha" name="password" required hint="Mínimo de 8 caracteres, com letras e números.">
-            <input name="password" type="password" autoComplete="new-password" minLength={8} />
+            <PasswordInput name="password" autoComplete="new-password" minLength={8} />
           </Field>
           <Field label="Confirme a senha" name="confirm" required>
             <input name="confirm" type="password" autoComplete="new-password" />

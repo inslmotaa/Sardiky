@@ -28,6 +28,7 @@ function refreshAll() {
 /* ------------------------------- perfil ------------------------------- */
 
 const profileSchema = z.object({
+  siteName: str(60, 'Informe o nome do site'),
   professionalName: str(120, 'Informe o nome'),
   professionalTitle: str(80, 'Informe o título'),
   registry: optStr(120),

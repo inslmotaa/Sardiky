@@ -185,6 +185,27 @@ export function countItems(plan: PlanContent) {
   return plan.days.reduce((n, d) => n + d.meals.reduce((m, meal) => m + meal.options.reduce((k, o) => k + o.items.length, 0), 0), 0)
 }
 
+/**
+ * Retira o que ainda está vazio antes de enviar ao cliente: opções sem alimentos e refeições sem nenhuma opção
+ * preenchida. Assim dá para ativar, por exemplo, só o café da manhã e completar o resto depois.
+ * Devolve também os nomes das refeições retiradas (para avisar o coach).
+ */
+export function dropEmptyMeals(plan: PlanContent): { content: PlanContent; removed: string[] } {
+  const removed: string[] = []
+  const days = plan.days.map((d) => ({
+    ...d,
+    meals: d.meals.flatMap((m) => {
+      const options = m.options.filter((o) => o.items.length > 0)
+      if (options.length === 0) {
+        if (!removed.includes(m.name)) removed.push(m.name)
+        return []
+      }
+      return [{ ...m, options }]
+    }),
+  }))
+  return { content: { ...plan, days }, removed }
+}
+
 export function mealCount(plan: PlanContent) {
   return plan.days[0]?.meals.length ?? 0
 }

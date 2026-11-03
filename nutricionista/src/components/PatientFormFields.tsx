@@ -4,7 +4,15 @@ import { Field } from './form'
 export const STAGES = ['Avaliação inicial', 'Acompanhamento', 'Manutenção', 'Reavaliação']
 
 /** Campos do cadastro (somente o necessário para o atendimento). */
-export function PatientFormFields({ p, nutritionists = [] }: { p?: typeof schema.patients.$inferSelect; nutritionists?: { id: string; name: string }[] }) {
+export function PatientFormFields({
+  p,
+  nutritionists = [],
+  packages = [],
+}: {
+  p?: typeof schema.patients.$inferSelect
+  nutritionists?: { id: string; name: string }[]
+  packages?: { id: string; name: string; months: number }[]
+}) {
   return (
     <>
       <div className="form-grid">
@@ -42,6 +50,19 @@ export function PatientFormFields({ p, nutritionists = [] }: { p?: typeof schema
             </select>
           </Field>
         )}
+        <Field label="Plano contratado" name="packageId" hint="Aparece no app do cliente, com a vigência.">
+          <select name="packageId" defaultValue={p?.packageId ?? ''}>
+            <option value="">Nenhum plano contratado</option>
+            {packages.map((k) => (
+              <option key={k.id} value={k.id}>
+                {k.name} · {k.months} {k.months === 1 ? 'mês' : 'meses'}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Início do plano" name="packageStart" hint="A vigência termina após os meses do plano.">
+          <input type="date" name="packageStart" defaultValue={p?.packageStart ?? ''} />
+        </Field>
         <Field label="Situação" name="status">
           <select name="status" defaultValue={p?.status ?? 'ativo'}>
             <option value="ativo">Ativo</option>

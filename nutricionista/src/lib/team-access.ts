@@ -33,3 +33,12 @@ export async function nutritionistOptions() {
   const rows = await db.select({ id: schema.users.id, name: schema.users.name, role: schema.users.role, permissions: schema.users.permissions, isActive: schema.users.isActive }).from(schema.users)
   return rows.filter((u) => u.isActive && (u.role === 'admin' || (u.role === 'staff' && u.permissions.includes('clinico')))).map((u) => ({ id: u.id, name: u.name }))
 }
+
+/** Planos de acompanhamento que podem ser escolhidos na ficha do cliente. */
+export async function packageOptions() {
+  return db
+    .select({ id: schema.packages.id, name: schema.packages.name, months: schema.packages.months })
+    .from(schema.packages)
+    .where(eq(schema.packages.active, true))
+    .orderBy(schema.packages.sort)
+}

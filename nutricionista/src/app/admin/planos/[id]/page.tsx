@@ -20,8 +20,9 @@ import { NewPlanForm } from '@/components/NewPlanForm'
 import { ActionForm, Field, PrintButton, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
 
-export default async function PlanPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function PlanPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ativado?: string; sem?: string }> }) {
   const { id } = await params
+  const sp = await searchParams
   const user = await requireTeam()
   if (!can(user, 'clinico')) return <NoAccess />
   if (!uuid.safeParse(id).success) notFound()
@@ -98,6 +99,12 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           </>
         }
       />
+      {sp.ativado && plan.status === 'publicado' && (
+        <p className="alert alert--ok" role="status">
+          Plano ativado no app do cliente. Ele já recebe o aviso e vê as refeições na tela Hoje.
+          {sp.sem ? ` Refeições sem alimentos não foram enviadas: ${sp.sem.slice(0, 300)}.` : ''}
+        </p>
+      )}
 
       {plan.status === 'rascunho' ? (
         <>

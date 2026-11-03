@@ -170,6 +170,7 @@ const { default: postgres } = await import('postgres')
 const sql = postgres(process.env.DATABASE_URL, { max: 1, onnotice: () => {} })
 
 const settings = {
+  ...(p.nomeDoSite ? { site_name: String(p.nomeDoSite).trim().slice(0, 60) } : {}),
   professional_name: p.profissional.nome,
   professional_title: p.profissional.titulo,
   registry: p.profissional.registro || null,

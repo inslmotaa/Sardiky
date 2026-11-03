@@ -167,7 +167,9 @@ test('Perfil: baixar meus dados e excluir minha conta', async ({ page }) => {
   await expect(page).toHaveURL(/\/paciente\/anamnese$/)
 
   await page.goto('/paciente/meus-dados')
-  await expect(page.getByRole('heading', { name: 'Perfil', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Meu perfil', level: 1 })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Meu acompanhamento' })).toBeVisible()
+  await expect(page.getByText('Seu plano ainda não foi publicado.')).toBeVisible()
   const data = await page.request.get('/paciente/meus-dados/exportar')
   expect(data.status()).toBe(200)
   expect(Object.keys(await data.json())).toContain('anamneses')

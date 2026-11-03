@@ -84,7 +84,7 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
     nextAppointment: next
       ? {
           when: fmtDateTime(next.startAt, s.timezone),
-          label: `${next.serviceName} · $on-line · ${next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}`,
+          label: `${next.serviceName} · on-line · ${next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}`,
           meetingUrl: next.modality === 'online' && next.status === 'confirmada' ? next.meetingUrl : null,
         }
       : null,

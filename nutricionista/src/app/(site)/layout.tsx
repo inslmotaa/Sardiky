@@ -29,7 +29,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         )}
         <header className="tl-header" id="site-header">
           <div className="tl-container tl-header__inner">
-            <SiteBrand name={s.professionalName} logoFileId={s.logoFileId} />
+            <SiteBrand name={s.siteName} logoFileId={s.logoFileId} />
             <nav className="tl-nav" aria-label="Principal">
               <SiteNavLinks className="tl-nav__link" />
               {user ? (
@@ -115,7 +115,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
               </div>
             </div>
             <p className="tl-footer__copy">
-              © {new Date().getFullYear()} {s.professionalName}. As informações deste site são educativas e não substituem o acompanhamento
+              © {new Date().getFullYear()} {s.siteName} · {s.professionalName}. As informações deste site são educativas e não substituem o acompanhamento
               individual.
             </p>
             <p className="tl-credit">

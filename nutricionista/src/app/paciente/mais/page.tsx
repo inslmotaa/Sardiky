@@ -11,6 +11,7 @@ export default async function MorePage() {
   const p = await getPatient(user.patientId)
   const wa = whatsappLink(s.whatsapp, 'Olá! Sou cliente e tenho uma dúvida.')
   const items: [string, string, string][] = [
+    ['/paciente/meus-dados', 'Meu perfil', 'Plano contratado, plano alimentar, dados e senha'],
     ...(p.features.chat ? ([['/paciente/mensagens', 'Mensagens', 'Converse com o coach']] as [string, string, string][]) : []),
     ['/paciente/consultas', 'Agenda', 'Próximas consultas, confirmar presença, remarcar e avaliar'],
     ['/paciente/compras', 'Lista de compras', 'Gerada do seu plano da semana'],
@@ -19,7 +20,7 @@ export default async function MorePage() {
     ['/paciente/formularios', 'Anamnese e questionários', 'Formulários enviados pelo coach'],
     ...(p.features.calculadoras ? ([['/paciente/calculadoras', 'Calculadoras', 'Porções, IMC, água e mais']] as [string, string, string][]) : []),
     ['/paciente/notificacoes', 'Notificações', 'Lembretes de refeição e água, horário de silêncio'],
-    ['/paciente/meus-dados', 'Perfil e privacidade', 'Dados cadastrais, senha, exportação e LGPD'],
+    ['/paciente/meus-dados#privacidade', 'Privacidade (LGPD)', 'Baixar meus dados, solicitações e excluir conta'],
   ]
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 680 }}>

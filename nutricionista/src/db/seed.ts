@@ -52,6 +52,7 @@ async function main() {
   /* -------------------------- configurações -------------------------- */
   await db.insert(s.settings).values({
     id: 1,
+    siteName: 'Farion',
     professionalName: 'André Farion',
     professionalTitle: 'Coach',
     registry: null,
@@ -228,7 +229,7 @@ async function main() {
     { title: 'Vale avaliação física', text: 'Avaliação física completa sem custo adicional.' },
     { title: 'Desconto em produtos selecionados', text: 'Até 15% de desconto em produtos do nosso parceiro de suplementos e nutrição esportiva.' },
   ]
-  const [, pkgTrimestral] = await db.insert(s.packages).values([
+  const [pkgMensal, pkgTrimestral] = await db.insert(s.packages).values([
     { name: 'Mensal', months: 1, priceCents: 25000, validityDays: 30, sort: 1 },
     { name: 'Trimestral', months: 3, priceCents: 63750, validityDays: 90, sort: 2 },
     { name: 'Semestral', months: 6, priceCents: 120000, validityDays: 180, sort: 3, perks: exclusive },
@@ -286,6 +287,7 @@ async function main() {
         nutritionistId: admin.id,
         anamnesisReceivedAt: at(-151, '20:00'),
         packageId: pkgTrimestral.id,
+        packageStart: day(-45),
         status: 'ativo',
         stage: 'Acompanhamento',
         followUpDays: 30,
@@ -301,6 +303,9 @@ async function main() {
         sex: 'M',
         heightCm: 178,
         nutritionistId: admin.id,
+        // Plano mensal perto de vencer: aparece em "Planos para enviar ou renovar" no Início do coach.
+        packageId: pkgMensal.id,
+        packageStart: day(-25),
         status: 'ativo',
         stage: 'Avaliação inicial',
         followUpDays: 21,

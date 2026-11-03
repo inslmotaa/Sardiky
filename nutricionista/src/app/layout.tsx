@@ -12,14 +12,14 @@ export const dynamic = 'force-dynamic'
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings()
-  const title = `${s.professionalName} · ${s.professionalTitle}`
+  const title = `${s.siteName} · ${s.professionalName}, ${s.professionalTitle}`
   return {
-    title: { default: title, template: `%s · ${s.professionalName}` },
+    title: { default: title, template: `%s · ${s.siteName}` },
     description: s.bio.slice(0, 160),
-    applicationName: s.professionalName,
+    applicationName: s.siteName,
     robots: { index: true, follow: true },
     // App instalável: ícone na tela inicial do iPhone e barra de status integrada.
-    appleWebApp: { capable: true, title: s.professionalName.split(' ').slice(0, 2).join(' '), statusBarStyle: 'default' },
+    appleWebApp: { capable: true, title: s.siteName, statusBarStyle: 'default' },
     icons: { icon: '/icon.svg', apple: '/icons/apple-touch-icon.png' },
   }
 }

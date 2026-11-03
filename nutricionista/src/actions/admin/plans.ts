@@ -13,7 +13,7 @@ import { failure, UserError, type ActionState } from '@/lib/action'
 import { notifyUser, sendEmail } from '@/lib/notify'
 import { getSettings } from '@/lib/settings'
 import { pushToUser } from '@/lib/push'
-import { countItems, emptyPlan, normalizePlan, planContentSchema } from '@/lib/plan'
+import { countItems, dropEmptyMeals, emptyPlan, normalizePlan, planContentSchema } from '@/lib/plan'
 import { optDay, str, uuid } from '@/lib/validation'
 
 async function planOrThrow(id: string) {
@@ -54,9 +54,13 @@ export async function createPlan(_: ActionState, fd: FormData): Promise<ActionSt
       const src = await planOrThrow(parsed.data.sourceId)
       content = normalizePlan(src.content)
     }
+    // Cada plano novo do cliente continua a numeração (v1, v2…), mesmo começando em branco.
+    const [{ v }] = patientId
+      ? await db.select({ v: max(schema.mealPlans.version) }).from(schema.mealPlans).where(eq(schema.mealPlans.patientId, patientId))
+      : [{ v: 0 }]
     const [row] = await db
       .insert(schema.mealPlans)
-      .values({ patientId, isTemplate: asTemplate, title: parsed.data.title, status: 'rascunho', version: 1, content, createdBy: user.id })
+      .values({ patientId, isTemplate: asTemplate, title: parsed.data.title, status: 'rascunho', version: (v ?? 0) + 1, content, createdBy: user.id })
       .returning({ id: schema.mealPlans.id })
     id = row.id
     await audit(user, 'plano_criado', 'plano', { entityId: id, patientId })
@@ -71,6 +75,7 @@ export async function createPlan(_: ActionState, fd: FormData): Promise<ActionSt
  * Publicar exige a confirmação explícita de revisão pelo profissional.
  */
 export async function savePlan(planId: string, _: ActionState, fd: FormData): Promise<ActionState> {
+  let destination = ''
   try {
     const user = await requireTeam('clinico')
     const plan = await planOrThrow(planId)
@@ -105,12 +110,13 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
     if (plan.isTemplate || !plan.patientId) return { error: 'Modelos não são publicados; use-os para criar planos de clientes.' }
     if (fd.get('reviewed') !== 'on') return { error: 'Confirme que revisou o plano antes de publicar.', fieldErrors: { reviewed: 'Confirmação obrigatória' } }
     if (countItems(content.data) === 0) return { error: 'O plano precisa ter ao menos uma refeição com alimentos.' }
-    for (const d of content.data.days) {
-      if (d.meals.length === 0) return { error: `O dia “${d.label}” está sem refeições.` }
+    // Refeições ainda vazias não vão para o cliente (dá para ativar só o café da manhã e completar depois).
+    const { content: toPublish, removed } = dropEmptyMeals(content.data)
+    for (const d of toPublish.days) {
+      if (d.meals.length === 0) return { error: `O dia “${d.label}” está sem alimentos. Preencha ao menos uma refeição ou remova o dia.` }
       for (const m of d.meals)
         for (const o of m.options) {
-          if (o.items.length === 0) return { error: `“${m.name}” (${o.label}, ${d.label}) está sem alimentos.` }
-          if (content.data.mode === 'calculado' && o.items.some((it) => it.per100 && !(it.grams && it.grams > 0)))
+          if (toPublish.mode === 'calculado' && o.items.some((it) => it.per100 && !(it.grams && it.grams > 0)))
             return { error: `Há alimento sem quantidade em “${m.name}” (${d.label}).` }
         }
     }
@@ -122,7 +128,7 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
         .where(and(eq(schema.mealPlans.patientId, plan.patientId!), eq(schema.mealPlans.status, 'publicado')))
       await tx
         .update(schema.mealPlans)
-        .set({ status: 'publicado', publishedAt: new Date(), publishedBy: user.id, updatedAt: new Date() })
+        .set({ status: 'publicado', content: toPublish, publishedAt: new Date(), publishedBy: user.id, updatedAt: new Date() })
         .where(eq(schema.mealPlans.id, plan.id))
     })
     const [p] = await db
@@ -144,10 +150,12 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
     }
     await audit(user, 'plano_publicado', 'plano', { entityId: plan.id, patientId: plan.patientId, details: { versao: plan.version } })
     refresh(plan)
-    return { ok: true, message: 'Plano publicado na área do cliente.' }
+    // Mostra a versão publicada com o aviso (e quais refeições ainda vazias ficaram de fora).
+    destination = `/admin/planos/${plan.id}?ativado=1${removed.length ? `&sem=${encodeURIComponent(removed.join(', '))}` : ''}`
   } catch (err) {
     return failure(err)
   }
+  redirect(destination)
 }
 
 /** Nova versão editável a partir de uma versão publicada/arquivada (o histórico é preservado). */

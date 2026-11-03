@@ -8,6 +8,7 @@ import { getSettings } from '@/lib/settings'
 import { addDays, capitalize, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfMonth, todayIn, zonedToUtc } from '@/lib/time'
 import { money } from '@/lib/format'
 import { trackingBoard } from '@/lib/tracking'
+import { contractInfo } from '@/lib/contract'
 import { PageHead, Stat, StatusBadge } from '@/components/ui'
 import { markTeamNotificationsRead } from '@/actions/admin/patients'
 
@@ -103,6 +104,36 @@ export default async function AdminHome() {
   ])
 
   const activeToday = todayAppts.filter((a) => a.status !== 'cancelada')
+
+  // Planos para enviar (cliente ativo sem plano alimentar publicado) e planos contratados perto de vencer.
+  const actives = clinical
+    ? await db
+        .select({ id: schema.patients.id, name: schema.patients.fullName, start: schema.patients.packageStart, pkg: schema.packages })
+        .from(schema.patients)
+        .leftJoin(schema.packages, eq(schema.packages.id, schema.patients.packageId))
+        .where(
+          and(
+            eq(schema.patients.status, 'ativo'),
+            isNull(schema.patients.anonymizedAt),
+            isRestricted(user) ? eq(schema.patients.nutritionistId, user.id) : undefined,
+          ),
+        )
+        .orderBy(asc(schema.patients.fullName))
+    : []
+  const published = new Set(
+    actives.length
+      ? (
+          await db
+            .select({ id: schema.mealPlans.patientId })
+            .from(schema.mealPlans)
+            .where(and(eq(schema.mealPlans.status, 'publicado'), inArray(schema.mealPlans.patientId, actives.map((a) => a.id))))
+        ).map((r) => r.id)
+      : [],
+  )
+  const withoutPlan = actives.filter((a) => !published.has(a.id))
+  const renewals = actives
+    .map((a) => ({ ...a, c: a.pkg ? contractInfo(a.pkg, a.start, today) : null }))
+    .filter((a) => a.c && (a.c.status === 'vencendo' || a.c.status === 'vencido'))
 
   return (
     <div className="stack" style={{ ['--gap' as string]: '24px' }}>
@@ -259,6 +290,42 @@ export default async function AdminHome() {
             )}
           </section>
         </div>
+      )}
+
+      {clinical && (withoutPlan.length > 0 || renewals.length > 0) && (
+        <section className="card" aria-labelledby="planos-pendentes">
+          <div className="card__head">
+            <h2 id="planos-pendentes">Planos para enviar ou renovar</h2>
+            <Link href="/admin/planos" className="small">
+              Planos alimentares
+            </Link>
+          </div>
+          <ul className="list">
+            {withoutPlan.map((a) => (
+              <li key={a.id} className="row row--between">
+                <span>
+                  <Link href={`/admin/pacientes/${a.id}?aba=planos`}>{a.name}</Link>
+                  <span className="small muted"> · ainda sem plano alimentar no app</span>
+                </span>
+                <Link href={`/admin/pacientes/${a.id}?aba=planos`} className="btn btn--sm btn--primary">
+                  Montar plano
+                </Link>
+              </li>
+            ))}
+            {renewals.map((a) => (
+              <li key={`r-${a.id}`} className="row row--between">
+                <span>
+                  <Link href={`/admin/pacientes/${a.id}`}>{a.name}</Link>
+                  <span className="small muted">
+                    {' '}
+                    · Plano {a.c!.name} {a.c!.status === 'vencido' ? `venceu em ${fmtDay(a.c!.end)}` : `vence em ${fmtDay(a.c!.end)}`}
+                  </span>
+                </span>
+                <span className={`badge ${a.c!.status === 'vencido' ? 'badge--danger' : 'badge--warn'}`}>{a.c!.status === 'vencido' ? 'Vencido' : 'Renovar'}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <div className="grid-3">

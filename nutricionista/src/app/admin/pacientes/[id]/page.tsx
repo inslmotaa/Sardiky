@@ -7,7 +7,8 @@ import { canSeePatient } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { audit } from '@/lib/audit'
 import { getSettings } from '@/lib/settings'
-import { ageFrom, todayIn } from '@/lib/time'
+import { ageFrom, fmtDay, todayIn } from '@/lib/time'
+import { CONTRACT_STATUS, contractInfo } from '@/lib/contract'
 import { whatsappLink } from '@/lib/format'
 import { uuid } from '@/lib/validation'
 import { NoAccess, PageHead, StatusBadge, Tabs } from '@/components/ui'
@@ -58,6 +59,8 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
     await audit(user, 'prontuario_visualizado', 'paciente', { entityId: p.id, patientId: p.id, details: { aba: tab.key } })
   }
   const age = ageFrom(p.birthDate, todayIn(s.timezone))
+  const [pkg] = p.packageId ? await db.select().from(schema.packages).where(eq(schema.packages.id, p.packageId)) : []
+  const contract = pkg ? contractInfo(pkg, p.packageStart, todayIn(s.timezone)) : null
   const wa = p.phone ? whatsappLink(p.phone.length <= 11 ? `55${p.phone}` : p.phone) : null
 
   return (
@@ -70,6 +73,12 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
             <StatusBadge status={p.status} /> · {p.stage}
             {age != null && ` · ${age} anos`}
             {p.objective && ` · ${p.objective}`}
+            {contract && (
+              <span className="patient-contract" data-status={contract.status}>
+                {' · '}Plano {contract.name}
+                {contract.end ? ` até ${fmtDay(contract.end)}` : ''} ({CONTRACT_STATUS[contract.status].toLowerCase()})
+              </span>
+            )}
           </>
         }
         actions={

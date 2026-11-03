@@ -85,6 +85,20 @@
       "when": 1793307951918,
       "tag": "0011_tabela_taco",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793744723727,
+      "tag": "0012_nome_do_site",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793744908354,
+      "tag": "0013_inicio_do_plano",
+      "breakpoints": true
     }
   ]
 }

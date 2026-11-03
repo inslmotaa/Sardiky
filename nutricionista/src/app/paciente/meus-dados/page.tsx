@@ -1,8 +1,12 @@
-import { desc, eq } from 'drizzle-orm'
+import Link from 'next/link'
+import { and, asc, desc, eq, gt, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
-import { fmtDateTime, fmtDay } from '@/lib/time'
+import { fmtDateTime, fmtDay, todayIn, weekdayOf } from '@/lib/time'
+import { CONTRACT_STATUS, contractInfo } from '@/lib/contract'
+import { dayForWeekday, normalizePlan } from '@/lib/plan'
+import { whatsappLink } from '@/lib/format'
 import { changePassword } from '@/actions/auth'
 import { createDataRequest, deleteMyAccount } from '@/actions/patient'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
@@ -26,10 +30,177 @@ export default async function MyDataPage() {
     db.select().from(schema.files).where(eq(schema.files.patientId, user.patientId)).orderBy(desc(schema.files.createdAt)),
   ])
   const sharedDocs = docs.filter((d) => d.visibleToPatient && d.kind === 'documento')
+  const today = todayIn(s.timezone)
+  const [[pkg], [plan], [next]] = await Promise.all([
+    patient.packageId ? db.select().from(schema.packages).where(eq(schema.packages.id, patient.packageId)) : Promise.resolve([]),
+    db
+      .select()
+      .from(schema.mealPlans)
+      .where(and(eq(schema.mealPlans.patientId, user.patientId), eq(schema.mealPlans.status, 'publicado')))
+      .orderBy(desc(schema.mealPlans.publishedAt))
+      .limit(1),
+    db
+      .select()
+      .from(schema.appointments)
+      .where(
+        and(
+          eq(schema.appointments.patientId, user.patientId),
+          inArray(schema.appointments.status, ['pendente', 'confirmada']),
+          gt(schema.appointments.startAt, new Date()),
+        ),
+      )
+      .orderBy(asc(schema.appointments.startAt))
+      .limit(1),
+  ])
+  const contract = pkg ? contractInfo(pkg, patient.packageStart, today) : null
+  const content = plan ? normalizePlan(plan.content) : null
+  const planDay = content ? dayForWeekday(content, weekdayOf(today)) : null
+  const showKcal = patient.features.calorias && content?.mode === 'calculado' && content.targets.kcal
+  const initials = patient.fullName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join('')
+  const wa = whatsappLink(s.whatsapp, 'Olá! Sou cliente e tenho uma dúvida.')
 
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
-      <PageHead title="Perfil" subtitle="Seus dados cadastrais, documentos, privacidade e senha." />
+      <PageHead title="Meu perfil" subtitle="Seu acompanhamento, seu plano alimentar e seus dados." />
+
+      <section className="card profile-hero">
+        <span className="avatar avatar--lg" aria-hidden>
+          {initials}
+        </span>
+        <div>
+          <strong className="profile-hero__name">{patient.fullName}</strong>
+          <span className="small muted">
+            {patient.email ?? user.email} · cliente desde {fmtDay(patient.createdAt.toISOString().slice(0, 10))}
+          </span>
+        </div>
+      </section>
+
+      <div className="grid-2" style={{ alignItems: 'start' }}>
+        <section className="card stack" style={{ ['--gap' as string]: '12px' }} aria-labelledby="meu-acompanhamento">
+          <h2 id="meu-acompanhamento" style={{ fontSize: '1.1rem', margin: 0 }}>
+            Meu acompanhamento
+          </h2>
+          <dl className="kv">
+            <dt>Plano</dt>
+            <dd>
+              {contract ? (
+                <>
+                  <strong>Plano {contract.name}</strong>
+                  <span className="small muted" style={{ display: 'block' }}>
+                    {contract.months} {contract.months === 1 ? 'mês' : 'meses'} · {contract.sessions} {contract.sessions === 1 ? 'consulta' : 'consultas'}
+                  </span>
+                </>
+              ) : (
+                'Nenhum plano contratado ainda'
+              )}
+            </dd>
+            {contract && (
+              <>
+                <dt>Vigência</dt>
+                <dd>
+                  {contract.start && contract.end ? `${fmtDay(contract.start)} a ${fmtDay(contract.end)}` : 'Início a combinar com o coach'}
+                  <span className={`badge ${contract.status === 'vigente' ? 'badge--ok' : contract.status === 'sem-inicio' ? 'badge--plain' : 'badge--warn'}`} style={{ marginLeft: 8 }}>
+                    {contract.status === 'vigente' && contract.daysLeft != null
+                      ? `faltam ${contract.daysLeft} ${contract.daysLeft === 1 ? 'dia' : 'dias'}`
+                      : CONTRACT_STATUS[contract.status]}
+                  </span>
+                </dd>
+              </>
+            )}
+            <dt>Coach</dt>
+            <dd>
+              {s.professionalName}
+              <span className="small muted" style={{ display: 'block' }}>
+                {[s.professionalTitle, s.registry].filter(Boolean).join(' · ')}
+              </span>
+            </dd>
+            <dt>Etapa</dt>
+            <dd>{patient.stage}</dd>
+            {patient.objective && (
+              <>
+                <dt>Objetivo</dt>
+                <dd>{patient.objective}</dd>
+              </>
+            )}
+            <dt>Próxima consulta</dt>
+            <dd>{next ? `${fmtDateTime(next.startAt, s.timezone)} · ${next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}` : 'Nenhuma marcada'}</dd>
+          </dl>
+          <div className="row">
+            {!contract && (
+              <Link href="/planos" className="btn btn--primary btn--sm">
+                Conhecer os planos
+              </Link>
+            )}
+            {(contract?.status === 'vencendo' || contract?.status === 'vencido') && wa && (
+              <a href={whatsappLink(s.whatsapp, `Olá! Quero renovar o meu Plano ${contract.name}.`) ?? wa} target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm">
+                Renovar o plano
+              </a>
+            )}
+            <Link href="/paciente/consultas" className="btn btn--sm">
+              Minhas consultas
+            </Link>
+            {patient.features.chat ? (
+              <Link href="/paciente/mensagens" className="btn btn--sm btn--ghost">
+                Falar com o coach
+              </Link>
+            ) : (
+              wa && (
+                <a href={wa} target="_blank" rel="noopener noreferrer" className="btn btn--sm btn--ghost">
+                  Falar com o coach
+                </a>
+              )
+            )}
+          </div>
+        </section>
+
+        <section className="card stack" style={{ ['--gap' as string]: '12px' }} aria-labelledby="meu-plano-alimentar">
+          <h2 id="meu-plano-alimentar" style={{ fontSize: '1.1rem', margin: 0 }}>
+            Meu plano alimentar
+          </h2>
+          {plan && content ? (
+            <>
+              <div>
+                <strong>{plan.title}</strong>
+                <span className="small muted" style={{ display: 'block' }}>
+                  Ativo desde {plan.publishedAt ? fmtDay(plan.publishedAt.toISOString().slice(0, 10)) : '—'}
+                  {showKcal ? ` · meta de ${Math.round(content.targets.kcal!).toLocaleString('pt-BR')} kcal por dia` : ''}
+                </span>
+              </div>
+              {planDay && planDay.meals.length > 0 && (
+                <ul className="profile-meals" aria-label={`Refeições · ${planDay.label}`}>
+                  {planDay.meals.map((m) => (
+                    <li key={m.id}>
+                      <span className="profile-meals__time">{m.time || '—'}</span>
+                      <span>{m.name}</span>
+                      {m.options.length > 1 && <span className="small muted">{m.options.length} opções</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="row">
+                <Link href="/paciente/plano" className="btn btn--primary btn--sm">
+                  Ver plano completo
+                </Link>
+                <a href="/paciente/plano/pdf" className="btn btn--sm" target="_blank" rel="noopener noreferrer">
+                  Baixar PDF
+                </a>
+                <Link href="/paciente/compras" className="btn btn--sm btn--ghost">
+                  Lista de compras
+                </Link>
+              </div>
+            </>
+          ) : (
+            <p className="muted" style={{ margin: 0 }}>
+              Seu plano ainda não foi publicado. Assim que o coach concluir, ele aparece aqui e na tela Hoje.
+            </p>
+          )}
+        </section>
+      </div>
+
       <div className="grid-2">
         <section className="card">
           <h2 style={{ fontSize: '1.1rem' }}>Cadastro</h2>
@@ -83,7 +254,7 @@ export default async function MyDataPage() {
         </section>
       )}
 
-      <section className="card">
+      <section className="card" id="privacidade">
         <h2 style={{ fontSize: '1.1rem' }}>Privacidade (LGPD)</h2>
         <p className="muted">
           Você pode baixar uma cópia dos seus dados a qualquer momento ou fazer uma solicitação ao encarregado de dados

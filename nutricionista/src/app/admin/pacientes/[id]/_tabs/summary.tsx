@@ -9,7 +9,7 @@ import { setPatientFeatures, setRestrictions } from '@/actions/admin/nutrition'
 import { DEFAULT_FEATURES, type AppFeatures } from '@/db/schema'
 import { BMR_FORMULAS, fmt } from '@/lib/nutricao'
 import { RESTRICTIONS } from '@/lib/restricoes'
-import { nutritionistOptions } from '@/lib/team-access'
+import { nutritionistOptions, packageOptions } from '@/lib/team-access'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { PatientFormFields } from '@/components/PatientFormFields'
 
@@ -43,7 +43,7 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
         <h2 style={{ fontSize: '1.1rem' }}>Dados cadastrais</h2>
         {editable ? (
           <ActionForm action={updatePatient.bind(null, p.id)} className="stack">
-            <PatientFormFields p={p} nutritionists={await nutritionistOptions()} />
+            <PatientFormFields p={p} nutritionists={await nutritionistOptions()} packages={await packageOptions()} />
             <div>
               <SubmitButton>Salvar alterações</SubmitButton>
             </div>
