@@ -21,16 +21,16 @@
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Monograma GZ em branco e vermelho sobre fundo preto com o texto Gregory Nascimento Zechmann, Advogado Trabalhista, OAB/PR 93.853">
+  <meta property="og:image:alt" content="Logo GNZ em preto e vermelho com o texto Gregory Nascimento Zechmann, Advogado Trabalhista, OAB/PR 93.853">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Gregory Nascimento Zechmann | Advogado Trabalhista | OAB/PR 93.853">
   <meta name="twitter:description" content="Advogado trabalhista. Entenda seus direitos e fale com Gregory pelo WhatsApp.">
   <meta name="twitter:image" content="https://gregoryadv.com.br/assets/og-image.jpg">
-  <meta name="twitter:image:alt" content="Monograma GZ em branco e vermelho sobre fundo preto com o nome e a OAB de Gregory Nascimento Zechmann">
+  <meta name="twitter:image:alt" content="Logo GNZ com o nome e a OAB de Gregory Nascimento Zechmann">
 
-  <!-- Ícones (monograma GZ branco sobre preto, com detalhe vermelho) -->
+  <!-- Ícones (logo GNZ) -->
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -81,8 +81,17 @@
 </head>
 
 <body>
-  <!-- Ícones reutilizáveis (WhatsApp e Instagram) -->
+  <!-- Ícones reutilizáveis (logo GNZ, WhatsApp e Instagram).
+       ✏️ A logo também está em assets/logo.svg (usada no favicon). -->
   <svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-logo" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="45.5" fill="#fff" stroke="#111" stroke-width="6"/>
+      <path fill="#111" d="M33 46V15h9.5l12 17V15h9v31h-9.5L42 28.5V46z"/>
+      <ellipse cx="28.5" cy="44" rx="8" ry="9" fill="#fff"/>
+      <path d="M38.6 36.2A12.5 13.5 0 1 0 41 44" fill="none" stroke="#111" stroke-width="9"/>
+      <rect x="29.5" y="44" width="16" height="7.5" fill="#111"/>
+      <path fill="#c1272d" d="M48 47h30v8.5L58.5 76H79v8.5H47V76l19.5-20.5H48z"/>
+    </symbol>
     <symbol id="i-whatsapp" viewBox="0 0 24 24">
       <path fill="currentColor" d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.46-2.39-1.48-.88-.79-1.48-1.76-1.65-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.52.15-.18.2-.3.3-.5.1-.2.05-.37-.03-.52-.07-.15-.67-1.61-.91-2.2-.25-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.21 3.07.15.2 2.1 3.2 5.08 4.49.71.3 1.26.49 1.7.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.41-.08-.13-.28-.2-.57-.35m-5.42 7.4h-.01a9.87 9.87 0 0 1-5.03-1.37l-.36-.22-3.74.99 1-3.65-.24-.38a9.86 9.86 0 0 1-1.51-5.26c0-5.45 4.44-9.88 9.89-9.88 2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.68 1.45h.01c6.55 0 11.89-5.34 11.89-11.9a11.82 11.82 0 0 0-3.48-8.41Z"/>
     </symbol>
@@ -101,7 +110,7 @@
   <header class="site-header" id="topo">
     <div class="container header-inner">
       <a class="brand" href="#inicio" aria-label="Gregory Nascimento Zechmann — voltar ao início">
-        <span class="brand-mark" aria-hidden="true">GZ</span>
+        <svg class="brand-logo" aria-hidden="true"><use href="#i-logo"/></svg>
         <span class="brand-text">
           <span class="brand-name">Gregory Zechmann</span>
           <span class="brand-role">Advogado Trabalhista</span>
@@ -368,7 +377,7 @@
     <!-- ===================== CONTATO / CTA FINAL ===================== -->
     <section class="cta" id="contato" aria-labelledby="contato-titulo">
       <div class="container cta-inner">
-        <span class="cta-mark" aria-hidden="true">GZ</span>
+        <svg class="cta-logo" aria-hidden="true"><use href="#i-logo"/></svg>
         <h2 id="contato-titulo">Fale diretamente com Gregory</h2>
         <p>Explique brevemente o que aconteceu e entre em contato para buscar orientação sobre o seu caso.</p>
         <div class="cta-actions">
@@ -390,7 +399,7 @@
     <div class="container footer-inner">
       <div class="footer-top">
         <p class="footer-id">
-          <span class="brand-mark brand-mark-sm" aria-hidden="true">GZ</span>
+          <svg class="brand-logo brand-logo-sm" aria-hidden="true"><use href="#i-logo"/></svg>
           <span><strong>Gregory Nascimento Zechmann</strong> — Advogado Trabalhista · OAB/PR 93.853</span>
         </p>
         <ul class="footer-social" role="list">

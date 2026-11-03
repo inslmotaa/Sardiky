@@ -18,7 +18,8 @@ netlify.toml      Publicação e cabeçalhos de segurança
 3. **Placeholders**: procure por `[FORMAÇÃO ACADÊMICA]`, `[ESPECIALIZAÇÕES]` e `[CIDADE DE ATENDIMENTO]` no `index.html`. Eles aparecem destacados com borda tracejada até serem trocados. Ao preencher, remova o `<span class="placeholder">` em volta do texto.
 4. **Foto**: salve a foto profissional como `assets/gregory.webp`, retrato 4:5 (ex.: 720×900 px). Se usar outro tamanho, ajuste `width`/`height` nas duas tags `<img>`. Para converter: `cwebp -q 82 foto.jpg -o assets/gregory.webp` ou squoosh.app.
 5. **Imagem de compartilhamento**: `assets/og-image.jpg` (1200×630) aparece no WhatsApp e nas redes. É JPG porque alguns aplicativos não leem WebP nessa prévia.
-6. **Textos**: estão no `index.html`; os pontos de edição têm comentários com ✏️.
+6. **Logo**: `assets/logo.svg` é uma versão vetorial da logo GNZ. Ela também está embutida no `index.html` (`<symbol id="i-logo">`, no início do `<body>`), que é a cópia usada no cabeçalho, no contato e no rodapé. Se trocar a logo, atualize os dois e o `assets/favicon.svg`.
+7. **Textos**: estão no `index.html`; os pontos de edição têm comentários com ✏️.
 
 ## Ética (Provimento 205/2021 da OAB)
 
