@@ -1,42 +1,24 @@
 /*
  * ==========================================================
- *  CONFIGURAÇÃO DO SITE — edite aqui os dados da Fonseca Team.
- *  Tudo que está aqui é aplicado automaticamente na página.
+ *  CONFIGURAÇÃO DO SITE — edite aqui os dados de contato.
+ *  Os links de WhatsApp e Instagram de TODA a página
+ *  (botões, rodapé e botão flutuante) são gerados a partir daqui.
+ *
+ *  Lembre-se de atualizar também o bloco JSON-LD (dados
+ *  estruturados) no <head> do index.html — veja o README.
  * ==========================================================
  */
 window.CONFIG = {
-  coachName: "Maicon Fonseca",
-  // Somente números, com DDI + DDD. Ex.: 554197611616
-  whatsapp: "554197611616",
-  whatsappDisplay: "(41) 9761-1616",
-  instagram: "@fonseca.treinador",
+  // ✏️ WhatsApp: SOMENTE números, com DDI (55) + DDD + número.
+  //    Exemplo de formato: "5541999998888"
+  whatsapp: "[WHATSAPP]",
 
-  // Planos de consultoria. "price" é o valor total do plano.
-  // O site calcula sozinho o valor por protocolo e a economia.
-  plans: [
-    {
-      name: "1 Protocolo", protocols: 1, price: 249.5,
-      description: "Opção ideal para quem deseja iniciar com estratégia e acompanhamento profissional.",
-      features: ["Treino individualizado", "Acesso ao app", "Suporte via WhatsApp", "Ajustes periódicos"],
-      cta: "Escolher 1 Protocolo"
-    },
-    {
-      name: "2 Protocolos", protocols: 2, price: 465.5, featured: true,
-      description: "Formato premium recomendado para quem busca constância, acompanhamento sólido e melhor custo-benefício.",
-      features: ["Treino individualizado", "Acesso ao app", "Suporte via WhatsApp", "Ajustes periódicos", "Maior compromisso com o processo"],
-      cta: "Quero o plano premium"
-    },
-    {
-      name: "3 Protocolos", protocols: 3, price: 611.4,
-      description: "Excelente escolha para manter evolução contínua e maior tempo de acompanhamento.",
-      features: ["Treino individualizado", "Acesso ao app", "Suporte via WhatsApp", "Ajustes periódicos", "Maior compromisso com o processo"],
-      cta: "Escolher 3 Protocolos"
-    },
-    {
-      name: "6 Protocolos", protocols: 6, price: 1200,
-      description: "Plano para quem quer estrutura, acompanhamento prolongado e máxima consistência.",
-      features: ["Treino individualizado", "Acesso ao app", "Suporte via WhatsApp", "Ajustes periódicos", "Maior compromisso com o processo"],
-      cta: "Escolher 6 Protocolos"
-    }
-  ]
+  // ✏️ Mensagem que já aparece escrita ao abrir o WhatsApp.
+  //    Mantenha um tom sóbrio e informativo.
+  whatsappMessage:
+    "Olá, Gregory. Gostaria de buscar orientação sobre uma questão trabalhista.",
+
+  // ✏️ Instagram: apenas o nome de usuário, sem @ e sem link.
+  //    Exemplo de formato: "gregory.adv"
+  instagram: "[INSTAGRAM]"
 };
