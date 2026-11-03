@@ -330,24 +330,6 @@
     .hero-grid { grid-template-columns: 1fr; }
   }
 
-  /* ---------- Faixa animada (marquee) ---------- */
-  .marquee {
-    position: relative; overflow: hidden;
-    background: var(--red); color: #fff;
-    border-block: 1px solid rgba(0, 0, 0, .15);
-  }
-  .marquee-track { display: flex; width: max-content; animation: marquee 38s linear infinite; }
-  .marquee:hover .marquee-track { animation-play-state: paused; }
-  .marquee-list { display: flex; flex: none; margin: 0; padding: 16px 0; list-style: none; }
-  .marquee-list li {
-    display: inline-flex; align-items: center; white-space: nowrap;
-    font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; letter-spacing: .01em;
-  }
-  .marquee-list li::after {
-    content: "✦"; content: "✦" / ""; margin-inline: 26px; font-size: .8rem; opacity: .75;
-  }
-  @keyframes marquee { to { transform: translateX(-50%); } }
-
   /* ---------- Áreas de atuação ---------- */
   .cards {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px;
@@ -562,9 +544,6 @@
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
     .btn:hover, .card:hover, .step:hover, .wa-float:hover, .footer-social a:hover { transform: none; }
-    .marquee-track { width: auto; justify-content: center; }
-    .marquee-list { flex-wrap: wrap; justify-content: center; padding-inline: 20px; }
-    .marquee-list[aria-hidden="true"] { display: none; }
   }
   </style>
 </head>
@@ -681,33 +660,6 @@
         </aside>
       </div>
     </section>
-
-    <!-- ===================== FAIXA ANIMADA ===================== -->
-    <div class="marquee" role="region" aria-label="Temas de atuação">
-      <div class="marquee-track">
-        <ul class="marquee-list">
-          <li>Verbas rescisórias</li>
-          <li>Horas extras</li>
-          <li>FGTS</li>
-          <li>Rescisão indireta</li>
-          <li>Assédio moral</li>
-          <li>Acidente de trabalho</li>
-          <li>Insalubridade e periculosidade</li>
-          <li>Vínculo empregatício</li>
-        </ul>
-        <!-- Cópia para o loop contínuo (ignorada por leitores de tela) -->
-        <ul class="marquee-list" aria-hidden="true">
-          <li>Verbas rescisórias</li>
-          <li>Horas extras</li>
-          <li>FGTS</li>
-          <li>Rescisão indireta</li>
-          <li>Assédio moral</li>
-          <li>Acidente de trabalho</li>
-          <li>Insalubridade e periculosidade</li>
-          <li>Vínculo empregatício</li>
-        </ul>
-      </div>
-    </div>
 
     <!-- ===================== ÁREAS DE ATUAÇÃO ===================== -->
     <section class="section" id="atuacao" aria-labelledby="atuacao-titulo">
