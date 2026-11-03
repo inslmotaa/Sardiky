@@ -1,8 +1,10 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Ativa os estados iniciais das animações apenas quando há JavaScript -->
+  <script>document.documentElement.className = "js";</script>
 
   <!-- ✏️ SEO: título e descrição exibidos no Google -->
   <title>Gregory Nascimento Zechmann | Advogado Trabalhista | OAB/PR 93.853</title>
@@ -31,30 +33,16 @@
   <meta name="twitter:image:alt" content="Logo GNZ com o nome e a OAB de Gregory Nascimento Zechmann">
 
   <!-- Ícones (logo GNZ) -->
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32">
-  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
-  <link rel="manifest" href="assets/site.webmanifest">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="45.5" fill="#fff" stroke="#111" stroke-width="6"/%3E%3Cpath fill="#111" d="M33 46V15h9.5l12 17V15h9v31h-9.5L42 28.5V46z"/%3E%3Cellipse cx="28.5" cy="44" rx="8" ry="9" fill="#fff"/%3E%3Cpath d="M38.6 36.2A12.5 13.5 0 1 0 41 44" fill="none" stroke="#111" stroke-width="9"/%3E%3Crect x="29.5" y="44" width="16" height="7.5" fill="#111"/%3E%3Cpath fill="#c1272d" d="M48 47h30v8.5L58.5 76H79v8.5H47V76l19.5-20.5H48z"/%3E%3C/svg%3E" type="image/svg+xml">
+  <link rel="icon" href="data:image/png;base64,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" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="data:image/png;base64,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">
 
   <!-- Fontes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,600&family=Inter:wght@400;500;600&display=swap">
 
-  <!-- Imagem do hero carregada com prioridade -->
-  <link rel="preload" as="image" href="assets/gregory.webp" type="image/webp" fetchpriority="high">
-
-  <link rel="stylesheet" href="css/style.css">
-
-  <!-- JavaScript (defer: não bloqueia a renderização) -->
-  <script src="js/config.js" defer></script>
-  <script src="js/main.js" defer></script>
-
-  <!--
-    ✏️ DADOS ESTRUTURADOS (Schema.org) — usados pelo Google.
-    Substitua [TELEFONE] (formato +55-DD-9XXXX-XXXX) e [INSTAGRAM]
-    pelos mesmos dados informados em js/config.js.
-  -->
+  <!-- Dados estruturados (Schema.org) usados pelo Google -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -62,11 +50,11 @@
     "@id": "https://gregoryadv.com.br/#advogado",
     "name": "Gregory Nascimento Zechmann",
     "alternateName": "Gregory Nascimento Zechmann — Advogado Trabalhista",
-    "description": "Advogado trabalhista. Atuação voltada à orientação e defesa dos direitos trabalhistas, com atendimento individualizado.",
+    "description": "Advogado formado em Direito, com atuação na área trabalhista voltada à orientação e defesa dos direitos dos trabalhadores.",
     "url": "https://gregoryadv.com.br/",
     "image": "https://gregoryadv.com.br/assets/og-image.jpg",
     "logo": "https://gregoryadv.com.br/assets/icon-512.png",
-    "telephone": "[TELEFONE]",
+    "telephone": "+55-41-98766-0899",
     "identifier": {
       "@type": "PropertyValue",
       "propertyID": "OAB/PR",
@@ -75,14 +63,514 @@
     "knowsAbout": "Direito do Trabalho",
     "serviceType": "Direito do Trabalho",
     "areaServed": { "@type": "Country", "name": "Brasil" },
-    "sameAs": ["https://www.instagram.com/[INSTAGRAM]/"]
+    "sameAs": ["https://www.instagram.com/gregoryz.adv/"]
   }
   </script>
+
+  <style>
+  /* ==========================================================
+     Gregory Nascimento Zechmann — Advogado Trabalhista
+     ✏️ Cores (preto, branco e vermelho da logo) e fontes em :root.
+     ========================================================== */
+  :root {
+    --black-900: #0a0a0a;
+    --black: #111111;
+    --black-700: #262626;
+    --red: #c1272d;           /* vermelho da logo (botões e detalhes) */
+    --red-light: #ff5a6a;     /* texto vermelho sobre fundo preto (contraste AA) */
+    --red-dark: #a10d25;      /* texto vermelho sobre fundo claro e hover */
+    --red-soft: rgba(193, 39, 45, .09);
+    --cream: #f5f5f5;
+    --paper: #ffffff;
+    --ink: #111111;
+    --muted: #4a4a4a;
+    --line: #e2e2e2;
+
+    --font-serif: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+    --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+    --ease: cubic-bezier(.2, .7, .2, 1);
+    --radius: 16px;
+    --shadow: 0 10px 30px rgba(0, 0, 0, .07);
+    --shadow-lg: 0 22px 48px rgba(0, 0, 0, .13);
+    --header-h: 72px;
+    --container: 1160px;
+  }
+
+  /* ---------- Base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-padding-top: calc(var(--header-h) + 8px); -webkit-text-size-adjust: 100%; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+
+  body {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    color: var(--ink);
+    background: var(--cream);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  img, svg { display: block; }
+  h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; line-height: 1.12; margin: 0; color: var(--black); }
+  h2 { font-size: clamp(2rem, 4vw, 2.75rem); }
+  h3 { font-size: 1.45rem; }
+  p { margin: 0 0 1rem; }
+  a { color: inherit; }
+
+  .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+  .icon { width: 1.25em; height: 1.25em; flex: none; }
+  .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: 20px; }
+  .container-narrow { max-width: 820px; }
+
+  :focus-visible { outline: 3px solid var(--red); outline-offset: 3px; border-radius: 4px; }
+  .hero :focus-visible, .cta :focus-visible, .site-header :focus-visible, .site-footer :focus-visible { outline-color: var(--red-light); }
+  main:focus { outline: none; }
+
+  .skip-link {
+    position: absolute; left: 16px; top: -100px; z-index: 300;
+    padding: 10px 16px; border-radius: 8px;
+    background: var(--red); color: #fff; font-weight: 600; text-decoration: none;
+  }
+  .skip-link:focus { top: 12px; }
+
+  /* Barra de progresso de leitura */
+  .progress {
+    position: fixed; inset: 0 0 auto 0; z-index: 250; height: 3px;
+    background: var(--red);
+    transform: scaleX(var(--progress, 0)); transform-origin: left;
+    pointer-events: none;
+  }
+
+  /* ---------- Botões ---------- */
+  .btn {
+    position: relative; overflow: hidden; isolation: isolate;
+    display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+    min-height: 48px; padding: .8rem 1.5rem;
+    border: 1.5px solid transparent; border-radius: 999px;
+    font: 600 1rem/1.2 var(--font-sans); text-decoration: none; cursor: pointer;
+    transition: background-color .3s var(--ease), border-color .3s var(--ease), box-shadow .3s var(--ease), transform .3s var(--ease);
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-sm { min-height: 40px; padding: .5rem 1.1rem; font-size: .95rem; }
+  .btn-block { width: 100%; }
+  .btn-red { background: var(--red); color: #fff; box-shadow: 0 8px 22px rgba(193, 39, 45, .32); }
+  .btn-red:hover { background: var(--red-dark); box-shadow: 0 12px 30px rgba(193, 39, 45, .45); }
+  /* Brilho que atravessa o botão no hover */
+  .btn-red::after {
+    content: ""; position: absolute; z-index: -1; top: 0; left: -80%;
+    width: 50%; height: 100%;
+    background: linear-gradient(110deg, transparent, rgba(255, 255, 255, .35), transparent);
+    transform: skewX(-20deg);
+    transition: left .8s var(--ease);
+  }
+  .btn-red:hover::after { left: 130%; }
+  .btn-outline-light { border-color: rgba(255, 255, 255, .55); color: #fff; }
+  .btn-outline-light:hover { background: rgba(255, 255, 255, .08); border-color: #fff; }
+
+  /* ---------- Títulos de seção ---------- */
+  .eyebrow {
+    margin: 0 0 .75rem; font-size: .8rem; font-weight: 600;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--red-dark);
+  }
+  .eyebrow-light { color: var(--red-light); }
+
+  .section { padding: clamp(64px, 9vw, 112px) 0; }
+  .section-alt { background: var(--paper); }
+  .section-head { max-width: 680px; margin: 0 auto clamp(36px, 5vw, 56px); text-align: center; }
+  .section-head h2::after {
+    content: ""; display: block; width: 56px; height: 2px; margin: 18px auto 0;
+    background: var(--red); transform-origin: left;
+    transition: transform 1s var(--ease) .25s;
+  }
+  .section-lead { margin: 18px 0 0; color: var(--muted); }
+
+  /* ---------- Cabeçalho ---------- */
+  .site-header {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--black);
+    border-bottom: 1px solid rgba(193, 39, 45, .3);
+    transition: background-color .4s var(--ease), box-shadow .4s var(--ease);
+  }
+  .site-header.is-scrolled {
+    background: rgba(17, 17, 17, .78);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    backdrop-filter: saturate(160%) blur(14px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  }
+  .header-inner { display: flex; align-items: center; justify-content: space-between; height: var(--header-h); }
+
+  .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; color: #fff; }
+  .brand-logo { width: 46px; height: 46px; flex: none; }
+  .brand-logo-sm { width: 38px; height: 38px; }
+  .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .brand-name { font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; }
+  .brand-role { font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: rgba(255, 255, 255, .72); }
+
+  .site-nav ul { display: flex; gap: 4px; margin: 0; padding: 0; list-style: none; }
+  .site-nav a:not(.btn) {
+    position: relative; display: block; padding: 8px 12px;
+    color: rgba(255, 255, 255, .82); text-decoration: none; font-size: .95rem; font-weight: 500;
+    transition: color .3s var(--ease);
+  }
+  .site-nav a:not(.btn)::after {
+    content: ""; position: absolute; left: 12px; right: 12px; bottom: 2px; height: 2px;
+    background: var(--red); transform: scaleX(0); transform-origin: left;
+    transition: transform .35s var(--ease);
+  }
+  .site-nav a:not(.btn):hover, .site-nav a.is-active { color: #fff; }
+  .site-nav a.is-active::after, .site-nav a:not(.btn):hover::after { transform: scaleX(1); }
+
+  .nav-toggle { display: none; width: 48px; height: 48px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  .nav-toggle-bar, .nav-toggle-bar::before, .nav-toggle-bar::after {
+    display: block; width: 24px; height: 2px; margin-inline: auto; background: #fff;
+    transition: transform .3s var(--ease), background-color .3s;
+  }
+  .nav-toggle-bar { position: relative; }
+  .nav-toggle-bar::before, .nav-toggle-bar::after { content: ""; position: absolute; left: 0; }
+  .nav-toggle-bar::before { top: -7px; }
+  .nav-toggle-bar::after { top: 7px; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar { background: transparent; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar::before { transform: translateY(7px) rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar::after { transform: translateY(-7px) rotate(-45deg); }
+
+  @media (min-width: 961px) { .site-nav { display: flex; align-items: center; gap: 16px; } }
+  @media (max-width: 960px) {
+    .nav-toggle { display: block; }
+    .site-nav {
+      display: none; position: absolute; top: var(--header-h); left: 0; right: 0;
+      padding: 12px 20px 24px; background: var(--black);
+      border-bottom: 1px solid rgba(193, 39, 45, .3); box-shadow: 0 12px 24px rgba(0, 0, 0, .3);
+    }
+    .site-nav.is-open { display: block; }
+    .site-nav ul { flex-direction: column; gap: 0; }
+    .site-nav a:not(.btn) { padding: 14px 4px; border-bottom: 1px solid rgba(255, 255, 255, .08); font-size: 1.05rem; }
+    .site-nav a:not(.btn)::after { left: 4px; right: auto; width: 32px; bottom: 8px; }
+    .nav-cta { margin-top: 18px; width: 100%; }
+  }
+
+  /* ---------- Fundo com grade e orbs (hero e CTA) ---------- */
+  .fx-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .fx-grid::before {
+    content: ""; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255, 255, 255, .055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, .055) 1px, transparent 1px);
+    background-size: 56px 56px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 40%, #000 25%, transparent 75%);
+    mask-image: radial-gradient(ellipse 70% 65% at 50% 40%, #000 25%, transparent 75%);
+  }
+  .orb {
+    position: absolute; border-radius: 50%;
+    background: radial-gradient(circle, rgba(193, 39, 45, .55), rgba(193, 39, 45, 0) 68%);
+    filter: blur(40px); will-change: transform;
+  }
+  .orb-1 { width: 520px; height: 520px; top: -180px; right: -120px; animation: orb-a 22s var(--ease) infinite alternate; }
+  .orb-2 { width: 420px; height: 420px; bottom: -200px; left: -140px; opacity: .7; animation: orb-b 26s var(--ease) infinite alternate; }
+  @keyframes orb-a { to { transform: translate(-140px, 90px) scale(1.12); } }
+  @keyframes orb-b { to { transform: translate(160px, -70px) scale(.92); } }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative; overflow: hidden;
+    padding: clamp(56px, 8vw, 104px) 0 clamp(64px, 8vw, 112px);
+    color: #fff;
+    background: linear-gradient(160deg, var(--black-700), var(--black) 50%, var(--black-900));
+  }
+  .hero-grid {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(36px, 6vw, 80px); align-items: center;
+  }
+  .hero h1 { color: #fff; font-size: clamp(2.5rem, 5.6vw, 4.1rem); }
+  .hero h1 em {
+    font-style: italic; font-weight: 600; color: #fff;
+    background: linear-gradient(var(--red), var(--red)) no-repeat 0 94% / 100% .09em;
+    padding-bottom: .04em;
+  }
+  .hero-name {
+    margin: 24px 0 0; padding-left: 14px; border-left: 2px solid var(--red);
+    font-family: var(--font-serif); font-size: 1.45rem; color: #fff;
+  }
+  .hero-lead { margin: 20px 0 0; max-width: 34em; font-size: 1.1rem; color: rgba(255, 255, 255, .84); }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 32px; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 0; padding: 0; list-style: none; }
+  .badges li {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 14px; border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px;
+    background: rgba(255, 255, 255, .04);
+    font-size: .85rem; color: rgba(255, 255, 255, .85);
+  }
+  .badges li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--red-light); }
+
+  /* Card em vidro fosco */
+  .hero-card {
+    position: relative; overflow: hidden;
+    padding: clamp(28px, 4vw, 40px);
+    border: 1px solid rgba(255, 255, 255, .12); border-radius: 20px;
+    background: linear-gradient(160deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .025));
+    -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .06);
+  }
+  .hero-card::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: linear-gradient(90deg, var(--red), var(--red-light) 55%, rgba(255, 90, 106, 0));
+  }
+  .hero-card h2 { color: #fff; font-size: clamp(1.7rem, 3vw, 2.1rem); }
+  .checklist { display: grid; gap: 14px; margin: 24px 0 26px; padding: 0; list-style: none; }
+  .checklist li { display: flex; gap: 12px; align-items: flex-start; color: rgba(255, 255, 255, .9); line-height: 1.45; }
+  .check {
+    flex: none; width: 24px; height: 24px; padding: 4px; margin-top: -1px;
+    border-radius: 50%; background: rgba(193, 39, 45, .22); color: var(--red-light);
+  }
+  .hero-card-text { margin: 0 0 22px; padding-top: 22px; border-top: 1px solid rgba(255, 255, 255, .1); color: rgba(255, 255, 255, .8); }
+
+  @media (max-width: 900px) {
+    .hero-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ---------- Faixa animada (marquee) ---------- */
+  .marquee {
+    position: relative; overflow: hidden;
+    background: var(--red); color: #fff;
+    border-block: 1px solid rgba(0, 0, 0, .15);
+  }
+  .marquee-track { display: flex; width: max-content; animation: marquee 38s linear infinite; }
+  .marquee:hover .marquee-track { animation-play-state: paused; }
+  .marquee-list { display: flex; flex: none; margin: 0; padding: 16px 0; list-style: none; }
+  .marquee-list li {
+    display: inline-flex; align-items: center; white-space: nowrap;
+    font-family: var(--font-serif); font-size: 1.3rem; font-weight: 600; letter-spacing: .01em;
+  }
+  .marquee-list li::after {
+    content: "✦"; content: "✦" / ""; margin-inline: 26px; font-size: .8rem; opacity: .75;
+  }
+  @keyframes marquee { to { transform: translateX(-50%); } }
+
+  /* ---------- Áreas de atuação ---------- */
+  .cards {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 20px;
+    margin: 0; padding: 0; list-style: none;
+  }
+  .card {
+    position: relative; overflow: hidden;
+    padding: 32px 28px 30px;
+    background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform .45s var(--ease), box-shadow .45s var(--ease), border-color .45s var(--ease);
+  }
+  .card::before {
+    content: ""; position: absolute; top: 0; left: 0; height: 3px; width: 56px;
+    background: var(--red); transition: width .55s var(--ease);
+  }
+  .card-num {
+    position: absolute; top: 18px; right: 22px;
+    font: 700 3.2rem/1 var(--font-serif); color: rgba(17, 17, 17, .08);
+    transition: color .45s var(--ease);
+  }
+  .card-icon {
+    display: grid; place-items: center; width: 56px; height: 56px; margin-bottom: 20px;
+    border-radius: 14px; background: var(--red-soft);
+    transition: background-color .45s var(--ease);
+  }
+  .card-icon svg {
+    width: 28px; height: 28px; fill: none; stroke: var(--red-dark);
+    stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+    transition: stroke .45s var(--ease);
+  }
+  .card h3 { margin-bottom: 10px; padding-right: 48px; }
+  .card p { margin: 0; color: var(--muted); font-size: 1rem; }
+  .card:hover { transform: translateY(-6px); box-shadow: var(--shadow-lg); border-color: transparent; }
+  .card:hover::before { width: 100%; }
+  .card:hover .card-icon { background: var(--red); }
+  .card:hover .card-icon svg { stroke: #fff; }
+  .card:hover .card-num { color: var(--red); }
+
+  .areas-cta {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px 24px;
+    margin-top: clamp(36px, 5vw, 52px); text-align: center;
+  }
+  .areas-cta p { margin: 0; font-family: var(--font-serif); font-size: 1.5rem; font-weight: 600; color: var(--black); }
+
+  /* ---------- Como funciona ---------- */
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 0; padding: 0; list-style: none; }
+  .step {
+    position: relative; padding: 32px 28px; background: var(--cream); border-radius: var(--radius);
+    transition: transform .45s var(--ease), box-shadow .45s var(--ease);
+  }
+  .step:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .step-num { display: block; margin-bottom: 14px; font: 700 2.4rem/1 var(--font-serif); color: var(--red-dark); }
+  .step h3 { margin-bottom: 10px; }
+  .step p { margin: 0; color: var(--muted); font-size: 1rem; }
+  @media (max-width: 860px) { .steps { grid-template-columns: 1fr; } }
+
+  /* ---------- Sobre ---------- */
+  .about-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(36px, 6vw, 80px); align-items: center; }
+  .about-panel {
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 460px; padding: 56px 28px; border-radius: 22px; text-align: center; color: #fff;
+    background:
+      radial-gradient(420px 320px at 50% 38%, rgba(193, 39, 45, .22), transparent 70%),
+      linear-gradient(160deg, var(--black-700), var(--black) 60%, var(--black-900));
+    box-shadow: var(--shadow-lg);
+  }
+  .about-panel.fx-grid::before { opacity: .7; }
+  .emblem { position: relative; z-index: 1; display: grid; place-items: center; width: 210px; height: 210px; }
+  .emblem::before {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    border: 2px dashed rgba(255, 90, 106, .75);
+    animation: spin 60s linear infinite;
+  }
+  .emblem svg { width: 160px; height: 160px; filter: drop-shadow(0 12px 28px rgba(0, 0, 0, .45)); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .about-panel-name { position: relative; z-index: 1; margin: 30px 0 8px; font-family: var(--font-serif); font-size: 1.65rem; font-weight: 600; line-height: 1.2; text-wrap: balance; }
+  .about-panel-role { position: relative; z-index: 1; margin: 0; font-size: .8rem; letter-spacing: .14em; text-transform: uppercase; color: var(--red-light); line-height: 1.6; text-wrap: balance; }
+
+  .about-text h2 { margin-bottom: 6px; }
+  .about-sub { margin-bottom: 22px; font-weight: 600; color: var(--red-dark); letter-spacing: .02em; }
+  .about-lead { color: var(--muted); font-size: 1.1rem; }
+  .about-facts { margin: 28px 0 0; border-top: 1px solid var(--line); }
+  .about-facts > div { display: grid; grid-template-columns: 170px 1fr; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .about-facts dt { font-weight: 600; color: var(--black); }
+  .about-facts dd { margin: 0; color: var(--muted); }
+
+  @media (max-width: 860px) {
+    .about-grid { grid-template-columns: 1fr; }
+    .about-panel { min-height: 0; padding: 48px 24px; }
+  }
+  @media (max-width: 480px) { .about-facts > div { grid-template-columns: 1fr; gap: 4px; } }
+
+  /* ---------- Perguntas frequentes ---------- */
+  .faq { display: grid; gap: 14px; }
+  .faq details {
+    background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius);
+    transition: border-color .35s var(--ease), box-shadow .35s var(--ease), background-color .35s var(--ease);
+  }
+  .faq details:hover { border-color: rgba(193, 39, 45, .4); }
+  .faq details[open] { background: var(--paper); border-color: rgba(193, 39, 45, .6); box-shadow: var(--shadow); }
+  .faq summary {
+    position: relative; display: block; padding: 22px 64px 22px 24px;
+    cursor: pointer; list-style: none; border-radius: var(--radius);
+  }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary h3 { display: inline; font-size: 1.3rem; }
+  .faq summary::after {
+    content: ""; position: absolute; top: 50%; right: 26px; width: 11px; height: 11px; margin-top: -8px;
+    border-right: 2px solid var(--red-dark); border-bottom: 2px solid var(--red-dark);
+    transform: rotate(45deg); transition: transform .35s var(--ease), margin-top .35s var(--ease);
+  }
+  .faq details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+  .faq-body { padding: 0 24px 22px; color: var(--muted); }
+  .faq-body p:last-child, .faq-body ul:last-child { margin-bottom: 0; }
+  .faq-body ul { margin: 0 0 1rem; padding-left: 1.2rem; }
+  .faq-body li + li { margin-top: 4px; }
+  .faq-body strong { color: var(--ink); }
+  .faq details[open] .faq-body { animation: faq-in .5s var(--ease); }
+  @keyframes faq-in { from { opacity: 0; transform: translateY(-6px); } }
+
+  /* ---------- CTA final ---------- */
+  .cta {
+    position: relative; overflow: hidden;
+    padding: clamp(80px, 10vw, 128px) 0; text-align: center; color: #fff;
+    background: linear-gradient(160deg, var(--black-700), var(--black) 55%, var(--black-900));
+    border-top: 3px solid var(--red);
+  }
+  .cta .orb-1 { top: -260px; right: 8%; }
+  .cta .orb-2 { bottom: -260px; left: 6%; }
+  .cta-inner { position: relative; z-index: 1; max-width: 760px; }
+  .cta-logo { display: block; width: 84px; height: 84px; margin: 0 auto 26px; border-radius: 50%; animation: pulse 3.2s var(--ease) infinite; }
+  .cta-logo svg { width: 100%; height: 100%; }
+  @keyframes pulse {
+    0%   { box-shadow: 0 0 0 0 rgba(193, 39, 45, .5); transform: scale(1); }
+    50%  { transform: scale(1.035); }
+    70%  { box-shadow: 0 0 0 18px rgba(193, 39, 45, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(193, 39, 45, 0); transform: scale(1); }
+  }
+  .cta h2 { color: #fff; }
+  .cta h2::after { content: ""; display: block; width: 56px; height: 2px; margin: 20px auto 0; background: var(--red); transform-origin: left; transition: transform 1s var(--ease) .25s; }
+  .cta p { margin: 22px auto 0; max-width: 36em; font-size: 1.12rem; color: rgba(255, 255, 255, .86); }
+  .cta-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px; margin-top: 36px; }
+  .cta-actions .btn { min-width: 190px; }
+
+  /* ---------- Rodapé ---------- */
+  .site-footer { padding: 44px 0 110px; background: var(--black-900); color: rgba(255, 255, 255, .78); font-size: .95rem; }
+  .footer-top {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px;
+    padding-bottom: 24px; border-bottom: 1px solid rgba(193, 39, 45, .25);
+  }
+  .footer-id { display: flex; align-items: center; gap: 12px; margin: 0; }
+  .footer-id strong { color: #fff; font-weight: 600; }
+  .footer-social { display: flex; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .footer-social a {
+    display: grid; place-items: center; width: 44px; height: 44px;
+    border: 1px solid rgba(193, 39, 45, .6); border-radius: 50%; color: #fff;
+    transition: background-color .3s var(--ease), border-color .3s var(--ease), transform .3s var(--ease);
+  }
+  .footer-social a:hover { background: var(--red); border-color: var(--red); transform: translateY(-2px); }
+  .footer-legal { margin: 24px 0 8px; max-width: 60em; font-size: .88rem; }
+  .footer-copy { margin: 0; font-size: .85rem; color: rgba(255, 255, 255, .7); }
+
+  /* ---------- Botão flutuante do WhatsApp ---------- */
+  .wa-float {
+    position: fixed; right: 20px; bottom: 20px; z-index: 90;
+    display: grid; place-items: center; width: 60px; height: 60px;
+    border: 2px solid #fff; border-radius: 50%;
+    background: var(--red); color: #fff;
+    box-shadow: 0 10px 26px rgba(193, 39, 45, .45);
+    transition: transform .3s var(--ease);
+  }
+  .wa-float .icon { width: 28px; height: 28px; }
+  .wa-float:hover { transform: scale(1.07); }
+  .wa-float:focus-visible { outline-color: var(--black); outline-offset: 4px; border-radius: 50%; }
+  .wa-float::before {
+    content: ""; position: absolute; inset: -2px; border-radius: 50%;
+    border: 2px solid var(--red); animation: ring 2.8s ease-out infinite; pointer-events: none;
+  }
+  @keyframes ring { 0% { transform: scale(1); opacity: .7; } 70%, 100% { transform: scale(1.45); opacity: 0; } }
+
+  /* ==========================================================
+     ANIMAÇÕES DE ENTRADA — só com JavaScript ativo (.js)
+     e sem preferência por movimento reduzido.
+     ========================================================== */
+  @media (prefers-reduced-motion: no-preference) {
+    /* Hero: elementos entram em sequência */
+    .js [data-hero] { animation: rise .9s var(--ease) both; animation-delay: calc(var(--d, 0) * 110ms + 80ms); }
+    .js .hero h1 em { animation: draw 1.1s var(--ease) both; animation-delay: .95s; }
+
+    /* Revelação ao rolar */
+    .js .reveal {
+      opacity: 0; transform: translateY(26px);
+      transition: opacity .9s var(--ease), transform .9s var(--ease);
+      transition-delay: calc(var(--i, 0) * 90ms);
+    }
+    .js .reveal.is-visible { opacity: 1; transform: none; }
+    /* Depois de revelado, o card volta a ter a transição de hover normal */
+    .js .card.reveal.is-visible:hover { transform: translateY(-6px); }
+    .js .step.reveal.is-visible:hover { transform: translateY(-4px); }
+    .js .card.reveal.is-visible, .js .step.reveal.is-visible { transition: opacity .9s var(--ease), transform .45s var(--ease), box-shadow .45s var(--ease), border-color .45s var(--ease); transition-delay: 0s; }
+
+    /* Linha vermelha dos títulos cresce da esquerda para a direita */
+    .js .section-head h2::after, .js .cta h2::after { transform: scaleX(0); }
+    .js .section-head.is-visible h2::after, .js .cta-inner.is-visible h2::after { transform: scaleX(1); }
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  @keyframes draw { from { background-size: 0 .09em; } to { background-size: 100% .09em; } }
+
+  /* Movimento reduzido: tudo aparece direto, sem animações */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+    .btn:hover, .card:hover, .step:hover, .wa-float:hover, .footer-social a:hover { transform: none; }
+    .marquee-track { width: auto; justify-content: center; }
+    .marquee-list { flex-wrap: wrap; justify-content: center; padding-inline: 20px; }
+    .marquee-list[aria-hidden="true"] { display: none; }
+  }
+  </style>
 </head>
 
 <body>
-  <!-- Ícones reutilizáveis (logo GNZ, WhatsApp e Instagram).
-       ✏️ A logo também está em assets/logo.svg (usada no favicon). -->
+  <!-- Ícones reutilizáveis (logo GNZ, WhatsApp, Instagram e check) -->
   <svg width="0" height="0" class="sprite" aria-hidden="true" focusable="false">
     <symbol id="i-logo" viewBox="0 0 100 100">
       <circle cx="50" cy="50" r="45.5" fill="#fff" stroke="#111" stroke-width="6"/>
@@ -102,9 +590,13 @@
         <circle cx="17.4" cy="6.6" r=".6" fill="currentColor"/>
       </g>
     </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
   </svg>
 
   <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <div class="progress" aria-hidden="true"></div>
 
   <!-- ===================== CABEÇALHO ===================== -->
   <header class="site-header" id="topo">
@@ -142,40 +634,85 @@
 
     <!-- ===================== HERO ===================== -->
     <section class="hero" id="inicio" aria-labelledby="hero-titulo">
+      <div class="fx-bg fx-grid" aria-hidden="true">
+        <span class="orb orb-1"></span>
+        <span class="orb orb-2"></span>
+      </div>
+
       <div class="container hero-grid">
         <div class="hero-text">
-          <p class="eyebrow eyebrow-light">Advogado Trabalhista · OAB/PR 93.853</p>
+          <p class="eyebrow eyebrow-light" data-hero style="--d:0">Advogado Trabalhista · OAB/PR 93.853</p>
           <!-- ✏️ Título principal (único H1 da página) -->
-          <h1 id="hero-titulo">Orientação e defesa dos seus direitos trabalhistas</h1>
-          <p class="hero-name">Gregory Nascimento Zechmann</p>
-          <p class="hero-lead">
+          <h1 id="hero-titulo" data-hero style="--d:1">Orientação e defesa dos seus <em>direitos trabalhistas</em></h1>
+          <p class="hero-name" data-hero style="--d:2">Gregory Nascimento Zechmann</p>
+          <p class="hero-lead" data-hero style="--d:3">
             Atendimento individualizado para trabalhadores que desejam entender
             sua situação e conhecer os caminhos previstos na legislação.
           </p>
-          <div class="hero-actions">
+          <div class="hero-actions" data-hero style="--d:4">
             <a class="btn btn-red" href="#" data-whatsapp target="_blank" rel="noopener">
               <svg class="icon" aria-hidden="true"><use href="#i-whatsapp"/></svg>
               Falar no WhatsApp
             </a>
             <a class="btn btn-outline-light" href="#atuacao">Conhecer a atuação</a>
           </div>
-          <!-- ✏️ Cidade de atendimento -->
-          <p class="hero-note">Atendimento online e presencial em <span class="placeholder">[CIDADE DE ATENDIMENTO]</span></p>
+          <ul class="badges" data-hero style="--d:5" aria-label="Credenciais">
+            <li>OAB/PR 93.853</li>
+            <li>Formado em Direito</li>
+            <li>Direito do Trabalho</li>
+          </ul>
         </div>
 
-        <figure class="hero-photo">
-          <!-- ✏️ Foto: substitua assets/gregory.webp (proporção 4:5, ex.: 720×900) -->
-          <img src="assets/gregory.webp" width="720" height="900"
-               alt="Foto profissional de Gregory Nascimento Zechmann, advogado trabalhista"
-               fetchpriority="high" decoding="async">
-        </figure>
+        <aside class="hero-card" aria-labelledby="card-titulo" data-hero style="--d:3">
+          <h2 id="card-titulo">Está passando por isso no trabalho?</h2>
+          <ul class="checklist">
+            <li data-hero style="--d:5"><svg class="check" aria-hidden="true"><use href="#i-check"/></svg>Foi demitido e não recebeu corretamente?</li>
+            <li data-hero style="--d:6"><svg class="check" aria-hidden="true"><use href="#i-check"/></svg>Está trabalhando sem registro?</li>
+            <li data-hero style="--d:7"><svg class="check" aria-hidden="true"><use href="#i-check"/></svg>Não recebeu horas extras?</li>
+            <li data-hero style="--d:8"><svg class="check" aria-hidden="true"><use href="#i-check"/></svg>Seu FGTS não foi depositado?</li>
+            <li data-hero style="--d:9"><svg class="check" aria-hidden="true"><use href="#i-check"/></svg>Sofreu assédio no ambiente de trabalho?</li>
+            <li data-hero style="--d:10"><svg class="check" aria-hidden="true"><use href="#i-check"/></svg>Teve problemas após um acidente de trabalho?</li>
+          </ul>
+          <p class="hero-card-text">Converse com um advogado e entenda quais são as possibilidades para o seu caso.</p>
+          <a class="btn btn-red btn-block" href="#" data-whatsapp target="_blank" rel="noopener">
+            <svg class="icon" aria-hidden="true"><use href="#i-whatsapp"/></svg>
+            Falar com Gregory
+          </a>
+        </aside>
       </div>
     </section>
+
+    <!-- ===================== FAIXA ANIMADA ===================== -->
+    <div class="marquee" role="region" aria-label="Temas de atuação">
+      <div class="marquee-track">
+        <ul class="marquee-list">
+          <li>Verbas rescisórias</li>
+          <li>Horas extras</li>
+          <li>FGTS</li>
+          <li>Rescisão indireta</li>
+          <li>Assédio moral</li>
+          <li>Acidente de trabalho</li>
+          <li>Insalubridade e periculosidade</li>
+          <li>Vínculo empregatício</li>
+        </ul>
+        <!-- Cópia para o loop contínuo (ignorada por leitores de tela) -->
+        <ul class="marquee-list" aria-hidden="true">
+          <li>Verbas rescisórias</li>
+          <li>Horas extras</li>
+          <li>FGTS</li>
+          <li>Rescisão indireta</li>
+          <li>Assédio moral</li>
+          <li>Acidente de trabalho</li>
+          <li>Insalubridade e periculosidade</li>
+          <li>Vínculo empregatício</li>
+        </ul>
+      </div>
+    </div>
 
     <!-- ===================== ÁREAS DE ATUAÇÃO ===================== -->
     <section class="section" id="atuacao" aria-labelledby="atuacao-titulo">
       <div class="container">
-        <header class="section-head">
+        <header class="section-head reveal">
           <p class="eyebrow">Direito do Trabalho</p>
           <h2 id="atuacao-titulo">Áreas de atuação</h2>
           <p class="section-lead">
@@ -183,63 +720,77 @@
           </p>
         </header>
 
-        <!-- ✏️ Cards de atuação: edite títulos e textos livremente -->
-        <ul class="cards" role="list">
-          <li class="card">
-            <svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2M4 12h16"/></svg>
+        <!-- ✏️ Cards de atuação -->
+        <ul class="cards" role="list" data-stagger>
+          <li class="card reveal">
+            <span class="card-num" aria-hidden="true">01</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16v12H4zM9 7V5h6v2M4 12h16"/></svg></span>
             <h3>Rescisão e verbas rescisórias</h3>
             <p>Conferência dos valores devidos no fim do contrato, como aviso prévio, férias, 13º salário e multa do FGTS.</p>
           </li>
-          <li class="card">
-            <svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>
+          <li class="card reveal">
+            <span class="card-num" aria-hidden="true">02</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg></span>
             <h3>Horas extras e jornada</h3>
             <p>Análise de jornada, intervalos, banco de horas, trabalho noturno e registros de ponto.</p>
           </li>
-          <li class="card">
-            <svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>
+          <li class="card reveal">
+            <span class="card-num" aria-hidden="true">03</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg></span>
             <h3>Vínculo sem carteira assinada</h3>
             <p>Reconhecimento da relação de emprego e dos direitos decorrentes quando não houve registro formal.</p>
           </li>
-          <li class="card">
-            <svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M19 10v8M9.5 10v8M14.5 10v8M3 20h18"/></svg>
+          <li class="card reveal">
+            <span class="card-num" aria-hidden="true">04</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10l9-6 9 6M5 10v8M19 10v8M9.5 10v8M14.5 10v8M3 20h18"/></svg></span>
             <h3>FGTS e recolhimentos</h3>
             <p>Verificação de depósitos de FGTS e contribuições previdenciárias que deveriam ter sido feitos.</p>
           </li>
-          <li class="card">
-            <svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/></svg>
+          <li class="card reveal">
+            <span class="card-num" aria-hidden="true">05</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/></svg></span>
             <h3>Assédio e condições de trabalho</h3>
             <p>Orientação em situações de assédio moral, rescisão indireta e descumprimento de obrigações pelo empregador.</p>
           </li>
-          <li class="card">
-            <svg class="card-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/><circle cx="12" cy="12" r="9"/></svg>
+          <li class="card reveal">
+            <span class="card-num" aria-hidden="true">06</span>
+            <span class="card-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M4 12h16"/><circle cx="12" cy="12" r="9"/></svg></span>
             <h3>Acidente e doença do trabalho</h3>
             <p>Estabilidade, afastamentos e responsabilidades em casos de acidente ou doença relacionada ao trabalho.</p>
           </li>
         </ul>
+
+        <div class="areas-cta reveal">
+          <p>Quer entender se o seu caso se enquadra?</p>
+          <a class="btn btn-red" href="#" data-whatsapp target="_blank" rel="noopener">
+            <svg class="icon" aria-hidden="true"><use href="#i-whatsapp"/></svg>
+            Falar no WhatsApp
+          </a>
+        </div>
       </div>
     </section>
 
     <!-- ===================== COMO FUNCIONA O ATENDIMENTO ===================== -->
     <section class="section section-alt" id="como-funciona" aria-labelledby="como-titulo">
       <div class="container">
-        <header class="section-head">
+        <header class="section-head reveal">
           <p class="eyebrow">Atendimento</p>
           <h2 id="como-titulo">Como funciona o atendimento</h2>
           <p class="section-lead">Um processo simples, com comunicação clara em cada etapa.</p>
         </header>
 
-        <ol class="steps" role="list">
-          <li class="step">
+        <ol class="steps" role="list" data-stagger>
+          <li class="step reveal">
             <span class="step-num" aria-hidden="true">01</span>
             <h3>Primeiro contato</h3>
             <p>Você envia uma mensagem pelo WhatsApp e relata, de forma breve, o que aconteceu.</p>
           </li>
-          <li class="step">
+          <li class="step reveal">
             <span class="step-num" aria-hidden="true">02</span>
             <h3>Análise do caso</h3>
             <p>As informações e os documentos disponíveis são examinados considerando as particularidades da sua situação.</p>
           </li>
-          <li class="step">
+          <li class="step reveal">
             <span class="step-num" aria-hidden="true">03</span>
             <h3>Orientação jurídica</h3>
             <p>Você recebe uma explicação clara sobre seus direitos e os caminhos possíveis, para decidir com segurança.</p>
@@ -251,34 +802,36 @@
     <!-- ===================== SOBRE ===================== -->
     <section class="section" id="sobre" aria-labelledby="sobre-titulo">
       <div class="container about-grid">
-        <figure class="about-photo">
-          <!-- ✏️ Mesma foto do hero (assets/gregory.webp) -->
-          <img src="assets/gregory.webp" width="720" height="900" loading="lazy" decoding="async"
-               alt="Retrato profissional de Gregory Nascimento Zechmann">
-        </figure>
+        <div class="about-panel fx-grid reveal" aria-hidden="true">
+          <div class="emblem">
+            <svg viewBox="0 0 100 100"><use href="#i-logo"/></svg>
+          </div>
+          <p class="about-panel-name">Gregory Nascimento Zechmann</p>
+          <p class="about-panel-role">Advogado Trabalhista · OAB/PR 93.853</p>
+        </div>
 
-        <div class="about-text">
+        <div class="about-text reveal">
           <p class="eyebrow">Sobre</p>
           <h2 id="sobre-titulo">Gregory Nascimento Zechmann</h2>
           <p class="about-sub">Advogado Trabalhista · OAB/PR 93.853</p>
-          <p>
-            Atuação voltada à orientação e defesa dos direitos trabalhistas, com atendimento
-            individualizado e análise das particularidades de cada caso.
+          <p class="about-lead">
+            Gregory Nascimento Zechmann é formado em Direito e atua na área trabalhista, com foco na
+            orientação e defesa dos direitos dos trabalhadores. Cada caso recebe atendimento
+            individualizado e análise das suas particularidades.
           </p>
 
-          <!-- ✏️ Preencha os campos entre colchetes com as informações reais -->
           <dl class="about-facts">
             <div>
               <dt>Formação</dt>
-              <dd><span class="placeholder">[FORMAÇÃO ACADÊMICA]</span></dd>
+              <dd>Formado em Direito</dd>
             </div>
             <div>
-              <dt>Especializações</dt>
-              <dd><span class="placeholder">[ESPECIALIZAÇÕES]</span></dd>
+              <dt>Área de atuação</dt>
+              <dd>Direito do Trabalho</dd>
             </div>
             <div>
-              <dt>Atendimento</dt>
-              <dd>Online e presencial em <span class="placeholder">[CIDADE DE ATENDIMENTO]</span></dd>
+              <dt>Registro</dt>
+              <dd>OAB/PR 93.853</dd>
             </div>
           </dl>
         </div>
@@ -288,14 +841,14 @@
     <!-- ===================== PERGUNTAS FREQUENTES ===================== -->
     <section class="section section-alt" id="duvidas" aria-labelledby="faq-titulo">
       <div class="container container-narrow">
-        <header class="section-head">
+        <header class="section-head reveal">
           <p class="eyebrow">Informação</p>
           <h2 id="faq-titulo">Perguntas frequentes</h2>
           <p class="section-lead">Respostas gerais e informativas. Cada situação deve ser analisada individualmente.</p>
         </header>
 
-        <div class="faq">
-          <details>
+        <div class="faq" data-stagger>
+          <details class="reveal">
             <summary><h3>Qual o prazo para entrar com uma ação trabalhista?</h3></summary>
             <div class="faq-body">
               <p>
@@ -307,7 +860,7 @@
             </div>
           </details>
 
-          <details>
+          <details class="reveal">
             <summary><h3>O que é rescisão indireta?</h3></summary>
             <div class="faq-body">
               <p>
@@ -320,7 +873,7 @@
             </div>
           </details>
 
-          <details>
+          <details class="reveal">
             <summary><h3>Trabalhei sem carteira assinada. Tenho direitos?</h3></summary>
             <div class="faq-body">
               <p>
@@ -333,7 +886,7 @@
             </div>
           </details>
 
-          <details>
+          <details class="reveal">
             <summary><h3>Como saber se meu FGTS foi depositado?</h3></summary>
             <div class="faq-body">
               <p>
@@ -345,7 +898,7 @@
             </div>
           </details>
 
-          <details>
+          <details class="reveal">
             <summary><h3>Quais documentos devo reunir antes de conversar com um advogado?</h3></summary>
             <div class="faq-body">
               <p>Reúna o que tiver disponível, mesmo que incompleto:</p>
@@ -358,26 +911,18 @@
               </ul>
             </div>
           </details>
-
-          <details>
-            <summary><h3>O atendimento pode ser feito online?</h3></summary>
-            <div class="faq-body">
-              <p>
-                Sim. O contato inicial, o envio de documentos e as reuniões podem ser feitos à distância, por
-                WhatsApp ou videochamada. Os processos trabalhistas tramitam de forma eletrônica, o que permite
-                acompanhar o caso sem deslocamentos. O atendimento presencial é realizado em
-                <span class="placeholder">[CIDADE DE ATENDIMENTO]</span>.
-              </p>
-            </div>
-          </details>
         </div>
       </div>
     </section>
 
     <!-- ===================== CONTATO / CTA FINAL ===================== -->
     <section class="cta" id="contato" aria-labelledby="contato-titulo">
-      <div class="container cta-inner">
-        <svg class="cta-logo" aria-hidden="true"><use href="#i-logo"/></svg>
+      <div class="fx-bg" aria-hidden="true">
+        <span class="orb orb-1"></span>
+        <span class="orb orb-2"></span>
+      </div>
+      <div class="container cta-inner reveal">
+        <span class="cta-logo" aria-hidden="true"><svg viewBox="0 0 100 100"><use href="#i-logo"/></svg></span>
         <h2 id="contato-titulo">Fale diretamente com Gregory</h2>
         <p>Explique brevemente o que aconteceu e entre em contato para buscar orientação sobre o seu caso.</p>
         <div class="cta-actions">
@@ -396,7 +941,7 @@
 
   <!-- ===================== RODAPÉ ===================== -->
   <footer class="site-footer">
-    <div class="container footer-inner">
+    <div class="container">
       <div class="footer-top">
         <p class="footer-id">
           <svg class="brand-logo brand-logo-sm" aria-hidden="true"><use href="#i-logo"/></svg>
@@ -431,8 +976,145 @@
 
   <!--
     LGPD: esta página não usa formulários nem scripts de rastreamento.
-    Se no futuro for adicionado analytics (Google Analytics, Meta Pixel etc.),
-    inclua antes um aviso de cookies com opção de consentimento.
+    Se no futuro for adicionado analytics, inclua antes um aviso de cookies com consentimento.
   -->
+
+  <script>
+  /* ==========================================================
+     ✏️ CONFIGURAÇÃO — dados de contato usados em toda a página.
+     Se mudar algo aqui, atualize também o JSON-LD no <head>.
+     ========================================================== */
+  window.CONFIG = {
+    // WhatsApp: somente números, com DDI (55) + DDD + número.
+    whatsapp: "5541987660899",
+    // Mensagem que já aparece escrita ao abrir o WhatsApp.
+    whatsappMessage: "Olá, Gregory. Gostaria de buscar orientação sobre uma questão trabalhista.",
+    // Instagram: apenas o nome de usuário, sem @.
+    instagram: "gregoryz.adv"
+  };
+  </script>
+
+  <script>
+  /* Interações da página (normalmente não é preciso editar). */
+  (function () {
+    "use strict";
+
+    var config = window.CONFIG || {};
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ---------- Links de WhatsApp e Instagram ---------- */
+    var phone = String(config.whatsapp || "").replace(/\D/g, "");
+    var waUrl = "https://wa.me/" + phone +
+      (config.whatsappMessage ? "?text=" + encodeURIComponent(config.whatsappMessage) : "");
+    var igUser = String(config.instagram || "").replace(/^@/, "").trim();
+    var igUrl = "https://www.instagram.com/" + encodeURIComponent(igUser) + "/";
+
+    document.querySelectorAll("[data-whatsapp]").forEach(function (el) { el.href = waUrl; });
+    document.querySelectorAll("[data-instagram]").forEach(function (el) { el.href = igUrl; });
+
+    /* ---------- Ano atual no rodapé ---------- */
+    document.querySelectorAll("[data-year]").forEach(function (el) {
+      el.textContent = new Date().getFullYear();
+    });
+
+    /* ---------- Menu mobile ---------- */
+    var toggle = document.querySelector(".nav-toggle");
+    var nav = document.getElementById("menu-principal");
+
+    function setMenu(open) {
+      nav.classList.toggle("is-open", open);
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Fechar menu" : "Abrir menu");
+    }
+    toggle.addEventListener("click", function () {
+      setMenu(toggle.getAttribute("aria-expanded") !== "true");
+    });
+    nav.addEventListener("click", function (e) {
+      if (e.target.closest("a")) setMenu(false);
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && nav.classList.contains("is-open")) {
+        setMenu(false);
+        toggle.focus();
+      }
+    });
+    window.matchMedia("(min-width: 961px)").addEventListener("change", function (mq) {
+      if (mq.matches) setMenu(false);
+    });
+
+    /* ---------- Cabeçalho com desfoque + barra de progresso ---------- */
+    var header = document.querySelector(".site-header");
+    var progress = document.querySelector(".progress");
+    var ticking = false;
+
+    function onScroll() {
+      var doc = document.documentElement;
+      var max = doc.scrollHeight - window.innerHeight;
+      header.classList.toggle("is-scrolled", window.scrollY > 8);
+      progress.style.setProperty("--progress", max > 0 ? Math.min(window.scrollY / max, 1) : 0);
+      ticking = false;
+    }
+    window.addEventListener("scroll", function () {
+      if (!ticking) { ticking = true; window.requestAnimationFrame(onScroll); }
+    }, { passive: true });
+    window.addEventListener("resize", onScroll);
+    onScroll();
+
+    /* ---------- Destaque do item ativo no menu ---------- */
+    var links = Array.prototype.slice.call(nav.querySelectorAll("ul a[href^='#']"));
+    var sections = links
+      .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
+      .filter(Boolean);
+
+    function setActive(id) {
+      links.forEach(function (a) {
+        var active = a.getAttribute("href") === "#" + id;
+        a.classList.toggle("is-active", active);
+        if (active) a.setAttribute("aria-current", "true");
+        else a.removeAttribute("aria-current");
+      });
+    }
+
+    if ("IntersectionObserver" in window && sections.length) {
+      var visible = {};
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) { visible[entry.target.id] = entry.isIntersecting; });
+        var current = null;
+        sections.forEach(function (s) { if (visible[s.id]) current = s.id; });
+        if (current) setActive(current);
+      }, { rootMargin: "-35% 0px -55% 0px" });
+      sections.forEach(function (s) { spy.observe(s); });
+
+      // No fim da página, a última seção (Contato) fica ativa.
+      window.addEventListener("scroll", function () {
+        if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) {
+          setActive(sections[sections.length - 1].id);
+        }
+      }, { passive: true });
+    }
+
+    /* ---------- Revelação ao rolar (com efeito escalonado) ---------- */
+    document.querySelectorAll("[data-stagger]").forEach(function (group) {
+      Array.prototype.forEach.call(group.children, function (child, i) {
+        child.style.setProperty("--i", i);
+      });
+    });
+
+    var revealEls = document.querySelectorAll(".reveal");
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      revealEls.forEach(function (el) { el.classList.add("is-visible"); });
+    } else {
+      var revealer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            revealer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12, rootMargin: "0px 0px -8% 0px" });
+      revealEls.forEach(function (el) { revealer.observe(el); });
+    }
+  })();
+  </script>
 </body>
 </html>

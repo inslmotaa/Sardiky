@@ -1,34 +1,33 @@
 # Gregory Nascimento Zechmann · Advogado Trabalhista
 
-Site one-page em HTML, CSS e JavaScript puros (sem build), pronto para a Netlify.
+Site one-page em um único arquivo HTML (CSS e JavaScript embutidos, sem frameworks e sem build), pronto para a Netlify.
 
 ```
-index.html        Página única (textos, SEO e dados estruturados)
-css/style.css     Estilos — cores e fontes no topo, em :root
-js/config.js      WhatsApp, mensagem padrão e Instagram
-js/main.js        Menu, item ativo, links de contato e ano do rodapé
-assets/           Foto, favicon, ícones e imagem de compartilhamento
+index.html        Página completa: textos, estilos, scripts, SEO e JSON-LD
+assets/           Imagem de compartilhamento (og-image.jpg), logo e ícones
 netlify.toml      Publicação e cabeçalhos de segurança
 ```
 
-## Antes de publicar
+## Onde editar
 
-1. **Contato — `js/config.js`**: preencha `whatsapp` (só números: 55 + DDD + número) e `instagram` (usuário, sem @). Todos os botões, o rodapé e o botão flutuante usam esses dados.
-2. **Dados estruturados — `index.html`**: no bloco `application/ld+json` do `<head>`, troque `[TELEFONE]` (ex.: `+55-41-99999-8888`) e `[INSTAGRAM]`.
-3. **Placeholders**: procure por `[FORMAÇÃO ACADÊMICA]`, `[ESPECIALIZAÇÕES]` e `[CIDADE DE ATENDIMENTO]` no `index.html`. Eles aparecem destacados com borda tracejada até serem trocados. Ao preencher, remova o `<span class="placeholder">` em volta do texto.
-4. **Foto**: salve a foto profissional como `assets/gregory.webp`, retrato 4:5 (ex.: 720×900 px). Se usar outro tamanho, ajuste `width`/`height` nas duas tags `<img>`. Para converter: `cwebp -q 82 foto.jpg -o assets/gregory.webp` ou squoosh.app.
-5. **Imagem de compartilhamento**: `assets/og-image.jpg` (1200×630) aparece no WhatsApp e nas redes. É JPG porque alguns aplicativos não leem WebP nessa prévia.
-6. **Logo**: `assets/logo.svg` é uma versão vetorial da logo GNZ. Ela também está embutida no `index.html` (`<symbol id="i-logo">`, no início do `<body>`), que é a cópia usada no cabeçalho, no contato e no rodapé. Se trocar a logo, atualize os dois e o `assets/favicon.svg`.
-7. **Textos**: estão no `index.html`; os pontos de edição têm comentários com ✏️.
+- **Contato**: no fim do `index.html`, no bloco `window.CONFIG` (WhatsApp só com números, Instagram sem @). Todos os botões usam esses dados.
+- **Dados estruturados**: no `<head>`, bloco `application/ld+json` (telefone e Instagram). Atualize junto com o `window.CONFIG`.
+- **Cores e fontes**: variáveis em `:root`, no início do `<style>`.
+- **Textos**: direto no HTML; os pontos principais têm comentários com ✏️.
+- **Logo**: `assets/logo.svg` e a cópia embutida em `<symbol id="i-logo">`, no início do `<body>`.
+
+## Animações
+
+Entradas e revelações ao rolar só são aplicadas com JavaScript ativo (classe `js` no `<html>`). Com "reduzir movimento" ativado no sistema, tudo aparece direto, sem animações.
 
 ## Ética (Provimento 205/2021 da OAB)
 
-Mantenha o tom informativo. Não acrescente promessas de resultado, valores ou honorários, "consulta grátis", depoimentos, casos ganhos, comparações com outros advogados nem apelos de urgência.
+Mantenha o tom informativo: sem promessas de resultado, valores, "consulta grátis", depoimentos, casos ganhos, comparações ou apelos de urgência.
 
 ## Privacidade (LGPD)
 
-A página não tem formulários nem rastreamento. Se for incluir analytics depois, adicione antes um aviso de cookies com consentimento.
+Sem formulários e sem rastreamento. Se incluir analytics, adicione antes um aviso de cookies com consentimento.
 
 ## Publicar na Netlify
 
-Conecte o repositório (sem comando de build, diretório `.`) ou arraste a pasta em https://app.netlify.com/drop. Depois, aponte o domínio `gregoryadv.com.br` em *Domain settings*.
+Conecte o repositório (sem comando de build, diretório `.`) ou arraste a pasta do projeto em https://app.netlify.com/drop. Envie a pasta `assets/` junto: a prévia de links no WhatsApp e no Instagram usa `assets/og-image.jpg`.
