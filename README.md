@@ -2,7 +2,7 @@
 
 Site one-page da **Logtech Seguros** (corretora especialista em seguros para transportadoras), criado a partir do perfil [@logtechseguros](https://www.instagram.com/logtechseguros/).
 
-É um site estático, sem build: basta abrir `index.html` ou publicar a pasta em qualquer hospedagem (GitHub Pages, Netlify, Vercel, Hostinger…).
+É um site estático, sem build. Endereço oficial: **https://logtechseguros.com.br** (hospedado na HostGator).
 
 ## Estrutura
 
@@ -43,3 +43,19 @@ Fontes: Montserrat (títulos, com espaçamento largo como no logo) e Inter (text
 - **Depoimento**: o cliente aparece como "Matheus, transportador de Goiânia (GO)", conforme o vídeo. Confirme o nome e a autorização de uso da imagem.
 - **Parceiros**: a faixa lista Bradesco Seguros (citada no vídeo), Yelum Seguros e Grupo SVD (posts do Instagram). Ajuste se necessário.
 - **Fotos**: as miniaturas do Instagram foram recortadas de um print e têm baixa resolução. Para mais nitidez, substitua os arquivos em `assets/img/instagram/` pelas imagens originais (mesmo nome).
+
+## Publicação na HostGator
+
+O GitHub publica o site sozinho na HostGator, por FTP com criptografia (FTPS), a cada alteração (`.github/workflows/deploy-hostgator.yml`). Os arquivos vão para `public_html/`.
+
+Configuração (uma vez só), em **Settings → Secrets and variables → Actions** do repositório no GitHub:
+
+| Segredo | O que colocar |
+| --- | --- |
+| `FTP_SERVER` | nome do servidor da HostGator, como aparece no cPanel (ex.: `br123.hostgator.com.br`). Use esse nome, e não `ftp.logtechseguros.com.br`, para o certificado da conexão segura bater. |
+| `FTP_USERNAME` | usuário FTP |
+| `FTP_PASSWORD` | senha FTP |
+
+Para publicar manualmente: aba **Actions** → *Publicar na HostGator* → **Run workflow**.
+
+Arquivos para o servidor: `.htaccess` (HTTPS obrigatório, endereço sem "www", cache e compressão), `robots.txt` e `sitemap.xml`.

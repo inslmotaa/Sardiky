@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://logtechseguros.com.br/sitemap.xml

@@ -1,0 +1,38 @@
+# Publica o site na HostGator por FTP a cada alteração.
+# Requer os segredos FTP_SERVER, FTP_USERNAME e FTP_PASSWORD em
+# Settings → Secrets and variables → Actions do repositório.
+name: Publicar na HostGator
+
+on:
+  push:
+    branches:
+      - claude/gifted-dirac-9huif2
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostgator
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o site
+        uses: actions/checkout@v4
+
+      - name: Enviar por FTP para public_html
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          server-dir: public_html/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            README.md
+            netlify.toml
+            *.zip
