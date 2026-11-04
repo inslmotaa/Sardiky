@@ -381,7 +381,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .card--featured::after {
   content: ""; position: absolute; right: -60px; bottom: -40px; width: 300px; height: 260px;
-  background: url("../img/logo-mark.png") no-repeat center / contain;
+  background: url("../img/logo-watermark.png") no-repeat center / contain;
   opacity: .1; transform: rotate(-8deg);
 }
 .card--featured h3 { color: #fff; font-size: 30px; margin-top: 30px; }
@@ -503,7 +503,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 }
 .contact::before {
   content: ""; position: absolute; left: -140px; bottom: -160px; width: 560px; height: 480px;
-  background: url("../img/logo-mark.png") no-repeat center / contain;
+  background: url("../img/logo-watermark.png") no-repeat center / contain;
   opacity: .05;
 }
 .contact__grid { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 90px); align-items: start; }
@@ -619,7 +619,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .video-card { position: relative; justify-self: center; width: 100%; max-width: 400px; }
 .video-card::before {
   content: ""; position: absolute; inset: 8% -12% -6%; z-index: 0;
-  background: url("../img/logo-mark.png") no-repeat center / 90%; opacity: .07;
+  background: url("../img/logo-watermark.png") no-repeat center / 90%; opacity: .07;
 }
 .video-card__frame {
   position: relative; z-index: 1; aspect-ratio: 9 / 16; border-radius: 30px; overflow: hidden;
