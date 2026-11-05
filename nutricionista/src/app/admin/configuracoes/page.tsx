@@ -4,11 +4,9 @@ import { requireTeam } from '@/lib/auth/session'
 import { can, STAFF_PERMISSIONS } from '@/lib/auth/permissions'
 import { getSettings, getWorkingHours } from '@/lib/settings'
 import { integrationStatus } from '@/lib/integrations'
-import { fmtDateTime, fmtDay, weekdayName } from '@/lib/time'
+import { fmtDateTime, weekdayName } from '@/lib/time'
 import {
-  addTestimonial,
   deleteFaq,
-  deleteTestimonial,
   inviteStaff,
   saveFaq,
   saveProfile,
@@ -17,7 +15,7 @@ import {
   saveChatSettings,
   saveClinicalSettings,
   saveTemplates,
-  toggleTestimonial,
+  saveMercadoPagoSettings,
   updateStaff,
 } from '@/actions/admin/settings'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
@@ -31,7 +29,7 @@ const SECTIONS = [
   { key: 'mensagens', label: 'Mensagens', perm: 'config' },
   { key: 'chat', label: 'Chat', perm: 'config' },
   { key: 'planos', label: 'Planos, anamnese e PDF', perm: 'config' },
-  { key: 'site', label: 'Depoimentos e dúvidas', perm: 'site' },
+  { key: 'site', label: 'Dúvidas do site', perm: 'site' },
   { key: 'equipe', label: 'Equipe e permissões', perm: 'config' },
   { key: 'integracoes', label: 'Integrações', perm: 'config' },
 ] as const
@@ -56,7 +54,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       {sec.key === 'planos' && <ClinicalSection s={s} />}
       {sec.key === 'site' && <SiteSection />}
       {sec.key === 'equipe' && <TeamSection tz={s.timezone} />}
-      {sec.key === 'integracoes' && <IntegrationsSection />}
+      {sec.key === 'integracoes' && <IntegrationsSection s={s} />}
     </div>
   )
 }
@@ -129,8 +127,8 @@ function ProfileSection({ s }: { s: S }) {
           <Field label="WhatsApp" name="whatsapp" hint="Com 55 e DDD, só números. Ex.: 5511999999999">
             <input name="whatsapp" inputMode="numeric" defaultValue={s.whatsapp ?? ''} />
           </Field>
-          <Field label="Instagram (link)" name="instagram">
-            <input name="instagram" type="url" defaultValue={s.instagram ?? ''} />
+          <Field label="Instagram" name="instagram" hint="@usuario ou o endereço do perfil. Vazio = sem ícone no site.">
+            <input name="instagram" placeholder="@andrefarion" defaultValue={s.instagram ?? ''} />
           </Field>
           <Field label="E-mail de contato" name="contactEmail">
             <input name="contactEmail" type="email" defaultValue={s.contactEmail ?? ''} />
@@ -443,62 +441,9 @@ function TemplatesSection({ s }: { s: S }) {
 }
 
 async function SiteSection() {
-  const [testimonials, faqs] = await Promise.all([
-    db.select().from(schema.testimonials).orderBy(asc(schema.testimonials.sort)),
-    db.select().from(schema.faqs).orderBy(asc(schema.faqs.sort)),
-  ])
+  const faqs = await db.select().from(schema.faqs).orderBy(asc(schema.faqs.sort))
   return (
     <div className="grid-2" style={{ alignItems: 'start' }}>
-      <section className="stack">
-        <h2 style={{ fontSize: '1.1rem' }}>Depoimentos</h2>
-        <p className="alert alert--info small">Publique apenas depoimentos com autorização expressa do cliente, sem promessas de resultado e sem expor dados de saúde identificáveis.</p>
-        <ul className="card list">
-          {testimonials.map((t) => (
-            <li key={t.id}>
-              <div className="row row--between">
-                <strong>{t.authorDisplay}</strong>
-                <span className={`badge ${t.published ? 'badge--ok' : 'badge--plain'}`}>{t.published ? 'Publicado' : 'Oculto'}</span>
-              </div>
-              <div className="small">“{t.text}”</div>
-              <div className="small muted">{t.authorizedAt ? `Autorizado em ${fmtDay(t.authorizedAt)}` : 'Sem autorização registrada — não pode ser publicado'}</div>
-              <div className="row small" style={{ marginTop: 4 }}>
-                {t.authorizedAt && (
-                  <form action={toggleTestimonial.bind(null, t.id)}>
-                    <button className="link-btn" type="submit">
-                      {t.published ? 'Ocultar' : 'Publicar'}
-                    </button>
-                  </form>
-                )}
-                <form action={deleteTestimonial.bind(null, t.id)}>
-                  <button className="link-btn" type="submit">
-                    Excluir
-                  </button>
-                </form>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <div className="card">
-          <h3>Novo depoimento</h3>
-          <ActionForm action={addTestimonial} className="stack" resetOnSuccess>
-            <Field label="Identificação do autor" name="authorDisplay" hint="Prefira iniciais. Ex.: M. S.">
-              <input name="authorDisplay" maxLength={80} />
-            </Field>
-            <Field label="Depoimento" name="text">
-              <textarea name="text" rows={3} maxLength={800} />
-            </Field>
-            <Field label="Data da autorização" name="authorizedAt">
-              <input type="date" name="authorizedAt" />
-            </Field>
-            <label className="check">
-              <input type="checkbox" name="published" /> Publicar no site
-            </label>
-            <div>
-              <SubmitButton>Salvar depoimento</SubmitButton>
-            </div>
-          </ActionForm>
-        </div>
-      </section>
       <section className="stack">
         <h2 style={{ fontSize: '1.1rem' }}>Perguntas frequentes</h2>
         {faqs.map((f) => (
@@ -636,7 +581,7 @@ async function TeamSection({ tz }: { tz: string }) {
   )
 }
 
-function IntegrationsSection() {
+function IntegrationsSection({ s }: { s: S }) {
   const st = integrationStatus()
   const rows: [string, boolean, string][] = [
     ['Banco de dados PostgreSQL', Boolean(process.env.DATABASE_URL), process.env.DATABASE_URL ? 'Conectado via DATABASE_URL.' : 'Usando banco embutido de desenvolvimento (PGlite). Em produção, configure DATABASE_URL.'],
@@ -644,10 +589,33 @@ function IntegrationsSection() {
     ['Tarefa agendada (lembretes)', st.cron, st.cron ? 'Rota /api/cron protegida por CRON_SECRET. Chame a cada 5 minutos (lembretes de refeição, água e consultas).' : 'Não configurada. Defina CRON_SECRET e agende /api/cron a cada 5 minutos.'],
     ['Notificações push', st.push, st.push ? (process.env.VAPID_PUBLIC_KEY ? 'Chaves VAPID configuradas.' : 'Usando chaves locais de desenvolvimento. Em produção, defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT (npx web-push generate-vapid-keys).') : 'Não configurado. Defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT.'],
     ['WhatsApp (envio automático)', st.whatsappApi, 'Não implementado. Hoje o sistema abre conversas no WhatsApp com a mensagem pronta (envio manual).'],
-    ['Pagamentos on-line', st.payments, 'Não implementado. O financeiro registra lançamentos internos.'],
+    [
+      'Mercado Pago',
+      st.payments,
+      st.payments
+        ? 'Checkout Pro ativo: Pix, cartão e boleto. Confirmação pelo webhook /api/webhooks/mercadopago e conciliação no cron.'
+        : 'Mercado Pago: não configurado. Defina MERCADOPAGO_ACCESS_TOKEN e MERCADOPAGO_WEBHOOK_SECRET (passo a passo em docs/14-mercado-pago.md). Sem elas, o botão de pagar vira “Fale pelo WhatsApp para contratar”.',
+    ],
     ['Videoconferência', st.video, 'Não integrado. Cole o link da sala (Meet, Zoom, Jitsi) na consulta on-line.'],
   ]
   return (
+    <div className="stack" style={{ ['--gap' as string]: '20px' }}>
+    <section className="card">
+      <h2 style={{ fontSize: '1.1rem' }}>Mercado Pago (pagamento dos planos)</h2>
+      <ActionForm action={saveMercadoPagoSettings} className="stack">
+        <div className="form-grid">
+          <Field label="Parcelas máximas no cartão" name="mpMaxInstallments" hint="De 1 a 12.">
+            <input name="mpMaxInstallments" type="number" min={1} max={12} defaultValue={s.mpMaxInstallments} />
+          </Field>
+          <Field label="Nome na fatura" name="mpStatementDescriptor" hint="Até 13 caracteres, sem acentos. Ex.: FARION">
+            <input name="mpStatementDescriptor" maxLength={13} defaultValue={s.mpStatementDescriptor} />
+          </Field>
+        </div>
+        <div>
+          <SubmitButton>Salvar</SubmitButton>
+        </div>
+      </ActionForm>
+    </section>
     <div className="table-wrap">
       <table>
         <thead>
@@ -667,6 +635,7 @@ function IntegrationsSection() {
           ))}
         </tbody>
       </table>
+    </div>
     </div>
   )
 }

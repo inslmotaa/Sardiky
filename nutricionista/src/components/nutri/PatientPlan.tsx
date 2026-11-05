@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { dayForWeekday, dayTotals, itemNutrients, optionTotals, quantityLabel, sortedMeals, type PlanContent } from '@/lib/plan'
+import { dayForWeekday, dayTotals, itemNutrients, optionTotals, quantityLabel, sortedMeals, WEEK_ORDER, WEEKDAY_SHORT, weekdaysLabel, weekRows, type PlanContent } from '@/lib/plan'
 import { scale } from '@/lib/nutricao'
 import { KcalRing, MacroBars, NutriInline } from './MacroBars'
 
@@ -25,6 +25,7 @@ export function PatientPlan({
 }) {
   const initialDay = weekday != null ? dayForWeekday(content, weekday) : content.days[0]
   const [dayId, setDayId] = useState(initialDay?.id ?? '')
+  const [pickedWd, setPickedWd] = useState<number | null>(weekday ?? null)
   const [chosen, setChosen] = useState<Record<string, string>>({})
   const [swapOpen, setSwapOpen] = useState<string | null>(null)
   const day = content.days.find((d) => d.id === dayId) ?? content.days[0]
@@ -33,27 +34,94 @@ export function PatientPlan({
   const totals = dayTotals(day, chosen)
   const showNumbers = calc && (features.calorias || features.macros)
 
+  const week = weekRows(content)
+  const showWeekKcal = calc && features.calorias
+
   return (
     <div className="stack" style={{ ['--gap' as string]: '16px' }}>
-      {content.days.length > 1 && (
-        <div className="segmented" role="tablist" aria-label="Dia do plano">
-          {content.days.map((d) => (
-            <a
-              key={d.id}
-              href="#"
-              role="tab"
-              aria-selected={d.id === day.id}
-              aria-current={d.id === day.id ? 'page' : undefined}
-              onClick={(e) => {
-                e.preventDefault()
-                setDayId(d.id)
+      {/* Seg · Ter · … · Dom: abre o dia do plano que vale para aquele dia da semana; hoje fica marcado. */}
+      <div className="week-picker no-print" role="group" aria-label="Dia da semana">
+        {WEEK_ORDER.map((wd) => {
+          const target = dayForWeekday(content, wd)
+          const selected = pickedWd === wd && target?.id === day.id
+          return (
+            <button
+              key={wd}
+              type="button"
+              className="week-picker__day"
+              aria-pressed={selected}
+              data-today={wd === weekday ? 'true' : undefined}
+              aria-label={`${WEEKDAY_SHORT[wd]}${wd === weekday ? ' (hoje)' : ''}: ${target?.label ?? ''}`}
+              onClick={() => {
+                setPickedWd(wd)
+                if (target) setDayId(target.id)
               }}
             >
-              {d.label}
-            </a>
-          ))}
+              {WEEKDAY_SHORT[wd]}
+              {wd === weekday && <span className="week-picker__dot" aria-hidden />}
+            </button>
+          )
+        })}
+      </div>
+
+      {content.days.length > 1 && (
+        <div className="segmented" role="tablist" aria-label="Dia do plano">
+          {content.days.map((d) => {
+            const wds = weekdaysLabel(content, d.id)
+            return (
+              <a
+                key={d.id}
+                href="#"
+                role="tab"
+                aria-selected={d.id === day.id}
+                aria-current={d.id === day.id ? 'page' : undefined}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setDayId(d.id)
+                  setPickedWd(null)
+                }}
+              >
+                {d.label}
+                {wds && <span className="segmented__sub"> · {wds}</span>}
+              </a>
+            )
+          })}
         </div>
       )}
+
+      <details className="disclosure week-view">
+        <summary>Semana</summary>
+        <div className="table-wrap">
+          <table className="week-table">
+            <caption className="sr-only">Plano da semana</caption>
+            <thead>
+              <tr>
+                <th scope="col">Dia</th>
+                <th scope="col">Tipo de dia</th>
+                <th scope="col">Refeições</th>
+                {showWeekKcal && (
+                  <th scope="col" className="num">
+                    kcal
+                  </th>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {week.map((r) => (
+                <tr key={r.weekday} data-today={r.weekday === weekday ? 'true' : undefined}>
+                  <th scope="row">
+                    {r.short}
+                    {r.weekday === weekday && <span className="small muted"> (hoje)</span>}
+                  </th>
+                  <td>{r.dayLabel}</td>
+                  <td className="small">{r.meals.join(' · ') || '—'}</td>
+                  {showWeekKcal && <td className="num nowrap">{r.kcal != null ? r.kcal.toLocaleString('pt-BR') : '—'}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
 
       {showNumbers && (
         <section className="card row" style={{ gap: 20, alignItems: 'center' }}>

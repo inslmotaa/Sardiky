@@ -1,4 +1,4 @@
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { featuresOf } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { goalsOf, measurementsOf } from '@/lib/patient-data'
@@ -14,7 +14,7 @@ import { PageHead } from '@/components/ui'
 
 export default async function EvolutionPage({ searchParams }: { searchParams: Promise<{ a?: string; b?: string }> }) {
   const sp = await searchParams
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const features = await featuresOf(user.patientId)
   const s = await getSettings()
   const today = todayIn(s.timezone)

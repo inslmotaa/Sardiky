@@ -7,12 +7,12 @@ export async function audit(
   actor: Pick<CurrentUser, 'id' | 'name' | 'role'> | null,
   action: string,
   entity: string,
-  opts: { entityId?: string | null; patientId?: string | null; details?: Record<string, unknown> } = {},
+  opts: { entityId?: string | null; patientId?: string | null; details?: Record<string, unknown>; actorLabel?: string } = {},
 ) {
   try {
     await db.insert(schema.auditLogs).values({
       actorId: actor?.id ?? null,
-      actorLabel: actor ? `${actor.name} (${actor.role})` : 'visitante',
+      actorLabel: actor ? `${actor.name} (${actor.role})` : (opts.actorLabel ?? 'visitante'),
       action,
       entity,
       entityId: opts.entityId ?? null,

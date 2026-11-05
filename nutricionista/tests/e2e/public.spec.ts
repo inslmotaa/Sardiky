@@ -58,6 +58,8 @@ test('página principal: hero com a plataforma, storytelling em capítulos, Sobr
   await expect(footer).toContainText('André Farion · Coach')
   await expect(footer.locator('p').last()).toHaveText(/Site por\s*TIMELESS/i)
   await expect(footer.locator('.wm')).toHaveCount(0)
+  // Instagram vazio na demonstração: nenhum ícone nem link para instagram.com.
+  await expect(page.locator('a[href*="instagram.com"]')).toHaveCount(0)
   // Nome do site no cabeçalho: "Farion" (o conteúdo continua sendo do André).
   await expect(page.locator('.tl-header .tl-brand')).toHaveText('Farion')
   await expect(page).toHaveTitle(/^Farion · André Farion/)
@@ -86,7 +88,11 @@ test('página principal: hero com a plataforma, storytelling em capítulos, Sobr
   // Voltar ao topo: aparece depois de rolar e sobe a página.
   const toTop = page.getByRole('button', { name: 'Voltar ao topo' })
   await expect(toTop).toBeHidden()
-  await page.evaluate(() => window.scrollTo({ top: 2400, behavior: 'instant' }))
+  // Descendo, fica escondido (não cobre o texto); subindo, depois de 1,5 tela, aparece.
+  await page.evaluate(() => window.scrollTo({ top: 3000, behavior: 'instant' }))
+  await page.waitForTimeout(150)
+  await expect(toTop).toBeHidden()
+  await page.evaluate(() => window.scrollTo({ top: 2600, behavior: 'instant' }))
   await expect(toTop).toBeVisible()
   await toTop.click()
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(5)
@@ -140,7 +146,7 @@ test('logo e nome levam à página principal em todas as áreas', async ({ page 
   await expect(logo).toHaveAttribute('href', '/')
 })
 
-test('/planos: cards com valores, selo "Mais escolhido", comparação e botão para o cadastro', async ({ page }) => {
+test('/planos: cards com valores, selo "Mais escolhido", sem desconto, comparação e botão Contratar', async ({ page }) => {
   await page.goto('/planos')
   await expect(page.getByRole('heading', { name: 'Escolha o seu plano' })).toBeVisible()
   await expect(page.locator('.tl-plan__name')).toHaveText(['Mensal', 'Trimestral', 'Semestral', 'Anual'])
@@ -154,10 +160,20 @@ test('/planos: cards com valores, selo "Mais escolhido", comparação e botão p
   await expect(anual).toContainText(/R\$\s187,50\/mês/)
   await expect(page.locator('.tl-plan', { hasText: 'Semestral' }).locator('.tl-plan__price')).toHaveText(/^R\$\s1\.200,00$/)
   await expect(page.locator('.tl-plan', { hasText: 'Mensal' }).locator('.tl-plan__price')).toHaveText(/^R\$\s250,00$/)
-  await expect(anual.getByRole('link', { name: 'Escolher plano' })).toHaveAttribute('href', /^\/criar-conta\?plano=[0-9a-f-]{36}$/)
-  // Bônus só no Semestral e no Anual.
+  await expect(anual.getByRole('link', { name: /Contratar/ })).toHaveAttribute('href', /^\/criar-conta\?plano=[0-9a-f-]{36}$/)
+  // Sem desconto, preço riscado nem "de R$ …": só o preço e o valor por mês.
+  await expect(page.locator('#planos-lista')).not.toContainText(/desconto|de R\$/i)
+  await expect(page.locator('#planos-lista s, #planos-lista del')).toHaveCount(0)
+  // Formas de pagamento e o que acontece depois.
+  await expect(page.getByText(/Pix, cartão em até 12x ou boleto · pagamento seguro pelo Mercado Pago/)).toBeVisible()
+  await expect(page.getByText(/Depois do pagamento você responde a anamnese/)).toBeVisible()
+  // Botões alinhados na base: todos os cartões com a mesma altura.
+  const heights = await page.locator('.tl-plan').evaluateAll((els) => els.map((e) => Math.round(e.getBoundingClientRect().height)))
+  expect(new Set(heights).size).toBe(1)
+  // Bônus só no Semestral e no Anual; sem desconto de parceiro.
   await expect(page.locator('.tl-plan', { hasText: 'Semestral' })).toContainText('Vale avaliação física')
   await expect(tri).not.toContainText('Vale avaliação física')
+  await expect(page.locator('main')).not.toContainText('Desconto em produtos')
   // Comparação: itens comuns com check em todos; benefícios exclusivos só no Semestral e no Anual.
   const table = page.locator('.compare-tl')
   await expect(table.locator('tr', { hasText: 'Dieta personalizada' }).getByRole('img', { name: 'Incluso' })).toHaveCount(4)
@@ -217,6 +233,20 @@ test('layout responsivo no celular (site)', async ({ page }) => {
     await page.goto(path)
     await expectNoHorizontalScroll(page)
   }
+  // Botões flutuantes: numa coluna no canto inferior direito, sem um cobrir o outro.
+  await page.goto('/')
+  await page.evaluate(() => window.scrollTo({ top: 4000, behavior: 'instant' }))
+  await page.waitForTimeout(150)
+  await page.evaluate(() => window.scrollTo({ top: 3600, behavior: 'instant' }))
+  const top = page.getByRole('button', { name: 'Voltar ao topo' })
+  await expect(top).toBeVisible()
+  const a = (await top.boundingBox())!
+  const b = (await page.locator('.whatsapp-float').boundingBox())!
+  expect(a.y + a.height).toBeLessThanOrEqual(b.y)
+  expect(Math.abs(a.x + a.width - (b.x + b.width))).toBeLessThan(2)
+  // O fim da página fica acima dos botões.
+  const pad = await page.evaluate(() => parseFloat(getComputedStyle(document.querySelector('main#conteudo')!).paddingBottom))
+  expect(pad).toBeGreaterThanOrEqual(80)
 })
 
 test('política de privacidade (LGPD) com contato e responsável', async ({ page }) => {

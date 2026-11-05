@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { DEFAULT_NOTIFICATION_PREFS } from '@/db/schema'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { vapidKeys } from '@/lib/push'
 import { removePushSubscription, saveNotificationPrefs, savePushSubscription } from '@/actions/push'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
@@ -19,7 +19,7 @@ const TYPES = [
 ] as const
 
 export default async function NotificationsPage() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const [u] = await db.select({ prefs: schema.users.notificationPrefs }).from(schema.users).where(eq(schema.users.id, user.id))
   const prefs = { ...DEFAULT_NOTIFICATION_PREFS, ...u?.prefs }
   return (

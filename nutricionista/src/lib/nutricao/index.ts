@@ -2,7 +2,7 @@
  * Cálculos nutricionais — módulo puro (sem banco, sem React), usado no painel,
  * no app do paciente, nas calculadoras e na prévia estática. Coberto por testes.
  *
- * Fórmulas de referência; confirme os parâmetros com o nutricionista responsável.
+ * Fórmulas de referência; confirme os parâmetros com o coach responsável.
  */
 
 /* --------------------------------- tipos --------------------------------- */
@@ -155,6 +155,16 @@ export function nearestMeasure(grams: number, measures: { name: string; grams: n
     if (qty <= 12 && (!best || error < best.error)) best = { ...m, qty, error }
   }
   return best
+}
+
+/**
+ * Quantidade em medida caseira com o peso da base: se houver uma medida próxima (até 15% de diferença),
+ * os gramas passam a ser exatamente quantidade × peso da medida. Sem medida próxima, ficam só os gramas.
+ */
+export function withBaseMeasure(grams: number, measures: { name: string; grams: number }[], tolerance = 0.15) {
+  const near = nearestMeasure(grams, measures)
+  if (!near || near.error >= tolerance) return { grams, measure: null }
+  return { grams: Math.round(near.qty * near.grams * 10) / 10, measure: { name: near.name, grams: near.grams, qty: near.qty } }
 }
 
 /** Plural de uma palavra em português (regras simples, suficientes para medidas caseiras). */

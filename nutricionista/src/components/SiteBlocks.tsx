@@ -1,5 +1,5 @@
 import { money } from '@/lib/format'
-import type { PlanPrice } from '@/lib/planos'
+import { featuredPlan, type PlanPrice } from '@/lib/planos'
 
 /** Fundo de natureza, alimentos e bem-estar (canvas, ligado pelo site-fx) com o grão por cima. */
 export function NatureBg({ sunX, density }: { sunX?: number; density?: number }) {
@@ -54,7 +54,7 @@ type Plan = PlanPrice & {
 
 /** Cartões dos planos (início e /planos): bordas finas, valor mensal equivalente e bônus. */
 export function PlanGrid({ plans, showPrices, href }: { plans: Plan[]; showPrices: boolean; href: (id: string) => string }) {
-  const featured = plans.find((p) => p.highlight) ?? [...plans].sort((a, b) => b.discountPct - a.discountPct)[0]
+  const featured = featuredPlan(plans)
   return (
     <ul className="tl-plans">
       {plans.map((pk, i) => {
@@ -85,8 +85,8 @@ export function PlanGrid({ plans, showPrices, href }: { plans: Plan[]; showPrice
                 ))}
               </ul>
             )}
-            <a href={href(pk.id)} className="pill pill--sm">
-              Escolher plano <span aria-hidden>→</span>
+            <a href={href(pk.id)} className="pill pill--sm tl-plan__cta">
+              Contratar <span aria-hidden>→</span>
             </a>
           </li>
         )

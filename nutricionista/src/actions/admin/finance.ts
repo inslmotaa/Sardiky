@@ -12,6 +12,10 @@ import { getSettings } from '@/lib/settings'
 import { todayIn } from '@/lib/time'
 import { int, optDay, optStr, str, uuid } from '@/lib/validation'
 import { titledLines } from '@/lib/planos'
+import { assertPatientAccess } from '@/lib/team-access'
+import { mpConfigured } from '@/lib/mercadopago'
+import { iniciarCobranca, liberarPlano } from '@/lib/pagamentos'
+import { notifyUser } from '@/lib/notify'
 
 const money = (msg = 'Valor inválido') =>
   z
@@ -177,4 +181,70 @@ export async function togglePackage(id: string): Promise<void> {
   await audit(user, p.active ? 'pacote_desativado' : 'pacote_ativado', 'pacote', { entityId: id })
   revalidatePath('/admin/financeiro')
   revalidatePath('/')
+}
+
+/* --------------------------- Mercado Pago (painel) --------------------------- */
+
+const planChoice = z.object({ packageId: z.string().refine((v) => uuid.safeParse(v).success, 'Escolha o plano') })
+
+/**
+ * Gera o link de pagamento (Checkout Pro) de um plano para o cliente, para copiar ou mandar pelo WhatsApp.
+ * Exige a permissão financeiro e acesso ao cliente.
+ */
+export async function gerarLinkPagamento(patientId: string, _: ActionState, fd: FormData): Promise<ActionState & { url?: string }> {
+  const parsed = planChoice.safeParse(formObject(fd))
+  if (!parsed.success) return zodErrors(parsed.error)
+  try {
+    const user = await ensureFinance()
+    if (!uuid.safeParse(patientId).success) return { error: 'Cliente inválido.' }
+    await assertPatientAccess(user, patientId)
+    if (!mpConfigured()) return { error: 'Mercado Pago não configurado.' }
+    const r = await iniciarCobranca(patientId, parsed.data.packageId, user)
+    revalidatePath(`/admin/pacientes/${patientId}`)
+    return { ok: true, message: `Link do Plano ${r.pkg.name} gerado (válido por 3 dias).`, url: r.initPoint }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+/**
+ * "Liberar sem pagamento on-line": para quem pagou por fora. Cria o lançamento manual pago do plano
+ * e libera o acesso com o mesmo período de um pagamento aprovado. Grava auditoria.
+ */
+export async function liberarSemPagamentoOnline(patientId: string, _: ActionState, fd: FormData): Promise<ActionState> {
+  const parsed = planChoice.extend({ method: optStr(40) }).safeParse(formObject(fd))
+  if (!parsed.success) return zodErrors(parsed.error)
+  try {
+    const user = await ensureFinance()
+    if (!uuid.safeParse(patientId).success) return { error: 'Cliente inválido.' }
+    await assertPatientAccess(user, patientId)
+    const s = await getSettings()
+    const today = todayIn(s.timezone)
+    const [pkg] = await db.select().from(schema.packages).where(eq(schema.packages.id, parsed.data.packageId))
+    if (!pkg) return { error: 'Plano não encontrado.' }
+    let period: Awaited<ReturnType<typeof liberarPlano>> = null
+    await db.transaction(async (tx) => {
+      await tx.insert(schema.payments).values({
+        patientId,
+        packageId: pkg.id,
+        description: `Plano ${pkg.name} (pago por fora)`,
+        amountCents: pkg.priceCents,
+        status: 'pago',
+        method: parsed.data.method ?? 'Fora do sistema',
+        dueDate: today,
+        paidAt: today,
+        source: 'manual',
+        createdBy: user.id,
+      })
+      period = await liberarPlano(tx, patientId, pkg.id, today)
+    })
+    const p = period as Awaited<ReturnType<typeof liberarPlano>>
+    await audit(user, 'acesso_liberado_sem_pagamento_online', 'pagamento', { patientId, details: { plano: pkg.name, inicio: p?.start, termino: p?.end } })
+    if (p?.patient.userId) await notifyUser(p.patient.userId, 'Acesso liberado', `Plano ${pkg.name}. Agora é só responder a anamnese.`, '/paciente/anamnese')
+    revalidatePath(`/admin/pacientes/${patientId}`)
+    revalidatePath('/admin/financeiro')
+    return { ok: true, message: `Acesso liberado: Plano ${pkg.name}${p ? ` até ${p.end.split('-').reverse().join('/')}` : ''}.` }
+  } catch (err) {
+    return failure(err)
+  }
 }

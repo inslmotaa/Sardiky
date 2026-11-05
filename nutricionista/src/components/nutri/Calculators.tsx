@@ -51,7 +51,7 @@ export type EnergyToSave = { formula: BmrFormula; factor: number; bmr: number; t
 type Props = {
   foods: CalcFood[]
   mode: 'patient' | 'pro'
-  /** Liberações para o paciente (o nutricionista pode ocultar calorias e peso). */
+  /** Liberações para o paciente (o coach pode ocultar calorias e peso). */
   allow?: { calorias: boolean }
   defaults?: { sex?: Sex | null; age?: number | null; weightKg?: number | null; heightCm?: number | null }
   waterMlPerKg?: number

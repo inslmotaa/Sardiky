@@ -14,9 +14,9 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 
 | Perfil | Acesso |
 |---|---|
-| Nutricionista (admin) | Tudo |
+| Coach (admin) | Tudo |
 | Equipe (staff) | Somente as áreas liberadas: agenda, cadastro, dados clínicos, financeiro, relatórios, conteúdo do site. Configurações e LGPD ficam restritas ao administrador. |
-| Nutricionista da equipe (“só os próprios pacientes”) | Ficha, planos, diário, chat, acompanhamento, agenda, arquivos e avisos apenas dos pacientes em que é o responsável; os demais respondem como “não encontrado”. |
+| Coach da equipe (“só os próprios pacientes”) | Ficha, planos, diário, chat, acompanhamento, agenda, arquivos e avisos apenas dos pacientes em que é o responsável; os demais respondem como “não encontrado”. |
 | Paciente | Apenas os próprios dados. O identificador do paciente vem **sempre da sessão**, nunca de um parâmetro da URL. |
 
 - Cada Server Action e rota verifica permissão no servidor (não basta esconder botões).
@@ -40,7 +40,7 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 
 ## App instalável e dados no aparelho
 
-- O service worker guarda **somente as telas do paciente** (Hoje, Plano, Diário, Progresso, Mais) para abrir sem internet; nada do painel do nutricionista é guardado.
+- O service worker guarda **somente as telas do paciente** (Hoje, Plano, Diário, Progresso, Mais) para abrir sem internet; nada do painel do coach é guardado.
 - Ao **sair da conta** e ao abrir a tela de login, as telas guardadas são apagadas do aparelho, para outra pessoa no mesmo celular não ver os dados.
 - Arquivos (fotos, PDFs) não ficam no armazenamento off-line.
 - Notificações push trazem textos curtos (nome da refeição, “nova mensagem”), sem dados clínicos detalhados, porque aparecem na tela bloqueada. O paciente escolhe cada tipo e o horário de silêncio.

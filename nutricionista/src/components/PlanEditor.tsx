@@ -10,6 +10,7 @@ import {
   macrosFromGkg,
   macrosFromPct,
   nearestMeasure,
+  withBaseMeasure,
   parseDecimal,
   scale,
   suggestSubstitutions,
@@ -68,16 +69,16 @@ const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 /** Cria um item do plano a partir de um alimento da base. */
 function itemFromFood(f: EditorFood, grams?: number): PlanItem {
   const m = f.measures[0]
-  const g = grams ?? (m ? m.grams : 100)
-  const near = nearestMeasure(g, f.measures)
+  // Medida caseira com o peso da base (os gramas acompanham a medida escolhida).
+  const q = withBaseMeasure(grams ?? (m ? m.grams : 100), f.measures)
   return {
     id: uid(),
     foodId: f.id,
     name: f.name,
     group: f.group,
     per100: f.per100,
-    grams: g,
-    measure: near && near.error < 0.15 ? { name: near.name, grams: near.grams, qty: near.qty } : null,
+    grams: q.grams,
+    measure: q.measure,
     text: '',
     notes: '',
     locked: false,
@@ -85,9 +86,16 @@ function itemFromFood(f: EditorFood, grams?: number): PlanItem {
   }
 }
 
-function subFromFood(f: EditorFood, grams: number): Substitution {
-  const near = nearestMeasure(grams, f.measures)
-  return { foodId: f.id, name: f.name, per100: f.per100, grams, measure: near && near.error < 0.15 ? { name: near.name, grams: near.grams, qty: near.qty } : null, text: '' }
+/**
+ * Substituição com a medida da base (ex.: "1 unidade média" = 60 g, o mesmo peso da base).
+ * Com `targetKcal`, só usa a medida se ela continuar equivalente (±10% das calorias do item).
+ */
+function subFromFood(f: EditorFood, grams: number, targetKcal?: number): Substitution {
+  const q = withBaseMeasure(grams, f.measures)
+  const kcal = (g: number) => scale(f.per100, g).kcal
+  const ok = q.measure && (targetKcal ? Math.abs(kcal(q.grams) - targetKcal) / targetKcal <= 0.1 : Math.abs(q.grams - grams) / grams <= 0.1)
+  const use = ok ? q : { grams, measure: null }
+  return { foodId: f.id, name: f.name, per100: f.per100, grams: use.grams, measure: use.measure, text: '' }
 }
 
 export function PlanEditor({ action, initial, title: initialTitle, isTemplate, foods, patient }: Props) {
@@ -997,7 +1005,7 @@ function MealEditor(p: MealEditorProps) {
                           const full = p.foodById.get(f.id)!
                           const raw = equivalentGrams(it.per100!, it.grams ?? 0, full.per100, 'kcal')
                           update((c) => {
-                            optAt(c, mi).items[ii].subs.push(subFromFood(full, raw ? friendlyGrams(raw) : 100))
+                            optAt(c, mi).items[ii].subs.push(subFromFood(full, raw ? friendlyGrams(raw) : 100, it.per100 && it.grams ? scale(it.per100, it.grams).kcal : undefined))
                           })
                         }}
                       />
@@ -1053,7 +1061,7 @@ function MealEditor(p: MealEditorProps) {
                     existing={it.subs.map((s) => s.foodId)}
                     onAdd={(f, g) =>
                       update((c) => {
-                        optAt(c, mi).items[ii].subs.push(subFromFood(f, g))
+                        optAt(c, mi).items[ii].subs.push(subFromFood(f, g, food ? scale(food.per100, it.grams ?? 0).kcal : undefined))
                       })
                     }
                   />
@@ -1168,12 +1176,15 @@ function Suggestions({
       </span>
       {list.length === 0 && <span className="small">Nenhuma sugestão nova no mesmo grupo.</span>}
       {list.map((s) => {
-        const near = nearestMeasure(s.grams, s.food.measures)
+        // A sugestão já mostra o peso da medida da base (o mesmo que vai para o plano).
+        const sb = subFromFood(s.food, s.grams, base)
+        const kcal = scale(s.food.per100, sb.grams ?? s.grams).kcal
+        const diff = base > 0 ? (kcal - base) / base : s.diff
         return (
           <div key={s.food.id} className="row row--between small">
             <span>
-              {s.food.name} — {fmt(s.grams, 0)} g{near && near.error < 0.15 ? ` (${formatMeasure(near.qty, near.name)})` : ''} · {fmt(s.kcal, 0)} kcal ({s.diff >= 0 ? '+' : ''}
-              {fmt(s.diff * 100, 0)}%)
+              {s.food.name} — {sb.measure ? `${formatMeasure(sb.measure.qty, sb.measure.name)} (${fmt(sb.grams ?? 0, 0)} g)` : `${fmt(s.grams, 0)} g`} · {fmt(kcal, 0)} kcal ({diff >= 0 ? '+' : ''}
+              {fmt(diff * 100, 0)}%)
             </span>
             <button type="button" className="btn btn--sm" onClick={() => onAdd(s.food, s.grams)}>
               Aprovar

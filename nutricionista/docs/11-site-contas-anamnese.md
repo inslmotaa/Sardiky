@@ -29,11 +29,11 @@ Para cumprir "mantenha a stack e tudo o que já funciona", cada item foi feito n
 
 - **Logo + nome**: em todas as áreas (site, cliente, painel), é um único link para `/`, com `aria-label="Ir para a página inicial"`. Na própria página principal, rola suavemente ao topo.
 - **Página principal enxuta**, só com:
-  1. hero (nome, Nutricionista, CRN, abordagem, "Agendar consulta" e "Ver planos");
+  1. hero (nome, Coach, CRN, abordagem, "Agendar consulta" e "Ver planos");
   2. bloco "Agendar consulta";
   3. rodapé com privacidade, planos, área do cliente, WhatsApp e CRN.
 
-  Saíram: storytelling, serviços, planos, app, como funciona, depoimentos, FAQ e formulário de contato. Sem foto, aparece o monograma "AF".
+  Saíram: storytelling, serviços, planos, app, como funciona, FAQ e formulário de contato. Sem foto, aparece o monograma "AF".
 - **Agendar consulta**: visitante vai para `/criar-conta?next=/agendar`; quem está conectado vai para `/agendar`. A opção "Agendar pelo WhatsApp" continua em Configurações. Ela agora vem desligada por padrão.
 - **`/planos`**:
   - cards com os planos e valores atuais;
@@ -62,7 +62,7 @@ Para cumprir "mantenha a stack e tudo o que já funciona", cada item foi feito n
 - **Primeiro acesso**: vai para `/paciente/anamnese` enquanto a anamnese não foi enviada; depois, para `/paciente`.
 - **"Entrar com Google"**: aparece quando `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET` estão definidos. No cadastro, só funciona depois de marcar a caixa da política.
 - **Sem permissão para a área**: leva a `/entrar` (paciente no painel, equipe na área do cliente), com aviso e botão para a área certa.
-- **Sem cadastro público de nutricionista**: a conta do André é criada pelo SQL ou pelo script abaixo.
+- **Sem cadastro público de coach**: a conta do André é criada pelo SQL ou pelo script abaixo.
 
 ### Anamnese no site (substitui o Google Forms)
 

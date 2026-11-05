@@ -113,6 +113,20 @@
       "when": 1793746859502,
       "tag": "0015_anamnese_por_formulario",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793916101839,
+      "tag": "0016_mercado_pago",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793916106957,
+      "tag": "0017_remover_desconto_parceiro",
+      "breakpoints": true
     }
   ]
 }

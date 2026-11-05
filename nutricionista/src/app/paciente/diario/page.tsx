@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { featuresOf } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { loadDiaryDay } from '@/lib/diary'
@@ -13,7 +13,7 @@ import { KcalRing, MacroBars } from '@/components/nutri/MacroBars'
 import { PageHead } from '@/components/ui'
 
 export default async function DiaryPage({ searchParams }: { searchParams: Promise<{ data?: string }> }) {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const f = await featuresOf(user.patientId)
   if (!f.diario) redirect('/paciente')
   const s = await getSettings()

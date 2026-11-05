@@ -1,4 +1,4 @@
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { currentPublishedPlan } from '@/lib/patient-context'
 import { loadFoods } from '@/lib/foods'
 import { expandRecipes, loadRecipes } from '@/lib/recipes'
@@ -8,7 +8,7 @@ import { ShoppingList } from '@/components/nutri/ShoppingList'
 import { Empty, PageHead } from '@/components/ui'
 
 export default async function ShoppingPage() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const plan = await currentPublishedPlan(user.patientId)
   if (!plan)
     return (

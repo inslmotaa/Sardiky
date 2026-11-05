@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { and, count, desc, eq, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getSettings } from '@/lib/settings'
 import { currentPublishedPlan, getPatient } from '@/lib/patient-context'
 import { latest, measurementsOf, nextAppointment, series } from '@/lib/patient-data'
@@ -10,19 +10,20 @@ import { dayForWeekday, itemsNutrients, normalizePlan } from '@/lib/plan'
 import { waterGoalMl } from '@/lib/nutricao'
 import { capitalize, fmtDateTime, fmtDay, fmtDayLong, todayIn, weekdayOf, zonedParts } from '@/lib/time'
 import { bookingLink } from '@/lib/format'
+import { contractInfo } from '@/lib/contract'
 import { changeWater, markNotificationsRead, quickWeight, setMealStatus } from '@/actions/patient'
 import { TodayView, type MealLog, type TodayData } from '@/components/nutri/TodayView'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { LineChart } from '@/components/LineChart'
 import { FadeUp, MotionRoot, Stagger, StaggerItem } from '@/components/motion'
 import { IlloCalendar, IlloLeaf, IlloPlate, IlloScale } from '@/components/Illustrations'
-import { IconBook, IconCalendar, IconChart, IconChat, IconPlate } from '@/components/icons'
+import { IconCalendar } from '@/components/icons'
 
 const STEPS = ['Conta criada', 'Anamnese', 'Consulta', 'Plano alimentar', 'Acompanhamento'] as const
 
 export default async function PatientToday({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const s = await getSettings()
   const patient = await getPatient(user.patientId)
   const today = todayIn(s.timezone)
@@ -103,9 +104,38 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
   const weights = series(rows, 'weightKg').slice(-8)
   const firstName = user.name.split(' ')[0]
 
+  // Renovação: faltando até 7 dias para o fim do plano (ou já encerrado), cartão com o botão Renovar.
+  const contract = pkg[0] ? contractInfo(pkg[0], patient.packageStart, patient.packageEnd, today) : null
+  const renew = contract?.daysLeft != null && contract.daysLeft <= 7 ? contract : null
+
   return (
     <MotionRoot>
       <div className="hub">
+        <div className="hub-hello hub-hello--line">
+          <h1>
+            Olá, {firstName}! <span className="muted">{data.dateLabel}</span>
+          </h1>
+        </div>
+        {sp.pago && <p className="alert alert--ok">Pagamento confirmado. Bom acompanhamento!</p>}
+        {renew && (
+          <section className="card hub-renew" aria-labelledby="renovar-titulo">
+            <div>
+              <h2 id="renovar-titulo">
+                {renew.daysLeft! < 0
+                  ? `Seu Plano ${renew.name} terminou`
+                  : renew.daysLeft === 0
+                    ? `Seu Plano ${renew.name} termina hoje`
+                    : `Seu plano termina em ${renew.daysLeft} ${renew.daysLeft === 1 ? 'dia' : 'dias'}`}
+              </h2>
+              <p className="muted" style={{ margin: 0 }}>
+                Renove para continuar com o plano alimentar, o diário e o acompanhamento{renew.end ? ` (término: ${fmtDay(renew.end)})` : ''}.
+              </p>
+            </div>
+            <Link href={`/paciente/pagamento?plano=${pkg[0]!.id}`} className="btn btn--primary">
+              Renovar
+            </Link>
+          </section>
+        )}
         {!anamnesisDone && (
           <div className="hub-banner" role="status">
             <span>
@@ -118,117 +148,42 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
         )}
         {sp.anamnese === 'salva' && <p className="alert alert--ok">Anamnese salva. Continue quando quiser, de onde parou.</p>}
 
-        <FadeUp className="card hub-hello">
-          <div>
-            <h1>Olá, {firstName}!</h1>
-            <p className="muted" style={{ margin: 0 }}>
-              {data.dateLabel}
-            </p>
-          </div>
-          {s.dailyQuote && (
-            <blockquote className="hub-quote">
-              “{s.dailyQuote}”<cite>— {s.professionalName.split(' ')[0]}</cite>
-            </blockquote>
-          )}
-        </FadeUp>
+        {/* 1. O que comer: a próxima refeição em destaque, as refeições do dia e a água. */}
+        <section aria-labelledby="plano-hoje">
+          <h2 id="plano-hoje" className="hub-title">
+            Seu plano de hoje
+          </h2>
+          <TodayView
+            data={data}
+            variant="hub"
+            actions={{ setMeal: setMealStatus, water: changeWater }}
+            links={{ plan: '/paciente/plano', chat: '/paciente/mensagens', diary: '/paciente/diario', progress: '/paciente/evolucao' }}
+            emptyPlan={
+              <section className="card hub-empty hub-empty--big">
+                <IlloPlate />
+                <h3>Seu plano está sendo preparado pelo André</h3>
+                <p className="muted">Assim que ele for liberado, você vê aqui a próxima refeição e pode marcar o que comeu.</p>
+                {!anamnesisDone ? (
+                  <Link href="/paciente/anamnese" className="btn btn--primary btn--sm">
+                    Preencher anamnese
+                  </Link>
+                ) : f.chat ? (
+                  <Link href="/paciente/mensagens" className="btn btn--sm">
+                    Falar com o André
+                  </Link>
+                ) : null}
+              </section>
+            }
+          />
+        </section>
 
-        {/* Atalhos para o que se faz todo dia: o caminho mais curto para cada tarefa. */}
-        <nav className="hub-shortcuts" aria-label="Atalhos">
-          <Link href="/paciente/plano">
-            <IconPlate />
-            <span>
-              <strong>Meu plano</strong>
-              <small>Refeições e substituições</small>
-            </span>
-          </Link>
-          {f.diario && (
-            <Link href="/paciente/diario">
-              <IconBook />
-              <span>
-                <strong>Registrar refeição</strong>
-                <small>Diário com foto</small>
-              </span>
-            </Link>
-          )}
-          <Link href="/paciente/evolucao">
-            <IconChart />
-            <span>
-              <strong>Meu progresso</strong>
-              <small>Peso, medidas e metas</small>
-            </span>
-          </Link>
-          {f.chat && (
-            <Link href="/paciente/mensagens">
-              <IconChat />
-              <span>
-                <strong>Falar com o coach</strong>
-                <small>Tire dúvidas pelo chat</small>
-              </span>
-            </Link>
-          )}
+        {/* Atalhos compactos (sem repetir a barra de baixo). */}
+        <nav className="hub-quick" aria-label="Atalhos rápidos">
+          {f.diario && <Link href="/paciente/diario">Registrar refeição</Link>}
+          {(f.diario || f.fotosCorpo || f.exames) && <Link href="/paciente/enviar">Enviar foto ou exame</Link>}
+          {f.chat && <Link href="/paciente/mensagens">Falar com o coach</Link>}
+          <Link href="/paciente/meus-dados">Meu perfil</Link>
         </nav>
-
-        {notes.length > 0 && (
-          <FadeUp className="card card--soft">
-            <div className="card__head">
-              <h2 style={{ fontSize: '1.05rem' }}>Avisos</h2>
-              <form action={markNotificationsRead}>
-                <button className="link-btn small" type="submit">
-                  Marcar como lidos
-                </button>
-              </form>
-            </div>
-            <ul className="list">
-              {notes.map((n) => (
-                <li key={n.id}>
-                  {n.link ? <Link href={n.link}>{n.title}</Link> : <strong>{n.title}</strong>}
-                  {n.body && <span className="muted"> — {n.body}</span>}
-                </li>
-              ))}
-            </ul>
-          </FadeUp>
-        )}
-
-        <FadeUp className="card hub-status">
-          <div className="hub-status__top">
-            <div>
-              <span className="eyebrow">Seu acompanhamento</span>
-              <p className="hub-status__plan">{pkg[0] ? `Plano ${pkg[0].name}` : 'Nenhum plano contratado ainda'}</p>
-              {!pkg[0] && (
-                <Link href="/planos" className="small">
-                  Ver planos
-                </Link>
-              )}
-            </div>
-            <div className="hub-status__days">
-              {days === null ? (
-                <span className="muted small">Sem consulta marcada</span>
-              ) : (
-                <>
-                  <strong>{days === 0 ? 'Hoje' : days}</strong>
-                  <span className="small muted">{days === 0 ? 'é dia de consulta' : days === 1 ? 'dia até a consulta' : 'dias até a consulta'}</span>
-                </>
-              )}
-            </div>
-          </div>
-          <p className="hub-steps__now">
-            Etapa atual: <strong>{STEPS[current]}</strong>
-          </p>
-          <ol className="hub-steps" aria-label="Etapas do acompanhamento">
-            {STEPS.map((label, i) => (
-              <li
-                key={label}
-                data-state={i === current ? 'current' : doneSteps[i] ? 'done' : 'todo'}
-                aria-current={i === current ? 'step' : undefined}
-              >
-                <span className="hub-steps__dot" aria-hidden>
-                  {doneSteps[i] && i !== current ? '✓' : i + 1}
-                </span>
-                <span className="hub-steps__label">{label}</span>
-              </li>
-            ))}
-          </ol>
-        </FadeUp>
 
         <Stagger className="hub-grid">
           <StaggerItem className="card hub-card">
@@ -292,31 +247,65 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
             </StaggerItem>
           )}
         </Stagger>
-
-        <FadeUp>
-          <h2 className="hub-title">Seu plano alimentar de hoje</h2>
-          <TodayView
-            data={data}
-            variant="hub"
-            actions={{ setMeal: setMealStatus, water: changeWater }}
-            links={{ plan: '/paciente/plano', chat: '/paciente/mensagens', diary: '/paciente/diario', progress: '/paciente/evolucao' }}
-            emptyPlan={
-              <section className="card hub-empty hub-empty--big">
-                <IlloPlate />
-                <h3>Seu plano está sendo preparado pelo André</h3>
-                <p className="muted">Assim que ele for liberado, você vê aqui a próxima refeição e pode marcar o que comeu.</p>
-                {!anamnesisDone ? (
-                  <Link href="/paciente/anamnese" className="btn btn--primary btn--sm">
-                    Preencher anamnese
-                  </Link>
-                ) : f.chat ? (
-                  <Link href="/paciente/mensagens" className="btn btn--sm">
-                    Falar com o André
-                  </Link>
-                ) : null}
-              </section>
-            }
-          />
+        {notes.length > 0 && (
+          <FadeUp className="card card--soft">
+            <div className="card__head">
+              <h2 style={{ fontSize: '1.05rem' }}>Avisos</h2>
+              <form action={markNotificationsRead}>
+                <button className="link-btn small" type="submit">
+                  Marcar como lidos
+                </button>
+              </form>
+            </div>
+            <ul className="list">
+              {notes.map((n) => (
+                <li key={n.id}>
+                  {n.link ? <Link href={n.link}>{n.title}</Link> : <strong>{n.title}</strong>}
+                  {n.body && <span className="muted"> — {n.body}</span>}
+                </li>
+              ))}
+            </ul>
+          </FadeUp>
+        )}
+        <FadeUp className="card hub-status">
+          <div className="hub-status__top">
+            <div>
+              <span className="eyebrow">Seu acompanhamento</span>
+              <p className="hub-status__plan">{pkg[0] ? `Plano ${pkg[0].name}` : 'Nenhum plano contratado ainda'}</p>
+              {!pkg[0] && (
+                <Link href="/planos" className="small">
+                  Ver planos
+                </Link>
+              )}
+            </div>
+            <div className="hub-status__days">
+              {days === null ? (
+                <span className="muted small">Sem consulta marcada</span>
+              ) : (
+                <>
+                  <strong>{days === 0 ? 'Hoje' : days}</strong>
+                  <span className="small muted">{days === 0 ? 'é dia de consulta' : days === 1 ? 'dia até a consulta' : 'dias até a consulta'}</span>
+                </>
+              )}
+            </div>
+          </div>
+          <p className="hub-steps__now">
+            Etapa atual: <strong>{STEPS[current]}</strong>
+          </p>
+          <ol className="hub-steps" aria-label="Etapas do acompanhamento">
+            {STEPS.map((label, i) => (
+              <li
+                key={label}
+                data-state={i === current ? 'current' : doneSteps[i] ? 'done' : 'todo'}
+                aria-current={i === current ? 'step' : undefined}
+              >
+                <span className="hub-steps__dot" aria-hidden>
+                  {doneSteps[i] && i !== current ? '✓' : i + 1}
+                </span>
+                <span className="hub-steps__label">{label}</span>
+              </li>
+            ))}
+          </ol>
         </FadeUp>
 
         <FadeUp className="card hub-tip">
@@ -329,6 +318,11 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
               <p className="muted" style={{ margin: 0 }}>
                 Toda semana o André deixa uma dica aqui. Enquanto isso, que tal registrar a água de hoje?
               </p>
+            )}
+            {s.dailyQuote && (
+              <blockquote className="hub-quote">
+                “{s.dailyQuote}”<cite>— {s.professionalName.split(' ')[0]}</cite>
+              </blockquote>
             )}
             {data.guidance && (
               <p className="small" style={{ margin: '10px 0 0', whiteSpace: 'pre-wrap' }}>

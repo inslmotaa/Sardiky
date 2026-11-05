@@ -5,8 +5,8 @@ import { UserError } from './action'
 import type { CurrentUser } from './auth/session'
 
 /**
- * Equipe com vários nutricionistas: quem está marcado como “só os próprios pacientes”
- * vê apenas pacientes em que é o nutricionista responsável. Administrador e demais membros veem todos.
+ * Equipe com vários coaches: quem está marcado como “só os próprios pacientes”
+ * vê apenas pacientes em que é o coach responsável. Administrador e demais membros veem todos.
  */
 export const isRestricted = (user: Pick<CurrentUser, 'role' | 'ownPatientsOnly'>) => user.role === 'staff' && user.ownPatientsOnly
 
@@ -28,7 +28,7 @@ export async function assertPatientAccess(user: Pick<CurrentUser, 'id' | 'role' 
   if (!p || p.n !== user.id) throw new UserError('Cliente não encontrado.')
 }
 
-/** Quem pode ser nutricionista responsável: administrador e membros da equipe com acesso clínico. */
+/** Quem pode ser coach responsável: administrador e membros da equipe com acesso clínico. */
 export async function nutritionistOptions() {
   const rows = await db.select({ id: schema.users.id, name: schema.users.name, role: schema.users.role, permissions: schema.users.permissions, isActive: schema.users.isActive }).from(schema.users)
   return rows.filter((u) => u.isActive && (u.role === 'admin' || (u.role === 'staff' && u.permissions.includes('clinico')))).map((u) => ({ id: u.id, name: u.name }))

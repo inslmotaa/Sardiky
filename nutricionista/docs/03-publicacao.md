@@ -18,7 +18,7 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
    - O Caddy emite o certificado HTTPS automaticamente.
    - As migrações do banco rodam a cada início da aplicação.
    - Na primeira vez, a base de alimentos é carregada sozinha: TACO 4ª ed. completa (597 alimentos) e medidas caseiras do IBGE. Veja `docs/12-tabelas-de-alimentos.md`.
-6. **Primeiro acesso do nutricionista** — o banco de produção começa vazio. Crie o administrador e as configurações iniciais com:
+6. **Primeiro acesso do coach** — o banco de produção começa vazio. Crie o administrador e as configurações iniciais com:
    ```bash
    docker compose -f deploy/docker-compose.yml exec app node scripts/create-admin.mjs "André Farion" email@dominio.com.br
    ```
@@ -31,7 +31,6 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
    - [ ] Política de privacidade revisada por profissional jurídico
    - [ ] Contatos e serviços reais em Configurações (atendimento 100% on-line)
    - [ ] Faixa “versão de demonstração” desativada
-   - [ ] Depoimentos somente com autorização registrada
    - [ ] E-mail configurado e testado (recuperação de senha)
    - [ ] Backup externo funcionando e restauração testada
    - [ ] Monitoramento ativo

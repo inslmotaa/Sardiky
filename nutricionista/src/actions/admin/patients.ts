@@ -30,7 +30,7 @@ async function patientOrThrow(id: string) {
   if (!uuid.safeParse(id).success) throw new UserError('Cliente inválido.')
   const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, id))
   if (!p || p.anonymizedAt) throw new UserError('Cliente não encontrado.')
-  // Nutricionista com “só os próprios pacientes” não age sobre pacientes de outros.
+  // Coach com “só os próprios pacientes” não age sobre pacientes de outros.
   const user = await getCurrentUser()
   if (user && !canSeePatient(user, p)) throw new UserError('Cliente não encontrado.')
   return p
@@ -85,7 +85,7 @@ export async function createPatient(_: ActionState, fd: FormData): Promise<Actio
       const [dup] = await db.select({ id: schema.patients.id }).from(schema.patients).where(eq(schema.patients.email, parsed.data.email))
       if (dup) return { fieldErrors: { email: 'Já existe um cliente com este e-mail' }, error: 'E-mail já cadastrado.' }
     }
-    // Nutricionista com pacientes próprios: o paciente que ele cadastra fica sob sua responsabilidade.
+    // Coach com pacientes próprios: o paciente que ele cadastra fica sob sua responsabilidade.
     if (isRestricted(user)) parsed.data.nutritionistId = user.id
     const [p] = await db.insert(schema.patients).values(parsed.data).returning({ id: schema.patients.id })
     // Anamnese nativa automática para cada paciente novo (se configurada).

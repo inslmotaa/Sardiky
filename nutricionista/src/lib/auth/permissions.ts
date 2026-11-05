@@ -1,7 +1,7 @@
 /**
  * Modelo de permissões.
- * - admin (nutricionista): acesso total.
- * - staff (equipe): apenas as permissões concedidas pelo nutricionista.
+ * - admin (coach): acesso total.
+ * - staff (equipe): apenas as permissões concedidas pelo coach.
  * - patient: somente os próprios dados, sempre derivados da sessão.
  */
 export const STAFF_PERMISSIONS = {

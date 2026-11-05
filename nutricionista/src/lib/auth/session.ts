@@ -19,7 +19,7 @@ export type CurrentUser = {
   permissions: string[]
   patientId: string | null
   onboarded: boolean
-  /** Nutricionista da equipe que só vê os próprios pacientes. */
+  /** Coach da equipe que só vê os próprios pacientes. */
   ownPatientsOnly: boolean
 }
 

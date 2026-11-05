@@ -23,7 +23,7 @@ export type TrackingRow = {
  * Painel de Acompanhamento: pacientes ativos classificados pela adesão dos últimos 7 dias
  * (consultas em lote, sem uma ida ao banco por paciente).
  */
-/** `onlyNutritionist`: limita aos pacientes de um nutricionista (equipe com pacientes próprios). */
+/** `onlyNutritionist`: limita aos pacientes de um coach (equipe com pacientes próprios). */
 export async function trackingBoard(today: string, tz: string, t: AdherenceThresholds, onlyNutritionist?: string | null): Promise<TrackingRow[]> {
   const patients = await db
     .select()

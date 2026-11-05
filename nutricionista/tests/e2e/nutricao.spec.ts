@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { login, openPatient } from './helpers'
+import { login, openPatient, payWithCard } from './helpers'
 
 /**
  * Fluxo nutricional de ponta a ponta: o coach define o plano contratado, monta só o café da manhã,
@@ -8,8 +8,15 @@ import { login, openPatient } from './helpers'
 test('coach envia o café da manhã; cliente vê no Hoje, no Plano e no Meu perfil', async ({ page }) => {
   await login(page, 'admin')
   // Início do coach: quem está com o plano contratado perto de vencer.
-  await expect(page.getByRole('heading', { name: 'Planos para enviar ou renovar' })).toBeVisible()
-  await expect(page.locator('section[aria-labelledby="planos-pendentes"]')).toContainText(/Lucas Fictício · Plano Mensal termina em/)
+  // Fila de trabalho: plano vencendo (Lucas termina em 5 dias), com o botão para renovar.
+  const fila = page.locator('section[aria-labelledby="fila-titulo"]')
+  await expect(page.getByRole('heading', { name: /^O que precisa de você/ })).toBeVisible()
+  const lucas = fila.locator('.queue__item', { hasText: 'Plano vencendo' }).filter({ hasText: 'Lucas Fictício' })
+  await expect(lucas).toContainText(/Plano Mensal termina em/)
+  await expect(lucas.getByRole('link', { name: 'Renovar' })).toHaveAttribute('href', /aba=financeiro$/)
+  // A ordem da fila: "Montar plano" vem antes de "Plano vencendo".
+  const kinds = await fila.locator('.queue__kind').allTextContents()
+  expect(kinds.indexOf('Montar plano')).toBeLessThan(kinds.indexOf('Plano vencendo'))
 
   // Plano contratado na ficha: Trimestral a partir de hoje.
   await openPatient(page, 'Helena Teste')
@@ -147,7 +154,8 @@ test('depois de fechar o plano, a anamnese pode ser respondida pelo formulário 
   await page.getByLabel('Confirme a senha').fill('Formulario#2026')
   await page.getByLabel(/Li e aceito a/).check()
   await page.getByRole('button', { name: 'Criar conta' }).click()
-  await expect(page).toHaveURL(/\/paciente\/anamnese$/)
+  await payWithCard(page)
+  await expect(page).toHaveURL(/\/paciente\/anamnese\?pago=1$/)
   await expect(page.getByRole('heading', { name: 'Como você prefere responder a anamnese?' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Responder no app' })).toBeVisible()
   await page.getByRole('button', { name: 'Já enviei o formulário' }).click()

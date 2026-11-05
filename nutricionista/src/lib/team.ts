@@ -5,7 +5,7 @@ import { can, type Permission } from './auth/permissions'
 import { notifyUser } from './notify'
 
 /**
- * Membros da equipe com a permissão. Quando o aviso é sobre um paciente, nutricionistas marcados
+ * Membros da equipe com a permissão. Quando o aviso é sobre um paciente, coaches marcados
  * como “só os próprios pacientes” recebem apenas os dos pacientes sob sua responsabilidade.
  */
 export async function teamFor(perm: Permission, patientId?: string | null) {

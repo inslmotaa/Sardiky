@@ -16,7 +16,6 @@ Tudo pode ser preenchido em **Painel → Configurações**, sem mexer no código
 - [ ] Especialidades e públicos atendidos (ex.: emagrecimento, hipertrofia, esportistas, saúde da mulher)
 - [ ] Método de trabalho e diferenciais
 - [ ] Como funciona o acompanhamento (etapas)
-- [ ] Depoimentos reais **com autorização por escrito** de cada paciente
 
 **Contatos e atendimento**
 - [ ] WhatsApp (com DDD), por exemplo 55 + DDD + número
@@ -32,7 +31,7 @@ Tudo pode ser preenchido em **Painel → Configurações**, sem mexer no código
 
 Objetivo: o André lança a consultoria para cada cliente, que acessa uma área própria com **dieta e treino** e acompanha tudo.
 
-> **Ponto de atenção regulatório:** no Brasil, a prescrição de treinos é atribuição do profissional de Educação Física (registro no CREF). Se o André tiver também o CREF, ele mesmo pode prescrever; se não, a parte de treino deve ser assinada por um profissional de Educação Física parceiro. O sistema pode ter os dois perfis (nutricionista e educador físico), cada um responsável pela sua parte.
+> **Ponto de atenção regulatório:** no Brasil, a prescrição de treinos é atribuição do profissional de Educação Física (registro no CREF). Se o André tiver também o CREF, ele mesmo pode prescrever; se não, a parte de treino deve ser assinada por um profissional de Educação Física parceiro. O sistema pode ter os dois perfis (coach e educador físico), cada um responsável pela sua parte.
 
 **O que já existe e será reaproveitado**
 - Área do cliente com login, plano alimentar, diário, evolução, metas, mensagens e formulários
@@ -46,7 +45,7 @@ Objetivo: o André lança a consultoria para cada cliente, que acessa uma área 
 - [ ] **Check-ins periódicos**: questionário + fotos de evolução (opcionais, privadas) + medidas, com prazo e lembrete
 - [ ] **Página de vendas da consultoria** no site, com planos e botão de contratação
 - [ ] **Pagamento on-line** (Pix e cartão, por exemplo Mercado Pago ou Asaas) com liberação automática do acesso após confirmação do pagamento
-- [ ] **Perfis profissionais**: nutricionista e educador físico, cada um vendo e editando apenas a sua parte
+- [ ] **Perfis profissionais**: coach e educador físico, cada um vendo e editando apenas a sua parte
 
 ## 3. De site para aplicativo
 

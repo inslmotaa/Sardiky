@@ -80,7 +80,7 @@ export async function pushToUser(userId: string, kind: PushKind, payload: PushPa
   return sent
 }
 
-/** Push para a equipe com a permissão indicada (respeitando nutricionistas com pacientes próprios). */
+/** Push para a equipe com a permissão indicada (respeitando coaches com pacientes próprios). */
 export async function pushToTeam(perm: Permission, payload: PushPayload, patientId?: string | null) {
   const { teamFor } = await import('./team')
   for (const u of await teamFor(perm, patientId)) await pushToUser(u.id, 'equipe', payload)

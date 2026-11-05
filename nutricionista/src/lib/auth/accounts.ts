@@ -7,6 +7,8 @@ import { sendEmail } from '@/lib/notify'
 import { notifyTeam } from '@/lib/team'
 import { audit } from '@/lib/audit'
 import { hashToken, newToken } from './tokens'
+import { mpConfigured } from '../mercadopago'
+import { needsPayment } from '../pagamentos'
 
 /**
  * Confirmação de e-mail no cadastro público: exigida quando o envio de e-mails está configurado.
@@ -51,7 +53,8 @@ export async function createPatientAccount(d: {
           .returning()
       : await tx
           .insert(schema.patients)
-          .values({ userId: u.id, fullName: d.name, email: d.email, phone: d.phone, packageId: d.packageId, stage: 'Cadastro pelo site' })
+          // Cadastro novo pelo site: com o Mercado Pago ligado, a área só libera depois do pagamento.
+          .values({ userId: u.id, fullName: d.name, email: d.email, phone: d.phone, packageId: d.packageId, stage: 'Cadastro pelo site', paymentRequired: mpConfigured() })
           .returning()
     await tx.insert(schema.consents).values({ userId: u.id, patientId: p.id, kind: 'tratamento_dados_saude', version: PRIVACY_VERSION })
     return { ...u, patientId: p.id }
@@ -79,6 +82,11 @@ export async function destinationFor(user: { role: string; patientId: string | n
   const safe = typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : null
   if (user.role !== 'patient') return safe && !safe.startsWith('/paciente') ? safe : '/admin'
   if (user.patientId) {
+    // Cadastro pelo site ainda sem pagamento aprovado: primeiro o pagamento (com o plano escolhido).
+    if (await needsPayment(user.patientId)) {
+      const plano = safe?.match(/[?&]plano=([0-9a-f-]{36})/)?.[1]
+      return `/paciente/pagamento${plano ? `?plano=${plano}` : ''}`
+    }
     const [p] = await db.select({ at: schema.patients.anamnesisReceivedAt }).from(schema.patients).where(eq(schema.patients.id, user.patientId))
     if (p && !p.at) return `/paciente/anamnese${safe && safe !== '/paciente' ? `?next=${encodeURIComponent(safe)}` : ''}`
   }

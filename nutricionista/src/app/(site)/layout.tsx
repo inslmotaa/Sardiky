@@ -6,13 +6,17 @@ import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
 import { logout } from '@/actions/auth'
 import { BookingLink } from '@/components/BookingLink'
 import { BackToTop } from '@/components/BackToTop'
+import { emailLink, instagramLink } from '@/lib/social'
 import { LoginMenu, MobileMenu, SiteBrand, SiteFx, SiteNavLinks, UserMenu } from '@/components/SiteChrome'
 import { SITE_NAV, SITE_PAGES, TIMELESS_URL } from '@/lib/constants'
 import { MotionRoot } from '@/components/motion'
-import { IconInstagram, IconWhatsApp } from '@/components/icons'
+import { IconInstagram, IconMail, IconWhatsApp } from '@/components/icons'
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [s, user] = await Promise.all([getSettings(), getCurrentUser()])
+  // Redes e e-mail só aparecem com valores reais.
+  const ig = instagramLink(s.instagram)
+  const mail = emailLink(s.contactEmail)
   const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de mais informações sobre o acompanhamento.')
   const area = user ? (user.role === 'patient' ? '/paciente' : '/admin') : '/entrar'
@@ -78,9 +82,14 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                       <IconWhatsApp width={18} height={18} />
                     </a>
                   )}
-                  {s.instagram && (
-                    <a href={s.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                  {ig && (
+                    <a href={ig.url} target="_blank" rel="noopener noreferrer" aria-label={`Instagram @${ig.handle}`}>
                       <IconInstagram width={18} height={18} />
+                    </a>
+                  )}
+                  {mail && (
+                    <a href={mail.url} aria-label={`Escrever para ${mail.email}`} title={mail.email}>
+                      <IconMail width={18} height={18} />
                     </a>
                   )}
                 </div>
@@ -140,12 +149,15 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           </div>
         </footer>
 
-        <BackToTop place={wa ? 'site' : 'base'} />
-        {wa && (
-          <a className="whatsapp-float" href={wa} target="_blank" rel="noopener noreferrer" aria-label="Conversar pelo WhatsApp">
-            <IconWhatsApp />
-          </a>
-        )}
+        {/* Botões flutuantes numa coluna no canto inferior direito: "Voltar ao topo" em cima, WhatsApp embaixo. */}
+        <div className="site-floats">
+          <BackToTop place="site" />
+          {wa && (
+            <a className="whatsapp-float" href={wa} target="_blank" rel="noopener noreferrer" aria-label="Conversar pelo WhatsApp">
+              <IconWhatsApp />
+            </a>
+          )}
+        </div>
       </div>
     </MotionRoot>
   )

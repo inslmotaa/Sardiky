@@ -9,7 +9,7 @@ import { money } from '@/lib/format'
 import { integrationStatus } from '@/lib/integrations'
 import { togglePackage } from '@/actions/admin/finance'
 import { PackageForm } from '@/components/PackageForm'
-import { monthsLabel, planPrices } from '@/lib/planos'
+import { monthsLabel, planDiscounts } from '@/lib/planos'
 import { PaymentForm } from '@/components/PaymentForm'
 import { PaymentsTable } from '@/components/PaymentsTable'
 import { DemoTag, NoAccess, PageHead, Stat } from '@/components/ui'
@@ -62,7 +62,22 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
     db.select().from(schema.packages).orderBy(asc(schema.packages.sort), asc(schema.packages.months)),
     db.select({ id: schema.patients.id, name: schema.patients.fullName }).from(schema.patients).where(isNull(schema.patients.anonymizedAt)).orderBy(asc(schema.patients.fullName)),
   ])
-  const plans = planPrices(packages)
+  const plans = planDiscounts(packages)
+  // Resumo do Mercado Pago no mês: recebido, pendente (todos) e estornado.
+  const mpRows = await db
+    .select({ status: schema.payments.status, cents: net, at: sql<string>`coalesce(${schema.payments.paidAt}, ${schema.payments.createdAt}::date)` })
+    .from(schema.payments)
+    .where(eq(schema.payments.provider, 'mercadopago'))
+  const inMonth = (d: string) => String(d).slice(0, 10) >= month && String(d).slice(0, 10) < next
+  const sumOf = (f: (r: (typeof mpRows)[number]) => boolean) => mpRows.filter(f).reduce((n, r) => n + Number(r.cents), 0)
+  const mpSummary = {
+    received: sumOf((r) => r.status === 'pago' && inMonth(r.at)),
+    receivedN: mpRows.filter((r) => r.status === 'pago' && inMonth(r.at)).length,
+    pending: sumOf((r) => r.status === 'pendente'),
+    pendingN: mpRows.filter((r) => r.status === 'pendente').length,
+    refunded: sumOf((r) => r.status === 'estornado' && inMonth(r.at)),
+    refundedN: mpRows.filter((r) => r.status === 'estornado' && inMonth(r.at)).length,
+  }
   const received = rows.filter((r) => r.pay.status === 'pago').reduce((n, r) => n + r.pay.amountCents - r.pay.discountCents, 0)
   const discounts = rows.filter((r) => r.pay.status === 'pago').reduce((n, r) => n + r.pay.discountCents, 0)
   const maxMonth = Math.max(1, ...monthly.map((m) => m.v))
@@ -71,10 +86,21 @@ export default async function FinancePage({ searchParams }: { searchParams: Prom
   return (
     <div className="stack" style={{ ['--gap' as string]: '24px' }}>
       <PageHead title="Financeiro" subtitle={status === 'pendente' ? 'Todos os valores pendentes' : capitalize(label)} />
-      {!integrationStatus().payments && (
+      {integrationStatus().payments ? (
+        <section className="card" aria-labelledby="mp-resumo">
+          <h2 id="mp-resumo" style={{ fontSize: '1.05rem', marginTop: 0 }}>
+            Mercado Pago · {label}
+          </h2>
+          <div className="grid-3">
+            <Stat value={money(mpSummary.received)} label={`Recebido pelo Mercado Pago (${mpSummary.receivedN})`} />
+            <Stat value={money(mpSummary.pending)} label={`Pendente: Pix/boleto aguardando (${mpSummary.pendingN})`} href="/admin/financeiro?status=pendente" />
+            <Stat value={money(mpSummary.refunded)} label={`Estornado (${mpSummary.refundedN})`} />
+          </div>
+        </section>
+      ) : (
         <p className="alert alert--info small">
-          <DemoTag>Pagamentos on-line não integrados</DemoTag> Todos os valores aqui são <strong>registros internos</strong> lançados pela equipe. Quando um provedor (ex.: Mercado
-          Pago, Stripe, Asaas) for integrado, os pagamentos confirmados por ele aparecerão marcados como “Confirmado por provedor”.
+          <DemoTag>Mercado Pago não configurado</DemoTag> Todos os valores aqui são <strong>registros internos</strong> lançados pela equipe. Com o Mercado Pago ligado
+          (docs/14-mercado-pago.md), os pagamentos dos planos aparecem como “Confirmado por mercadopago”, com a forma de pagamento.
         </p>
       )}
       <div className="row row--between">

@@ -1,4 +1,4 @@
-# Manual do André — painel do nutricionista e app do cliente
+# Manual do André — painel do coach e app do cliente
 
 O sistema tem duas áreas:
 
@@ -33,6 +33,29 @@ O nome do site e do app é **Farion** (cabeçalho, aba do navegador e ícone ins
    - prescrições na aba **Prescrições**. Em **Escrever prescrição**, o André digita livremente: suplementos, manipulados, ergogênicos, alimentos, quantidades, horários e orientações. As quebras de linha são mantidas no app do cliente e no PDF. Há também os tipos Suplemento, Manipulado, Ergogênico, Fitoterápico, Alimentação, Exame e Outro, com dose, horário e duração opcionais. Cada prescrição pode ser editada (o cliente é avisado) ou encerrada;
    - metas na aba **Metas**.
 
+### Pagamento dos planos (Mercado Pago)
+
+Com o Mercado Pago configurado ([14-mercado-pago.md](14-mercado-pago.md)), o fluxo é o seguinte:
+
+- **Quem se cadastra pelo site:** escolhe o plano em `/planos` (botão **Contratar**) e paga pelo Mercado Pago, com Pix, cartão em até 12x ou boleto. Só depois do pagamento aprovado a área do cliente e a anamnese abrem. Você recebe o aviso "… pagou o plano …".
+- **Clientes que você mesmo cadastra:** não passam por isso.
+- **Na ficha do cliente → Financeiro:**
+  - **Gerar link de pagamento** (com **Copiar link** e **Enviar pelo WhatsApp**);
+  - **Liberar sem pagamento on-line**, para quem pagou por fora.
+- **Período do plano:** o pagamento aprovado define o período sozinho, do início a início + meses − 1 dia. Na renovação antes de vencer, o novo período começa no dia seguinte ao término atual.
+- **Estorno:** o lançamento vira "estornado" e você é avisado. O cliente continua ativo até você decidir.
+
+### Fila de trabalho (Início)
+
+O quadro **O que precisa de você** mostra, nesta ordem, cada item com um botão que leva direto à tela certa:
+
+1. **Montar plano:** pagou e respondeu a anamnese, mas ainda não tem plano alimentar.
+2. **Plano vencendo:** termina em até 7 dias (ou já terminou). O botão leva ao Financeiro, para renovar.
+3. **Com dificuldade:** baixa adesão nos últimos 7 dias. O botão leva ao diário.
+4. **Mensagem:** conversas não lidas.
+
+Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguardando e planos que terminam em 7 dias.
+
 ### Acompanhamento do dia a dia
 
 - **Acompanhamento:** mostra quem está em dia, com dificuldade ou sem progresso, pela adesão dos últimos 7 dias. Quem está há 3 dias sem registrar gera um alerta.
@@ -53,14 +76,15 @@ O nome do site e do app é **Farion** (cabeçalho, aba do navegador e ícone ins
 | Configurações → Perfil | **Botão "Agendar consulta" do site**: agenda on-line com conta do cliente (padrão) ou WhatsApp |
 | Configurações → Perfil | **Mostrar os valores das consultas no site** (desligado por padrão) |
 | Configurações → Perfil | **Mostrar os valores dos planos** (ligado) e a lista **Todos os planos incluem** |
-| Configurações → Equipe | Convidar recepção ou outro nutricionista. Cada um pode ver só os próprios clientes. |
+| Configurações → Equipe | Convidar recepção ou outro coach. Cada um pode ver só os próprios clientes. |
 | Privacidade e auditoria | Quem acessou o quê, pedidos de exportação e exclusão de dados (LGPD) |
 
 ## 2. App do cliente (`/paciente`)
 
 O cliente vê **somente os próprios dados**:
 
-- **Hoje:** a próxima refeição, o que marcar como feito e o contador de água;
+- **Hoje:** primeiro o que comer (a próxima refeição em destaque e as refeições do dia com feita/parcial/pulei), depois a água, a consulta, os avisos, o acompanhamento, o peso e a dica da semana. Faltando 7 dias para o fim do plano, aparece **Renovar**;
+- **Plano:** o seletor **Seg · Ter · … · Dom** abre o dia certo (hoje fica marcado), cada aba mostra os dias que cobre (ex.: "Dia de treino · Seg, Qua, Sex") e a visão **Semana** resume a semana com as kcal. O PDF traz a mesma tabela;
 - **Meu perfil** (a bolinha com as iniciais, no topo, ou **Mais → Meu perfil**):
   - plano contratado, vigência e dias restantes, com o botão **Renovar o plano** quando estiver perto do fim;
   - o coach, a etapa, o objetivo e a próxima consulta;

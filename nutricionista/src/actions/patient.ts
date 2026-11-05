@@ -558,7 +558,7 @@ export async function completeOnboarding(): Promise<void> {
 
 /**
  * "Excluir minha conta": encerra o acesso na hora (login, sessões e notificações) e registra o pedido de eliminação.
- * O prontuário fica guardado só pelo prazo das normas profissionais e é anonimizado pelo nutricionista em Privacidade.
+ * O prontuário fica guardado só pelo prazo das normas profissionais e é anonimizado pelo coach em Privacidade.
  */
 export async function deleteMyAccount(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()

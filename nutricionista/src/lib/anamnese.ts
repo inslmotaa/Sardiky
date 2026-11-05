@@ -6,7 +6,7 @@ import { restrictionsFromText } from './restricoes'
 
 /**
  * Leva as respostas da anamnese para a ficha: restrições alimentares (alertas no editor de planos)
- * e objetivo, nos campos marcados pelo nutricionista no construtor (“levar a resposta para a ficha”).
+ * e objetivo, nos campos marcados pelo coach no construtor (“levar a resposta para a ficha”).
  * Também marca a anamnese como recebida.
  */
 export async function applyAnamnesis(patientId: string, fields: FormField[], answers: FormAnswers) {

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { and, asc, count, desc, eq, gte, inArray, isNull, lt, lte, sql, sum } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, sql, sum } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { isRestricted } from '@/lib/team-access'
@@ -108,7 +108,15 @@ export default async function AdminHome() {
   // Planos para enviar (cliente ativo sem plano alimentar publicado) e acompanhamentos com término definido pelo coach chegando.
   const actives = clinical
     ? await db
-        .select({ id: schema.patients.id, name: schema.patients.fullName, start: schema.patients.packageStart, end: schema.patients.packageEnd, pkg: schema.packages })
+        .select({
+          id: schema.patients.id,
+          name: schema.patients.fullName,
+          start: schema.patients.packageStart,
+          end: schema.patients.packageEnd,
+          anamnesisAt: schema.patients.anamnesisReceivedAt,
+          paymentRequired: schema.patients.paymentRequired,
+          pkg: schema.packages,
+        })
         .from(schema.patients)
         .leftJoin(schema.packages, eq(schema.packages.id, schema.patients.packageId))
         .where(
@@ -130,10 +138,32 @@ export default async function AdminHome() {
         ).map((r) => r.id)
       : [],
   )
-  const withoutPlan = actives.filter((a) => !published.has(a.id))
+  // Fila de trabalho, na ordem: 1. pagou e respondeu a anamnese, mas ainda não tem plano; 2. plano vencendo;
+  // 3. clientes com dificuldade; 4. mensagens.
+  const toBuild = actives.filter((a) => a.anamnesisAt && !a.paymentRequired && !published.has(a.id))
   const renewals = actives
     .map((a) => ({ ...a, c: a.pkg ? contractInfo(a.pkg, a.start, a.end, today) : null }))
-    .filter((a) => a.c && (a.c.status === 'vencendo' || a.c.status === 'vencido'))
+    .filter((a) => a.c && a.c.daysLeft != null && a.c.daysLeft <= 7)
+  const struggling = board ? board.filter((r) => r.klass === 'dificuldade') : []
+  const queueSize = toBuild.length + renewals.length + struggling.length + unread.length
+
+  // Pagamentos: quem pagou hoje, Pix/boleto aguardando e planos que terminam em até 7 dias.
+  const payToday = finance
+    ? await db
+        .select({ pay: schema.payments, name: schema.patients.fullName })
+        .from(schema.payments)
+        .leftJoin(schema.patients, eq(schema.patients.id, schema.payments.patientId))
+        .where(and(eq(schema.payments.status, 'pago'), eq(schema.payments.paidAt, today)))
+        .orderBy(desc(schema.payments.createdAt))
+    : []
+  const payWaiting = finance
+    ? await db
+        .select({ pay: schema.payments, name: schema.patients.fullName })
+        .from(schema.payments)
+        .leftJoin(schema.patients, eq(schema.patients.id, schema.payments.patientId))
+        .where(and(eq(schema.payments.status, 'pendente'), eq(schema.payments.provider, 'mercadopago'), isNotNull(schema.payments.providerRef)))
+        .orderBy(desc(schema.payments.createdAt))
+    : []
 
   return (
     <div className="stack" style={{ ['--gap' as string]: '24px' }}>
@@ -211,6 +241,77 @@ export default async function AdminHome() {
               </li>
             )}
           </ul>
+        </section>
+      )}
+
+      {/* Primeiro o que precisa de ação, em ordem de prioridade. */}
+      {clinical && (
+        <section className="card queue" aria-labelledby="fila-titulo">
+          <div className="card__head">
+            <h2 id="fila-titulo">O que precisa de você{queueSize > 0 ? ` (${queueSize})` : ''}</h2>
+          </div>
+          {queueSize === 0 ? (
+            <p className="muted" style={{ margin: 0 }}>
+              Tudo em dia por aqui.
+            </p>
+          ) : (
+            <ol className="queue__list">
+              {toBuild.map((a) => (
+                <li key={`m-${a.id}`} className="queue__item">
+                  <span className="queue__kind">Montar plano</span>
+                  <span>
+                    <strong>{a.name}</strong>
+                    <span className="small muted"> · pagou e respondeu a anamnese, ainda sem plano alimentar</span>
+                  </span>
+                  <Link href={`/admin/pacientes/${a.id}?aba=planos`} className="btn btn--sm btn--primary">
+                    Montar plano
+                  </Link>
+                </li>
+              ))}
+              {renewals.map((a) => (
+                <li key={`r-${a.id}`} className="queue__item">
+                  <span className="queue__kind queue__kind--warn">Plano vencendo</span>
+                  <span>
+                    <strong>{a.name}</strong>
+                    <span className="small muted">
+                      {' '}
+                      · Plano {a.c!.name} {a.c!.daysLeft! < 0 ? `terminou em ${fmtDay(a.c!.end)}` : `termina em ${fmtDay(a.c!.end)}`}
+                    </span>
+                  </span>
+                  <Link href={`/admin/pacientes/${a.id}?aba=financeiro`} className="btn btn--sm">
+                    Renovar
+                  </Link>
+                </li>
+              ))}
+              {struggling.map((r) => (
+                <li key={`d-${r.id}`} className="queue__item">
+                  <span className="queue__kind queue__kind--warn">Com dificuldade</span>
+                  <span>
+                    <strong>{r.name}</strong>
+                    <span className="small muted"> · {r.pct != null ? `${r.pct}% das refeições nos últimos 7 dias` : 'pouca adesão nos últimos dias'}</span>
+                  </span>
+                  <Link href={`/admin/pacientes/${r.id}?aba=diario`} className="btn btn--sm">
+                    Ver diário
+                  </Link>
+                </li>
+              ))}
+              {unread.map((m) => (
+                <li key={`c-${m.patientId}`} className="queue__item">
+                  <span className="queue__kind">Mensagem</span>
+                  <span>
+                    <strong>{m.name}</strong>
+                    <span className="small muted">
+                      {' '}
+                      · {m.n} {m.n === 1 ? 'mensagem não lida' : 'mensagens não lidas'}
+                    </span>
+                  </span>
+                  <Link href={`/admin/pacientes/${m.patientId}?aba=mensagens`} className="btn btn--sm">
+                    Responder
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          )}
         </section>
       )}
 
@@ -292,39 +393,61 @@ export default async function AdminHome() {
         </div>
       )}
 
-      {clinical && (withoutPlan.length > 0 || renewals.length > 0) && (
-        <section className="card" aria-labelledby="planos-pendentes">
+      {finance && (
+        <section className="card" aria-labelledby="pagamentos-titulo">
           <div className="card__head">
-            <h2 id="planos-pendentes">Planos para enviar ou renovar</h2>
-            <Link href="/admin/planos" className="small">
-              Planos alimentares
+            <h2 id="pagamentos-titulo">Pagamentos</h2>
+            <Link href="/admin/financeiro" className="small">
+              Financeiro
             </Link>
           </div>
-          <ul className="list">
-            {withoutPlan.map((a) => (
-              <li key={a.id} className="row row--between">
-                <span>
-                  <Link href={`/admin/pacientes/${a.id}?aba=planos`}>{a.name}</Link>
-                  <span className="small muted"> · ainda sem plano alimentar no app</span>
-                </span>
-                <Link href={`/admin/pacientes/${a.id}?aba=planos`} className="btn btn--sm btn--primary">
-                  Montar plano
-                </Link>
-              </li>
-            ))}
-            {renewals.map((a) => (
-              <li key={`r-${a.id}`} className="row row--between">
-                <span>
-                  <Link href={`/admin/pacientes/${a.id}`}>{a.name}</Link>
-                  <span className="small muted">
-                    {' '}
-                    · Plano {a.c!.name} {a.c!.status === 'vencido' ? `terminou em ${fmtDay(a.c!.end)}` : `termina em ${fmtDay(a.c!.end)}`}
-                  </span>
-                </span>
-                <span className={`badge ${a.c!.status === 'vencido' ? 'badge--danger' : 'badge--warn'}`}>{a.c!.status === 'vencido' ? 'Encerrado' : 'Renovar'}</span>
-              </li>
-            ))}
-          </ul>
+          <div className="grid-3">
+            <div>
+              <h3 className="small muted">Pagaram hoje ({payToday.length})</h3>
+              {payToday.length === 0 ? (
+                <p className="small muted">Nenhum pagamento hoje.</p>
+              ) : (
+                <ul className="list small">
+                  {payToday.map(({ pay, name }) => (
+                    <li key={pay.id}>
+                      <strong>{name ?? '—'}</strong> · {money(pay.amountCents - pay.discountCents)}
+                      {pay.method && <span className="muted"> · {pay.method}</span>}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <h3 className="small muted">Pix/boleto aguardando ({payWaiting.length})</h3>
+              {payWaiting.length === 0 ? (
+                <p className="small muted">Nada aguardando.</p>
+              ) : (
+                <ul className="list small">
+                  {payWaiting.map(({ pay, name }) => (
+                    <li key={pay.id}>
+                      <strong>{name ?? '—'}</strong> · {pay.description} · {money(pay.amountCents)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <div>
+              <h3 className="small muted">Planos vencendo em 7 dias ({renewals.filter((a) => a.c!.daysLeft! >= 0).length})</h3>
+              {renewals.filter((a) => a.c!.daysLeft! >= 0).length === 0 ? (
+                <p className="small muted">Nenhum.</p>
+              ) : (
+                <ul className="list small">
+                  {renewals
+                    .filter((a) => a.c!.daysLeft! >= 0)
+                    .map((a) => (
+                      <li key={a.id}>
+                        <Link href={`/admin/pacientes/${a.id}?aba=financeiro`}>{a.name}</Link> · {fmtDay(a.c!.end)}
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </section>
       )}
 

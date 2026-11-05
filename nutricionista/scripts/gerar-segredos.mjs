@@ -61,7 +61,14 @@ EMAIL_FROM="André Farion <nao-responda@${domain}>"
 # "Entrar com Google" (opcional). Retorno a cadastrar no Google Cloud: https://${domain}/api/auth/google/callback
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+
+# Mercado Pago (pagamento dos planos). Estas duas NÃO são geradas aqui: vêm do painel do Mercado Pago
+# (https://www.mercadopago.com.br/developers/panel/app). Passo a passo em docs/14-mercado-pago.md.
+# Access Token de PRODUÇÃO da conta do André (Suas integrações > aplicação > Credenciais de produção):
+MERCADOPAGO_ACCESS_TOKEN=
+# Webhooks > Configurar notificações > URL: https://${domain}/api/webhooks/mercadopago, evento "Pagamentos"; copie a "assinatura secreta":
+MERCADOPAGO_WEBHOOK_SECRET=
 `
 writeFileSync(OUT, env, { mode: 0o600 })
 console.log(`${OUT} criado com senhas e chaves novas (permissão 600).`)
-console.log('Falta só preencher RESEND_API_KEY, se for usar e-mail.')
+console.log('Falta preencher RESEND_API_KEY (e-mail) e, para o pagamento on-line, MERCADOPAGO_ACCESS_TOKEN e MERCADOPAGO_WEBHOOK_SECRET.')

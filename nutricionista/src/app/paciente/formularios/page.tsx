@@ -1,13 +1,13 @@
 import Link from 'next/link'
 import { desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtDay } from '@/lib/time'
 import { PageHead, Empty } from '@/components/ui'
 
 export default async function PatientForms() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const s = await getSettings()
   const list = await db
     .select()

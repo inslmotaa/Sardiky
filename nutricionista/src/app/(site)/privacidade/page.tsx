@@ -63,6 +63,11 @@ export default async function PrivacyPage() {
           autoridades apenas quando a lei exigir.
         </p>
         <p>
+          <strong>Pagamentos:</strong> o pagamento dos planos é feito pelo <strong>Mercado Pago</strong>, que atua como operador e processa os dados de
+          pagamento (nome, e-mail, CPF, cartão, Pix ou boleto) no ambiente dele, conforme a política de privacidade do Mercado Pago. Este site{' '}
+          <strong>não recebe nem guarda dados de cartão</strong>: só o valor, a situação e a forma de pagamento.
+        </p>
+        <p>
           Conversas pelo WhatsApp ficam no aplicativo WhatsApp (Meta), fora deste site. Por isso, prefira enviar exames e dados de saúde pela área do
           cliente.
         </p>

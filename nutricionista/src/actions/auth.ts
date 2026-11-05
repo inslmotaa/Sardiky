@@ -93,7 +93,7 @@ const signUpSchema = z.object({
   next: z.string().optional(),
 })
 
-/** Cadastro de cliente pelo site. Não existe cadastro público de nutricionista: a conta do André é criada pelo script/SQL. */
+/** Cadastro de cliente pelo site. Não existe cadastro público de coach: a conta do André é criada pelo script/SQL. */
 export async function signUp(_: ActionState, fd: FormData): Promise<ActionState> {
   const ip = (await clientIp()) ?? 'local'
   if (!rateLimit(`cadastro:${ip}`, 10, 60 * 60_000)) return { error: 'Muitos cadastros a partir desta rede. Tente novamente mais tarde.' }

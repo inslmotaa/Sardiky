@@ -2,6 +2,7 @@ import { and, eq, inArray } from 'drizzle-orm'
 import { readUpload } from '@/lib/storage'
 import { db, schema } from '@/db'
 import { getCurrentUser } from '@/lib/auth/session'
+import { needsPayment } from '@/lib/pagamentos'
 import { audit } from '@/lib/audit'
 import { currentPublishedPlan, getPatient } from '@/lib/patient-context'
 import { normalizePlan } from '@/lib/plan'
@@ -39,6 +40,7 @@ async function pdfExtras(patientId: string | null, s: Awaited<ReturnType<typeof 
 export async function GET(req: Request) {
   const user = await getCurrentUser()
   if (!user || user.role !== 'patient' || !user.patientId) return new Response('Não encontrado', { status: 404 })
+  if (await needsPayment(user.patientId)) return new Response('Conclua o pagamento para começar', { status: 403 })
   const id = new URL(req.url).searchParams.get('id')
   let plan = null
   if (id) {

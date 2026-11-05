@@ -12,8 +12,9 @@ import { hashToken, newToken } from '@/lib/auth/tokens'
 import { onlyDigits, parseMoney } from '@/lib/format'
 import { sendEmail } from '@/lib/notify'
 import { IMAGE_TYPES, saveUpload } from '@/lib/storage'
-import { checkbox, email, int, optDay, optEmail, optStr, str, time, uuid } from '@/lib/validation'
+import { checkbox, email, int, optEmail, optStr, str, time, uuid } from '@/lib/validation'
 import { titledLines } from '@/lib/planos'
+import { instagramLink } from '@/lib/social'
 
 const lines = (v: string | null | undefined) =>
   (v ?? '')
@@ -46,8 +47,15 @@ const profileSchema = z.object({
     .string()
     .trim()
     .optional()
-    .transform((v) => v || null)
-    .refine((v) => v === null || /^https:\/\//.test(v), 'Use o link completo (https://…)'),
+    .transform((v, ctx) => {
+      if (!v) return null
+      const ig = instagramLink(v)
+      if (!ig) {
+        ctx.addIssue({ code: 'custom', message: 'Use @usuario ou o endereço do perfil (instagram.com/usuario)' })
+        return z.NEVER
+      }
+      return ig.url
+    }),
   contactEmail: optEmail,
   privacyContact: optStr(200),
   // Números reais para os contadores do site (vazios = não aparecem).
@@ -217,50 +225,36 @@ export async function saveTemplates(_: ActionState, fd: FormData): Promise<Actio
   }
 }
 
-/* ------------------------ depoimentos e dúvidas ------------------------ */
+/* ------------------------------ Mercado Pago ------------------------------ */
 
-const testimonialSchema = z.object({
-  authorDisplay: str(80, 'Como o autor será identificado (ex.: iniciais)'),
-  text: str(800, 'Escreva o depoimento'),
-  authorizedAt: optDay,
-  published: checkbox,
-})
-
-export async function addTestimonial(_: ActionState, fd: FormData): Promise<ActionState> {
-  const parsed = testimonialSchema.safeParse(formObject(fd))
+export async function saveMercadoPagoSettings(_: ActionState, fd: FormData): Promise<ActionState> {
+  const parsed = z
+    .object({
+      mpMaxInstallments: z.coerce.number().int().min(1, 'Entre 1 e 12').max(12, 'Entre 1 e 12'),
+      mpStatementDescriptor: z
+        .string()
+        .trim()
+        .min(1, 'Informe o nome')
+        .max(13, 'Até 13 caracteres')
+        .regex(/^[A-Za-z0-9 .*-]+$/, 'Use só letras sem acento, números e espaço'),
+    })
+    .safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
-  if (parsed.data.published && !parsed.data.authorizedAt) {
-    return { fieldErrors: { authorizedAt: 'Informe a data da autorização' }, error: 'Só é possível publicar depoimentos com autorização registrada.' }
-  }
   try {
-    const user = await requireTeam('site')
-    await db.insert(schema.testimonials).values(parsed.data)
-    await audit(user, 'depoimento_criado', 'site')
-    refreshAll()
-    return { ok: true, message: 'Depoimento salvo.' }
+    const user = await requireTeam('config')
+    await db
+      .update(schema.settings)
+      .set({ ...parsed.data, mpStatementDescriptor: parsed.data.mpStatementDescriptor.toUpperCase(), updatedAt: new Date() })
+      .where(eq(schema.settings.id, 1))
+    await audit(user, 'configuracoes_mercadopago', 'configuracoes', { details: parsed.data })
+    revalidatePath('/admin/configuracoes')
+    return { ok: true, message: 'Configurações do Mercado Pago salvas.' }
   } catch (err) {
     return failure(err)
   }
 }
 
-export async function toggleTestimonial(id: string): Promise<void> {
-  const user = await requireTeam('site')
-  if (!uuid.safeParse(id).success) return
-  const [t] = await db.select().from(schema.testimonials).where(eq(schema.testimonials.id, id))
-  if (!t) return
-  if (!t.published && !t.authorizedAt) return // sem autorização, nunca publica
-  await db.update(schema.testimonials).set({ published: !t.published }).where(eq(schema.testimonials.id, id))
-  await audit(user, t.published ? 'depoimento_ocultado' : 'depoimento_publicado', 'site', { entityId: id })
-  refreshAll()
-}
-
-export async function deleteTestimonial(id: string): Promise<void> {
-  const user = await requireTeam('site')
-  if (!uuid.safeParse(id).success) return
-  await db.delete(schema.testimonials).where(eq(schema.testimonials.id, id))
-  await audit(user, 'depoimento_excluido', 'site', { entityId: id })
-  refreshAll()
-}
+/* ------------------------------- dúvidas ------------------------------- */
 
 export async function saveFaq(_: ActionState, fd: FormData): Promise<ActionState> {
   const parsed = z

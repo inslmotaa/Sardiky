@@ -1,11 +1,11 @@
 
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { materialsForPatient } from '@/lib/patient-content'
 import { MATERIAL_KINDS } from '@/lib/constants'
 import { Empty, PageHead } from '@/components/ui'
 
 export default async function PatientMaterials() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const list = (await materialsForPatient(user.patientId)).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   return (
     <div className="stack" style={{ ['--gap' as string]: '18px', maxWidth: 760 }}>

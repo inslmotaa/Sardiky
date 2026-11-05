@@ -1,6 +1,6 @@
 # Fase 3 — Gestão: entregue e pendente
 
-Construída sobre as fases anteriores. Dados fictícios. Novo acesso de demonstração: **nutri2@example.com / Equipe#Demo2026** (nutricionista que vê só a paciente Helena).
+Construída sobre as fases anteriores. Dados fictícios. Novo acesso de demonstração: **nutri2@example.com / Equipe#Demo2026** (coach que vê só a paciente Helena).
 
 ## Entregue
 
@@ -21,7 +21,7 @@ Construída sobre as fases anteriores. Dados fictícios. Novo acesso de demonstr
 | **Lista de compras** da semana gerada do plano (receitas viram ingredientes, cozidos em peso cru), itens marcáveis, disponível sem internet | App → Plano / Mais |
 | **Prescrições**: suplementos, fitoterápicos e exames (dose, horário, duração), no app e no PDF | Ficha → Prescrições |
 | Financeiro: pagamentos **atrasados**, link de cobrança pelo WhatsApp, indicador no Início | Painel → Financeiro |
-| **Equipe**: nutricionistas que veem só os próprios pacientes; nutricionista responsável na ficha | Configurações → Equipe · Ficha → Dados cadastrais |
+| **Equipe**: coaches que veem só os próprios pacientes; coach responsável na ficha | Configurações → Equipe · Ficha → Dados cadastrais |
 | **Marca**: logo e assinatura no PDF, refeições padrão dos planos novos | Configurações → Perfil / Planos, anamnese e PDF |
 
 ## Webhook da anamnese (Google Forms)
@@ -57,7 +57,7 @@ function aoEnviar(e) {
 ## Decisões e diferenças em relação à especificação
 
 - **Videochamada pelo Jitsi Meet** (gratuito, sem conta e sem chave de API). Google Meet automático exigiria conta Google Workspace e integração OAuth; o campo aceita colar um link do Meet a qualquer momento.
-- **Isolamento entre nutricionistas** feito no servidor (mesma regra do isolamento entre pacientes), com testes; não usa RLS do banco.
+- **Isolamento entre coaches** feito no servidor (mesma regra do isolamento entre pacientes), com testes; não usa RLS do banco.
 - **Feriados estaduais e municipais** não são automáticos: bloqueie um a um na agenda.
 
 ## Ainda não feito

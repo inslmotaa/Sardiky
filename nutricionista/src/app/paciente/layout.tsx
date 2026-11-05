@@ -9,10 +9,11 @@ import { Brand } from '@/components/Brand'
 import { NavLinks } from '@/components/NavLinks'
 import { Onboarding } from '@/components/nutri/Onboarding'
 import { BackToTop } from '@/components/BackToTop'
+import { needsPayment } from '@/lib/pagamentos'
 import { LiveUpdates, LogoutForm, PushToggle, PwaClient } from '@/components/pwa'
 import { removePushSubscription, savePushSubscription } from '@/actions/push'
 import { vapidKeys } from '@/lib/push'
-import { IconBook, IconChart, IconHome, IconPlate, IconSettings } from '@/components/icons'
+import { IconBook, IconChart, IconChat, IconHome, IconMoney, IconPlate, IconSettings, IconUser } from '@/components/icons'
 
 export const metadata: Metadata = { title: 'Área do cliente', robots: { index: false } }
 
@@ -21,8 +22,21 @@ export default async function PatientLayout({ children }: { children: React.Reac
   const s = await getSettings()
   const patient = await getPatient(user.patientId)
   const f = patient.features
+  // Cadastro pelo site sem pagamento aprovado: só Pagamento, Mensagens e Meus dados ficam abertos.
+  const blocked = await needsPayment(user.patientId)
 
-  const main = [
+  const lockedNav = [
+    { href: '/paciente/pagamento', label: 'Pagamento' },
+    ...(f.chat ? [{ href: '/paciente/mensagens', label: 'Mensagens' }] : []),
+    { href: '/paciente/meus-dados', label: 'Meus dados' },
+  ]
+  const lockedTabs = [
+    { href: '/paciente/pagamento', label: 'Pagamento', icon: <IconMoney /> },
+    ...(f.chat ? [{ href: '/paciente/mensagens', label: 'Mensagens', icon: <IconChat /> }] : []),
+    { href: '/paciente/meus-dados', label: 'Meus dados', icon: <IconUser /> },
+  ]
+
+  const main = blocked ? lockedNav : [
     { href: '/paciente', label: 'Hoje', exact: true },
     { href: '/paciente/plano', label: 'Plano' },
     ...(f.diario ? [{ href: '/paciente/diario', label: 'Diário' }] : []),
@@ -30,7 +44,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
     ...(f.chat ? [{ href: '/paciente/mensagens', label: 'Mensagens' }] : []),
     { href: '/paciente/mais', label: 'Mais' },
   ]
-  const tabs = [
+  const tabs = blocked ? lockedTabs : [
     { href: '/paciente', label: 'Hoje', icon: <IconHome />, exact: true },
     { href: '/paciente/plano', label: 'Plano', icon: <IconPlate /> },
     ...(f.diario ? [{ href: '/paciente/diario', label: 'Diário', icon: <IconBook /> }] : []),
@@ -67,6 +81,18 @@ export default async function PatientLayout({ children }: { children: React.Reac
           </div>
         </div>
       </header>
+      {blocked && (
+        <div className="pay-banner no-print" role="status">
+          <div className="container pay-banner__inner">
+            <span>
+              <strong>Conclua o pagamento para começar.</strong> Depois dele você responde a anamnese e recebe o seu plano.
+            </span>
+            <Link href="/paciente/pagamento" className="btn btn--sm btn--primary">
+              Ir para o pagamento
+            </Link>
+          </div>
+        </div>
+      )}
       <PwaClient offlineText="Você está sem internet. Mostrando a última versão salva neste aparelho." />
       <LiveUpdates scope="paciente" planToast="Seu plano alimentar foi atualizado." />
       <main id="conteudo" className="patient-main">

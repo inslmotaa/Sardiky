@@ -24,7 +24,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ id: string
       !!user &&
       ((user.role === 'patient' && file.patientId !== null && file.patientId === user.patientId && file.visibleToPatient) ||
         (user.role !== 'patient' && can(user, 'clinico')))
-    // Nutricionista com pacientes próprios: só arquivos dos seus pacientes.
+    // Coach com pacientes próprios: só arquivos dos seus pacientes.
     if (allowed && user && user.role !== 'patient' && file.patientId) allowed = await assertPatientAccess(user, file.patientId).then(() => true, () => false)
     // Material educativo: liberado para todos os pacientes ou para os escolhidos.
     if (!allowed && user?.role === 'patient' && user.patientId && file.kind === 'material') {

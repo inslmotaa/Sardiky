@@ -21,7 +21,7 @@ export type ChatMessage = {
 const MAX_AUDIO_S = 60
 
 /**
- * Conversa paciente ↔ nutricionista: texto, foto, PDF e áudio curto, com indicador de lida.
+ * Conversa paciente ↔ coach: texto, foto, PDF e áudio curto, com indicador de lida.
  * A lista é atualizada ao vivo pela página (LiveUpdates); aqui fica o envio.
  */
 export function ChatThread({

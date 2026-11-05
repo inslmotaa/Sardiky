@@ -4,7 +4,8 @@ import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { and, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { requirePatient, requireTeam } from '@/lib/auth/session'
+import { requireTeam } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { assertPatientAccess } from '@/lib/team-access'
 import { ANAMNESIS_STEPS, stepComplete, stepSchema, type AnamFile } from '@/lib/anamnese-form'
 import { anamnesisVersions, currentDraft } from '@/lib/anamnese-store'
@@ -23,7 +24,7 @@ const safeNext = (v: unknown) => (typeof v === 'string' && v.startsWith('/') && 
 
 /** Salva uma etapa do rascunho (validação da etapa com zod). "Salvar e sair" volta para a área do cliente. */
 export async function saveAnamnesisStep(index: number, _: ActionState, fd: FormData): Promise<ActionState> {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const step = ANAMNESIS_STEPS[index]
   if (!step) return { error: 'Etapa inválida.' }
   const draft = await currentDraft(user.patientId)
@@ -69,7 +70,7 @@ export async function saveAnamnesisStep(index: number, _: ActionState, fd: FormD
 
 /** Anexo de exame (PDF ou foto) guardado na área privada do paciente. */
 export async function uploadAnamnesisFile(fd: FormData): Promise<{ error?: string; file?: AnamFile }> {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const file = fd.get('file')
   if (!(file instanceof File)) return { error: 'Escolha um arquivo.' }
   const saved = await saveUpload(file, DOC_TYPES)
@@ -83,9 +84,9 @@ export async function uploadAnamnesisFile(fd: FormData): Promise<{ error?: strin
   return { file: row }
 }
 
-/** Envio: confere todas as etapas, leva as respostas para a ficha e avisa o nutricionista. */
+/** Envio: confere todas as etapas, leva as respostas para a ficha e avisa o coach. */
 export async function submitAnamnesis(_: ActionState, fd: FormData): Promise<ActionState> {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const draft = await currentDraft(user.patientId)
   if (!draft) return { error: 'Não há anamnese em andamento.' }
   const missing = ANAMNESIS_STEPS.filter((s) => !stepComplete(s, draft.answers[s.key]))
@@ -140,7 +141,7 @@ export async function submitAnamnesis(_: ActionState, fd: FormData): Promise<Act
  * As respostas ficam no formulário do coach; aqui só registramos que a anamnese foi feita.
  */
 export async function confirmExternalAnamnesis(fd: FormData): Promise<void> {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const s = await getSettings()
   const next = safeNext(fd.get('next'))
   if (!s.anamneseUrl) redirect('/paciente/anamnese')
@@ -163,7 +164,7 @@ export async function confirmExternalAnamnesis(fd: FormData): Promise<void> {
   redirect(`/paciente/anamnese?enviada=1&via=formulario${next ? `&next=${encodeURIComponent(next)}` : ''}`)
 }
 
-/** Nutricionista pede uma reavaliação: nova versão em rascunho, já com as respostas anteriores. */
+/** Coach pede uma reavaliação: nova versão em rascunho, já com as respostas anteriores. */
 export async function requestReassessment(patientId: string): Promise<void> {
   const user = await requireTeam('clinico')
   if (!uuid.safeParse(patientId).success) return

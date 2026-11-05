@@ -287,7 +287,7 @@ console.log(`  ${p.servicos.length} serviço(s), ${p.planos.length} plano(s), ${
 if (out.off.length) console.log(`  Serviços desativados (não estão mais no arquivo): ${out.off.join(', ')}`)
 console.log('  Faixa de demonstração desligada.')
 const todo = []
-if (!out.admins) todo.push('criar a conta do nutricionista: node scripts/create-admin.mjs "Nome" email')
+if (!out.admins) todo.push('criar a conta do coach: node scripts/create-admin.mjs "Nome" email')
 if (!out.media?.photo_file_id) todo.push('enviar a foto profissional em Configurações')
 if (!out.media?.logo_file_id) todo.push('enviar o logo em Configurações (opcional)')
 if (todo.length) {

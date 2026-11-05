@@ -1,11 +1,11 @@
 -- =====================================================================
--- Conta do André (nutricionista, perfil admin). Rode UMA vez no banco
+-- Conta do André (coach, perfil admin). Rode UMA vez no banco
 -- de produção, depois de subir o sistema (as migrações rodam sozinhas).
 --
 --   docker compose -f deploy/docker-compose.yml --env-file deploy/.env \
 --     exec -T db psql -U nutri -d nutri < deploy/criar-admin.sql
 --
--- Não existe cadastro público de nutricionista: só este script (ou
+-- Não existe cadastro público de coach: só este script (ou
 -- scripts/create-admin.mjs, que faz o mesmo) cria contas de admin.
 -- Nenhuma senha é escrita aqui: o resultado é um link de primeiro acesso,
 -- válido por 7 dias, em que o André cria a própria senha.

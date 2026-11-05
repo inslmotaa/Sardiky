@@ -8,7 +8,7 @@ export type Anamnesis = typeof schema.anamneses.$inferSelect
 export const anamnesisVersions = (patientId: string) =>
   db.select().from(schema.anamneses).where(eq(schema.anamneses.patientId, patientId)).orderBy(desc(schema.anamneses.version))
 
-/** Rascunho em andamento (primeira anamnese ou reavaliação pedida pelo nutricionista). */
+/** Rascunho em andamento (primeira anamnese ou reavaliação pedida pelo coach). */
 export async function currentDraft(patientId: string) {
   const [d] = await db
     .select()

@@ -71,7 +71,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
           gte(schema.appointments.startAt, fromUtc),
           lt(schema.appointments.startAt, toUtc),
           status ? eq(schema.appointments.status, status as 'pendente') : undefined,
-          // Nutricionista com pacientes próprios: só as consultas dos seus pacientes (e pedidos novos, ainda sem cadastro).
+          // Coach com pacientes próprios: só as consultas dos seus pacientes (e pedidos novos, ainda sem cadastro).
           own ? or(isNull(schema.appointments.patientId), own.length ? inArray(schema.appointments.patientId, own) : undefined) : undefined,
         ),
       )

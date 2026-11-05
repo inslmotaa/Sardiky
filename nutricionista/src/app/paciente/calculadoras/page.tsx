@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getPatient } from '@/lib/patient-context'
 import { latest, measurementsOf } from '@/lib/patient-data'
 import { loadFoods } from '@/lib/foods'
@@ -9,7 +9,7 @@ import { Calculators } from '@/components/nutri/Calculators'
 import { PageHead } from '@/components/ui'
 
 export default async function PatientCalculators() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const p = await getPatient(user.patientId)
   if (!p.features.calculadoras) redirect('/paciente/mais')
   const s = await getSettings()

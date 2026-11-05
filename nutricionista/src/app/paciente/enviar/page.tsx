@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { and, desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getPatient } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, todayIn } from '@/lib/time'
@@ -17,7 +17,7 @@ export const metadata: Metadata = { title: 'Fotos e exames' }
  * foto da refeição (pelo diário), foto do corpo (evolução) e exames.
  */
 export default async function SendPage() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const s = await getSettings()
   const p = await getPatient(user.patientId)
   const f = p.features

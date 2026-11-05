@@ -110,10 +110,29 @@ type LegacyItem = { id?: string; food: string; quantity?: string; householdMeasu
 type LegacyPlan = { meals: { id?: string; name: string; time?: string; notes?: string; items: LegacyItem[] }[]; guidance?: string }
 
 /** Converte planos no formato antigo (texto livre) para a versão 2, sem perder conteúdo. */
+/**
+ * Medida caseira sempre com o peso da base: a substituição em "1 unidade média" pesa exatamente
+ * 1 × o peso da unidade na base (e não um peso arredondado diferente, ex.: 60 g × 65 g).
+ * No item, mantém os gramas e ajusta a quantidade da medida.
+ */
+export function consistentMeasures(plan: PlanContent): PlanContent {
+  const r1 = (n: number) => Math.round(n * 10) / 10
+  for (const d of plan.days)
+    for (const m of d.meals)
+      for (const o of m.options)
+        for (const it of o.items) {
+          if (it.measure && it.measure.grams > 0 && it.measure.qty > 0 && it.grams != null && Math.abs(it.grams - it.measure.qty * it.measure.grams) > 0.5)
+            it.measure.qty = Math.round((it.grams / it.measure.grams) * 100) / 100
+          for (const sb of it.subs)
+            if (sb.measure && sb.measure.grams > 0 && sb.measure.qty > 0) sb.grams = r1(sb.measure.qty * sb.measure.grams)
+        }
+  return plan
+}
+
 export function normalizePlan(raw: unknown): PlanContent {
   if (raw && typeof raw === 'object' && (raw as { v?: number }).v === 2) {
     const parsed = planContentSchema.safeParse(raw)
-    if (parsed.success) return parsed.data
+    if (parsed.success) return consistentMeasures(parsed.data)
   }
   const legacy = raw as LegacyPlan
   const qty = (q?: string, m?: string) => [m, q].filter(Boolean).join(' · ')
@@ -179,6 +198,38 @@ export function sortedMeals(day: PlanDay) {
 /** Dia do plano que vale para a data (pelo dia da semana); senão, o primeiro. */
 export function dayForWeekday(plan: PlanContent, weekday: number) {
   return plan.days.find((d) => d.weekdays.includes(weekday)) ?? plan.days.find((d) => d.weekdays.length === 0) ?? plan.days[0]
+}
+
+/** Semana começando na segunda (0 = domingo … 6 = sábado). */
+export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0] as const
+export const WEEKDAY_SHORT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] as const
+
+/** Dias da semana que cada dia do plano cobre (ex.: "Dia de treino" → [1, 3, 5]). */
+export function weekdaysOfDay(plan: PlanContent, dayId: string) {
+  return WEEK_ORDER.filter((wd) => dayForWeekday(plan, wd)?.id === dayId)
+}
+
+/** "Seg, Qua, Sex", "Todos os dias" ou "" (dia que não cai em nenhum dia da semana). */
+export function weekdaysLabel(plan: PlanContent, dayId: string) {
+  const wds = weekdaysOfDay(plan, dayId)
+  if (wds.length === 7) return 'Todos os dias'
+  return wds.map((wd) => WEEKDAY_SHORT[wd]).join(', ')
+}
+
+/** Visão "Semana": uma linha por dia (segunda a domingo) com o tipo de dia, as refeições e o total de kcal. */
+export function weekRows(plan: PlanContent) {
+  return WEEK_ORDER.map((wd) => {
+    const day = dayForWeekday(plan, wd)
+    const meals = day ? sortedMeals(day) : []
+    return {
+      weekday: wd,
+      short: WEEKDAY_SHORT[wd],
+      dayId: day?.id ?? '',
+      dayLabel: day?.label ?? '—',
+      meals: meals.map((m) => (m.time ? `${m.time} ${m.name}` : m.name)),
+      kcal: day && plan.mode === 'calculado' ? Math.round(dayTotals(day).kcal) : null,
+    }
+  })
 }
 
 export function countItems(plan: PlanContent) {

@@ -2807,7 +2807,7 @@ kbd {
   --btn-border: #fff;
 }
 
-/* Prescrição escrita: mantém as quebras de linha digitadas pelo nutricionista. */
+/* Prescrição escrita: mantém as quebras de linha digitadas pelo coach. */
 .prescription-text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;

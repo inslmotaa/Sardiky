@@ -45,7 +45,7 @@ async function main() {
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
       form_templates, anamneses, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, measure_refs, foods, measurements, goals, leads,
-      appointments, patients, packages, faqs, testimonials, time_blocks, working_hours, services,
+      appointments, patients, packages, faqs, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
 
@@ -76,7 +76,8 @@ async function main() {
     hoursText: null,
     modalityText: null,
     whatsapp: '5541991551789',
-    instagram: 'https://instagram.com/',
+    // Sem perfil real ainda: vazio (o site não mostra o ícone).
+    instagram: null,
     contactEmail: 'contato@example.com',
     privacyContact: 'privacidade@example.com',
     // Formulário de anamnese do André (o cliente escolhe: no app ou pelo formulário).
@@ -162,36 +163,6 @@ async function main() {
   hours.push({ weekday: 6, start: '08:00', end: '12:00' })
   await db.insert(s.workingHours).values(hours)
 
-  await db.insert(s.testimonials).values([
-    {
-      authorDisplay: 'M. S. · Reeducação alimentar (exemplo)',
-      text: 'Pela primeira vez consegui manter uma alimentação organizada sem sentir que estava de dieta. As substituições no plano fazem muita diferença.',
-      authorizedAt: day(-60),
-      published: true,
-      sort: 1,
-    },
-    {
-      authorDisplay: 'R. A. · Performance esportiva (exemplo)',
-      text: 'O acompanhamento entre as consultas me ajudou a ajustar a alimentação nos dias de treino. Atendimento atencioso e muito claro.',
-      authorizedAt: day(-40),
-      published: true,
-      sort: 2,
-    },
-    {
-      authorDisplay: 'J. P. · Emagrecimento (exemplo)',
-      text: 'Gosto de ver minha evolução na área do cliente e de ter o plano sempre à mão no celular.',
-      authorizedAt: day(-20),
-      published: true,
-      sort: 3,
-    },
-    {
-      authorDisplay: 'Depoimento sem autorização (não aparece no site)',
-      text: 'Exemplo de depoimento recebido, ainda sem autorização registrada.',
-      authorizedAt: null,
-      published: false,
-      sort: 4,
-    },
-  ])
 
   await db.insert(s.faqs).values([
     {
@@ -228,7 +199,6 @@ async function main() {
   // Planos de acompanhamento (valores do material de divulgação do André).
   const exclusive = [
     { title: 'Vale avaliação física', text: 'Avaliação física completa sem custo adicional.' },
-    { title: 'Desconto em produtos selecionados', text: 'Até 15% de desconto em produtos do nosso parceiro de suplementos e nutrição esportiva.' },
   ]
   const [pkgMensal, pkgTrimestral] = await db.insert(s.packages).values([
     { name: 'Mensal', months: 1, priceCents: 25000, validityDays: 30, sort: 1 },
@@ -258,7 +228,7 @@ async function main() {
       { email: 'paciente@example.com', name: 'Beatriz Exemplo', role: 'patient', passwordHash: patientHash, onboardedAt: at(-150, '20:00') },
       { email: 'lucas@example.com', name: 'Lucas Fictício', role: 'patient', passwordHash: patientHash, onboardedAt: at(-24, '20:00') },
       { email: 'helena@example.com', name: 'Helena Teste', role: 'patient', passwordHash: patientHash, onboardedAt: at(-20, '20:00') },
-      // Segunda nutricionista da equipe: vê só os próprios pacientes (Helena).
+      // Segunda coach da equipe: vê só os próprios pacientes (Helena).
       {
         email: 'nutri2@example.com',
         name: 'Carla Coach (exemplo)',

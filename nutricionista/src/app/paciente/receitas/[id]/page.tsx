@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { featuresOf } from '@/lib/patient-context'
 import { recipesForPatient } from '@/lib/patient-content'
 import { recipeInfo } from '@/lib/recipes'
@@ -10,7 +10,7 @@ import { PageHead } from '@/components/ui'
 
 export default async function PatientRecipe({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   if (!uuid.safeParse(id).success) notFound()
   const [list, f] = await Promise.all([recipesForPatient(user.patientId), featuresOf(user.patientId)])
   // Só receitas liberadas ou do plano do próprio paciente.

@@ -13,7 +13,7 @@ import { failure, UserError, type ActionState } from '@/lib/action'
 import { notifyUser, sendEmail } from '@/lib/notify'
 import { getSettings } from '@/lib/settings'
 import { pushToUser } from '@/lib/push'
-import { countItems, dropEmptyMeals, emptyPlan, normalizePlan, planContentSchema } from '@/lib/plan'
+import { consistentMeasures, countItems, dropEmptyMeals, emptyPlan, normalizePlan, planContentSchema } from '@/lib/plan'
 import { str, uuid } from '@/lib/validation'
 
 async function planOrThrow(id: string) {
@@ -88,6 +88,8 @@ export async function savePlan(planId: string, _: ActionState, fd: FormData): Pr
     }
     const content = planContentSchema.safeParse(json)
     if (!content.success) return { error: `Revise o plano: ${content.error.issues[0].message}` }
+    // Medidas caseiras sempre com o peso da base.
+    consistentMeasures(content.data)
     // Sem prazo de validade: o plano vale até o coach publicar outra versão ou encerrá-lo.
     const meta = z.object({ title: str(160, 'Dê um título ao plano') }).safeParse({ title: fd.get('title') ?? '' })
     if (!meta.success) return { error: meta.error.issues[0].message }

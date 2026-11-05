@@ -29,7 +29,7 @@ type Post = {
 }
 
 /**
- * Envia uma mensagem da conversa paciente ↔ nutricionista, com aviso no sistema e push.
+ * Envia uma mensagem da conversa paciente ↔ coach, com aviso no sistema e push.
  * Fora do horário de atendimento, o paciente recebe a resposta automática (no máximo uma a cada 12 h).
  */
 export async function postMessage(p: Post) {

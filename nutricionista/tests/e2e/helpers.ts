@@ -31,3 +31,11 @@ export async function openPatient(page: Page, name: string) {
   await page.waitForURL(/\/admin\/pacientes\/[0-9a-f-]{36}/)
   return page.url().match(/pacientes\/([0-9a-f-]{36})/)![1]
 }
+
+/** Cadastro pelo site leva ao pagamento: paga com o cartão aprovado do Mercado Pago falso e volta ao site. */
+export async function payWithCard(page: Page) {
+  await expect(page).toHaveURL(/\/paciente\/pagamento/)
+  await page.getByRole('button', { name: 'Pagar com Mercado Pago' }).click()
+  await page.getByRole('link', { name: 'Pagar com cartão (aprovado)' }).click()
+  await expect(page).toHaveURL(/\/paciente(\/anamnese)?\?pago=1$/)
+}

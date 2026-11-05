@@ -1,6 +1,6 @@
 import 'server-only'
 import { PDFDocument, rgb, StandardFonts, type PDFFont, type PDFPage, type RGB } from 'pdf-lib'
-import { dayTotals, optionTotals, quantityLabel, sortedMeals, type PlanContent } from './plan'
+import { dayTotals, optionTotals, quantityLabel, sortedMeals, weekRows, type PlanContent } from './plan'
 import { fmt, formatMeasure, scale } from './nutricao'
 import { PRESCRIPTION_TYPES } from './constants'
 
@@ -134,6 +134,37 @@ export async function planPdf(plan: PlanContent, o: Opts) {
   const calc = plan.mode === 'calculado'
   const nutriLine = (n: { kcal: number; protein: number; carbs: number; fat: number }) =>
     [o.showKcal ? `${fmt(n.kcal, 0)} kcal` : null, o.showMacros ? `P ${fmt(n.protein)} g · C ${fmt(n.carbs)} g · G ${fmt(n.fat)} g` : null].filter(Boolean).join(' · ')
+
+  // Tabela "Semana" na primeira página: um dia por linha, com o tipo de dia, as refeições e o total de kcal.
+  {
+    const rows = weekRows(plan)
+    const kcalCol = calc && o.showKcal
+    const cols = { day: M, type: M + 46, meals: M + 170, kcal: A4.w - M - 50 }
+    const mealsWidth = (kcalCol ? cols.kcal - 10 : A4.w - M) - cols.meals
+    ensure(30)
+    y -= 4
+    text('Semana', { font: bold, size: 13, color: brand })
+    const header = (s: string, x: number) => page.drawText(pdfSafe(s), { x, y: y - 9, size: 8.5, font: bold, color: muted })
+    header('DIA', cols.day)
+    header('TIPO DE DIA', cols.type)
+    header('REFEIÇÕES', cols.meals)
+    if (kcalCol) header('KCAL', cols.kcal)
+    y -= 14
+    for (const r of rows) {
+      const lines = wrap(r.meals.join(' · ') || '—', regular, 8.5, mealsWidth)
+      const h = Math.max(1, lines.length) * 11 + 4
+      ensure(h)
+      page.drawLine({ start: { x: M, y: y + 2 }, end: { x: A4.w - M, y: y + 2 }, thickness: 0.5, color: line })
+      page.drawText(pdfSafe(r.short), { x: cols.day, y: y - 9, size: 9, font: bold, color: ink })
+      for (const [i, l] of wrap(r.dayLabel, regular, 9, cols.meals - cols.type - 8).slice(0, 2).entries())
+        page.drawText(l, { x: cols.type, y: y - 9 - i * 11, size: 9, font: regular, color: ink })
+      lines.forEach((l, i) => page.drawText(l, { x: cols.meals, y: y - 9 - i * 11, size: 8.5, font: regular, color: ink }))
+      if (kcalCol && r.kcal != null) page.drawText(pdfSafe(r.kcal.toLocaleString('pt-BR')), { x: cols.kcal, y: y - 9, size: 9, font: regular, color: ink })
+      y -= h
+    }
+    y -= 6
+    rule(brand)
+  }
 
   for (const day of plan.days) {
     if (plan.days.length > 1) {

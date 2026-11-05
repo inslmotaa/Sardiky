@@ -7,7 +7,7 @@ Construída sobre o site e o sistema que já existiam (nada foi refeito do zero)
 | Item da especificação | Onde está |
 |---|---|
 | Landing com planos de acompanhamento, app do paciente e anamnese | `/` (seções `#planos`, `#app`, botões “Preencher anamnese”) |
-| Login, perfis (nutricionista, equipe, paciente) e isolamento entre pacientes | `/login`; `patientId` sempre vem da sessão; testes em `tests/e2e/security.spec.ts` |
+| Login, perfis (coach, equipe, paciente) e isolamento entre pacientes | `/login`; `patientId` sempre vem da sessão; testes em `tests/e2e/security.spec.ts` |
 | Atalhos `/entrar`, `/app`, `/painel` e página “criar conta” (acesso por convite) | `next.config.ts`, `/criar-conta` |
 | Cadastro de paciente com sexo e altura, convite com botão de WhatsApp | Painel → Pacientes |
 | Anamnese por link externo (Google Forms) e marcação de recebida | Configurações (link) · ficha do paciente → Formulários |
@@ -27,5 +27,5 @@ Construída sobre o site e o sistema que já existiam (nada foi refeito do zero)
 - ~~PWA instalável, plano sem internet e notificações push~~ — entregue na Fase 2.
 - **Modo escuro.**
 - ~~Plano aparecer “em até 5 s” sem recarregar~~ — entregue na Fase 2.
-- **Vários nutricionistas, cada um vendo só os próprios pacientes** (hoje há um nutricionista e a equipe).
+- **Vários coaches, cada um vendo só os próprios pacientes** (hoje há um coach e a equipe).
 - **Lighthouse:** medido na Fase 2 no build local (desempenho 92–96, acessibilidade 98–100; ver `07-fase-2.md`); falta medir no ambiente publicado.

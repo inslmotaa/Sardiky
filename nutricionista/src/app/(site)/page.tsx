@@ -1,10 +1,11 @@
 import Link from 'next/link'
-import { and, asc, eq, isNotNull } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'
 import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
 import { planPrices } from '@/lib/planos'
+import { emailLink, instagramLink } from '@/lib/social'
 import { BookingLink } from '@/components/BookingLink'
 import { MonoLabel, NatureBg, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
@@ -57,17 +58,10 @@ const d = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties
 /** Página inicial: hero com a plataforma (painel e app), storytelling em capítulos, Sobre, Consultoria, Resultados e Contato. */
 export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
-  const [s, user, packages, testimonials] = await Promise.all([
+  const [s, user, packages] = await Promise.all([
     getSettings(),
     getCurrentUser(),
     db.select().from(schema.packages).where(eq(schema.packages.active, true)).orderBy(asc(schema.packages.sort), asc(schema.packages.months)),
-    // Só depoimentos com autorização registrada E marcados para publicação.
-    db
-      .select()
-      .from(schema.testimonials)
-      .where(and(eq(schema.testimonials.published, true), isNotNull(schema.testimonials.authorizedAt)))
-      .orderBy(asc(schema.testimonials.sort))
-      .limit(3),
   ])
   const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de mais informações sobre o acompanhamento.')
@@ -75,7 +69,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   const plans = planPrices(packages)
   const steps = (s.howItWorks.length ? s.howItWorks : DEFAULT_STEPS).slice(0, 4)
   const goals = s.specialties.length ? s.specialties : DEFAULT_GOALS
-  const planHref = (id: string) => (user ? `/agendar?plano=${id}` : `/criar-conta?plano=${id}`)
+  // Contratar: logado vai direto ao pagamento do plano; sem conta, cria a conta com o plano escolhido.
+  const planHref = (id: string) => (user ? `/paciente/pagamento?plano=${id}` : `/criar-conta?plano=${id}`)
   const months = plans.map((p) => p.months)
   const numbers = [
     s.statsPatients ? { to: s.statsPatients, prefix: '+', suffix: '', label: 'clientes acompanhados' } : null,
@@ -86,7 +81,9 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
   ]
     .filter((x): x is NonNullable<typeof x> => x !== null)
     .slice(0, 4)
-  const instagramHandle = s.instagram?.replace(/^https?:\/\/(www\.)?instagram\.com\/?/, '').replace(/\/$/, '')
+  // Instagram e e-mail só aparecem com valores reais (@usuario ou endereço do perfil).
+  const ig = instagramLink(s.instagram)
+  const mail = emailLink(s.contactEmail)
 
   return (
     <>
@@ -339,18 +336,8 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               </div>
             ))}
           </dl>
-          {testimonials.length > 0 && (
-            <ul className="quotes">
-              {testimonials.map((t, i) => (
-                <li key={t.id} className="quote" data-rv="" style={d(i * 90)}>
-                  <blockquote>“{t.text}”</blockquote>
-                  <p className="quote__by">{t.authorDisplay.toLocaleUpperCase('pt-BR')}</p>
-                </li>
-              ))}
-            </ul>
-          )}
           <p className="tl-note" data-rv="">
-            Resultados variam de pessoa para pessoa. Depoimentos publicados com autorização.
+            Resultados variam de pessoa para pessoa.
           </p>
         </div>
       </section>
@@ -389,13 +376,21 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                   </dd>
                 </div>
               )}
-              {s.instagram && (
+              {ig && (
                 <div>
                   <dt>INSTAGRAM</dt>
                   <dd>
-                    <a href={s.instagram} target="_blank" rel="noopener noreferrer">
-                      {instagramHandle ? `@${instagramHandle}` : 'Instagram'}
+                    <a href={ig.url} target="_blank" rel="noopener noreferrer">
+                      @{ig.handle}
                     </a>
+                  </dd>
+                </div>
+              )}
+              {mail && (
+                <div>
+                  <dt>E-MAIL</dt>
+                  <dd>
+                    <a href={mail.url}>{mail.email}</a>
                   </dd>
                 </div>
               )}

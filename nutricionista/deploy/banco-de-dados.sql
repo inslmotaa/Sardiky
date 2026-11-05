@@ -400,6 +400,7 @@ CREATE TABLE "patients" (
 	"package_id" uuid,
 	"package_start" date,
 	"package_end" date,
+	"payment_required" boolean DEFAULT false NOT NULL,
 	"status" "patient_status" DEFAULT 'ativo' NOT NULL,
 	"stage" text DEFAULT 'Avaliação inicial' NOT NULL,
 	"follow_up_days" integer,
@@ -425,6 +426,8 @@ CREATE TABLE "payments" (
 	"source" "payment_source" DEFAULT 'manual' NOT NULL,
 	"provider" text,
 	"provider_ref" text,
+	"provider_preference_id" text,
+	"provider_status" text,
 	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -559,18 +562,10 @@ CREATE TABLE "settings" (
 	"quick_replies" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"chat_hours" jsonb,
 	"chat_auto_reply" text,
+	"mp_max_installments" integer DEFAULT 12 NOT NULL,
+	"mp_statement_descriptor" text DEFAULT 'FARION' NOT NULL,
 	"templates" jsonb NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
-);
-
-CREATE TABLE "testimonials" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"author_display" text NOT NULL,
-	"text" text NOT NULL,
-	"authorized_at" date,
-	"published" boolean DEFAULT false NOT NULL,
-	"sort" integer DEFAULT 0 NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE "time_blocks" (
@@ -684,6 +679,7 @@ CREATE INDEX "notifications_user_idx" ON "notifications" USING btree ("user_id",
 CREATE UNIQUE INDEX "patients_user_idx" ON "patients" USING btree ("user_id");
 CREATE INDEX "patients_status_idx" ON "patients" USING btree ("status");
 CREATE INDEX "payments_patient_idx" ON "payments" USING btree ("patient_id");
+CREATE INDEX "payments_provider_ref_idx" ON "payments" USING btree ("provider_ref");
 CREATE INDEX "prescriptions_patient_idx" ON "prescriptions" USING btree ("patient_id");
 CREATE INDEX "progress_photos_patient_idx" ON "progress_photos" USING btree ("patient_id","date");
 CREATE UNIQUE INDEX "push_endpoint_idx" ON "push_subscriptions" USING btree ("endpoint");
@@ -716,6 +712,8 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('054f528c984f24b3ea396af61537ea35bc561a2ed7ed5318f882d1a7735f7d6f', 1793744723727), -- 0012_nome_do_site
 	('1edeceb744158fdd598e644daa625774f766f3ddd90d0e8be29fefac08d223dc', 1793744908354), -- 0013_inicio_do_plano
 	('efffafd63fc67c884d198cdf49f70cb4c153420112520cdbc8193a9edf43088c', 1793746594581), -- 0014_termino_definido_pelo_coach
-	('ce8d6b3f756346cc2c39bf837811809d539e4c83adc2b8e33499795ce8f318ec', 1793746859502); -- 0015_anamnese_por_formulario
+	('ce8d6b3f756346cc2c39bf837811809d539e4c83adc2b8e33499795ce8f318ec', 1793746859502), -- 0015_anamnese_por_formulario
+	('9484041a13fa7651753afcca2f161e3da20253bb28af71ac0e44ab6785c9a121', 1793916101839), -- 0016_mercado_pago
+	('5490ee0bd517e4ccea7f372d3a2c9836288a2e192c0d2c2d055b724c607d54dc', 1793916106957); -- 0017_remover_desconto_parceiro
 
 COMMIT;

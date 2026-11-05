@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { featuresOf } from '@/lib/patient-context'
 import { recipesForPatient } from '@/lib/patient-content'
 import { recipeInfo } from '@/lib/recipes'
@@ -7,7 +7,7 @@ import { fmt } from '@/lib/nutricao'
 import { Empty, PageHead } from '@/components/ui'
 
 export default async function PatientRecipes() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const [list, f] = await Promise.all([recipesForPatient(user.patientId), featuresOf(user.patientId)])
   list.sort((a, b) => Number(b.inPlan) - Number(a.inPlan) || a.title.localeCompare(b.title))
   return (

@@ -1,6 +1,6 @@
 import { desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
 import { bookingLink } from '@/lib/format'
@@ -10,7 +10,7 @@ import { ActionForm, SubmitButton } from '@/components/form'
 import { PageHead, StatusBadge, Empty } from '@/components/ui'
 
 export default async function PatientAppointments() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const s = await getSettings()
   const list = await db.select().from(schema.appointments).where(eq(schema.appointments.patientId, user.patientId)).orderBy(desc(schema.appointments.startAt))
   const now = Date.now()

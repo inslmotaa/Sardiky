@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getSettings } from '@/lib/settings'
 import { getPatient } from '@/lib/patient-context'
 import { anamnesisVersions, currentDraft, startFirstDraft } from '@/lib/anamnese-store'
@@ -19,7 +19,7 @@ type SP = Promise<Record<string, string | undefined>>
 /** Anamnese no site: rascunho em etapas, envio, agradecimento e respostas enviadas. */
 export default async function AnamnesisPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const s = await getSettings()
   const next = sp.next && sp.next.startsWith('/') && !sp.next.startsWith('//') ? sp.next : null
   const booking = next === '/agendar' ? { href: '/agendar', external: false } : bookingLink(s, 'Olá! Enviei minha anamnese e gostaria de agendar a consulta.')

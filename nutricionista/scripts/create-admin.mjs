@@ -1,4 +1,4 @@
-// Prepara um banco de produção vazio: configurações iniciais + conta do nutricionista.
+// Prepara um banco de produção vazio: configurações iniciais + conta do coach.
 // Uso: node scripts/create-admin.mjs "Nome" email@dominio.com.br
 // Imprime um link de primeiro acesso (válido por 7 dias) para criar a senha.
 import postgres from 'postgres'

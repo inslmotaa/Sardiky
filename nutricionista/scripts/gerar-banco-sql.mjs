@@ -87,10 +87,25 @@ const lit = (v) => {
   if (typeof v === 'object') return `'${JSON.stringify(v).replace(/'/g, "''")}'::jsonb`
   return `'${String(v).replace(/'/g, "''")}'`
 }
+// Ids estáveis (derivados do conteúdo): gerar de novo não muda o arquivo se os dados não mudarem.
+const stableId = (key) => {
+  const h = createHash('sha1').update(key).digest('hex')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-${((parseInt(h.slice(16, 18), 16) & 0x3f) | 0x80).toString(16)}${h.slice(18, 20)}-${h.slice(20, 32)}`
+}
+const foodIds = new Map()
+for (const f of await query('SELECT id, code, name, source FROM foods')) foodIds.set(f.id, stableId(`food:${f.source}:${f.code ?? f.name}`))
+const remap = {
+  foods: (r) => ({ ...r, id: foodIds.get(r.id) }),
+  household_measures: (r) => ({ ...r, id: stableId(`hm:${foodIds.get(r.food_id)}:${r.name}:${r.grams}`), food_id: foodIds.get(r.food_id) }),
+  measure_refs: (r) => ({ ...r, id: stableId(`mr:${r.food}:${r.preparation}:${r.measure}:${r.grams}`) }),
+}
+
 async function dump(table, order) {
-  const rows = await query(`SELECT * FROM ${table} ORDER BY ${order}`)
+  const rows = (await query(`SELECT * FROM ${table} ORDER BY ${order}`)).map((r) => (remap[table] ? remap[table](r) : r))
+  rows.sort((a, b) => (table === 'household_measures' ? `${a.food_id}${a.grams}${a.name}`.localeCompare(`${b.food_id}${b.grams}${b.name}`) : 0))
   if (!rows.length) return ''
-  const cols = Object.keys(rows[0])
+  // created_at fica de fora (o banco preenche): o arquivo não muda a cada geração.
+  const cols = Object.keys(rows[0]).filter((c) => c !== 'created_at')
   const parts = []
   for (let i = 0; i < rows.length; i += 250) {
     const chunk = rows.slice(i, i + 250).map((r) => `(${cols.map((c) => lit(r[c])).join(', ')})`)

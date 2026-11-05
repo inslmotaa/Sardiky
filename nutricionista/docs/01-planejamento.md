@@ -1,6 +1,6 @@
 # Etapa 1 — Planejamento
 
-Sistema para o consultório do nutricionista **André Farion**, com três ambientes: site público, área do paciente e painel administrativo.
+Sistema para o consultório do coach **André Farion**, com três ambientes: site público, área do paciente e painel administrativo.
 
 ## 1. Arquitetura recomendada
 
@@ -44,7 +44,7 @@ src/
   app/(site)        site público e agendamento
   app/(auth)        login, recuperação e definição de senha
   app/paciente      área do paciente
-  app/admin         painel do nutricionista e da equipe
+  app/admin         painel do coach e da equipe
   app/api           saúde do sistema e tarefas agendadas
   app/arquivos      entrega protegida de arquivos
   actions/          Server Actions (gravações) — sempre checam permissão
@@ -58,7 +58,7 @@ src/
 ## 2. Mapa do site
 
 **Público**
-- `/` — abertura em storytelling, apresentação, especialidades, método, serviços e valores, como funciona, depoimentos autorizados, perguntas frequentes, contato (endereço, horários, modalidades, WhatsApp, redes sociais, formulário)
+- `/` — abertura em storytelling, apresentação, especialidades, método, serviços e valores, como funciona, perguntas frequentes, contato (endereço, horários, modalidades, WhatsApp, redes sociais, formulário)
 - `/agendar` — agendamento em 5 passos (serviço → modalidade → data → horário → dados)
 - `/agendar/confirmado` — confirmação com código
 - `/privacidade` — política de privacidade e tratamento de dados
@@ -83,7 +83,7 @@ src/
 - Financeiro (lançamentos, pendências, descontos, pacotes, receita mensal) — módulo opcional
 - Relatórios (atendimentos, faltas e cancelamentos, pacientes, evolução, receitas, pendências; exportação CSV)
 - Interessados (contatos do site)
-- Configurações (perfil, identidade visual, serviços e valores, horários e regras, mensagens, depoimentos e FAQ, equipe e permissões, integrações)
+- Configurações (perfil, identidade visual, serviços e valores, horários e regras, mensagens, dúvidas (FAQ), equipe e permissões, integrações)
 - Privacidade e auditoria (solicitações LGPD, anonimização, trilha de atividades)
 
 ## 3. Recursos do MVP e prioridades
@@ -124,11 +124,11 @@ Decisões importantes:
 **Visitante → paciente**
 1. Visitante agenda pelo site (consentimento registrado) → consulta fica *pendente* e o horário é reservado.
 2. Equipe confirma no painel (paciente recebe aviso; e-mail se configurado; botão de WhatsApp com texto pronto).
-3. Na consulta, o nutricionista vincula/cria o cadastro, registra a avaliação e envia a anamnese.
+3. Na consulta, o coach vincula/cria o cadastro, registra a avaliação e envia a anamnese.
 4. Libera o acesso: o sistema gera um link de primeiro acesso (7 dias, uso único); o paciente cria a própria senha.
 
 **Plano alimentar**
-1. Nutricionista cria rascunho (em branco, de modelo ou de versão anterior) → edita refeições, alimentos, medidas caseiras, substituições e orientações.
+1. Coach cria rascunho (em branco, de modelo ou de versão anterior) → edita refeições, alimentos, medidas caseiras, substituições e orientações.
 2. Publica marcando “Revisei e aprovo este plano” → versão anterior vai para o histórico → paciente é avisado.
 3. Ajustes futuros: “Criar nova versão”.
 
@@ -142,5 +142,5 @@ Paciente registra diário e medidas, responde formulários e envia dúvidas → 
 - **Pagamentos on-line:** `payments.source = 'provedor'`, `provider`, `providerRef` já existem; falta o webhook do gateway (Mercado Pago, Asaas, Stripe).
 - **E-mail/WhatsApp:** `lib/notify.ts` concentra os envios; acrescentar WhatsApp Business API como novo canal.
 - **Dispositivos de atividade física:** nova tabela de métricas importadas com `source = 'dispositivo'`, nunca exibidas como medição profissional.
-- **Múltiplos nutricionistas (plataforma):** adicionar `professional_id` (tenant) às tabelas e trocar o registro único de `settings` por um por profissional.
-- **Assistente de IA:** somente para resumir registros e organizar informações para o nutricionista, com dados minimizados/pseudonimizados, contrato de operador compatível com a LGPD, registro na auditoria e **revisão obrigatória** — nunca diagnostica, nunca publica plano ou orientação sozinho (o fluxo de publicação já exige confirmação humana).
+- **Múltiplos coaches (plataforma):** adicionar `professional_id` (tenant) às tabelas e trocar o registro único de `settings` por um por profissional.
+- **Assistente de IA:** somente para resumir registros e organizar informações para o coach, com dados minimizados/pseudonimizados, contrato de operador compatível com a LGPD, registro na auditoria e **revisão obrigatória** — nunca diagnostica, nunca publica plano ou orientação sozinho (o fluxo de publicação já exige confirmação humana).

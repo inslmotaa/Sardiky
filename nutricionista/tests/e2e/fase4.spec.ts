@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import { login, openPatient } from './helpers'
+import { login, openPatient, payWithCard } from './helpers'
 
 /** Fase 4: cadastro do cliente, anamnese no site, hub do cliente, permissões e LGPD. */
 
@@ -53,7 +53,7 @@ async function fillAnamnesisUntilReview(page: Page) {
 test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe, vê, exporta e pede reavaliação', async ({ page }) => {
   // Escolhe o plano e cria a conta.
   await page.goto('/planos')
-  await page.locator('.tl-plan', { hasText: 'Trimestral' }).getByRole('link', { name: 'Escolher plano' }).click()
+  await page.locator('.tl-plan', { hasText: 'Trimestral' }).getByRole('link', { name: /Contratar/ }).click()
   await expect(page).toHaveURL(/\/criar-conta\?plano=/)
   await expect(page.getByText('Plano escolhido:')).toContainText('Trimestral')
   await page.getByLabel('Nome completo').fill('Cliente Novo Teste')
@@ -69,8 +69,9 @@ test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe,
   await page.getByLabel(/Li e aceito a/).check()
   await page.getByRole('button', { name: 'Criar conta' }).click()
 
-  // Primeiro acesso, depois de fechar o plano: escolhe como responder a anamnese (no app ou pelo formulário).
-  await expect(page).toHaveURL(/\/paciente\/anamnese$/)
+  // Fecha o plano: pagamento pelo Mercado Pago e, aprovado, a escolha de como responder a anamnese.
+  await payWithCard(page)
+  await expect(page).toHaveURL(/\/paciente\/anamnese\?pago=1$/)
   await expect(page.getByRole('heading', { name: 'Como você prefere responder a anamnese?' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Abrir o formulário ↗' })).toHaveAttribute('href', /^https:\/\/forms\.gle\//)
   await page.getByRole('link', { name: 'Responder no app' }).click()
@@ -88,7 +89,7 @@ test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe,
   await expect(page.locator('.hub-steps li[aria-current="step"]')).toContainText('Consulta')
   await expect(page.getByText('Seu plano está sendo preparado pelo André')).toBeVisible()
   await expect(page.getByText('Você ainda não tem consulta marcada.')).toBeVisible()
-  for (const sc of ['Meu plano', 'Meu progresso']) await expect(page.getByRole('navigation', { name: 'Atalhos' }).getByRole('link', { name: sc })).toBeVisible()
+  for (const sc of ['Registrar refeição', 'Falar com o coach', 'Meu perfil']) await expect(page.getByRole('navigation', { name: 'Atalhos rápidos' }).getByRole('link', { name: sc })).toBeVisible()
 
   // André: aviso, aba Anamnese, PDF e reavaliação.
   await login(page, 'admin')
@@ -167,7 +168,8 @@ test('Perfil: baixar meus dados e excluir minha conta', async ({ page }) => {
   await page.getByLabel('Confirme a senha').fill(PASS)
   await page.getByLabel(/Li e aceito a/).check()
   await page.getByRole('button', { name: 'Criar conta' }).click()
-  await expect(page).toHaveURL(/\/paciente\/anamnese$/)
+  // Sem pagamento ainda: a conta abre no pagamento, mas Meus dados (LGPD) fica liberado.
+  await expect(page).toHaveURL(/\/paciente\/pagamento$/)
 
   await page.goto('/paciente/meus-dados')
   await expect(page.getByRole('heading', { name: 'Meu perfil', level: 1 })).toBeVisible()

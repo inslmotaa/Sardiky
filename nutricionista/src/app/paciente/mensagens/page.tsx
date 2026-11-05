@@ -16,7 +16,7 @@ export default async function PatientMessages() {
   const user = await requirePatient()
   if (!(await featuresOf(user.patientId)).chat) redirect('/paciente')
   const s = await getSettings()
-  // Abrir a conversa marca como lidas as mensagens do nutricionista.
+  // Abrir a conversa marca como lidas as mensagens do coach.
   await db
     .update(schema.messages)
     .set({ readAt: new Date() })

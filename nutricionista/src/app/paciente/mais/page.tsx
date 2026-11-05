@@ -1,12 +1,12 @@
 import Link from 'next/link'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getPatient } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { whatsappLink } from '@/lib/format'
 import { PageHead } from '@/components/ui'
 
 export default async function MorePage() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const s = await getSettings()
   const p = await getPatient(user.patientId)
   const wa = whatsappLink(s.whatsapp, 'Olá! Sou cliente e tenho uma dúvida.')

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { fmtDay } from '@/lib/time'
 import { uuid } from '@/lib/validation'
 import { submitForm } from '@/actions/patient'
@@ -11,7 +11,7 @@ import { PageHead } from '@/components/ui'
 
 export default async function FillFormPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   if (!uuid.safeParse(id).success) notFound()
   const [a] = await db
     .select()

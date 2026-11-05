@@ -68,7 +68,6 @@ Depois, no painel (**Configurações**), o André:
 
 - envia a foto, o logo e a assinatura;
 - revisa os textos;
-- cadastra os depoimentos, somente com autorização registrada;
 - revisa a política de privacidade.
 
 Para usar e-mail (recuperação de senha e confirmações):
@@ -80,7 +79,7 @@ Para usar e-mail (recuperação de senha e confirmações):
 
 ### Observações
 
-- O banco de produção começa **vazio**: nenhum paciente, plano ou depoimento de demonstração vai para o ar. Os dados fictícios existem só no ambiente local (`npm run setup`).
+- O banco de produção começa **vazio**: nenhum cliente ou plano de demonstração vai para o ar. Os dados fictícios existem só no ambiente local (`npm run setup`).
 - `aplicar-perfil.mjs` pode ser rodado de novo quando os dados mudarem. Ele:
   - atualiza os serviços pelo nome;
   - desativa os que saíram do arquivo, sem apagar o histórico de consultas;
@@ -98,6 +97,13 @@ Para usar e-mail (recuperação de senha e confirmações):
 - [ ] Agendamento de teste feito e cancelado
 - [ ] App instalado no celular ("Adicionar à tela inicial") e notificação de teste recebida
 - [ ] E-mail configurado e recuperação de senha testada
+- [ ] Mercado Pago ([14-mercado-pago.md](14-mercado-pago.md)):
+  - [ ] aplicação "Farion" criada na conta do André;
+  - [ ] webhook com o evento "Pagamentos" apontando para `https://DOMINIO/api/webhooks/mercadopago`;
+  - [ ] `MERCADOPAGO_ACCESS_TOKEN` (produção) e `MERCADOPAGO_WEBHOOK_SECRET` no `deploy/.env`;
+  - [ ] pagamento real de valor baixo aprovado, aparecendo como "Confirmado por mercadopago", e depois estornado;
+  - [ ] "Simular notificação" no painel do Mercado Pago respondida com 200;
+  - [ ] parcelas máximas e nome na fatura conferidos em Configurações → Integrações
 - [ ] Política de privacidade revisada por profissional jurídico
 - [ ] Backup externo configurado e uma restauração testada ([03-publicacao.md](03-publicacao.md))
 - [ ] Monitoramento de disponibilidade ativo (UptimeRobot ou similar)

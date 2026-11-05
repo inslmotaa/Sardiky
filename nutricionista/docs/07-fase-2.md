@@ -7,14 +7,14 @@ Construída sobre as fases anteriores. Dados fictícios. Acessos de demonstraç�
 | Item da especificação | Onde está |
 |---|---|
 | Diário alimentar com foto: “segui o plano / segui em parte / comi outra coisa”, busca na base com quantidade, fome, saciedade e humor (1 a 5 com emojis), histórico por dia com calorias | App → Diário · Painel → ficha → Diário |
-| Comentário do nutricionista em cada registro e resposta direto no chat citando o registro | Painel → ficha → Diário |
+| Comentário do coach em cada registro e resposta direto no chat citando o registro | Painel → ficha → Diário |
 | Painel de Acompanhamento: em dia (≥ 80%), com dificuldade (40–79%), sem progresso (< 40% ou sem registro), limites configuráveis, último registro, variação de peso, mensagem rápida | Painel → Acompanhamento · alerta no Início para quem está 3+ dias sem registrar |
 | Gráficos de progresso: peso com linha de meta, medidas, adesão semanal, sequência de dias registrando | App → Progresso · Painel → Avaliações e evolução |
 | Fotos de evolução (frente, lado, costas) com comparação lado a lado entre duas datas, privadas | App → Progresso · Painel → Avaliações e evolução |
 | Avaliações antropométricas: circunferências (cintura, quadril, abdômen, braço, coxa, panturrilha, tórax), dobras com Jackson-Pollock 3 e 7 e Durnin-Womersley (densidade → Siri), bioimpedância, massa magra, RCQ, IMC, cálculo ao vivo e gráficos | Painel → ficha → Avaliações e evolução |
 | Metas com prazo e “concluída” (o paciente também marca) | App → Progresso · Painel → Metas |
 | Chat ao vivo com texto, foto, PDF e áudio curto, indicador de lida, respostas rápidas, horário de atendimento e resposta automática fora dele | App → Mensagens · Painel → ficha → Mensagens · Configurações → Chat |
-| Notificações push: horário das refeições, água a cada N horas, plano novo (push + e-mail), mensagens, consultas em 24 h e 2 h, 3 dias sem registrar (paciente e nutricionista), pesagem semanal, anamnese recebida; preferências por tipo e horário de silêncio | App → Mais → Notificações · tarefa `/api/cron` a cada 5 min |
+| Notificações push: horário das refeições, água a cada N horas, plano novo (push + e-mail), mensagens, consultas em 24 h e 2 h, 3 dias sem registrar (paciente e coach), pesagem semanal, anamnese recebida; preferências por tipo e horário de silêncio | App → Mais → Notificações · tarefa `/api/cron` a cada 5 min |
 | App instalável (PWA): ícone na tela inicial, plano do dia sem internet depois do primeiro acesso | `public/sw.js`, `manifest` |
 | Plano aparece em até 5 segundos e paciente recebe notificação ao ativar | Atualização ao vivo (`/api/live`) + push |
 | PDF do plano com marca, nome e registro profissional | App → Plano → “Baixar PDF” · Painel → plano → “Baixar PDF” |

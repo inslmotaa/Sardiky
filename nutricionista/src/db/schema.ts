@@ -129,7 +129,7 @@ export const users = pgTable(
     googleSub: text('google_sub'),
     /** Primeiro acesso concluído (boas-vindas, notificações e anamnese). */
     onboardedAt: timestamp('onboarded_at', { withTimezone: true }),
-    /** Nutricionista da equipe que vê apenas os pacientes sob sua responsabilidade. */
+    /** Coach da equipe que vê apenas os pacientes sob sua responsabilidade. */
     ownPatientsOnly: boolean('own_patients_only').notNull().default(false),
     notificationPrefs: jsonb('notification_prefs').$type<NotificationPrefs>().notNull().default(DEFAULT_NOTIFICATION_PREFS),
     createdAt: createdAt(),
@@ -210,7 +210,7 @@ export const settings = pgTable('settings', {
   plansIncluded: jsonb('plans_included').$type<{ title: string; text: string }[]>().notNull().default([]),
   /** Para onde o "Agendar consulta" do site leva: WhatsApp do consultório ou agenda on-line do próprio site. */
   bookingChannel: text('booking_channel').$type<'whatsapp' | 'site'>().notNull().default('site'),
-  /** Hub do cliente: frase do dia e dica da semana escritas pelo nutricionista. */
+  /** Hub do cliente: frase do dia e dica da semana escritas pelo coach. */
   dailyQuote: text('daily_quote'),
   weeklyTip: text('weekly_tip'),
   /** Números reais do consultório para os contadores do site (vazios = não aparecem). */
@@ -238,6 +238,9 @@ export const settings = pgTable('settings', {
   /** Horário de atendimento do chat; fora dele o paciente recebe a resposta automática. */
   chatHours: jsonb('chat_hours').$type<ChatHours | null>(),
   chatAutoReply: text('chat_auto_reply'),
+  /** Mercado Pago: parcelas máximas no cartão (1 a 12) e nome curto na fatura (até 13 caracteres). */
+  mpMaxInstallments: integer('mp_max_installments').notNull().default(12),
+  mpStatementDescriptor: text('mp_statement_descriptor').notNull().default('FARION'),
   templates: jsonb('templates').$type<MessageTemplates>().notNull(),
   updatedAt: updatedAt(),
 })
@@ -269,17 +272,6 @@ export const timeBlocks = pgTable('time_blocks', {
   endAt: timestamp('end_at', { withTimezone: true }).notNull(),
   reason: text('reason').notNull().default(''),
   createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
-  createdAt: createdAt(),
-})
-
-export const testimonials = pgTable('testimonials', {
-  id: id(),
-  authorDisplay: text('author_display').notNull(),
-  text: text('text').notNull(),
-  /** Data em que a autorização de publicação foi obtida. Sem ela, nunca é publicado. */
-  authorizedAt: date('authorized_at'),
-  published: boolean('published').notNull().default(false),
-  sort: integer('sort').notNull().default(0),
   createdAt: createdAt(),
 })
 
@@ -325,7 +317,7 @@ export const patients = pgTable(
     objective: text('objective'),
     sex: text('sex'), // 'F' | 'M'
     heightCm: numeric('height_cm', { mode: 'number' }),
-    /** Recursos do app liberados para o paciente (liga/desliga pelo nutricionista). */
+    /** Recursos do app liberados para o paciente (liga/desliga pelo coach). */
     features: jsonb('features').$type<AppFeatures>().notNull().default(DEFAULT_FEATURES),
     /** Último cálculo de gasto energético salvo na ficha. */
     energy: jsonb('energy').$type<EnergyCalc | null>(),
@@ -335,14 +327,19 @@ export const patients = pgTable(
     anamnesisVia: text('anamnesis_via').$type<'site' | 'formulario'>(),
     /** Restrições alimentares (lactose, glúten, vegetariano…): geram alerta no editor de planos. */
     restrictions: jsonb('restrictions').$type<string[]>().notNull().default([]),
-    /** Coach responsável (equipe com vários nutricionistas). */
+    /** Coach responsável (equipe com vários coaches). */
     nutritionistId: uuid('nutritionist_id').references(() => users.id, { onDelete: 'set null' }),
-    /** Plano de acompanhamento escolhido no cadastro ou contratado (definido pelo nutricionista). */
+    /** Plano de acompanhamento escolhido no cadastro ou contratado (definido pelo coach). */
     packageId: uuid('package_id').references(() => packages.id, { onDelete: 'set null' }),
     /** Início do plano contratado. */
     packageStart: date('package_start'),
-    /** Término do acompanhamento, definido pelo coach. Vazio = sem prazo (vale até o coach encerrar). */
+    /** Término do acompanhamento (definido pelo coach ou pelo pagamento do plano). Vazio = sem prazo. */
     packageEnd: date('package_end'),
+    /**
+     * Cadastro pelo site com plano escolhido: a área do cliente só libera tudo depois do primeiro pagamento
+     * aprovado (Mercado Pago) ou da liberação manual pelo coach. Clientes cadastrados pelo coach: false.
+     */
+    paymentRequired: boolean('payment_required').notNull().default(false),
     status: patientStatusEnum('status').notNull().default('ativo'),
     stage: text('stage').notNull().default('Avaliação inicial'),
     followUpDays: integer('follow_up_days'),
@@ -633,11 +630,16 @@ export const payments = pgTable(
     /** manual = registro interno; provedor = confirmado por um gateway integrado. */
     source: paymentSourceEnum('source').notNull().default('manual'),
     provider: text('provider'),
+    /** Id do pagamento no provedor (Mercado Pago: payment.id). */
     providerRef: text('provider_ref'),
+    /** Id da preferência do Checkout Pro (o link de pagamento). */
+    providerPreferenceId: text('provider_preference_id'),
+    /** Status bruto do provedor (Mercado Pago: approved, pending, rejected…). */
+    providerStatus: text('provider_status'),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
-  (t) => [index('payments_patient_idx').on(t.patientId)],
+  (t) => [index('payments_patient_idx').on(t.patientId), index('payments_provider_ref_idx').on(t.providerRef)],
 )
 
 /* ------------------------------------------------------------------ */
@@ -738,7 +740,7 @@ export const waterLogs = pgTable(
   (t) => [uniqueIndex('water_logs_unique').on(t.patientId, t.date)],
 )
 
-/** Fotos de evolução (frente, lado, costas): privadas, só paciente e nutricionista. */
+/** Fotos de evolução (frente, lado, costas): privadas, só paciente e coach. */
 export const progressPhotos = pgTable(
   'progress_photos',
   {

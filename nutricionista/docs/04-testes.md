@@ -31,7 +31,7 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 
 | Fluxo | Verificação |
 |---|---|
-| Site público | storytelling, nome do profissional, serviços, depoimento sem autorização **não** aparece |
+| Site público | storytelling, nome do profissional, serviços, planos sem desconto, botão Contratar |
 | Interessados | consentimento obrigatório; dados digitados não se perdem no erro; contato salvo |
 | Agendamento | 5 passos até a confirmação com código; **o mesmo horário deixa de ser oferecido** |
 | Responsividade | sem rolagem horizontal a 360 px no site, no app do paciente e no painel |
@@ -49,10 +49,10 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Recursos por paciente | ao desligar calorias e macros, nenhum valor em kcal aparece no plano do paciente |
 | Site | ordem dos botões da abertura, link da anamnese, seção de planos, atalhos `/entrar`, `/app`, `/painel` |
 | Acompanhamento | Beatriz “em dia”, Helena “com dificuldade”, Lucas “sem progresso”; mudar os limites reclassifica |
-| Diário | “comi outra coisa” com alimento da base (150 g = 192 kcal), humor; nutricionista responde no chat citando o registro |
+| Diário | “comi outra coisa” com alimento da base (150 g = 192 kcal), humor; coach responde no chat citando o registro |
 | Avaliação | dobras de Jackson-Pollock 3 calculadas no servidor: 25,4% (mulher, 35 anos, soma 63 mm) |
-| Fotos de evolução | paciente envia; nutricionista vê; outro paciente recebe 404 |
-| Chat ao vivo | mensagem do nutricionista aparece sem recarregar; o nutricionista vê “lida” |
+| Fotos de evolução | paciente envia; coach vê; outro paciente recebe 404 |
+| Chat ao vivo | mensagem do coach aparece sem recarregar; o coach vê “lida” |
 | Plano em até 5 s | ao ativar uma nova versão, a tela aberta do paciente mostra o novo plano em menos de 5 segundos, sem recarregar |
 | Sem internet | depois do primeiro acesso, o plano abre com o aparelho off-line |
 | PDF e metas | PDF do plano (paciente só o próprio); paciente marca meta como concluída |
@@ -64,11 +64,15 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Prescrições | registro no painel aparece no plano do paciente |
 | Agenda | paciente confirma presença, vê o link do Jitsi, pede remarcação e avalia a consulta |
 | Feriados | 10 feriados nacionais de 2027 bloqueados; repetir não duplica |
-| Equipe | nutricionista com pacientes próprios não vê a ficha de outros (404), nem no acompanhamento e nas mensagens |
+| Equipe | coach com pacientes próprios não vê a ficha de outros (404), nem no acompanhamento e nas mensagens |
 | Materiais | material para todos × para pacientes escolhidos |
 | Financeiro | pendente vencido aparece como “Atrasado”, com link de cobrança pelo WhatsApp |
 | Webhook | sem segredo → 401; com segredo cria paciente e leva restrições à ficha |
 | Portabilidade | exportação JSON do próprio paciente sem notas clínicas internas |
+| Mercado Pago (unidade) | assinatura do webhook (válida, inválida, `ts` velho, `data.id` em maiúsculas), tradução de status, período do plano e renovação antes de vencer, idempotência (a mesma notificação 3 vezes), valor divergente, `planPrices` sem desconto |
+| Mercado Pago (e2e, com o servidor falso `tests/e2e/mp-falso.mjs`) | plano → conta → pagamento → webhook aprovado → anamnese liberada; Pix pendente → espera → cron concilia → liberado; sem pagamento, anamnese, plano e PDF fechados; cliente A não vê nem aplica a cobrança de B; link de pagamento e liberação manual pelo coach |
+| Semana e medidas (unidade) | dias da semana de cada dia do plano, visão "Semana" com kcal, medida caseira sempre com o peso da base |
+| Banco em SQL (unidade) | `deploy/banco-de-dados.sql` + `deploy/alimentos.sql` criam o mesmo banco que as migrações |
 
 ## Revisão manual recomendada antes da produção
 

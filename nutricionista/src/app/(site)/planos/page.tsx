@@ -3,8 +3,9 @@ import { and, asc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'
-import { monthsLabel, planPrices } from '@/lib/planos'
+import { featuredPlan, monthsLabel, planPrices } from '@/lib/planos'
 import { PageHead, PlanGrid } from '@/components/SiteBlocks'
+import { mpConfigured } from '@/lib/mercadopago'
 
 export const metadata: Metadata = { title: 'Planos', description: 'Planos de acompanhamento: mensal, trimestral, semestral e anual.' }
 
@@ -20,8 +21,8 @@ export default async function PlansPage() {
       .orderBy(asc(schema.packages.sort), asc(schema.packages.months)),
   ])
   const plans = planPrices(packages)
-  const featured = plans.find((p) => p.highlight) ?? [...plans].sort((a, b) => b.discountPct - a.discountPct)[0]
-  const target = (id: string) => (user ? `/agendar?plano=${id}` : `/criar-conta?plano=${id}`)
+  const featured = featuredPlan(plans)
+  const target = (id: string) => (user ? `/paciente/pagamento?plano=${id}` : `/criar-conta?plano=${id}`)
   const perks = [...new Map(plans.flatMap((p) => p.perks).map((x) => [x.title, x])).values()]
 
   return (
@@ -37,7 +38,15 @@ export default async function PlansPage() {
           {plans.length === 0 ? (
             <p className="tl-lead">Os planos serão publicados em breve. Fale pelo WhatsApp.</p>
           ) : (
-            <PlanGrid plans={plans} showPrices={s.showPlanPrices} href={target} />
+            <>
+              <PlanGrid plans={plans} showPrices={s.showPlanPrices} href={target} />
+              <p className="tl-plans__note" data-rv="">
+                {mpConfigured() ? `Pix, cartão em até ${s.mpMaxInstallments}x ou boleto · pagamento seguro pelo Mercado Pago` : 'Contratação pelo WhatsApp ou na sua conta'}
+              </p>
+              <p className="tl-plans__note tl-plans__note--next" data-rv="">
+                Depois do pagamento você responde a anamnese e o {s.professionalName.split(' ')[0]} monta seu plano.
+              </p>
+            </>
           )}
         </div>
       </section>

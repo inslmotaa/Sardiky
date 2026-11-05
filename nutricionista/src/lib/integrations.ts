@@ -5,9 +5,10 @@ export function integrationStatus() {
     cron: Boolean(process.env.CRON_SECRET),
     // Em produção exige as chaves VAPID; em desenvolvimento um par local é criado automaticamente.
     push: Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) || process.env.NODE_ENV !== 'production' || process.env.ALLOW_PGLITE === '1',
+    // Mercado Pago (Checkout Pro): access token e assinatura secreta do webhook.
+    payments: Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN && process.env.MERCADOPAGO_WEBHOOK_SECRET),
     // As integrações abaixo ainda não foram implementadas: aparecem como demonstrativas.
     whatsappApi: false,
-    payments: false,
     video: false,
   }
 }

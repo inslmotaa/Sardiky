@@ -1,12 +1,12 @@
 # Consultório André Farion · Sistema de nutrição
 
-Site profissional, área do paciente e painel administrativo para o nutricionista André Farion.
+Site profissional, área do paciente e painel administrativo para o coach André Farion.
 Primeira versão utilizável, com **dados fictícios** (nenhum paciente real).
 
-- **Site público:** abertura em storytelling animado, apresentação, serviços e valores, como funciona, depoimentos autorizados, dúvidas, contato com WhatsApp e formulário, política de privacidade.
+- **Site público:** abertura em storytelling animado, apresentação, serviços, planos com o botão **Contratar** (pagamento pelo Mercado Pago), como funciona, dúvidas, contato com WhatsApp e formulário, política de privacidade.
 - **Agendamento on-line:** horários livres calculados a partir do expediente, bloqueios e consultas existentes; nenhum horário pode ser reservado duas vezes.
 - **App do paciente (celular primeiro, instalável):** tela **Hoje** com a próxima refeição e marcação feita/parcial/pulada, contador de água, registro rápido de peso; **Plano** com dias (treino/descanso), opções por refeição, substituições aprovadas e **PDF com a marca**; **Diário** por refeição (“segui o plano”, “segui em parte”, “comi outra coisa” com busca de alimentos, foto, fome, saciedade e humor); **Progresso** com constância semanal, metas, gráficos e fotos de evolução lado a lado; **chat** com fotos, PDF e áudio curto; **notificações push** (refeições, água, plano novo, mensagens, consultas) e plano disponível **sem internet**. O André escolhe, por paciente, se calorias, macros, diário, chat e calculadoras aparecem.
-- **Gestão (Fase 3):** agenda com confirmação de presença, pedido de remarcação e avaliação da consulta pelo paciente, sala de videochamada gerada no Jitsi, feriados nacionais bloqueados com um clique e lembretes 24 h/2 h; **anamnese nativa** com seções, escala, envio de exames, consentimento e respostas que viram restrições na ficha (com alerta no editor de planos) e webhook para Google Forms/Tally; **receitas** com cálculo automático e vínculo ao plano; **materiais educativos**; **lista de compras** da semana gerada do plano; **prescrições** de suplementos e exames; pagamentos **atrasados** com cobrança pelo WhatsApp; **nutricionistas que veem só os próprios pacientes**; assinatura e logo no PDF e refeições padrão dos planos novos.
+- **Gestão (Fase 3):** agenda com confirmação de presença, pedido de remarcação e avaliação da consulta pelo paciente, sala de videochamada gerada no Jitsi, feriados nacionais bloqueados com um clique e lembretes 24 h/2 h; **anamnese nativa** com seções, escala, envio de exames, consentimento e respostas que viram restrições na ficha (com alerta no editor de planos) e webhook para Google Forms/Tally; **receitas** com cálculo automático e vínculo ao plano; **materiais educativos**; **lista de compras** da semana gerada do plano; **prescrições** de suplementos e exames; pagamentos **atrasados** com cobrança pelo WhatsApp; **coaches que veem só os próprios pacientes**; assinatura e logo no PDF e refeições padrão dos planos novos.
 - **Painel:** **Acompanhamento** (quem está em dia, com dificuldade ou sem progresso, com mensagem rápida); **avaliações antropométricas** com dobras (Jackson-Pollock 3 e 7, Durnin-Womersley), bioimpedância, circunferências, massa magra e RCQ; editor de planos com **cálculo automático** (base de alimentos com medidas caseiras, metas de kcal e macros, sugestão de substituições equivalentes, desfazer/refazer, prévia no celular) e revisão obrigatória antes de ativar; base de alimentos (inclui cadastro por rótulo); calculadoras (porções, IMC, TMB/GET, macros, água, projeção); agenda dia/semana/mês, prontuário, formulários, financeiro, relatórios CSV, equipe com permissões, LGPD e auditoria.
 
 ## Como rodar no computador
@@ -22,13 +22,13 @@ npm run dev     # abra http://localhost:3000
 
 | Perfil | E-mail | Senha |
 |---|---|---|
-| Nutricionista (administrador) | nutri@example.com | Nutri#Demo2026 |
+| Coach (administrador) | nutri@example.com | Nutri#Demo2026 |
 | Equipe (recepção, sem dados clínicos) | recepcao@example.com | Equipe#Demo2026 |
 | Paciente | paciente@example.com | Paciente#Demo2026 |
 | Paciente 2 | lucas@example.com | Paciente#Demo2026 |
 
 | Paciente 3 | helena@example.com | Paciente#Demo2026 |
-| Nutricionista 2 (vê só os próprios pacientes) | nutri2@example.com | Equipe#Demo2026 |
+| Coach 2 (vê só os próprios pacientes) | nutri2@example.com | Equipe#Demo2026 |
 
 `npm run setup` apaga e recria os dados de demonstração (ele se recusa a rodar em produção). Em desenvolvimento, o banco embutido e os arquivos enviados ficam em `~/.consultorio-nutri/` — fora do projeto, para o servidor não recarregar a página a cada gravação. Se o banco local for corrompido (por exemplo, ao fechar o servidor à força), apague essa pasta e rode `npm run setup` de novo.
 
@@ -42,7 +42,7 @@ Para regerar após mudanças: `npm run build`, `ALLOW_PGLITE=1 npx next start -p
 
 | Funciona de verdade | Depende de configuração | Ainda não implementado (indicado na tela) |
 |---|---|---|
-| Login, permissões, agendamento, agenda, prontuário, planos com cálculo e PDF, base de alimentos, calculadoras, tela Hoje, água e peso, diário, acompanhamento, avaliações com dobras, fotos de evolução, chat ao vivo, app instalável com plano off-line, gráficos, formulários, financeiro (registros internos), relatórios, LGPD, auditoria, uploads | E-mails (Resend), lembretes automáticos (`CRON_SECRET`, a cada 5 min) e notificações push em produção (chaves VAPID) | Envio automático por WhatsApp (hoje: botão que abre a conversa com o texto pronto), pagamento on-line, criação automática de sala de vídeo (hoje: link colado na consulta) |
+| Login, permissões, agendamento, agenda, prontuário, planos com cálculo e PDF, base de alimentos, calculadoras, tela Hoje, água e peso, diário, acompanhamento, avaliações com dobras, fotos de evolução, chat ao vivo, app instalável com plano off-line, gráficos, formulários, financeiro, relatórios, LGPD, auditoria, uploads | E-mails (Resend), lembretes automáticos (`CRON_SECRET`, a cada 5 min), notificações push em produção (chaves VAPID) e **pagamento on-line pelo Mercado Pago** (Pix, cartão e boleto; `MERCADOPAGO_ACCESS_TOKEN` e `MERCADOPAGO_WEBHOOK_SECRET`, ver [docs/14-mercado-pago.md](docs/14-mercado-pago.md)) | Envio automático por WhatsApp (hoje: botão que abre a conversa com o texto pronto), criação automática de sala de vídeo (hoje: link colado na consulta) |
 
 Os valores nutricionais da base inicial (`src/db/foods-taco.ts`, 60 alimentos) têm a Tabela TACO como referência, mas **precisam ser conferidos pelo André** com a tabela oficial antes do uso clínico.
 

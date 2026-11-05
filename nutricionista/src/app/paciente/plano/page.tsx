@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { requirePatient } from '@/lib/auth/session'
+import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { featuresOf } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { todayIn, weekdayOf } from '@/lib/time'
@@ -9,7 +9,7 @@ import { PlanPage } from '@/components/PatientPlanPage'
 import { PageHead, Empty } from '@/components/ui'
 
 export default async function PatientPlanPage() {
-  const user = await requirePatient()
+  const user = await requireActivePatient()
   const features = await featuresOf(user.patientId)
   const weekday = weekdayOf(todayIn((await getSettings()).timezone))
   // Rascunhos nunca chegam ao paciente: só versões publicadas (e anteriores liberadas).

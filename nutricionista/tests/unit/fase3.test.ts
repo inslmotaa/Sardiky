@@ -87,9 +87,25 @@ describe('feriados e videochamada', () => {
 })
 
 describe('planos de acompanhamento', () => {
-  it('calcula valor por mês, desconto e "de R$" como no material de divulgação', async () => {
-    const { planPrices, titledLines, titledText } = await import('@/lib/planos')
-    const [m, t, s, a] = planPrices([
+  it('site e app mostram só o preço e o valor por mês, sem desconto nem "de R$"', async () => {
+    const { planPrices, featuredPlan } = await import('@/lib/planos')
+    const plans = planPrices([
+      { id: 'm', priceCents: 25000, months: 1 },
+      { id: 't', priceCents: 63750, months: 3 },
+      { id: 'a', priceCents: 225000, months: 12 },
+    ])
+    expect(plans.map((p) => p.monthlyCents)).toEqual([25000, 21250, 18750])
+    for (const p of plans) {
+      expect(p).not.toHaveProperty('discountPct')
+      expect(p).not.toHaveProperty('fullCents')
+    }
+    expect(featuredPlan(plans)?.id).toBe('a')
+    expect(featuredPlan([...plans, { id: 's', priceCents: 1, months: 1, monthlyCents: 1, highlight: 'Mais escolhido' }])?.id).toBe('s')
+  })
+
+  it('relatório interno: valor por mês, desconto e valor de referência', async () => {
+    const { planDiscounts, titledLines, titledText } = await import('@/lib/planos')
+    const [m, t, s, a] = planDiscounts([
       { priceCents: 25000, months: 1 },
       { priceCents: 63750, months: 3 },
       { priceCents: 120000, months: 6 },

@@ -1,6 +1,7 @@
 import type { schema } from '@/db'
 import { fmtDay, todayIn } from '@/lib/time'
 import { money, whatsappLink } from '@/lib/format'
+import { linkNoPainelMP } from '@/lib/mercadopago-core'
 import { markPaymentPaid, setPaymentStatus } from '@/actions/admin/finance'
 import { ActionForm, SubmitButton } from './form'
 import { StatusBadge, Empty } from './ui'
@@ -60,9 +61,18 @@ export function PaymentsTable({ rows, showPatient = true, today = todayIn() }: {
               </td>
               <td>
                 {p.source === 'provedor' ? (
-                  <span className="badge badge--ok" title={p.providerRef ?? ''}>
-                    Confirmado por {p.provider}
-                  </span>
+                  <>
+                    <span className={`badge ${p.status === 'pago' ? 'badge--ok' : 'badge--plain'}`} title={p.providerRef ?? ''}>
+                      {p.status === 'pago' ? `Confirmado por ${p.provider}` : p.provider === 'mercadopago' ? 'Mercado Pago' : p.provider}
+                    </span>
+                    {p.provider === 'mercadopago' && p.providerRef && /^\d+$/.test(p.providerRef) && (
+                      <div>
+                        <a className="small" href={linkNoPainelMP(p.providerRef)} target="_blank" rel="noopener noreferrer">
+                          Ver no Mercado Pago (nº {p.providerRef})
+                        </a>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <span className="badge badge--plain" title="Lançado manualmente pela equipe; não verificado por provedor de pagamento">
                     Registro interno
