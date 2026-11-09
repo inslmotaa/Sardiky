@@ -126,7 +126,9 @@ test('check-in: atrasado no Acompanhamento com WhatsApp; cliente envia com fotos
   await anon.close()
   await received.getByLabel('Comentário para o cliente (opcional)').fill('Boa! Vamos ajustar o jantar de sábado.')
   await received.getByRole('button', { name: 'Marcar como visto' }).click()
-  await expect(page.getByText('Check-in marcado como visto.')).toBeVisible()
+  // Visto: o formulário dá lugar ao comentário enviado ao cliente.
+  await expect(received).toContainText('Seu comentário: Boa! Vamos ajustar o jantar de sábado.')
+  await expect(received).toContainText('Visto')
 
   // Frequência: o coach liga para outro cliente.
   const lucas = await openPatient(page, 'Lucas')
