@@ -38,6 +38,7 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | SEO | `robots.txt` (painel, cliente e login fora), `sitemap.xml` sem rascunhos, título/descrição/canonical/Open Graph/Twitter por página, imagem 1200×630, JSON-LD Person + ProfessionalService e FAQPage |
 | Conteúdos | coach cria → rascunho dá 404 ao público e pré-visualização ao coach → publicado aparece na lista, no sitemap e termina com Agendar/Contratar |
 | Captação e pixels | "Quero saber mais" guarda a origem UTM e aparece em Interessados; sem pixels, nenhum aviso de cookies; ligados, recusar não carrega nada, aceitar carrega com a CSP liberada só nas páginas públicas e o login abre sem pixels |
+| Parte 4 | micronutrientes fechados no editor e opcionais no app; código de barras com Open Food Facts simulado e conferência obrigatória; check-in atrasado → envio com foto privada → revisão; diário de 45 dias atrás com edição e real × planejado; vencido só com histórico; recibo PDF numerado e isolado; link mágico de uso único; assinatura mensal simulada; exclusão com exportação guardada e auditada |
 | Responsividade | sem rolagem horizontal a 360 px no site, no app do paciente e no painel |
 | Acesso | áreas privadas exigem login; exportação e CSV recusam anônimos; senha errada com mensagem genérica; cookie `httpOnly` e `SameSite=Lax` |
 | Isolamento | paciente não abre formulário nem foto de outro paciente (404) e é redirecionado ao tentar o painel; anônimo não baixa fotos |

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { noIndex } from '@/lib/seo'
 import { redirect } from 'next/navigation'
-import { login, logout } from '@/actions/auth'
+import { login, logout, requestMagicLink } from '@/actions/auth'
 import { getCurrentUser } from '@/lib/auth/session'
 import { destinationFor, emailVerificationRequired } from '@/lib/auth/accounts'
 import { googleConfigured } from '@/lib/auth/google'
@@ -79,6 +79,18 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <GoogleLink href={`/api/auth/google${sp.next ? `?next=${encodeURIComponent(sp.next)}` : ''}`} label="Entrar com Google" />
         </>
       )}
+      <details className="disclosure magic-link">
+        <summary>Sem senha? Receba um link de acesso por e-mail</summary>
+        <ActionForm action={requestMagicLink} className="stack" resetOnSuccess>
+          <input type="hidden" name="next" value={sp.next ?? ''} />
+          <Field label="Endereço para receber o link" name="email" hint="O link vale por 15 minutos e só funciona uma vez.">
+            <input name="email" type="email" autoComplete="email" required />
+          </Field>
+          <SubmitButton className="btn btn--block" pendingText="Enviando…">
+            Enviar link de acesso
+          </SubmitButton>
+        </ActionForm>
+      </details>
       <div className="auth-links">
         <Link href="/recuperar-senha">Esqueci minha senha</Link>
         {emailVerificationRequired() && <Link href="/criar-conta/confirme">Reenviar confirmação de e-mail</Link>}

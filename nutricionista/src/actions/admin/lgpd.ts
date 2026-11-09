@@ -10,6 +10,7 @@ import { failure, formObject, zodErrors, type ActionState } from '@/lib/action'
 import { notifyUser } from '@/lib/notify'
 import { deleteUpload } from '@/lib/storage'
 import { optStr, uuid } from '@/lib/validation'
+import { archiveExportBeforeDeletion } from '@/lib/lgpd-export'
 
 export async function resolveDataRequest(_: ActionState, fd: FormData): Promise<ActionState> {
   const parsed = z
@@ -51,6 +52,8 @@ export async function anonymizePatient(_: ActionState, fd: FormData): Promise<Ac
     const user = await requireTeam('config')
     const [p] = await db.select().from(schema.patients).where(and(eq(schema.patients.id, id), isNull(schema.patients.anonymizedAt)))
     if (!p) return { error: 'Cliente não encontrado.' }
+    // Antes de apagar: exportação completa guardada por 30 dias, com a trilha na auditoria.
+    const exp = await archiveExportBeforeDeletion(id, p.userId, user, 'anonimizacao')
     const files = await db.select().from(schema.files).where(eq(schema.files.patientId, id))
     await db.transaction(async (tx) => {
       await tx.delete(schema.diaryEntries).where(eq(schema.diaryEntries.patientId, id))
@@ -68,16 +71,17 @@ export async function anonymizePatient(_: ActionState, fd: FormData): Promise<Ac
       if (p.userId) await tx.delete(schema.users).where(eq(schema.users.id, p.userId))
       // Depoimentos do cliente saem do site e são apagados (a autorização deixa de valer).
       await tx.delete(schema.testimonials).where(eq(schema.testimonials.patientId, id))
+      await tx.delete(schema.checkins).where(eq(schema.checkins.patientId, id))
       await tx
         .update(schema.patients)
         .set({ fullName: 'Cliente anonimizado', email: null, phone: null, birthDate: null, objective: null, userId: null, status: 'inativo', anonymizedAt: new Date() })
         .where(eq(schema.patients.id, id))
     })
     for (const f of files) await deleteUpload(f.storageKey)
-    await audit(user, 'paciente_anonimizado', 'paciente', { entityId: id, patientId: id })
+    await audit(user, 'paciente_anonimizado', 'paciente', { entityId: id, patientId: id, details: { exportacao: exp.protocolo } })
     revalidatePath('/admin/privacidade')
     revalidatePath('/admin/pacientes')
-    return { ok: true, message: 'Dados do cliente anonimizados.' }
+    return { ok: true, message: `Dados do cliente anonimizados. Antes, a exportação completa foi guardada (protocolo ${exp.protocolo}) e fica disponível aqui por 30 dias.` }
   } catch (err) {
     return failure(err)
   }

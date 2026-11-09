@@ -30,6 +30,8 @@ export type AppFeatures = {
   fotosCorpo: boolean
   /** Envio opcional de exames (PDF ou foto) pelo cliente. */
   exames: boolean
+  /** Quadro de vitaminas e minerais no plano do cliente (desligado por padrão). */
+  micronutrientes?: boolean
 }
 export const DEFAULT_FEATURES: AppFeatures = {
   diario: true,
@@ -41,6 +43,7 @@ export const DEFAULT_FEATURES: AppFeatures = {
   agua: true,
   fotosCorpo: true,
   exames: true,
+  micronutrientes: false,
 }
 /** Preferências de notificação do paciente (cada tipo liga/desliga) e horário de silêncio. */
 export type NotificationPrefs = {
@@ -103,7 +106,7 @@ export const measurementSourceEnum = pgEnum('measurement_source', ['profissional
 export const adherenceEnum = pgEnum('adherence', ['total', 'parcial', 'nao_seguiu'])
 export const paymentStatusEnum = pgEnum('payment_status', ['pendente', 'pago', 'cancelado', 'estornado'])
 export const paymentSourceEnum = pgEnum('payment_source', ['manual', 'provedor'])
-export const tokenTypeEnum = pgEnum('token_type', ['reset', 'convite', 'verificacao'])
+export const tokenTypeEnum = pgEnum('token_type', ['reset', 'convite', 'verificacao', 'link_magico'])
 
 /* ------------------------------------------------------------------ */
 /* Usuários, sessões e autenticação                                    */
@@ -170,7 +173,20 @@ export const authTokens = pgTable('auth_tokens', {
 /* Configurações do profissional (registro único, id = 1)              */
 /* ------------------------------------------------------------------ */
 
-export type MessageTemplates = { confirmacao: string; lembrete: string; cancelamento: string }
+export type MessageTemplates = {
+  confirmacao: string
+  lembrete: string
+  cancelamento: string
+  /** Mensagens dos botões de WhatsApp do painel (wa.me, sem API paga). Vazias = texto padrão. */
+  waLembreteConsulta?: string
+  waPlanoNovo?: string
+  waCheckin?: string
+  waVencimento?: string
+  waCobranca?: string
+  waLinkPagamento?: string
+  waContato?: string
+  waInteressado?: string
+}
 
 export const settings = pgTable('settings', {
   id: integer('id').primaryKey().default(1),
@@ -388,6 +404,12 @@ export const patients = pgTable(
     stage: text('stage').notNull().default('Avaliação inicial'),
     followUpDays: integer('follow_up_days'),
     nextFollowUp: date('next_follow_up'),
+    /** Check-in periódico: a cada N dias (vazio = desligado) e a data do próximo. */
+    checkinEveryDays: integer('checkin_every_days'),
+    nextCheckinDue: date('next_checkin_due'),
+    /** Assinatura recorrente do Mercado Pago (preapproval), quando o cliente assinou o plano mensal. */
+    mpPreapprovalId: text('mp_preapproval_id'),
+    mpPreapprovalStatus: text('mp_preapproval_status'),
     anonymizedAt: timestamp('anonymized_at', { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -712,10 +734,12 @@ export const payments = pgTable(
     providerPreferenceId: text('provider_preference_id'),
     /** Status bruto do provedor (Mercado Pago: approved, pending, rejected…). */
     providerStatus: text('provider_status'),
+    /** Número sequencial do recibo (gerado na primeira emissão de um pagamento confirmado). */
+    receiptNumber: integer('receipt_number'),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
-  (t) => [index('payments_patient_idx').on(t.patientId), index('payments_provider_ref_idx').on(t.providerRef)],
+  (t) => [index('payments_patient_idx').on(t.patientId), index('payments_provider_ref_idx').on(t.providerRef), uniqueIndex('payments_receipt_idx').on(t.receiptNumber)],
 )
 
 /* ------------------------------------------------------------------ */
@@ -746,11 +770,13 @@ export const foods = pgTable(
     sodium: numeric('sodium', { mode: 'number' }),
     /** Peso cozido ÷ peso cru (ex.: arroz ≈ 2,5). */
     cookingFactor: numeric('cooking_factor', { mode: 'number' }),
+    /** Código de barras (EAN/GTIN) do produto industrializado, quando cadastrado pela leitura. */
+    barcode: text('barcode'),
     active: boolean('active').notNull().default(true),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
-  (t) => [index('foods_search_idx').on(t.search)],
+  (t) => [index('foods_search_idx').on(t.search), uniqueIndex('foods_barcode_idx').on(t.barcode)],
 )
 
 export const householdMeasures = pgTable(
@@ -998,4 +1024,47 @@ export const auditLogs = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('audit_created_idx').on(t.createdAt), index('audit_patient_idx').on(t.patientId)],
+)
+
+/* ------------------------------------------------------------------ */
+/* Check-ins periódicos                                                */
+/* ------------------------------------------------------------------ */
+
+export type CheckinAnswers = {
+  /** Escalas de 1 a 5. */
+  adesao?: number
+  energia?: number
+  fome?: number
+  sono?: number
+  treinos?: number
+  dificuldades?: string
+  comentario?: string
+}
+export type CheckinMeasures = { waistCm?: number; hipCm?: number; abdomenCm?: number; armCm?: number; thighCm?: number }
+
+/** Check-in do cliente na frequência definida pelo coach: questionário curto, peso, medidas e fotos privadas. */
+export const checkins = pgTable(
+  'checkins',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    /** Prazo: o check-in fica pendente até ser enviado; depois dele, atrasado. */
+    dueDate: date('due_date').notNull(),
+    status: text('status').$type<'pendente' | 'enviado'>().notNull().default('pendente'),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    answers: jsonb('answers').$type<CheckinAnswers>().notNull().default({}),
+    weightKg: numeric('weight_kg', { mode: 'number' }),
+    measures: jsonb('measures').$type<CheckinMeasures>().notNull().default({}),
+    /** Fotos privadas (arquivos do cliente, nunca públicos). */
+    photoFileIds: jsonb('photo_file_ids').$type<string[]>().notNull().default([]),
+    /** Medida gravada junto (peso e medidas entram nos gráficos como "informadas pelo cliente"). */
+    measurementId: uuid('measurement_id').references(() => measurements.id, { onDelete: 'set null' }),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    reviewedBy: uuid('reviewed_by').references(() => users.id, { onDelete: 'set null' }),
+    coachNote: text('coach_note'),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('checkins_patient_due_idx').on(t.patientId, t.dueDate), index('checkins_status_idx').on(t.status, t.dueDate)],
 )

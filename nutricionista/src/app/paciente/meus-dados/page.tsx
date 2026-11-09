@@ -8,7 +8,8 @@ import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtDay, todayIn, weekdayOf } from '@/lib/time'
 import { CONTRACT_STATUS, contractInfo } from '@/lib/contract'
 import { dayForWeekday, normalizePlan } from '@/lib/plan'
-import { whatsappLink } from '@/lib/format'
+import { money, whatsappLink } from '@/lib/format'
+import { cancelarAssinaturaMensal } from '@/actions/pagamento'
 import { changePassword } from '@/actions/auth'
 import { createDataRequest, deleteMyAccount, setTheme } from '@/actions/patient'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
@@ -22,7 +23,8 @@ const REQUEST_TYPES: Record<string, string> = {
   revogacao: 'Revogação de consentimento',
 }
 
-export default async function MyDataPage() {
+export default async function MyDataPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
+  const sp = await searchParams
   const user = await requirePatient()
   const s = await getSettings()
   const [[patient], requests, consents, docs] = await Promise.all([
@@ -57,6 +59,13 @@ export default async function MyDataPage() {
       .limit(1),
   ])
   const contract = pkg ? contractInfo(pkg, patient.packageStart, patient.packageEnd, today) : null
+  // Pagamentos confirmados, com o recibo em PDF de cada um.
+  const paid = await db
+    .select()
+    .from(schema.payments)
+    .where(and(eq(schema.payments.patientId, user.patientId), eq(schema.payments.status, 'pago')))
+    .orderBy(desc(schema.payments.paidAt), desc(schema.payments.createdAt))
+  const sub = patient.mpPreapprovalId ? patient.mpPreapprovalStatus : null
   const content = plan ? normalizePlan(plan.content) : null
   const planDay = content ? dayForWeekday(content, weekdayOf(today)) : null
   const showKcal = patient.features.calorias && content?.mode === 'calculado' && content.targets.kcal
@@ -141,9 +150,9 @@ export default async function MyDataPage() {
               </Link>
             )}
             {(contract?.status === 'vencendo' || contract?.status === 'vencido') && wa && (
-              <a href={whatsappLink(s.whatsapp, `Olá! Quero renovar o meu Plano ${contract.name}.`) ?? wa} target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm">
+              <Link href={`/paciente/pagamento${pkg ? `?plano=${pkg.id}` : ''}`} className="btn btn--primary btn--sm">
                 Renovar o plano
-              </a>
+              </Link>
             )}
             <Link href="/paciente/consultas" className="btn btn--sm">
               Minhas consultas
@@ -160,6 +169,51 @@ export default async function MyDataPage() {
               )
             )}
           </div>
+        </section>
+
+        <section className="card stack" style={{ ['--gap' as string]: '12px' }} aria-labelledby="recibos-titulo">
+          <h2 id="recibos-titulo" style={{ fontSize: '1.1rem', margin: 0 }}>
+            Pagamentos e recibos
+          </h2>
+          {sp.assinatura === 'cancelada' && (
+            <p className="alert alert--ok small" role="status" style={{ margin: 0 }}>
+              Assinatura cancelada. Nada mais será cobrado; o acesso continua até o fim do período já pago.
+            </p>
+          )}
+          {sub && sub !== 'cancelled' && (
+            <div className="row row--between">
+              <span>
+                Assinatura mensal: <strong>{sub === 'authorized' ? 'ativa (renova sozinha todo mês)' : sub === 'paused' ? 'pausada' : 'aguardando autorização'}</strong>
+              </span>
+              <form action={cancelarAssinaturaMensal}>
+                <button type="submit" className="btn btn--sm">
+                  Cancelar assinatura
+                </button>
+              </form>
+            </div>
+          )}
+          {paid.length === 0 ? (
+            <p className="muted small" style={{ margin: 0 }}>
+              Nenhum pagamento confirmado ainda.
+            </p>
+          ) : (
+            <ul className="list" aria-label="Pagamentos confirmados">
+              {paid.map((pay) => (
+                <li key={pay.id} className="row row--between">
+                  <span>
+                    {pay.description} · <strong>{money(pay.amountCents - pay.discountCents)}</strong>
+                    <span className="small muted"> · {pay.paidAt ? fmtDay(pay.paidAt) : 'confirmado'}</span>
+                  </span>
+                  <a className="btn btn--sm" href={`/recibos/${pay.id}`} download>
+                    Recibo (PDF)
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="small muted" style={{ margin: 0 }}>
+            O recibo é gerado pelo sistema a partir do pagamento confirmado. Não é nota fiscal.
+          </p>
         </section>
 
         <section className="card stack" style={{ ['--gap' as string]: '12px' }} aria-labelledby="meu-plano-alimentar">
@@ -359,6 +413,10 @@ export default async function MyDataPage() {
         <p className="small">
           Seu acesso é encerrado na hora: login, sessões e notificações. A sua ficha (anamnese, consultas e planos) fica guardada apenas
           pelo prazo exigido pelas normas profissionais e depois é anonimizado. Esta ação não pode ser desfeita.
+        </p>
+        <p className="small muted">
+          Antes de encerrar, o sistema gera automaticamente uma cópia completa dos seus dados, guardada por 30 dias para ser entregue a você se pedir.
+          Se quiser a cópia agora, use “Baixar meus dados” acima.
         </p>
         <ActionForm action={deleteMyAccount} className="stack" confirm="Excluir sua conta agora? Você perde o acesso ao app.">
           <div className="form-grid">

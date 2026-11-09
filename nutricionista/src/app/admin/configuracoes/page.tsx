@@ -27,6 +27,7 @@ import { approveTestimonial, createTestimonial, deleteTestimonial, hideTestimoni
 import { credentialsText } from '@/lib/formacoes'
 import { activePixels } from '@/lib/pixels'
 import { siteUrl } from '@/lib/seo'
+import { WA_TEMPLATES, type WaTemplateKey } from '@/lib/whatsapp'
 
 const SECTIONS = [
   { key: 'perfil', label: 'Perfil e identidade', perm: 'config' },
@@ -444,6 +445,16 @@ function TemplatesSection({ s }: { s: S }) {
         <Field label="Cancelamento" name="cancelamento">
           <textarea name="cancelamento" rows={3} defaultValue={s.templates.cancelamento} />
         </Field>
+        <h3 style={{ fontSize: '1rem', margin: '12px 0 0' }}>Mensagens do WhatsApp (botões do painel)</h3>
+        <p className="muted small" style={{ margin: 0 }}>
+          Os botões de WhatsApp do painel abrem a conversa (wa.me) com estes textos prontos, sem API paga: você revisa e envia. Em branco, vale o texto
+          padrão mostrado.
+        </p>
+        {(Object.keys(WA_TEMPLATES) as WaTemplateKey[]).map((k) => (
+          <Field key={k} label={WA_TEMPLATES[k].label} name={k} hint={`Variáveis: ${WA_TEMPLATES[k].vars}`}>
+            <textarea name={k} rows={2} maxLength={1000} defaultValue={s.templates[k] ?? ''} placeholder={WA_TEMPLATES[k].text} />
+          </Field>
+        ))}
         <div>
           <SubmitButton>Salvar modelos</SubmitButton>
         </div>

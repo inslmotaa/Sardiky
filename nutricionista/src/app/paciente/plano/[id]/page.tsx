@@ -7,6 +7,7 @@ import { getSettings } from '@/lib/settings'
 import { todayIn, weekdayOf } from '@/lib/time'
 import { uuid } from '@/lib/validation'
 import { PlanPage } from '@/components/PatientPlanPage'
+import { microsForPlan } from '@/lib/foods'
 
 export default async function PatientPlanVersion({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -21,5 +22,6 @@ export default async function PatientPlanVersion({ params }: { params: Promise<{
     .orderBy(desc(schema.mealPlans.publishedAt))
   const plan = plans.find((p) => p.id === id && (p.status === 'publicado' || p.visibleInHistory))
   if (!plan) notFound()
-  return <PlanPage features={features} weekday={weekday} plan={plan} history={plans.filter((p) => p.status === 'arquivado' && p.visibleInHistory && p.id !== plan.id)} />
+  const micros = features.micronutrientes ? await microsForPlan(plan.content) : undefined
+  return <PlanPage micros={micros} features={features} weekday={weekday} plan={plan} history={plans.filter((p) => p.status === 'arquivado' && p.visibleInHistory && p.id !== plan.id)} />
 }

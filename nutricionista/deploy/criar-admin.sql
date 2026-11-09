@@ -20,11 +20,13 @@ BEGIN;
 \set site_url 'https://SEU-DOMINIO.com.br'
 
 -- Configurações iniciais (só se ainda não existirem).
-INSERT INTO settings (id, professional_name, templates, demo_banner)
+-- WhatsApp do André: (41) 99155-1789 (dá para trocar depois em Configurações → Perfil).
+INSERT INTO settings (id, professional_name, templates, demo_banner, whatsapp)
 VALUES (
   1, :'admin_name',
   '{"confirmacao":"Olá, {nome}! Sua consulta ({servico}) está confirmada para {data} às {hora}. Código: {codigo}.","lembrete":"Olá, {nome}! Lembrete: sua consulta ({servico}) é amanhã, {data}, às {hora}.","cancelamento":"Olá, {nome}. Sua consulta de {data} às {hora} foi cancelada. Fale conosco para escolher um novo horário."}'::jsonb,
-  false
+  false,
+  '5541991551789'
 )
 ON CONFLICT (id) DO NOTHING;
 

@@ -4,10 +4,10 @@ import { requireTeam } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
-import { whatsappLink } from '@/lib/format'
 import { deleteLead, setLeadStatus } from '@/actions/admin/settings'
 import { NoAccess, PageHead, StatusBadge, Empty } from '@/components/ui'
 import { originLabel } from '@/lib/utm'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
 
 export default async function LeadsPage() {
   const user = await requireTeam()
@@ -37,7 +37,6 @@ export default async function LeadsPage() {
             </thead>
             <tbody>
               {leads.map((l) => {
-                const wa = whatsappLink(l.phone.length <= 11 ? `55${l.phone}` : l.phone, `Olá, ${l.name.split(' ')[0]}! Recebemos seu contato pelo site de ${s.professionalName}.`)
                 return (
                   <tr key={l.id}>
                     <td className="nowrap small">{fmtDateTime(l.createdAt, s.timezone)}</td>
@@ -62,11 +61,7 @@ export default async function LeadsPage() {
                     </td>
                     <td>
                       <div className="row small" style={{ gap: 8 }}>
-                        {wa && (
-                          <a href={wa} target="_blank" rel="noopener noreferrer">
-                            WhatsApp
-                          </a>
-                        )}
+                        <WhatsAppButton phone={l.phone} template="waInteressado" vars={{ nome: l.name.split(' ')[0] }} className="" />
                         {(['contatado', 'convertido', 'descartado'] as const)
                           .filter((st) => st !== l.status)
                           .map((st) => (

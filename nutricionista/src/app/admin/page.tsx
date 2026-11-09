@@ -12,6 +12,8 @@ import { contractInfo } from '@/lib/contract'
 import { pendenciasDoSite } from '../../../scripts/pendencias.mjs'
 import { PageHead, Stat, StatusBadge } from '@/components/ui'
 import { markTeamNotificationsRead } from '@/actions/admin/patients'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { siteUrl } from '@/lib/seo'
 
 export default async function AdminHome() {
   const user = await requireTeam()
@@ -114,6 +116,7 @@ export default async function AdminHome() {
         .select({
           id: schema.patients.id,
           name: schema.patients.fullName,
+          phone: schema.patients.phone,
           start: schema.patients.packageStart,
           end: schema.patients.packageEnd,
           anamnesisAt: schema.patients.anamnesisReceivedAt,
@@ -305,9 +308,16 @@ export default async function AdminHome() {
                       · Plano {a.c!.name} {a.c!.daysLeft! < 0 ? `terminou em ${fmtDay(a.c!.end)}` : `termina em ${fmtDay(a.c!.end)}`}
                     </span>
                   </span>
-                  <Link href={`/admin/pacientes/${a.id}?aba=financeiro`} className="btn btn--sm">
-                    Renovar
-                  </Link>
+                  <span className="row" style={{ gap: 6 }}>
+                    <WhatsAppButton
+                      phone={a.phone}
+                      template="waVencimento"
+                      vars={{ nome: a.name.split(' ')[0], plano: a.c!.name, data: fmtDay(a.c!.end), link: `${siteUrl()}/paciente/pagamento?plano=${a.pkg?.id ?? ''}` }}
+                    />
+                    <Link href={`/admin/pacientes/${a.id}?aba=financeiro`} className="btn btn--sm">
+                      Renovar
+                    </Link>
+                  </span>
                 </li>
               ))}
               {struggling.map((r) => (
@@ -459,7 +469,7 @@ export default async function AdminHome() {
               )}
             </div>
             <div>
-              <h3 className="small muted">Planos vencendo em 7 dias ({renewals.filter((a) => a.c!.daysLeft! >= 0).length})</h3>
+              <h3 className="small muted">Vencem nesta semana ({renewals.filter((a) => a.c!.daysLeft! >= 0).length})</h3>
               {renewals.filter((a) => a.c!.daysLeft! >= 0).length === 0 ? (
                 <p className="small muted">Nenhum.</p>
               ) : (
@@ -468,7 +478,13 @@ export default async function AdminHome() {
                     .filter((a) => a.c!.daysLeft! >= 0)
                     .map((a) => (
                       <li key={a.id}>
-                        <Link href={`/admin/pacientes/${a.id}?aba=financeiro`}>{a.name}</Link> · {fmtDay(a.c!.end)}
+                        <Link href={`/admin/pacientes/${a.id}?aba=financeiro`}>{a.name}</Link> · {fmtDay(a.c!.end)}{' '}
+                        <WhatsAppButton
+                          phone={a.phone}
+                          template="waVencimento"
+                          className="small"
+                          vars={{ nome: a.name.split(' ')[0], plano: a.c!.name, data: fmtDay(a.c!.end), link: `${siteUrl()}/paciente/pagamento?plano=${a.pkg?.id ?? ''}` }}
+                        />
                       </li>
                     ))}
                 </ul>

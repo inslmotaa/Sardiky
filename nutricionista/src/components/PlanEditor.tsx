@@ -33,7 +33,8 @@ import {
 import { FoodPicker, type FoodPickerHandle } from './nutri/FoodPicker'
 import { RESTRICTIONS, restrictionAlerts, type RestrictionKey } from '@/lib/restricoes'
 import { KcalRing, MacroBars, NutriInline } from './nutri/MacroBars'
-import { NUTRIENT_BY_KEY, PLAN_MICROS, sumNutrients, type NutrientTable } from '@/lib/tabela-nutricional'
+import { planMicros, type NutrientTable } from '@/lib/tabela-nutricional'
+import { MicrosPanel } from '@/components/nutri/MicrosPanel'
 import { PatientPlan } from './nutri/PatientPlan'
 
 export type EditorFood = {
@@ -118,15 +119,8 @@ export function PlanEditor({ action, initial, title: initialTitle, isTemplate, f
   const day: PlanDay = content.days[Math.min(dayIdx, content.days.length - 1)]
   const calc = content.mode === 'calculado'
   const totals = dayTotals(day, Object.fromEntries(day.meals.map((m) => [m.id, m.options[optIdx[m.id] ?? 0]?.id ?? ''])))
-  // Vitaminas e minerais das opções exibidas de cada refeição (itens sem dado na tabela deixam o total parcial).
-  const micros = sumNutrients(
-    day.meals.flatMap((m) =>
-      (m.options[optIdx[m.id] ?? 0]?.items ?? [])
-        .filter((it) => it.grams != null)
-        .map((it) => ({ table: it.foodId ? (foodById.get(it.foodId)?.micros ?? null) : null, grams: it.grams! })),
-    ),
-    PLAN_MICROS,
-  )
+  // Vitaminas e minerais por refeição (opção exibida) e do dia; itens sem dado na tabela deixam o total parcial.
+  const micros = planMicros(day, (mealId) => optIdx[mealId] ?? 0, (foodId) => foodById.get(foodId)?.micros)
   const t = content.targets
 
   /* ------------------------------ estado e histórico ------------------------------ */
@@ -484,39 +478,7 @@ export function PlanEditor({ action, initial, title: initialTitle, isTemplate, f
             )}
           </section>
 
-          {calc && micros.count > 0 && (
-            <section className="card stack" style={{ ['--gap' as string]: '10px' }} aria-labelledby="micros-titulo">
-              <h3 id="micros-titulo" style={{ margin: 0 }}>
-                Vitaminas e minerais · {day.label}
-              </h3>
-              <p className="small muted" style={{ margin: 0 }}>
-                Soma das opções exibidas, com valores da TACO 4ª ed. por 100 g.
-              </p>
-              <dl className="micro-list">
-                {PLAN_MICROS.map((k) => {
-                  const info = NUTRIENT_BY_KEY[k]
-                  return (
-                    <div key={k}>
-                      <dt>{info.label}</dt>
-                      <dd>
-                        {fmt(micros.totals[k], info.digits)} {info.unit}
-                        {micros.missing[k] > 0 && (
-                          <span className="micro-list__partial" title={`${micros.missing[k]} item(ns) sem este dado na tabela`}>
-                            *
-                          </span>
-                        )}
-                      </dd>
-                    </div>
-                  )
-                })}
-              </dl>
-              {PLAN_MICROS.some((k) => micros.missing[k] > 0) && (
-                <p className="small muted" style={{ margin: 0 }}>
-                  * Total parcial: há itens sem esse dado analisado na tabela (receitas, itens em texto ou valores “não analisados”).
-                </p>
-              )}
-            </section>
-          )}
+          {calc && <MicrosPanel data={micros} dayLabel={day.label} />}
 
           {calc && (
             <section className="card stack" style={{ ['--gap' as string]: '10px' }}>

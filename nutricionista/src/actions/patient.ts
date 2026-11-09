@@ -7,6 +7,8 @@ import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
 import { destroySession, requirePatient } from '@/lib/auth/session'
+import { accessExpired } from '@/lib/auth/patient-gate'
+import { archiveExportBeforeDeletion } from '@/lib/lgpd-export'
 import { verifyPassword } from '@/lib/auth/password'
 import { audit } from '@/lib/audit'
 import { failure, formObject, UserError, zodErrors, type ActionState } from '@/lib/action'
@@ -16,7 +18,7 @@ import { getSettings } from '@/lib/settings'
 import { currentPublishedPlan, featuresOf } from '@/lib/patient-context'
 import { deleteUpload, saveUpload, CHAT_TYPES, DOC_TYPES, IMAGE_TYPES } from '@/lib/storage'
 import { applyAnamnesis } from '@/lib/anamnese'
-import { PRIVACY_VERSION } from '@/lib/constants'
+import { DIARY_MAX_BACK_DAYS, PRIVACY_VERSION } from '@/lib/constants'
 import { chatFileTitle } from '@/lib/format'
 import { postMessage } from '@/lib/chat'
 import { pushToTeam } from '@/lib/push'
@@ -44,6 +46,12 @@ const diarySchema = z.object({
     .refine((v) => v === null || /^[\w-]{1,40}:[\w-]{1,40}$/.test(v), 'Refeição inválida'),
   optionId: optStr(40),
   meal: str(60, 'Escolha a refeição'),
+  /** Edição de um registro fora do plano já existente (só do próprio cliente). */
+  entryId: z
+    .string()
+    .optional()
+    .transform((v) => v || null)
+    .refine((v) => v === null || uuid.safeParse(v).success, 'Registro inválido'),
   choice: z.enum(['', 'total', 'parcial', 'nao_seguiu']).optional().transform((v) => v || null),
   foods: optStr(1000),
   hunger: scale5,
@@ -73,6 +81,7 @@ async function savePatientImage(user: { id: string; patientId: string }, file: F
  */
 export async function saveDiaryMeal(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
+  if (await accessExpired(user.patientId)) return { error: 'Seu plano terminou. Renove para voltar a registrar.' }
   if (!(await featuresOf(user.patientId)).diario) return { error: 'O diário está desativado para a sua conta.' }
   const parsed = diarySchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
@@ -88,7 +97,8 @@ export async function saveDiaryMeal(_: ActionState, fd: FormData): Promise<Actio
   const s = await getSettings()
   const today = todayIn(s.timezone)
   if (d.date > today) return { fieldErrors: { date: 'Não é possível registrar datas futuras' }, error: 'Revise a data.' }
-  if (d.date < addDays(today, -30)) return { fieldErrors: { date: 'Registre dias dos últimos 30 dias' }, error: 'Revise a data.' }
+  if (d.date < addDays(today, -DIARY_MAX_BACK_DAYS))
+    return { fieldErrors: { date: `Registre dias dos últimos ${DIARY_MAX_BACK_DAYS} dias` }, error: 'Revise a data.' }
   if (d.mealKey && !d.choice) return { fieldErrors: { choice: 'Escolha uma opção' }, error: 'Conte como foi: segui o plano, segui em parte ou comi outra coisa.' }
   const photo = fd.get('photo')
   const hasPhoto = photo instanceof File && photo.size > 0
@@ -136,12 +146,19 @@ export async function saveDiaryMeal(_: ActionState, fd: FormData): Promise<Actio
       notes: d.notes,
     }
     // Uma refeição do plano tem um único registro por dia: registrar de novo atualiza.
-    const [existing] = d.mealKey
+    // Fora do plano: com entryId, edita o próprio registro (de qualquer dia dentro do período permitido).
+    const [existing] = d.entryId && !d.mealKey
+      ? await db
+          .select({ id: schema.diaryEntries.id, photoFileId: schema.diaryEntries.photoFileId })
+          .from(schema.diaryEntries)
+          .where(and(eq(schema.diaryEntries.id, d.entryId), eq(schema.diaryEntries.patientId, user.patientId), isNull(schema.diaryEntries.mealKey)))
+      : d.mealKey
       ? await db
           .select({ id: schema.diaryEntries.id, photoFileId: schema.diaryEntries.photoFileId })
           .from(schema.diaryEntries)
           .where(and(eq(schema.diaryEntries.patientId, user.patientId), eq(schema.diaryEntries.date, d.date), eq(schema.diaryEntries.mealKey, d.mealKey)))
       : []
+    if (d.entryId && !d.mealKey && !existing) return { error: 'Registro não encontrado.' }
     if (existing) {
       await db
         .update(schema.diaryEntries)
@@ -567,6 +584,7 @@ const MEAL_STATUS = ['feita', 'parcial', 'pulada'] as const
 /** Marca (ou desmarca) uma refeição do plano ativo para hoje. */
 export async function setMealStatus(mealKey: string, optionId: string, status: string): Promise<void> {
   const user = await requirePatient()
+  if (await accessExpired(user.patientId)) return
   if (!/^[\w-]{1,40}:[\w-]{1,40}$/.test(mealKey) || optionId.length > 40) return
   const plan = await currentPublishedPlan(user.patientId)
   if (!plan) return
@@ -587,6 +605,7 @@ export async function setMealStatus(mealKey: string, optionId: string, status: s
 /** Soma (ou tira) água do dia, em ml. */
 export async function changeWater(delta: number): Promise<void> {
   const user = await requirePatient()
+  if (await accessExpired(user.patientId)) return
   if (!Number.isInteger(delta) || Math.abs(delta) > 1000) return
   if (!(await featuresOf(user.patientId)).agua) return
   const s = await getSettings()
@@ -605,6 +624,7 @@ export async function changeWater(delta: number): Promise<void> {
 
 export async function quickWeight(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
+  if (await accessExpired(user.patientId)) return { error: 'Seu plano terminou. Renove para voltar a registrar.' }
   if (!(await featuresOf(user.patientId)).peso) return { error: 'Registro de peso desativado pelo coach.' }
   const kg = optNum(20, 350).safeParse(fd.get('weightKg') ?? '')
   if (!kg.success || kg.data == null) return { fieldErrors: { weightKg: 'Informe o peso entre 20 e 350 kg' }, error: 'Peso inválido.' }
@@ -633,12 +653,14 @@ export async function deleteMyAccount(_: ActionState, fd: FormData): Promise<Act
   if (row.passwordHash && !(await verifyPassword(String(fd.get('password') ?? ''), row.passwordHash))) {
     return { error: 'Senha incorreta.', fieldErrors: { password: 'Senha incorreta' } }
   }
+  // Antes de encerrar: exportação completa dos dados, guardada por 30 dias para entregar ao titular, com trilha na auditoria.
+  const exp = await archiveExportBeforeDeletion(user.patientId, user.id, user, 'conta_excluida_pelo_cliente')
   await db.transaction(async (tx) => {
     await tx.insert(schema.dataRequests).values({
       patientId: user.patientId,
       requesterName: user.name,
       type: 'exclusao',
-      details: 'Conta excluída pelo próprio titular no app. Acesso encerrado; falta anonimizar o prontuário quando o prazo de guarda permitir.',
+      details: `Conta excluída pelo próprio titular no app. Acesso encerrado; exportação dos dados guardada (protocolo ${exp.protocolo}). Falta anonimizar o prontuário quando o prazo de guarda permitir.`,
     })
     await tx.delete(schema.sessions).where(eq(schema.sessions.userId, user.id))
     await tx.delete(schema.pushSubscriptions).where(eq(schema.pushSubscriptions.userId, user.id))

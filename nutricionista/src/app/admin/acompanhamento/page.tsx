@@ -6,7 +6,12 @@ import { getSettings } from '@/lib/settings'
 import { trackingBoard } from '@/lib/tracking'
 import { ADHERENCE_LABEL, type AdherenceClass } from '@/lib/acompanhamento'
 import { fmtDay, todayIn } from '@/lib/time'
-import { num, whatsappLink } from '@/lib/format'
+import { num } from '@/lib/format'
+import { waHref, waText } from '@/lib/whatsapp'
+import { overdueCheckins } from '@/lib/checkins'
+import { daysLate } from '@/lib/checkin-rules'
+import { siteUrl } from '@/lib/seo'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { saveTrackingSettings } from '@/actions/admin/settings'
 import { sendTeamMessage } from '@/actions/admin/patients'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
@@ -23,6 +28,8 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
   const s = await getSettings()
   const today = todayIn(s.timezone)
   const rows = await trackingBoard(today, s.timezone, { good: s.adherenceGood, low: s.adherenceLow }, isRestricted(user) ? user.id : null)
+  // Check-ins com prazo vencido (só dos clientes que este coach acompanha).
+  const late = await overdueCheckins(today, isRestricted(user) ? rows.map((r) => r.id) : undefined)
   const group = (ORDER as string[]).includes(sp.grupo ?? '') ? (sp.grupo as AdherenceClass) : null
   const counts = Object.fromEntries(ORDER.map((k) => [k, rows.filter((r) => r.klass === k).length])) as Record<AdherenceClass, number>
   const shown = rows
@@ -35,6 +42,33 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
         title="Acompanhamento"
         subtitle={`Clientes ativos pela adesão nos últimos 7 dias completos (até ontem): em dia (≥ ${s.adherenceGood}% das refeições feitas), com dificuldade (${s.adherenceLow}–${s.adherenceGood - 1}%) e sem progresso (< ${s.adherenceLow}% ou sem registro).`}
       />
+      {late.length > 0 && (
+        <section className="card stack" aria-labelledby="checkins-atrasados" style={{ ['--gap' as string]: '10px' }}>
+          <h2 id="checkins-atrasados" style={{ fontSize: '1.1rem', margin: 0 }}>
+            Check-ins atrasados ({late.length})
+          </h2>
+          <ul className="list" aria-label="Check-ins atrasados">
+            {late.map((c) => (
+              <li key={c.id} className="row row--between">
+                <span>
+                  <Link href={`/admin/pacientes/${c.patientId}?aba=checkins`}>
+                    <strong>{c.name}</strong>
+                  </Link>{' '}
+                  <span className="muted small">
+                    · prazo {fmtDay(c.dueDate)} · <span className="badge badge--warn">{daysLate(c.dueDate, today)} {daysLate(c.dueDate, today) === 1 ? 'dia' : 'dias'} de atraso</span>
+                  </span>
+                </span>
+                <WhatsAppButton
+                  phone={c.phone}
+                  template="waCheckin"
+                  label="Lembrar pelo WhatsApp"
+                  vars={{ nome: c.name.split(' ')[0], data: fmtDay(c.dueDate), link: `${siteUrl()}/paciente/checkin` }}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="stat-row">
         {ORDER.map((k) => (
           <Link key={k} href={group === k ? '/admin/acompanhamento' : `/admin/acompanhamento?grupo=${k}`} className="stat" style={{ textDecoration: 'none', color: 'inherit' }} aria-current={group === k ? 'page' : undefined}>
@@ -67,7 +101,7 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
             </thead>
             <tbody>
               {shown.map((r) => {
-                const wa = r.phone ? whatsappLink(r.phone.length <= 11 ? `55${r.phone}` : r.phone, `Olá, ${r.name.split(' ')[0]}! Tudo bem? Passando para saber como está indo com o plano.`) : null
+                const wa = waHref(r.phone, waText(s.templates, 'waContato', { nome: r.name.split(' ')[0] }))
                 return (
                   <tr key={r.id}>
                     <td>

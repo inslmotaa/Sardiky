@@ -7,6 +7,7 @@ import type { AppFeatures } from '@/db/schema'
 import { PrintButton } from './form'
 import { PageHead } from './ui'
 import { PRESCRIPTION_TYPES } from '@/lib/constants'
+import type { NutrientTable } from '@/lib/tabela-nutricional'
 
 export function PlanPage({
   plan,
@@ -14,12 +15,14 @@ export function PlanPage({
   features,
   weekday,
   prescriptions = [],
+  micros,
 }: {
   plan: typeof schema.mealPlans.$inferSelect
   history: (typeof schema.mealPlans.$inferSelect)[]
   features: AppFeatures
   weekday: number
   prescriptions?: (typeof schema.prescriptions.$inferSelect)[]
+  micros?: Record<string, NutrientTable>
 }) {
   const isCurrent = plan.status === 'publicado'
   return (
@@ -49,7 +52,7 @@ export function PlanPage({
       <p className="muted small no-print" style={{ margin: 0 }}>
         Plano elaborado e revisado pelo coach. Em caso de dúvida, use as mensagens — não altere quantidades por conta própria.
       </p>
-      <PatientPlan content={normalizePlan(plan.content)} features={features} weekday={weekday} />
+      <PatientPlan content={normalizePlan(plan.content)} features={features} weekday={weekday} micros={features.micronutrientes ? micros : undefined} />
       {isCurrent && prescriptions.length > 0 && (
         <section className="card" id="prescricoes">
           <h2 style={{ fontSize: '1.1rem' }}>Prescrições</h2>

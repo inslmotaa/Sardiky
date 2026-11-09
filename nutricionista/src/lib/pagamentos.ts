@@ -2,9 +2,10 @@ import 'server-only'
 import { and, desc, eq, gte, lt, lte, ne } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { audit } from './audit'
-import { buscarPorReferencia, criarPreferencia, mpConfigured } from './mercadopago'
-import { aplicarPagamentoMP, periodoDoPlano, type LocalStatus, type MpPayment } from './mercadopago-core'
-import { notifyUser, sendEmail } from './notify'
+import { buscarAssinatura, buscarCobrancaAssinatura, buscarPorReferencia, cancelarAssinaturaMP, criarAssinatura, criarPreferencia, mpConfigured } from './mercadopago'
+import { aplicarPagamentoMP, parseAssinaturaRef, periodoDoPlano, type LocalStatus, type MpPayment } from './mercadopago-core'
+import { emailWithButton, notifyUser, sendEmail } from './notify'
+import { renovacaoEtapa } from './renovacao'
 import { claimReminder, pushToTeam, pushToUser } from './push'
 import { getSettings } from './settings'
 import { notifyTeam } from './team'
@@ -228,26 +229,46 @@ export async function conciliarPendentes(now = new Date()) {
 }
 
 /**
- * Lembrete de renovação, uma única vez por término (reminder_log): faltando até 7 dias para o fim
- * do plano pago, push e e-mail para o cliente com o link de renovação.
+ * Lembretes de renovação: 7 dias e 2 dias antes do término do plano (uma vez cada, por término,
+ * via reminder_log), por push, aviso no app e e-mail com o botão "Renovar". Vale para planos pagos
+ * pelo Mercado Pago e para términos definidos pelo coach. Quem tem assinatura mensal ativa não recebe:
+ * a renovação é automática.
  */
 export async function lembretesDeRenovacao() {
-  if (!mpConfigured()) return 0
   const s = await getSettings()
   const today = todayIn(s.timezone)
   const limit = addDaysIso(today, 7)
   const due = await db
-    .select({ id: schema.patients.id, userId: schema.patients.userId, name: schema.patients.fullName, email: schema.patients.email, end: schema.patients.packageEnd })
+    .select({
+      id: schema.patients.id,
+      userId: schema.patients.userId,
+      name: schema.patients.fullName,
+      email: schema.patients.email,
+      end: schema.patients.packageEnd,
+      packageId: schema.patients.packageId,
+      preapproval: schema.patients.mpPreapprovalStatus,
+    })
     .from(schema.patients)
     .where(and(eq(schema.patients.status, 'ativo'), gte(schema.patients.packageEnd, today), lte(schema.patients.packageEnd, limit)))
   let sent = 0
   for (const p of due) {
-    if (!p.userId || !p.end || !(await claimReminder(p.userId, 'renovacao', p.end))) continue
+    if (!p.userId || !p.end || p.preapproval === 'authorized') continue
     const days = Math.round((Date.parse(p.end) - Date.parse(today)) / 86_400_000)
-    const body = days === 0 ? 'Seu plano termina hoje. Renove para continuar o acompanhamento.' : `Seu plano termina em ${days} ${days === 1 ? 'dia' : 'dias'}. Renove para continuar o acompanhamento.`
+    const stage = renovacaoEtapa(days)
+    if (!stage || !(await claimReminder(p.userId, 'renovacao', `${p.end}:${stage}`))) continue
+    const url = `${appUrl()}/paciente/pagamento${p.packageId ? `?plano=${p.packageId}` : ''}`
+    const body =
+      days === 0
+        ? 'Seu plano termina hoje. Renove para continuar com o plano alimentar, o diário e o acompanhamento.'
+        : `Seu plano termina em ${days} ${days === 1 ? 'dia' : 'dias'}. Renove para continuar com o plano alimentar, o diário e o acompanhamento.`
     await notifyUser(p.userId, 'Renove o seu plano', body, '/paciente/pagamento')
     await pushToUser(p.userId, 'lembretes', { title: 'Renove o seu plano', body, url: '/paciente/pagamento', tag: 'renovacao' })
-    if (p.email) await sendEmail(p.email, 'Seu plano está terminando', `Olá, ${p.name.split(' ')[0]}!\n\n${body}\nRenove em ${appUrl()}/paciente/pagamento\n`)
+    if (p.email) {
+      const greeting = `Olá, ${p.name.split(' ')[0]}!`
+      await sendEmail(p.email, days <= 2 ? 'Seu plano termina em breve' : 'Seu plano está terminando', `${greeting}\n\n${body}\nRenove em ${url}\n`, {
+        html: emailWithButton({ greeting, body, button: 'Renovar meu plano', url }),
+      })
+    }
     sent++
   }
   return sent
@@ -275,3 +296,104 @@ export async function paymentState(patientId: string) {
   }
 }
 
+
+/* ---------------------- assinatura mensal (opcional) ---------------------- */
+
+/**
+ * Assinatura recorrente do plano mensal (preapproval do Mercado Pago, sem mensalidade do sistema):
+ * cria a assinatura e devolve o link onde o cliente autoriza a cobrança mensal no cartão.
+ */
+export async function iniciarAssinatura(patientId: string, packageId: string, actor: Actor) {
+  const s = await getSettings()
+  const [[pkg], [patient]] = await Promise.all([
+    db.select().from(schema.packages).where(and(eq(schema.packages.id, packageId), eq(schema.packages.active, true))),
+    db.select().from(schema.patients).where(eq(schema.patients.id, patientId)),
+  ])
+  if (!pkg || pkg.months !== 1) throw new Error('A assinatura vale só para o plano mensal.')
+  if (!patient?.email) throw new Error('Cliente sem e-mail.')
+  const pre = await criarAssinatura({
+    patientId,
+    packageId,
+    reason: `Plano ${pkg.name} · ${s.siteName} (renova todo mês)`,
+    amount: pkg.priceCents / 100,
+    payerEmail: patient.email,
+    appUrl: appUrl(),
+  })
+  await db.update(schema.patients).set({ mpPreapprovalId: pre.id, mpPreapprovalStatus: pre.status ?? 'pending', updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
+  await audit(actor, 'assinatura_iniciada', 'pagamento', { entityId: patientId, patientId, details: { plano: pkg.name, preapproval: pre.id } })
+  return pre.init_point ?? ''
+}
+
+/** Atualiza a situação da assinatura (autorizada, pausada, cancelada) a partir da API. Idempotente. */
+export async function sincronizarAssinatura(preapprovalId: string, origem: 'webhook' | 'retorno' | 'cliente') {
+  const pre = await buscarAssinatura(preapprovalId)
+  const ref = parseAssinaturaRef(pre.external_reference)
+  if (!ref) return null
+  const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, ref.patientId))
+  if (!p) return null
+  if (p.mpPreapprovalId !== pre.id || p.mpPreapprovalStatus !== pre.status) {
+    await db.update(schema.patients).set({ mpPreapprovalId: pre.id, mpPreapprovalStatus: pre.status, updatedAt: new Date() }).where(eq(schema.patients.id, p.id))
+    await audit(null, 'assinatura_atualizada', 'pagamento', { entityId: p.id, patientId: p.id, details: { origem, status: pre.status }, actorLabel: 'Mercado Pago' })
+  }
+  return pre.status
+}
+
+/**
+ * Cobrança mensal da assinatura: se aprovada, registra o pagamento (uma vez por pagamento do
+ * Mercado Pago) e estende o acesso por mais um mês, como numa renovação.
+ */
+export async function processarCobrancaAssinatura(authorizedPaymentId: string | number) {
+  const ap = await buscarCobrancaAssinatura(authorizedPaymentId)
+  const mpPaymentId = ap.payment?.id != null ? String(ap.payment.id) : null
+  if (!mpPaymentId || ap.payment?.status !== 'approved') return { aprovou: false }
+  const pre = await buscarAssinatura(ap.preapproval_id)
+  const ref = parseAssinaturaRef(pre.external_reference)
+  if (!ref) return { aprovou: false }
+  const s = await getSettings()
+  const today = todayIn(s.timezone)
+  let result: Awaited<ReturnType<typeof liberarPlano>> = null
+  let created = false
+  await db.transaction(async (tx) => {
+    const [dup] = await tx.select({ id: schema.payments.id }).from(schema.payments).where(and(eq(schema.payments.provider, 'mercadopago'), eq(schema.payments.providerRef, mpPaymentId)))
+    if (dup) return
+    const [pkg] = await tx.select().from(schema.packages).where(eq(schema.packages.id, ref.packageId))
+    if (!pkg) return
+    await tx.insert(schema.payments).values({
+      patientId: ref.patientId,
+      packageId: pkg.id,
+      description: `Assinatura · Plano ${pkg.name}`,
+      amountCents: Math.round((ap.transaction_amount ?? pkg.priceCents / 100) * 100),
+      status: 'pago',
+      method: 'Cartão (assinatura)',
+      paidAt: today,
+      source: 'provedor',
+      provider: 'mercadopago',
+      providerRef: mpPaymentId,
+      providerStatus: 'approved',
+    })
+    result = await liberarPlano(tx, ref.patientId, pkg.id, today)
+    await tx.update(schema.patients).set({ mpPreapprovalId: pre.id, mpPreapprovalStatus: pre.status }).where(eq(schema.patients.id, ref.patientId))
+    created = true
+  })
+  if (!created || !result) return { aprovou: false }
+  const a = result as NonNullable<Awaited<ReturnType<typeof liberarPlano>>>
+  await audit(null, 'pagamento_aprovado', 'pagamento', {
+    patientId: a.patient.id,
+    details: { origem: 'assinatura', mp: mpPaymentId, plano: a.pkg.name, inicio: a.start, termino: a.end },
+    actorLabel: 'Mercado Pago',
+  })
+  const title = `${a.patient.fullName}: assinatura do plano ${a.pkg.name} cobrada`
+  await notifyTeam('financeiro', title, money(a.pkg.priceCents), `/admin/pacientes/${a.patient.id}?aba=financeiro`, a.patient.id)
+  if (a.patient.userId) await notifyUser(a.patient.userId, 'Assinatura renovada', `Plano ${a.pkg.name} até ${a.end.split('-').reverse().join('/')}.`, '/paciente/meus-dados')
+  return { aprovou: true }
+}
+
+/** O cliente cancela a assinatura: nada mais é cobrado; o acesso vale até o fim do período já pago. */
+export async function cancelarAssinatura(patientId: string, actor: Actor) {
+  const [p] = await db.select().from(schema.patients).where(eq(schema.patients.id, patientId))
+  if (!p?.mpPreapprovalId) return false
+  const pre = await cancelarAssinaturaMP(p.mpPreapprovalId)
+  await db.update(schema.patients).set({ mpPreapprovalStatus: pre.status ?? 'cancelled', updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
+  await audit(actor, 'assinatura_cancelada', 'pagamento', { entityId: patientId, patientId })
+  return true
+}

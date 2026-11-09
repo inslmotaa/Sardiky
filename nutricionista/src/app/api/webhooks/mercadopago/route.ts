@@ -1,9 +1,10 @@
 import { verifyMpSignature } from '@/lib/mercadopago-core'
 import { buscarPagamento, mpConfigured } from '@/lib/mercadopago'
-import { processarPagamentoMP } from '@/lib/pagamentos'
+import { processarCobrancaAssinatura, processarPagamentoMP, sincronizarAssinatura } from '@/lib/pagamentos'
 
 /**
- * Notificações (Webhooks) do Mercado Pago, evento "Pagamentos".
+ * Notificações (Webhooks) do Mercado Pago: eventos "Pagamentos" e, se a assinatura mensal for usada,
+ * "Planos e assinaturas" (subscription_preapproval e subscription_authorized_payment).
  * 1. Valida a assinatura (`x-signature`) antes de qualquer coisa: 401 se não bater ou se for antiga.
  * 2. Só processa `type === 'payment'`.
  * 3. Nunca confia no corpo: busca o pagamento na API (`GET /v1/payments/{id}`) e aplica a regra única.
@@ -20,7 +21,17 @@ export async function POST(req: Request) {
   if (!check.ok) return new Response('Assinatura inválida', { status: 401 })
 
   const type = url.searchParams.get('type') ?? body?.type ?? url.searchParams.get('topic')
-  if (type !== 'payment' || !dataId) return new Response('ok', { status: 200 })
+  if (!dataId) return new Response('ok', { status: 200 })
+  // Assinatura mensal (opcional): mudança de situação e cobranças recorrentes.
+  if (type === 'subscription_preapproval' || type === 'subscription_authorized_payment') {
+    try {
+      if (type === 'subscription_preapproval') return Response.json({ ok: true, status: await sincronizarAssinatura(dataId, 'webhook') })
+      return Response.json({ ok: true, ...(await processarCobrancaAssinatura(dataId)) })
+    } catch {
+      return new Response('Tente de novo', { status: 500 })
+    }
+  }
+  if (type !== 'payment') return new Response('ok', { status: 200 })
   try {
     const payment = await buscarPagamento(dataId)
     const r = await processarPagamentoMP(payment, 'webhook')

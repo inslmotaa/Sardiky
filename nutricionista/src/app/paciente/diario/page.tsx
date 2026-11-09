@@ -11,6 +11,7 @@ import { deleteDiaryEntry, saveDiaryMeal } from '@/actions/patient'
 import { DiaryDay } from '@/components/nutri/DiaryDay'
 import { KcalRing, MacroBars } from '@/components/nutri/MacroBars'
 import { PageHead } from '@/components/ui'
+import { DIARY_MAX_BACK_DAYS } from '@/lib/constants'
 
 export default async function DiaryPage({ searchParams }: { searchParams: Promise<{ data?: string }> }) {
   const user = await requireActivePatient()
@@ -19,7 +20,7 @@ export default async function DiaryPage({ searchParams }: { searchParams: Promis
   const s = await getSettings()
   const today = todayIn(s.timezone)
   const sp = await searchParams
-  const date = sp.data && isValidDay(sp.data) && sp.data <= today && sp.data >= addDays(today, -30) ? sp.data : today
+  const date = sp.data && isValidDay(sp.data) && sp.data <= today && sp.data >= addDays(today, -DIARY_MAX_BACK_DAYS) ? sp.data : today
   const [d, foods] = await Promise.all([loadDiaryDay(user.patientId, date), loadFoods()])
   const show = { kcal: f.calorias, macros: f.macros }
   const isToday = date === today
@@ -43,6 +44,22 @@ export default async function DiaryPage({ searchParams }: { searchParams: Promis
           </Link>
         )}
       </nav>
+
+      {/* Registrar ou corrigir um dia passado (até um ano atrás). */}
+      <form method="get" className="row diary-goto no-print" aria-label="Ir para outra data">
+        <label className="field" style={{ flex: '1 1 180px' }}>
+          <span className="field__label">Registrar ou editar outro dia</span>
+          <input type="date" name="data" defaultValue={date} min={addDays(today, -DIARY_MAX_BACK_DAYS)} max={today} />
+        </label>
+        <button type="submit" className="btn" style={{ alignSelf: 'flex-end' }}>
+          Ir
+        </button>
+      </form>
+      {!isToday && (
+        <p className="alert alert--info small" role="status" style={{ margin: 0 }}>
+          Você está registrando {fmtDay(date)}. Pode marcar as refeições, incluir o que comeu fora do plano e corrigir registros.
+        </p>
+      )}
 
       {(show.kcal || show.macros) && d.planned && (
         <section className="card today-totals" aria-label="Consumido no dia">

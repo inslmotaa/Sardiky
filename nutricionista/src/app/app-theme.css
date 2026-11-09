@@ -807,3 +807,102 @@ table th {
   padding: 0;
   border: 0;
 }
+
+/* Cadastro por código de barras (Alimentos) */
+.card--inset {
+  padding: 16px;
+  border: 1px dashed var(--border, rgb(0 0 0 / 0.15));
+  border-radius: 12px;
+  background: var(--surface-2, transparent);
+}
+.barcode-scan__video {
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #000;
+}
+
+/* Quadro recolhível de vitaminas e minerais (editor e plano do cliente) */
+.micro-box > summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+.micro-table {
+  font-size: 0.85rem;
+}
+.micro-table th,
+.micro-table td {
+  white-space: nowrap;
+  text-align: right;
+}
+.micro-table th[scope="row"],
+.micro-table thead th:first-child {
+  text-align: left;
+}
+
+/* Check-in: escalas de 1 a 5 */
+.checkin-scale {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.checkin-scale legend {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+.checkin-scale__opts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.checkin-scale__opt {
+  position: relative;
+  display: inline-flex;
+}
+.checkin-scale__opt input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.checkin-scale__opt span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--border, rgb(0 0 0 / 0.2));
+  border-radius: 999px;
+  font-weight: 600;
+}
+.checkin-scale__opt input:checked + span {
+  background: var(--brand, #1f5e3b);
+  border-color: var(--brand, #1f5e3b);
+  color: var(--on-brand, #fff);
+}
+.checkin-scale__opt input:focus-visible + span {
+  outline: 2px solid var(--brand, #1f5e3b);
+  outline-offset: 2px;
+}
+.checkin-answers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 6px 16px;
+  margin: 0;
+}
+.checkin-answers dt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.checkin-answers dd {
+  margin: 0;
+  font-weight: 600;
+}
+.checkin-photo img {
+  width: 96px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 8px;
+}

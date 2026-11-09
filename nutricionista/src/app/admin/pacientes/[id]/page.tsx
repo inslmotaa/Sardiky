@@ -9,7 +9,6 @@ import { audit } from '@/lib/audit'
 import { getSettings } from '@/lib/settings'
 import { ageFrom, fmtDay, todayIn } from '@/lib/time'
 import { CONTRACT_STATUS, contractInfo } from '@/lib/contract'
-import { whatsappLink } from '@/lib/format'
 import { uuid } from '@/lib/validation'
 import { NoAccess, PageHead, StatusBadge, Tabs } from '@/components/ui'
 import { SummaryTab } from './_tabs/summary'
@@ -17,6 +16,7 @@ import { AppointmentsTab } from './_tabs/appointments'
 import { EvolutionTab } from './_tabs/evolution'
 import { PlansTab } from './_tabs/plans'
 import { DiaryTab } from './_tabs/diary'
+import { CheckinsTab } from './_tabs/checkins'
 import { FormsTab } from './_tabs/forms'
 import { AnamnesisTab } from './_tabs/anamnesis'
 import { GoalsTab } from './_tabs/goals'
@@ -25,6 +25,7 @@ import { NotesTab } from './_tabs/notes'
 import { DocumentsTab } from './_tabs/documents'
 import { MessagesTab } from './_tabs/messages'
 import { FinanceTab } from './_tabs/finance'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
 
 const TABS = [
   { key: 'resumo', label: 'Resumo', perm: 'cadastro' },
@@ -32,6 +33,7 @@ const TABS = [
   { key: 'evolucao', label: 'Avaliações e evolução', perm: 'clinico' },
   { key: 'planos', label: 'Planos alimentares', perm: 'clinico' },
   { key: 'diario', label: 'Diário', perm: 'clinico' },
+  { key: 'checkins', label: 'Check-ins', perm: 'clinico' },
   { key: 'anamnese', label: 'Anamnese', perm: 'clinico' },
   { key: 'formularios', label: 'Formulários', perm: 'clinico' },
   { key: 'metas', label: 'Metas', perm: 'clinico' },
@@ -61,7 +63,6 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
   const age = ageFrom(p.birthDate, todayIn(s.timezone))
   const [pkg] = p.packageId ? await db.select().from(schema.packages).where(eq(schema.packages.id, p.packageId)) : []
   const contract = pkg ? contractInfo(pkg, p.packageStart, p.packageEnd, todayIn(s.timezone)) : null
-  const wa = p.phone ? whatsappLink(p.phone.length <= 11 ? `55${p.phone}` : p.phone) : null
 
   return (
     <div>
@@ -83,11 +84,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
         }
         actions={
           <>
-            {wa && (
-              <a href={wa} className="btn btn--sm" target="_blank" rel="noopener noreferrer">
-                WhatsApp
-              </a>
-            )}
+            <WhatsAppButton phone={p.phone} template="waContato" vars={{ nome: p.fullName.split(' ')[0] }} />
             {can(user, 'agenda') && (
               <Link href={`/admin/agenda/nova?paciente=${p.id}`} className="btn btn--sm">
                 Agendar
@@ -107,6 +104,7 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
       {tab.key === 'evolucao' && <EvolutionTab patient={p} compare={{ a: sp.a, b: sp.b }} viewerId={user.id} />}
       {tab.key === 'planos' && <PlansTab patient={p} />}
       {tab.key === 'diario' && <DiaryTab patient={p} />}
+      {tab.key === 'checkins' && <CheckinsTab patient={p} />}
       {tab.key === 'anamnese' && <AnamnesisTab patient={p} version={sp.versao} />}
       {tab.key === 'formularios' && <FormsTab patient={p} view={sp.ver} />}
       {tab.key === 'metas' && <GoalsTab patient={p} />}

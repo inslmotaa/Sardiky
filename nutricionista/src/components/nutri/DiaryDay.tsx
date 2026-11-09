@@ -160,9 +160,20 @@ export function DiaryDay({
         <p className="small muted" style={{ margin: '4px 0 0' }}>
           Um lanche extra, uma bebida, um evento. Registrar ajuda o coach a ajustar o plano à sua rotina.
         </p>
-        {extras.map((e) => (
-          <EntrySummary key={e.id} e={e} show={show} onDelete={onDelete} title={`${e.time} · ${e.meal}`} />
-        ))}
+        {extras.map((e) =>
+          open?.key === `edit:${e.id}` ? (
+            <EntryForm key={e.id} date={date} time={e.time} meal={null} initial={e} choice={null} foods={foods} action={action} show={show} photoNote={photoNote} onClose={saved} />
+          ) : (
+            <div key={e.id}>
+              <EntrySummary e={e} show={show} onDelete={onDelete} title={`${e.time} · ${e.meal}`} />
+              {!e.id.startsWith('log-') && (
+                <button type="button" className="link-btn small" onClick={() => setOpen({ key: `edit:${e.id}`, choice: null })}>
+                  Editar registro
+                </button>
+              )}
+            </div>
+          ),
+        )}
         {open?.key === 'extra' ? (
           <EntryForm date={date} time={nowTime} meal={null} initial={null} choice={null} foods={foods} action={action} show={show} photoNote={photoNote} onClose={saved} />
         ) : (
@@ -294,6 +305,7 @@ function EntryForm({
       }}
     >
       <input type="hidden" name="date" value={date} />
+      {!meal && initial && <input type="hidden" name="entryId" value={initial.id} />}
       <input type="hidden" name="mealKey" value={meal?.key ?? ''} />
       <input type="hidden" name="optionId" value={meal?.optionId ?? ''} />
       <input type="hidden" name="choice" value={meal ? (choice ?? '') : ''} />
@@ -312,7 +324,7 @@ function EntryForm({
       ) : (
         <label className="field">
           <span className="field__label">O que foi?</span>
-          <select name="meal" defaultValue="Lanche extra">
+          <select name="meal" defaultValue={initial?.meal ?? 'Lanche extra'}>
             {['Lanche extra', 'Bebida', 'Doce', 'Evento ou refeição fora', 'Outro'].map((x) => (
               <option key={x}>{x}</option>
             ))}

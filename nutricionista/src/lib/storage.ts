@@ -44,3 +44,12 @@ export const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 export const DOC_TYPES = [...IMAGE_TYPES, 'application/pdf']
 export const AUDIO_TYPES = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/mpeg']
 export const CHAT_TYPES = [...DOC_TYPES, ...AUDIO_TYPES]
+
+/** Grava um arquivo gerado pelo próprio sistema (ex.: exportação LGPD em JSON), sem passar pelo filtro de envio. */
+export async function saveSystemFile(buf: Buffer, ext: string, mime: string) {
+  const key = `${new Date().toISOString().slice(0, 7)}/${randomUUID()}.${ext.replace(/[^a-z0-9]/gi, '')}`
+  const full = path.join(root(), key)
+  await mkdir(path.dirname(full), { recursive: true })
+  await writeFile(full, buf, { mode: 0o600 })
+  return { key, mime, size: buf.length } as const
+}

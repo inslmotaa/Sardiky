@@ -66,6 +66,16 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
   - fotos de antes e depois só com a **autorização específica** das fotos (data, forma e a confirmação marcada);
   - o cliente pode retirar a autorização quando quiser.
 
+### Check-ins, renovação, recibos e WhatsApp
+
+- **Check-ins:** na ficha do cliente, aba **Check-ins**, escolha a frequência (ex.: a cada 15 dias). O cliente responde um questionário curto com peso, medidas e fotos opcionais. Quem atrasa aparece em **Acompanhamento → Check-ins atrasados**, com o botão de WhatsApp. Leia as respostas na aba e clique em **Marcar como visto** (o comentário aparece para o cliente).
+- **Vitaminas e minerais:** no editor de planos, abra o quadro **Vitaminas e minerais** (fica fechado). Para mostrar ao cliente, ligue o recurso na ficha → Recursos do app.
+- **Produto industrializado:** em Alimentos, leia o código de barras com a câmera do celular ou digite os números. Confira os valores com o rótulo, marque a confirmação e salve.
+- **Diário:** a aba Diário da ficha mostra **Consumo real × planejado** dos últimos 14 dias.
+- **Vencimento:** o Início mostra quem vence na semana, com WhatsApp e mensagem pronta. O cliente recebe avisos 7 e 2 dias antes. Ao vencer, o app dele mostra só o histórico e o botão Renovar.
+- **Recibos:** todo pagamento confirmado tem **Recibo (PDF)** no Financeiro e em Meus dados do cliente. Não é nota fiscal.
+- **Textos do WhatsApp:** em Configurações → Mensagens. Os botões abrem o WhatsApp com o texto pronto; você revisa e envia.
+
 ### Conteúdos, interessados e pixels
 
 - **Conteúdos do site** (menu Gestão): escreva textos para o blog em `/conteudos`. Título, resumo, capa, texto em Markdown simples, **Rascunho** ou **Publicado** e a data (data futura = agendado). Rascunho não aparece no site; o botão **Pré-visualizar** mostra como vai ficar. Todo post termina com o convite para agendar ou contratar.

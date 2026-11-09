@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import type { ActionState } from '@/lib/action'
+import { waHref } from '@/lib/whatsapp'
 
 type Pkg = { id: string; name: string; priceLabel: string }
 type State = ActionState & { url?: string }
@@ -13,19 +14,20 @@ export function PaymentLinkTool({
   defaultPackageId,
   firstName,
   phone,
+  message,
 }: {
   action: (s: State, fd: FormData) => Promise<State>
   packages: Pkg[]
   defaultPackageId?: string | null
   firstName: string
   phone: string | null
+  /** Texto do modelo "Link de pagamento" (Configurações → Mensagens), com {link} a preencher. */
+  message?: string
 }) {
   const [state, formAction, pending] = useActionState(action, {} as State)
   const [copied, setCopied] = useState(false)
-  const wa =
-    state.url && phone
-      ? `https://wa.me/${phone.length <= 11 ? `55${phone}` : phone}?text=${encodeURIComponent(`Olá, ${firstName}! Segue o link para o pagamento do seu plano (Pix, cartão ou boleto): ${state.url}`)}`
-      : null
+  const text = (message ?? `Olá, ${firstName}! Segue o link para o pagamento do seu plano (Pix, cartão ou boleto): {link}`).replace('{link}', state.url ?? '')
+  const wa = state.url ? waHref(phone, text) : null
   return (
     <div className="stack" style={{ ['--gap' as string]: '10px' }}>
       <form action={formAction} className="row" style={{ alignItems: 'flex-end' }}>

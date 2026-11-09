@@ -5,7 +5,7 @@ import { and, desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
 import { buscarPagamento, buscarPorReferencia, mpConfigured } from '@/lib/mercadopago'
-import { processarPagamentoMP } from '@/lib/pagamentos'
+import { processarPagamentoMP, sincronizarAssinatura } from '@/lib/pagamentos'
 import { money } from '@/lib/format'
 import { AutoRefresh } from '@/components/AutoRefresh'
 import { PageHead } from '@/components/ui'
@@ -23,6 +23,38 @@ export default async function PaymentReturnPage({ searchParams }: { searchParams
   const sp = await searchParams
   const user = await requirePatient()
   if (!mpConfigured()) redirect('/paciente/pagamento')
+
+  // Volta da assinatura mensal: confere a situação na API (só a assinatura deste cliente).
+  if (sp.assinatura === '1') {
+    const [p] = await db.select({ pre: schema.patients.mpPreapprovalId }).from(schema.patients).where(eq(schema.patients.id, user.patientId))
+    const id = sp.preapproval_id && sp.preapproval_id === p?.pre ? sp.preapproval_id : p?.pre
+    let status: string | null = null
+    if (id) status = await sincronizarAssinatura(id, 'retorno').catch(() => null)
+    const [paid] = await db
+      .select({ id: schema.payments.id })
+      .from(schema.payments)
+      .where(and(eq(schema.payments.patientId, user.patientId), eq(schema.payments.status, 'pago'), eq(schema.payments.method, 'Cartão (assinatura)')))
+      .limit(1)
+    return (
+      <div className="stack" style={{ ['--gap' as string]: '16px', maxWidth: 640 }}>
+        <PageHead title="Assinatura mensal" />
+        {status === 'authorized' ? (
+          <p className="alert alert--ok" role="status">
+            Assinatura autorizada. A cobrança é feita todo mês no seu cartão e o acesso renova sozinho.{' '}
+            {paid ? 'O primeiro pagamento já foi confirmado.' : 'O primeiro pagamento aparece em instantes.'}
+          </p>
+        ) : (
+          <p className="alert alert--info" role="status">
+            Ainda não recebemos a autorização da assinatura. Se você concluiu no Mercado Pago, aguarde alguns instantes.
+          </p>
+        )}
+        {!paid && <AutoRefresh seconds={4} />}
+        <Link href="/paciente" className="btn btn--primary">
+          Ir para a área do cliente
+        </Link>
+      </div>
+    )
+  }
 
   const paymentId = sp.payment_id ?? sp.collection_id
   if (paymentId && /^\d+$/.test(paymentId)) {

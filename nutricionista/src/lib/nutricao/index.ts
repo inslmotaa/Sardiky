@@ -458,3 +458,9 @@ export const LIMITS = { weight: [20, 350], height: [100, 230], age: [2, 110] } a
 export function inRange(v: number | null, [min, max]: readonly [number, number]) {
   return v != null && v >= min && v <= max
 }
+
+/** Real em % do planejado (arredondado); null sem planejado. */
+export function pctOf(real: number, planned: number | null | undefined): number | null {
+  if (!planned || planned <= 0) return null
+  return Math.round((real / planned) * 100)
+}

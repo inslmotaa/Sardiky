@@ -11,6 +11,7 @@ import { NavLinks } from '@/components/NavLinks'
 import { Onboarding } from '@/components/nutri/Onboarding'
 import { BackToTop } from '@/components/BackToTop'
 import { needsPayment } from '@/lib/pagamentos'
+import { accessExpired } from '@/lib/auth/patient-gate'
 import { LiveUpdates, LogoutForm, PushToggle, PwaClient } from '@/components/pwa'
 import { removePushSubscription, savePushSubscription } from '@/actions/push'
 import { vapidKeys } from '@/lib/push'
@@ -25,6 +26,20 @@ export default async function PatientLayout({ children }: { children: React.Reac
   const f = patient.features
   // Cadastro pelo site sem pagamento aprovado: só Pagamento, Mensagens e Meus dados ficam abertos.
   const blocked = await needsPayment(user.patientId)
+  // Plano vencido: só o histórico, o pagamento (renovar), as mensagens e Meus dados.
+  const expired = !blocked && (await accessExpired(user.patientId))
+  const expiredNav = [
+    { href: '/paciente/encerrado', label: 'Histórico' },
+    { href: '/paciente/pagamento', label: 'Renovar' },
+    ...(f.chat ? [{ href: '/paciente/mensagens', label: 'Mensagens' }] : []),
+    { href: '/paciente/meus-dados', label: 'Meus dados' },
+  ]
+  const expiredTabs = [
+    { href: '/paciente/encerrado', label: 'Histórico', icon: <IconChart /> },
+    { href: '/paciente/pagamento', label: 'Renovar', icon: <IconMoney /> },
+    ...(f.chat ? [{ href: '/paciente/mensagens', label: 'Mensagens', icon: <IconChat /> }] : []),
+    { href: '/paciente/meus-dados', label: 'Meus dados', icon: <IconUser /> },
+  ]
 
   const lockedNav = [
     { href: '/paciente/pagamento', label: 'Pagamento' },
@@ -37,7 +52,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
     { href: '/paciente/meus-dados', label: 'Meus dados', icon: <IconUser /> },
   ]
 
-  const main = blocked ? lockedNav : [
+  const main = blocked ? lockedNav : expired ? expiredNav : [
     { href: '/paciente', label: 'Hoje', exact: true },
     { href: '/paciente/plano', label: 'Plano' },
     ...(f.diario ? [{ href: '/paciente/diario', label: 'Diário' }] : []),
@@ -45,7 +60,7 @@ export default async function PatientLayout({ children }: { children: React.Reac
     ...(f.chat ? [{ href: '/paciente/mensagens', label: 'Mensagens' }] : []),
     { href: '/paciente/mais', label: 'Mais' },
   ]
-  const tabs = blocked ? lockedTabs : [
+  const tabs = blocked ? lockedTabs : expired ? expiredTabs : [
     { href: '/paciente', label: 'Hoje', icon: <IconHome />, exact: true },
     { href: '/paciente/plano', label: 'Plano', icon: <IconPlate /> },
     ...(f.diario ? [{ href: '/paciente/diario', label: 'Diário', icon: <IconBook /> }] : []),
@@ -90,6 +105,18 @@ export default async function PatientLayout({ children }: { children: React.Reac
             </span>
             <Link href="/paciente/pagamento" className="btn btn--sm btn--primary">
               Ir para o pagamento
+            </Link>
+          </div>
+        </div>
+      )}
+      {expired && (
+        <div className="pay-banner no-print" role="status">
+          <div className="container pay-banner__inner">
+            <span>
+              <strong>Seu plano terminou.</strong> Seu histórico continua aqui. Renove para voltar ao plano alimentar, ao diário e ao acompanhamento.
+            </span>
+            <Link href="/paciente/pagamento" className="btn btn--sm btn--primary">
+              Renovar
             </Link>
           </div>
         </div>

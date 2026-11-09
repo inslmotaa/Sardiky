@@ -19,6 +19,8 @@ import { measurementsOf, latest } from '@/lib/patient-data'
 import { NewPlanForm } from '@/components/NewPlanForm'
 import { ActionForm, ConfirmForm, Field, PrintButton, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { siteUrl } from '@/lib/seo'
 
 export default async function PlanPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ ativado?: string; sem?: string; encerrado?: string }> }) {
   const { id } = await params
@@ -114,6 +116,16 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
           Plano ativado no app do cliente. Ele já recebe o aviso e vê as refeições na tela Hoje.
           {sp.sem ? ` Refeições sem alimentos não foram enviadas: ${sp.sem.slice(0, 300)}.` : ''}
         </p>
+      )}
+      {plan.status === 'publicado' && patient?.phone && (
+        <div className="row no-print">
+          <WhatsAppButton
+            phone={patient.phone}
+            template="waPlanoNovo"
+            label="Avisar pelo WhatsApp"
+            vars={{ nome: patient.fullName.split(' ')[0], link: `${siteUrl()}/paciente/plano` }}
+          />
+        </div>
       )}
 
       {plan.status === 'rascunho' ? (

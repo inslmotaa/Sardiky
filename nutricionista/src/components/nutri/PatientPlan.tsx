@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { dayForWeekday, dayTotals, itemNutrients, optionTotals, quantityLabel, sortedMeals, WEEK_ORDER, WEEKDAY_SHORT, weekdaysLabel, weekRows, type PlanContent } from '@/lib/plan'
 import { scale } from '@/lib/nutricao'
 import { KcalRing, MacroBars, NutriInline } from './MacroBars'
+import { MicrosPanel } from './MicrosPanel'
+import { planMicros, type NutrientTable } from '@/lib/tabela-nutricional'
 
 export type ViewFeatures = { calorias: boolean; macros: boolean }
 
@@ -16,12 +18,15 @@ export function PatientPlan({
   features = { calorias: true, macros: true },
   weekday,
   recipeBase = '/paciente/receitas/',
+  micros,
 }: {
   content: PlanContent
   features?: ViewFeatures
   weekday?: number
   /** Início do link da receita vinculada ao item (o item aponta para “r:<id>”). */
   recipeBase?: string
+  /** Vitaminas e minerais por alimento (foodId → tabela): só quando o coach liga o quadro para o cliente. */
+  micros?: Record<string, NutrientTable>
 }) {
   const initialDay = weekday != null ? dayForWeekday(content, weekday) : content.days[0]
   const [dayId, setDayId] = useState(initialDay?.id ?? '')
@@ -212,6 +217,14 @@ export function PatientPlan({
           </section>
         )
       })}
+
+      {calc && micros && (
+        <MicrosPanel
+          data={planMicros(day, (mealId) => Math.max(0, day.meals.find((m) => m.id === mealId)?.options.findIndex((o) => o.id === chosen[mealId]) ?? 0), (id) => micros[id])}
+          dayLabel={day.label}
+          note="Estimativa das opções exibidas, com a tabela TACO 4ª ed. Serve de referência: siga as quantidades do plano."
+        />
+      )}
 
       {content.guidance && (
         <section className="card card--soft">

@@ -148,6 +148,13 @@
       "when": 1794246522668,
       "tag": "0020_conteudos_e_captacao",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1794261956610,
+      "tag": "0021_app_do_cliente_e_painel",
+      "breakpoints": true
     }
   ]
 }

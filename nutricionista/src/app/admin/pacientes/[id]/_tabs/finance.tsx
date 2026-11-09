@@ -7,6 +7,8 @@ import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { PaymentForm } from '@/components/PaymentForm'
 import { PaymentLinkTool } from '@/components/PaymentLinkTool'
 import { PaymentsTable } from '@/components/PaymentsTable'
+import { waText } from '@/lib/whatsapp'
+import { getSettings } from '@/lib/settings'
 
 export async function FinanceTab({ patient }: { patient: typeof schema.patients.$inferSelect }) {
   const [rows, packages] = await Promise.all([
@@ -35,6 +37,7 @@ export async function FinanceTab({ patient }: { patient: typeof schema.patients.
                 defaultPackageId={patient.packageId}
                 firstName={patient.fullName.split(' ')[0]}
                 phone={patient.phone}
+                message={waText((await getSettings()).templates, 'waLinkPagamento', { nome: patient.fullName.split(' ')[0], link: '{link}' })}
               />
             ) : (
               <p className="small muted" style={{ margin: 0 }}>

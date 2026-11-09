@@ -7,11 +7,13 @@ import { assertPatientAccess } from '@/lib/team-access'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime, fmtTime, zonedParts } from '@/lib/time'
-import { money, whatsappLink, renderWaText } from '@/lib/format'
+import { money } from '@/lib/format'
 import { uuid } from '@/lib/validation'
 import { cancelAppointment, confirmAppointment, generateMeetingLink, linkAppointmentPatient, rescheduleAppointment, setAppointmentOutcome, updateAppointmentDetails } from '@/actions/admin/appointments'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
+import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { siteUrl } from '@/lib/seo'
 
 export default async function AppointmentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -27,14 +29,6 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
     : await db.select({ id: schema.patients.id, name: schema.patients.fullName, email: schema.patients.email }).from(schema.patients).where(isNull(schema.patients.anonymizedAt)).orderBy(asc(schema.patients.fullName))
   const active = a.status === 'pendente' || a.status === 'confirmada'
   const p = zonedParts(a.startAt, s.timezone)
-  const confirmText = renderWaText(s.templates.confirmacao, {
-    nome: a.contactName.split(' ')[0],
-    data: `${p.date.slice(8)}/${p.date.slice(5, 7)}/${p.date.slice(0, 4)}`,
-    hora: p.time,
-    servico: a.serviceName,
-    codigo: a.code,
-  })
-  const wa = whatsappLink(a.contactPhone.length <= 11 ? `55${a.contactPhone}` : a.contactPhone, confirmText)
 
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px', maxWidth: 900 }}>
@@ -72,10 +66,20 @@ export default async function AppointmentPage({ params }: { params: Promise<{ id
               </form>
             </>
           )}
-          {wa && (
-            <a href={wa} className="btn btn--whatsapp" target="_blank" rel="noopener noreferrer">
-              Enviar confirmação pelo WhatsApp
-            </a>
+          {active && (
+            <WhatsAppButton
+              phone={a.contactPhone}
+              template="waLembreteConsulta"
+              label="Lembrete pelo WhatsApp"
+              className="btn btn--whatsapp"
+              vars={{
+                nome: a.contactName.split(' ')[0],
+                data: `${p.date.slice(8)}/${p.date.slice(5, 7)}/${p.date.slice(0, 4)}`,
+                hora: p.time,
+                servico: a.serviceName,
+                link: `${siteUrl()}/paciente/consultas`,
+              }}
+            />
           )}
           {a.patientId && (can(user, 'cadastro') || can(user, 'clinico')) && (
             <Link href={`/admin/pacientes/${a.patientId}`} className="btn btn--ghost">

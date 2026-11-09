@@ -35,3 +35,6 @@ export const SITE_PAGES = [
 
 /** Crédito do rodapé: troque pelo endereço do site da TIMELESS. */
 export const TIMELESS_URL = '#'
+
+/** Diário: o cliente registra e edita dias passados até este limite (dias). */
+export const DIARY_MAX_BACK_DAYS = 365

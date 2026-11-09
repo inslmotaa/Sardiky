@@ -178,3 +178,9 @@ export function periodoDoPlano(today: string, currentEnd: string | null, months:
 
 /** Link do pagamento no painel do Mercado Pago (Atividade da conta, busca pelo número da operação). */
 export const linkNoPainelMP = (paymentRef: string) => `https://www.mercadopago.com.br/activities?q=${encodeURIComponent(paymentRef)}`
+
+/** "assinatura:<cliente>:<plano>" → ids (null se não for uma assinatura deste sistema). */
+export function parseAssinaturaRef(ref: string | null | undefined): { patientId: string; packageId: string } | null {
+  const m = /^assinatura:([0-9a-f-]{36}):([0-9a-f-]{36})$/.exec(ref ?? '')
+  return m ? { patientId: m[1], packageId: m[2] } : null
+}

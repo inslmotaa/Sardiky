@@ -1,11 +1,12 @@
 import Link from 'next/link'
-import { and, asc, desc, ilike, isNull } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
 import { anonymizePatient, resolveDataRequest } from '@/actions/admin/lgpd'
+import { EXPORT_RETENTION_DAYS } from '@/lib/lgpd-export'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, StatusBadge } from '@/components/ui'
 
@@ -17,7 +18,7 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
   if (!can(user, 'config')) return <NoAccess />
   const s = await getSettings()
   const action = (sp.acao ?? '').replace(/[^a-z_]/g, '').slice(0, 40)
-  const [requests, logs, patients] = await Promise.all([
+  const [requests, logs, patients, exportsSaved] = await Promise.all([
     db
       .select({ r: schema.dataRequests })
       .from(schema.dataRequests)
@@ -29,6 +30,7 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
       .orderBy(desc(schema.auditLogs.createdAt))
       .limit(150),
     db.select({ id: schema.patients.id, name: schema.patients.fullName }).from(schema.patients).where(and(isNull(schema.patients.anonymizedAt))).orderBy(asc(schema.patients.fullName)),
+    db.select().from(schema.files).where(eq(schema.files.kind, 'lgpd_exportacao')).orderBy(desc(schema.files.createdAt)),
   ])
   return (
     <div className="stack" style={{ ['--gap' as string]: '24px' }}>
@@ -78,6 +80,34 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
           A LGPD prevê resposta em prazo razoável (para confirmação e acesso completo, até 15 dias). Para exportar os dados de um cliente sem acesso à área exclusiva, use os
           relatórios e a ficha do cliente.
         </p>
+      </section>
+
+      <section className="card stack" aria-labelledby="exportacoes-titulo" style={{ ['--gap' as string]: '8px' }}>
+        <h2 id="exportacoes-titulo" style={{ fontSize: '1.1rem', margin: 0 }}>
+          Exportações guardadas antes da exclusão
+        </h2>
+        <p className="small muted" style={{ margin: 0 }}>
+          Antes de excluir uma conta ou anonimizar um cliente, o sistema gera a cópia completa dos dados (JSON) e registra na auditoria o protocolo e o
+          resumo SHA-256. A cópia fica aqui por {EXPORT_RETENTION_DAYS} dias para entregar ao titular, se ele pedir, e depois é apagada sozinha.
+        </p>
+        {exportsSaved.length === 0 ? (
+          <p className="muted small" style={{ margin: 0 }}>
+            Nenhuma exportação guardada.
+          </p>
+        ) : (
+          <ul className="list" aria-label="Exportações guardadas">
+            {exportsSaved.map((f) => (
+              <li key={f.id} className="row row--between">
+                <span>
+                  {f.title} <span className="small muted">· {fmtDateTime(f.createdAt, s.timezone)} · {Math.ceil(f.size / 1024)} KB</span>
+                </span>
+                <a className="btn btn--sm" href={`/arquivos/${f.id}`} download>
+                  Baixar
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="card">

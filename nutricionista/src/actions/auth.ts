@@ -1,7 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
 import { hashPassword, passwordProblem, verifyPassword } from '@/lib/auth/password'
@@ -10,7 +10,7 @@ import { hashToken, newToken } from '@/lib/auth/tokens'
 import { audit } from '@/lib/audit'
 import { findValidToken } from '@/lib/auth/reset'
 import { PRIVACY_VERSION } from '@/lib/constants'
-import { sendEmail } from '@/lib/notify'
+import { emailWithButton, sendEmail } from '@/lib/notify'
 import { isLimited, rateLimit } from '@/lib/rate-limit'
 import type { ActionState } from '@/lib/action'
 import { email } from '@/lib/validation'
@@ -220,4 +220,56 @@ export async function changePassword(_: ActionState, fd: FormData): Promise<Acti
   await db.update(schema.users).set({ passwordHash: await hashPassword(password), updatedAt: new Date() }).where(eq(schema.users.id, user.id))
   await audit(user, 'senha_alterada', 'usuario', { entityId: user.id })
   return { ok: true, message: 'Senha alterada com sucesso.' }
+}
+
+/* --------------------------- link mágico por e-mail --------------------------- */
+
+const MAGIC_MINUTES = 15
+
+/**
+ * "Receber link de acesso": envia ao e-mail um link de uso único, válido por 15 minutos.
+ * A resposta é sempre a mesma (não revela se o e-mail tem conta).
+ */
+export async function requestMagicLink(_: ActionState, fd: FormData): Promise<ActionState> {
+  const ip = (await clientIp()) ?? 'local'
+  const done: ActionState = { ok: true, message: `Se o e-mail tiver uma conta, enviamos um link de acesso. Ele vale por ${MAGIC_MINUTES} minutos e só pode ser usado uma vez.` }
+  const parsed = email.safeParse(fd.get('email'))
+  if (!parsed.success) return { error: 'Informe um e-mail válido.', fieldErrors: { email: 'E-mail inválido' } }
+  if (!rateLimit(`link:${ip}`, 5, 15 * 60_000) || !rateLimit(`link:${parsed.data}`, 3, 15 * 60_000)) return { error: 'Muitas solicitações. Aguarde alguns minutos.' }
+  const [user] = await db.select().from(schema.users).where(eq(schema.users.email, parsed.data))
+  if (user && user.isActive && !(user.lockedUntil && user.lockedUntil > new Date())) {
+    const token = newToken()
+    await db.insert(schema.authTokens).values({ id: hashToken(token), userId: user.id, type: 'link_magico', expiresAt: new Date(Date.now() + MAGIC_MINUTES * 60_000) })
+    const next = safeNext(fd.get('next'), '')
+    const url = `${(process.env.APP_URL ?? 'http://localhost:3000').replace(/\/$/, '')}/login/link?token=${token}${next ? `&next=${encodeURIComponent(next)}` : ''}`
+    const greeting = `Olá, ${user.name.split(' ')[0]}!`
+    const body = `Use o botão abaixo para entrar, sem senha. O link vale por ${MAGIC_MINUTES} minutos e só funciona uma vez. Se você não pediu, ignore este e-mail.`
+    await sendEmail(user.email, 'Seu link de acesso', `${greeting}\n\n${body}\n${url}\n`, { html: emailWithButton({ greeting, body, button: 'Entrar', url }) })
+    await audit({ id: user.id, name: user.name, role: user.role }, 'link_magico_solicitado', 'usuario', { entityId: user.id })
+  }
+  return done
+}
+
+/**
+ * Usa o link mágico. É um POST (botão "Entrar" na página do link): leitores de e-mail que abrem
+ * links automaticamente não gastam o código. Confirma o e-mail e abre a sessão.
+ */
+export async function enterWithMagicLink(fd: FormData): Promise<void> {
+  const token = String(fd.get('token') ?? '')
+  const row = await findValidToken(token, ['link_magico'])
+  if (!row || !row.user.isActive) redirect('/login/link?invalido=1')
+  const used = await db
+    .update(schema.authTokens)
+    .set({ usedAt: new Date() })
+    .where(and(eq(schema.authTokens.id, row.token.id), isNull(schema.authTokens.usedAt)))
+    .returning({ id: schema.authTokens.id })
+  if (!used.length) redirect('/login/link?invalido=1')
+  await db
+    .update(schema.users)
+    .set({ failedLogins: 0, lockedUntil: null, lastLoginAt: new Date(), ...(row.user.emailVerifiedAt ? {} : { emailVerifiedAt: new Date() }) })
+    .where(eq(schema.users.id, row.user.id))
+  await createSession(row.user.id)
+  await audit({ id: row.user.id, name: row.user.name, role: row.user.role }, 'login_link_magico', 'usuario', { entityId: row.user.id })
+  const [p] = await db.select({ id: schema.patients.id }).from(schema.patients).where(eq(schema.patients.userId, row.user.id))
+  redirect(await destinationFor({ role: row.user.role, patientId: p?.id ?? null }, fd.get('next')))
 }

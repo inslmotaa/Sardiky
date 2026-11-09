@@ -11,7 +11,7 @@ import { contractInfo } from '@/lib/contract'
 import { monthsLabel, planPrices } from '@/lib/planos'
 import { money, whatsappLink } from '@/lib/format'
 import { fmtDay, todayIn } from '@/lib/time'
-import { iniciarPagamento } from '@/actions/pagamento'
+import { iniciarAssinaturaMensal, iniciarPagamento } from '@/actions/pagamento'
 import { PageHead } from '@/components/ui'
 import { SubmitButton } from '@/components/form'
 
@@ -97,6 +97,21 @@ export default async function PaymentPage({ searchParams }: { searchParams: Prom
               <p className="small muted" style={{ margin: 0 }}>
                 Pix, cartão em até {s.mpMaxInstallments}x ou boleto · pagamento seguro pelo Mercado Pago. O sistema não guarda dados do seu cartão.
               </p>
+              {plan.months === 1 && (
+                patient.mpPreapprovalStatus === 'authorized' ? (
+                  <p className="alert alert--ok small" style={{ margin: 0 }}>
+                    Sua assinatura mensal está ativa: o plano renova sozinho todo mês. Para cancelar, vá em <Link href="/paciente/meus-dados">Meus dados</Link>.
+                  </p>
+                ) : (
+                  <form action={iniciarAssinaturaMensal} className="stack" style={{ ['--gap' as string]: '6px' }}>
+                    <input type="hidden" name="planoId" value={plan.id} />
+                    <SubmitButton className="btn btn--block" pendingText="Abrindo o Mercado Pago…">
+                      Assinar: renova todo mês
+                    </SubmitButton>
+                    <span className="small muted">Opcional. Cobrança automática no cartão a cada mês, sem taxa extra. Cancele quando quiser.</span>
+                  </form>
+                )
+              )}
             </>
           ) : (
             wa && (

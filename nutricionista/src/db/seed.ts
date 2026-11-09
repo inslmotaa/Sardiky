@@ -45,7 +45,7 @@ async function main() {
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
       form_templates, anamneses, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, measure_refs, foods, measurements, goals, leads,
-      appointments, patients, packages, faqs, posts, time_blocks, working_hours, services,
+      appointments, patients, packages, faqs, posts, checkins, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
 
@@ -834,6 +834,28 @@ async function main() {
       })),
     { patientId: lucas.id, description: 'Pacote trimestral', amountCents: 49000, discountCents: 4900, discountReason: 'Pagamento à vista', status: 'pendente', dueDate: day(7), createdBy: admin.id },
     { patientId: helena.id, description: 'Retorno', amountCents: 15000, status: 'pendente', dueDate: day(-5), createdBy: admin.id },
+  ])
+
+  /* ------------------------ check-ins periódicos ----------------------- */
+  // Beatriz: a cada 15 dias, um check-in já enviado e o próximo ainda aguardando.
+  // Helena: a cada 15 dias, com o check-in atrasado (aparece no Acompanhamento).
+  await db.update(s.patients).set({ checkinEveryDays: 15, nextCheckinDue: day(10) }).where(eq(s.patients.id, beatriz.id))
+  await db.update(s.patients).set({ checkinEveryDays: 15, nextCheckinDue: day(-2) }).where(eq(s.patients.id, helena.id))
+  await db.insert(s.checkins).values([
+    {
+      patientId: beatriz.id,
+      dueDate: day(-5),
+      status: 'enviado',
+      submittedAt: at(-6, '20:00'),
+      answers: { adesao: 4, energia: 4, fome: 3, sono: 4, treinos: 3, dificuldades: 'Lanche da tarde no trabalho.' },
+      weightKg: 68.4,
+      measures: { waistCm: 77 },
+      reviewedAt: at(-5, '09:00'),
+      reviewedBy: admin.id,
+      coachNote: 'Ótima semana! Vamos testar a opção de lanche que leva para o trabalho.',
+    },
+    { patientId: beatriz.id, dueDate: day(10) },
+    { patientId: helena.id, dueDate: day(-2) },
   ])
 
   /* ------------------------ interessados (leads) ----------------------- */

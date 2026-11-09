@@ -86,3 +86,44 @@ export async function buscarPorReferencia(externalReference: string) {
   return r.results ?? []
 }
 
+
+/* ------------------------- assinatura (preapproval) ------------------------- */
+
+export type MpPreapproval = {
+  id: string
+  status: 'pending' | 'authorized' | 'paused' | 'cancelled' | string
+  external_reference?: string | null
+  init_point?: string
+  reason?: string
+  auto_recurring?: { transaction_amount?: number; frequency?: number; frequency_type?: string; currency_id?: string }
+}
+export type MpAuthorizedPayment = {
+  id: string | number
+  preapproval_id: string
+  transaction_amount?: number
+  status?: string
+  payment?: { id: string | number; status: string; status_detail?: string }
+}
+
+/**
+ * Assinatura recorrente (sem mensalidade extra do sistema): o cliente autoriza no Mercado Pago e a
+ * cobrança mensal acontece no cartão dele. `external_reference` = "assinatura:<cliente>:<plano>".
+ */
+export async function criarAssinatura(i: { patientId: string; packageId: string; reason: string; amount: number; payerEmail: string; appUrl: string }) {
+  return mp<MpPreapproval>('/preapproval', {
+    method: 'POST',
+    body: JSON.stringify({
+      reason: i.reason.slice(0, 120),
+      external_reference: `assinatura:${i.patientId}:${i.packageId}`,
+      payer_email: i.payerEmail,
+      auto_recurring: { frequency: 1, frequency_type: 'months', transaction_amount: i.amount, currency_id: 'BRL' },
+      back_url: `${i.appUrl}/paciente/pagamento/retorno?assinatura=1`,
+      notification_url: `${i.appUrl}/api/webhooks/mercadopago`,
+      status: 'pending',
+    }),
+    idempotencyKey: `ass-${i.patientId}-${i.packageId}-${new Date().toISOString().slice(0, 13)}`,
+  })
+}
+export const buscarAssinatura = (id: string) => mp<MpPreapproval>(`/preapproval/${encodeURIComponent(id)}`)
+export const cancelarAssinaturaMP = (id: string) => mp<MpPreapproval>(`/preapproval/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ status: 'cancelled' }) })
+export const buscarCobrancaAssinatura = (id: string | number) => mp<MpAuthorizedPayment>(`/authorized_payments/${encodeURIComponent(String(id))}`)

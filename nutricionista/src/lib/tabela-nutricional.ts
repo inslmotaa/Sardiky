@@ -113,3 +113,20 @@ export const TACO_CITATION =
   'NEPA/UNICAMP. Tabela Brasileira de Composição de Alimentos – TACO. 4ª ed. revisada e ampliada. Campinas: NEPA/UNICAMP, 2011.'
 export const IBGE_CITATION =
   'IBGE. Pesquisa de Orçamentos Familiares 2008-2009: tabela de medidas referidas para os alimentos consumidos no Brasil. Rio de Janeiro: IBGE, 2011.'
+
+/** Itens mínimos de um dia do plano para somar micronutrientes (sem depender do esquema completo). */
+type MicroDay = { meals: { id: string; name: string; options: { items: { foodId?: string | null; grams?: number | null }[] }[] }[] }
+export type MicroSum = ReturnType<typeof sumNutrients>
+
+/**
+ * Vitaminas e minerais por refeição (opção escolhida de cada uma) e do dia. Itens sem alimento da
+ * base (texto livre, receitas) ou sem o nutriente analisado deixam o total parcial (`missing`).
+ */
+export function planMicros(day: MicroDay, optionOf: (mealId: string) => number, microsOf: (foodId: string) => NutrientTable | null | undefined, keys: readonly string[] = PLAN_MICROS) {
+  const itemsOf = (m: MicroDay['meals'][number]) =>
+    (m.options[optionOf(m.id)] ?? m.options[0])?.items
+      .filter((it) => it.grams != null && it.grams > 0)
+      .map((it) => ({ table: it.foodId ? (microsOf(it.foodId) ?? null) : null, grams: it.grams! })) ?? []
+  const meals = day.meals.map((m) => ({ id: m.id, name: m.name, ...sumNutrients(itemsOf(m), keys) }))
+  return { meals, day: sumNutrients(day.meals.flatMap(itemsOf), keys) }
+}

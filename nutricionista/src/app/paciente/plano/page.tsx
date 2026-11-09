@@ -6,6 +6,7 @@ import { featuresOf } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { todayIn, weekdayOf } from '@/lib/time'
 import { PlanPage } from '@/components/PatientPlanPage'
+import { microsForPlan } from '@/lib/foods'
 import { PageHead, Empty } from '@/components/ui'
 
 export default async function PatientPlanPage() {
@@ -52,5 +53,6 @@ export default async function PatientPlanPage() {
     .from(schema.prescriptions)
     .where(and(eq(schema.prescriptions.patientId, user.patientId), eq(schema.prescriptions.active, true)))
     .orderBy(desc(schema.prescriptions.createdAt))
-  return <PlanPage plan={current} history={history} features={features} weekday={weekday} prescriptions={prescriptions} />
+  const micros = features.micronutrientes ? await microsForPlan(current.content) : undefined
+  return <PlanPage plan={current} history={history} features={features} weekday={weekday} prescriptions={prescriptions} micros={micros} />
 }

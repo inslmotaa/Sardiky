@@ -32,3 +32,11 @@ export async function loadFoods(): Promise<FoodOption[]> {
     micros: Object.fromEntries(PLAN_MICROS.map((k) => [k, r.nutrients[k] ?? null])),
   }))
 }
+
+/** Vitaminas e minerais só dos alimentos usados no plano (para o quadro do cliente, quando ligado). */
+export async function microsForPlan(content: unknown): Promise<Record<string, NutrientTable>> {
+  const ids = [...new Set(JSON.stringify(content ?? {}).match(/"foodId":"([0-9a-f-]{36})"/g)?.map((m) => m.slice(10, 46)) ?? [])]
+  if (!ids.length) return {}
+  const rows = await db.select({ id: schema.foods.id, nutrients: schema.foods.nutrients }).from(schema.foods).where(inArray(schema.foods.id, ids))
+  return Object.fromEntries(rows.map((r) => [r.id, Object.fromEntries(PLAN_MICROS.map((k) => [k, r.nutrients[k] ?? null]))]))
+}

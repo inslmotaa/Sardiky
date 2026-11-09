@@ -11,6 +11,8 @@ import { waterGoalMl } from '@/lib/nutricao'
 import { capitalize, fmtDateTime, fmtDay, fmtDayLong, todayIn, weekdayOf, zonedParts } from '@/lib/time'
 import { bookingLink } from '@/lib/format'
 import { contractInfo } from '@/lib/contract'
+import { checkinsOf } from '@/lib/checkins'
+import { checkinState } from '@/lib/checkin-rules'
 import { changeWater, markNotificationsRead, quickWeight, setMealStatus } from '@/actions/patient'
 import { TodayView, type MealLog, type TodayData } from '@/components/nutri/TodayView'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
@@ -107,6 +109,9 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
   // Renovação: faltando até 7 dias para o fim do plano (ou já encerrado), cartão com o botão Renovar.
   const contract = pkg[0] ? contractInfo(pkg[0], patient.packageStart, patient.packageEnd, today) : null
   const renew = contract?.daysLeft != null && contract.daysLeft <= 7 ? contract : null
+  // Check-in periódico aberto ou atrasado: cartão com o prazo.
+  const { pending: checkin } = await checkinsOf(user.patientId, 0)
+  const checkinNow = checkin ? checkinState(checkin, today) : null
 
   return (
     <MotionRoot>
@@ -135,6 +140,14 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
               Renovar
             </Link>
           </section>
+        )}
+        {checkin && (checkinNow === 'aberto' || checkinNow === 'atrasado') && (
+          <div className="hub-banner" role="status">
+            <span>{checkinNow === 'atrasado' ? `Seu check-in de ${fmtDay(checkin.dueDate)} está atrasado.` : `Check-in aberto: responda até ${fmtDay(checkin.dueDate)}.`}</span>
+            <Link href="/paciente/checkin" className="btn btn--light btn--sm">
+              Fazer check-in
+            </Link>
+          </div>
         )}
         {!anamnesisDone && (
           <div className="hub-banner" role="status">

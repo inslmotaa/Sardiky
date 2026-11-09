@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { GOOGLE_TAG_ID, META_PIXEL_ID } from '@/lib/pixels'
+import { WA_TEMPLATES, type WaTemplateKey } from '@/lib/whatsapp'
+import type { MessageTemplates } from '@/db/schema'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { STAFF_PERMISSIONS } from '@/lib/auth/permissions'
@@ -216,13 +218,16 @@ export async function saveSchedule(_: ActionState, fd: FormData): Promise<Action
 }
 
 export async function saveTemplates(_: ActionState, fd: FormData): Promise<ActionState> {
+  // Mensagens do WhatsApp: vazio = volta ao texto padrão.
+  const wa = Object.fromEntries((Object.keys(WA_TEMPLATES) as WaTemplateKey[]).map((k) => [k, optStr(1000)]))
   const parsed = z
-    .object({ confirmacao: str(1000, 'Obrigatório'), lembrete: str(1000, 'Obrigatório'), cancelamento: str(1000, 'Obrigatório') })
+    .object({ confirmacao: str(1000, 'Obrigatório'), lembrete: str(1000, 'Obrigatório'), cancelamento: str(1000, 'Obrigatório'), ...wa })
     .safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
   try {
     const user = await requireTeam('config')
-    await db.update(schema.settings).set({ templates: parsed.data, updatedAt: new Date() }).where(eq(schema.settings.id, 1))
+    const templates = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => typeof v === 'string' && v.trim())) as MessageTemplates
+    await db.update(schema.settings).set({ templates, updatedAt: new Date() }).where(eq(schema.settings.id, 1))
     await audit(user, 'modelos_mensagem_atualizados', 'configuracoes')
     refreshAll()
     return { ok: true, message: 'Modelos de mensagem salvos.' }

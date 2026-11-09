@@ -18,8 +18,8 @@ const templates = {
   cancelamento: 'Olá, {nome}. Sua consulta de {data} às {hora} foi cancelada. Fale conosco para escolher um novo horário.',
 }
 await sql`
-  insert into settings (id, professional_name, templates, demo_banner)
-  values (1, ${name}, ${sql.json(templates)}, false)
+  insert into settings (id, professional_name, templates, demo_banner, whatsapp)
+  values (1, ${name}, ${sql.json(templates)}, false, '5541991551789')
   on conflict (id) do nothing`
 
 let [user] = await sql`select id, role from users where email = ${email}`

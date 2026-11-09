@@ -1,10 +1,11 @@
 import type { schema } from '@/db'
 import { fmtDay, todayIn } from '@/lib/time'
-import { money, whatsappLink } from '@/lib/format'
+import { money } from '@/lib/format'
 import { linkNoPainelMP } from '@/lib/mercadopago-core'
 import { markPaymentPaid, setPaymentStatus } from '@/actions/admin/finance'
 import { ActionForm, SubmitButton } from './form'
 import { StatusBadge, Empty } from './ui'
+import { WhatsAppButton } from './WhatsAppButton'
 
 type Row = { pay: typeof schema.payments.$inferSelect; name: string | null; phone?: string | null }
 
@@ -27,13 +28,6 @@ export function PaymentsTable({ rows, showPatient = true, today = todayIn() }: {
         <tbody>
           {rows.map(({ pay: p, name, phone }) => {
             const overdue = p.status === 'pendente' && !!p.dueDate && p.dueDate < today
-            const wa =
-              p.status === 'pendente' && phone
-                ? whatsappLink(
-                    phone.length <= 11 ? `55${phone}` : phone,
-                    `Olá, ${(name ?? '').split(' ')[0]}! Passando para lembrar do pagamento de “${p.description}” (${money(p.amountCents - p.discountCents)})${p.dueDate ? `, com vencimento em ${fmtDay(p.dueDate)}` : ''}. Qualquer dúvida, estou à disposição.`,
-                  )
-                : null
             return (
             <tr key={p.id}>
               <td>
@@ -51,11 +45,22 @@ export function PaymentsTable({ rows, showPatient = true, today = todayIn() }: {
               </td>
               <td>
                 {overdue ? <span className="badge badge--danger">Atrasado</span> : <StatusBadge status={p.status} />}
-                {wa && (
+                {p.status === 'pago' && (
                   <div>
-                    <a className="small" href={wa} target="_blank" rel="noopener noreferrer">
-                      Cobrar pelo WhatsApp
+                    <a className="small" href={`/recibos/${p.id}`} download>
+                      Recibo (PDF){p.receiptNumber ? ` nº ${String(p.receiptNumber).padStart(5, '0')}` : ''}
                     </a>
+                  </div>
+                )}
+                {p.status === 'pendente' && phone && (
+                  <div>
+                    <WhatsAppButton
+                      phone={phone}
+                      template="waCobranca"
+                      label="Cobrar pelo WhatsApp"
+                      className="small"
+                      vars={{ nome: (name ?? '').split(' ')[0], descricao: p.description, valor: money(p.amountCents - p.discountCents), data: p.dueDate ? fmtDay(p.dueDate) : 'combinado' }}
+                    />
                   </div>
                 )}
               </td>

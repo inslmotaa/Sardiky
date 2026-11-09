@@ -97,7 +97,7 @@ Para usar e-mail (recuperação de senha e confirmações):
 - [ ] Site abre em `https://` com cadeado; `https://DOMINIO/api/health` responde `{"ok":true}`
 - [ ] Agendamento de teste feito e cancelado
 - [ ] App instalado no celular ("Adicionar à tela inicial") e notificação de teste recebida
-- [ ] E-mail configurado e recuperação de senha testada
+- [ ] E-mail configurado; recuperação de senha e **link mágico** testados (o botão "Renovar meu plano" do e-mail de vencimento também)
 - [ ] Mercado Pago ([14-mercado-pago.md](14-mercado-pago.md)):
   - [ ] aplicação "Farion" criada na conta do André;
   - [ ] webhook com o evento "Pagamentos" apontando para `https://DOMINIO/api/webhooks/mercadopago`;
@@ -105,6 +105,7 @@ Para usar e-mail (recuperação de senha e confirmações):
   - [ ] pagamento real de valor baixo aprovado, aparecendo como "Confirmado por mercadopago", e depois estornado;
   - [ ] "Simular notificação" no painel do Mercado Pago respondida com 200;
   - [ ] parcelas máximas e nome na fatura conferidos em Configurações → Integrações
+  - [ ] se for usar a assinatura mensal: evento "Planos e assinaturas" marcado no mesmo webhook
 - [ ] SEO ([16-seo-e-captacao.md](16-seo-e-captacao.md)): `APP_URL` com o domínio final; `https://DOMINIO/robots.txt` e `https://DOMINIO/sitemap.xml` abrem; site cadastrado no Google Search Console com o sitemap enviado; link do site testado no Depurador de compartilhamento da Meta (imagem verde aparece)
 - [ ] Pixels: se for anunciar, IDs da Meta/Google em Configurações → Captação e pixels e aviso de cookies conferido; se não, deixar desligados
 - [ ] Política de privacidade revisada por profissional jurídico

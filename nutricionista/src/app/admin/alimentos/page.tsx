@@ -4,9 +4,8 @@ import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { FOOD_GROUPS, fmt, searchFoods } from '@/lib/nutricao'
-import { createFood } from '@/actions/admin/nutrition'
+import { FoodCreateForm } from '@/components/nutri/FoodCreateForm'
 import { IBGE_CITATION, SOURCE_LABEL, TACO_CITATION } from '@/lib/tabela-nutricional'
-import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { NoAccess, PageHead, Empty } from '@/components/ui'
 
 const SOURCES = ['TACO', 'Complementar', 'proprio'] as const
@@ -130,56 +129,8 @@ export default async function FoodsPage({ searchParams }: { searchParams: Promis
       </p>
 
       <section className="card">
-        <h2 style={{ fontSize: '1.1rem' }}>Cadastrar alimento próprio (rótulo nutricional)</h2>
-        <ActionForm action={createFood} className="stack" resetOnSuccess>
-          <div className="form-grid">
-            <Field label="Nome" name="name" required>
-              <input type="text" name="name" maxLength={160} placeholder="Ex.: Pão de queijo da marca X" />
-            </Field>
-            <Field label="Grupo" name="group">
-              <select name="group" defaultValue="outros">
-                {Object.entries(FOOD_GROUPS)
-                  .filter(([k]) => k !== 'receitas')
-                  .map(([k, v]) => (
-                    <option key={k} value={k}>
-                      {v}
-                    </option>
-                  ))}
-              </select>
-            </Field>
-          </div>
-          <p className="small muted" style={{ margin: 0 }}>
-            Valores por 100 g (se o rótulo informa por porção, divida pelo peso da porção e multiplique por 100).
-          </p>
-          <div className="form-grid form-grid--3">
-            {[
-              ['kcal', 'Calorias (kcal)'],
-              ['protein', 'Proteína (g)'],
-              ['carbs', 'Carboidrato (g)'],
-              ['fat', 'Gordura (g)'],
-              ['fiber', 'Fibra (g)'],
-              ['sodium', 'Sódio (mg)'],
-            ].map(([k, label]) => (
-              <Field key={k} label={label} name={k}>
-                <input type="text" name={k} inputMode="decimal" />
-              </Field>
-            ))}
-          </div>
-          <div className="form-grid form-grid--3">
-            <Field label="Medida caseira (opcional)" name="measureName">
-              <input type="text" name="measureName" placeholder="Ex.: unidade" />
-            </Field>
-            <Field label="Gramas da medida" name="measureGrams">
-              <input type="text" name="measureGrams" inputMode="decimal" />
-            </Field>
-            <Field label="Fator de cocção (opcional)" name="cookingFactor" hint="Peso cozido ÷ peso cru">
-              <input type="text" name="cookingFactor" inputMode="decimal" />
-            </Field>
-          </div>
-          <div>
-            <SubmitButton>Cadastrar alimento</SubmitButton>
-          </div>
-        </ActionForm>
+        <h2 style={{ fontSize: '1.1rem' }}>Cadastrar alimento próprio (rótulo ou código de barras)</h2>
+        <FoodCreateForm groups={Object.entries(FOOD_GROUPS).filter(([k]) => k !== 'receitas')} />
       </section>
     </div>
   )

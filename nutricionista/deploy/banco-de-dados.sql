@@ -40,7 +40,7 @@ CREATE TYPE "public"."payment_status" AS ENUM('pendente', 'pago', 'cancelado', '
 CREATE TYPE "public"."plan_status" AS ENUM('rascunho', 'publicado', 'arquivado');
 CREATE TYPE "public"."role" AS ENUM('admin', 'staff', 'patient');
 CREATE TYPE "public"."service_modality" AS ENUM('presencial', 'online', 'ambos');
-CREATE TYPE "public"."token_type" AS ENUM('reset', 'convite', 'verificacao');
+CREATE TYPE "public"."token_type" AS ENUM('reset', 'convite', 'verificacao', 'link_magico');
 CREATE TABLE "anamneses" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"patient_id" uuid NOT NULL,
@@ -105,6 +105,23 @@ CREATE TABLE "auth_tokens" (
 	"type" "token_type" NOT NULL,
 	"expires_at" timestamp with time zone NOT NULL,
 	"used_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "checkins" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"patient_id" uuid NOT NULL,
+	"due_date" date NOT NULL,
+	"status" text DEFAULT 'pendente' NOT NULL,
+	"submitted_at" timestamp with time zone,
+	"answers" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"weight_kg" numeric,
+	"measures" jsonb DEFAULT '{}'::jsonb NOT NULL,
+	"photo_file_ids" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"measurement_id" uuid,
+	"reviewed_at" timestamp with time zone,
+	"reviewed_by" uuid,
+	"coach_note" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -198,6 +215,7 @@ CREATE TABLE "foods" (
 	"fiber" numeric DEFAULT 0 NOT NULL,
 	"sodium" numeric,
 	"cooking_factor" numeric,
+	"barcode" text,
 	"active" boolean DEFAULT true NOT NULL,
 	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -398,7 +416,7 @@ CREATE TABLE "patients" (
 	"objective" text,
 	"sex" text,
 	"height_cm" numeric,
-	"features" jsonb DEFAULT '{"diario":true,"peso":true,"chat":true,"calorias":true,"macros":true,"calculadoras":true,"agua":true,"fotosCorpo":true,"exames":true}'::jsonb NOT NULL,
+	"features" jsonb DEFAULT '{"diario":true,"peso":true,"chat":true,"calorias":true,"macros":true,"calculadoras":true,"agua":true,"fotosCorpo":true,"exames":true,"micronutrientes":false}'::jsonb NOT NULL,
 	"energy" jsonb,
 	"anamnesis_received_at" timestamp with time zone,
 	"anamnesis_notes" text,
@@ -413,6 +431,10 @@ CREATE TABLE "patients" (
 	"stage" text DEFAULT 'Avaliação inicial' NOT NULL,
 	"follow_up_days" integer,
 	"next_follow_up" date,
+	"checkin_every_days" integer,
+	"next_checkin_due" date,
+	"mp_preapproval_id" text,
+	"mp_preapproval_status" text,
 	"anonymized_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -436,6 +458,7 @@ CREATE TABLE "payments" (
 	"provider_ref" text,
 	"provider_preference_id" text,
 	"provider_status" text,
+	"receipt_number" integer,
 	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -664,6 +687,9 @@ ALTER TABLE "appointments" ADD CONSTRAINT "appointments_patient_id_patients_id_f
 ALTER TABLE "appointments" ADD CONSTRAINT "appointments_service_id_services_id_fk" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_actor_id_users_id_fk" FOREIGN KEY ("actor_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "auth_tokens" ADD CONSTRAINT "auth_tokens_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "checkins" ADD CONSTRAINT "checkins_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "checkins" ADD CONSTRAINT "checkins_measurement_id_measurements_id_fk" FOREIGN KEY ("measurement_id") REFERENCES "public"."measurements"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "checkins" ADD CONSTRAINT "checkins_reviewed_by_users_id_fk" FOREIGN KEY ("reviewed_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "clinical_notes" ADD CONSTRAINT "clinical_notes_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "clinical_notes" ADD CONSTRAINT "clinical_notes_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "consents" ADD CONSTRAINT "consents_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
@@ -719,9 +745,12 @@ CREATE INDEX "appointments_patient_idx" ON "appointments" USING btree ("patient_
 CREATE UNIQUE INDEX "appointments_code_idx" ON "appointments" USING btree ("code");
 CREATE INDEX "audit_created_idx" ON "audit_logs" USING btree ("created_at");
 CREATE INDEX "audit_patient_idx" ON "audit_logs" USING btree ("patient_id");
+CREATE UNIQUE INDEX "checkins_patient_due_idx" ON "checkins" USING btree ("patient_id","due_date");
+CREATE INDEX "checkins_status_idx" ON "checkins" USING btree ("status","due_date");
 CREATE INDEX "clinical_notes_patient_idx" ON "clinical_notes" USING btree ("patient_id");
 CREATE INDEX "diary_patient_idx" ON "diary_entries" USING btree ("patient_id","date");
 CREATE INDEX "foods_search_idx" ON "foods" USING btree ("search");
+CREATE UNIQUE INDEX "foods_barcode_idx" ON "foods" USING btree ("barcode");
 CREATE INDEX "form_assignments_patient_idx" ON "form_assignments" USING btree ("patient_id");
 CREATE INDEX "measures_food_idx" ON "household_measures" USING btree ("food_id");
 CREATE UNIQUE INDEX "meal_logs_unique" ON "meal_logs" USING btree ("patient_id","date","meal_key");
@@ -734,6 +763,7 @@ CREATE UNIQUE INDEX "patients_user_idx" ON "patients" USING btree ("user_id");
 CREATE INDEX "patients_status_idx" ON "patients" USING btree ("status");
 CREATE INDEX "payments_patient_idx" ON "payments" USING btree ("patient_id");
 CREATE INDEX "payments_provider_ref_idx" ON "payments" USING btree ("provider_ref");
+CREATE UNIQUE INDEX "payments_receipt_idx" ON "payments" USING btree ("receipt_number");
 CREATE UNIQUE INDEX "posts_slug_idx" ON "posts" USING btree ("slug");
 CREATE INDEX "posts_status_idx" ON "posts" USING btree ("status","published_on");
 CREATE INDEX "prescriptions_patient_idx" ON "prescriptions" USING btree ("patient_id");
@@ -775,6 +805,7 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('5490ee0bd517e4ccea7f372d3a2c9836288a2e192c0d2c2d055b724c607d54dc', 1793916106957), -- 0017_remover_desconto_parceiro
 	('14bee88ebe9c56612d5a9182a2e3abb4e2cf171125eeeca996ca4b2b650110d6', 1794244118204), -- 0018_remover_registro
 	('006e7b8e1cd622cce4f9f9685c59cc71d00ac4cbd64c43be92a88e37772ea1a6', 1794245146457), -- 0019_depoimentos_e_formacoes
-	('e7ef7351f70253404a226c14e9826af7c790500bcb3354ac64e783fc3735c6e7', 1794246522668); -- 0020_conteudos_e_captacao
+	('e7ef7351f70253404a226c14e9826af7c790500bcb3354ac64e783fc3735c6e7', 1794246522668), -- 0020_conteudos_e_captacao
+	('04f386edd5a6f92b763d235cc2e7713aa91e1e076e34a79186e7139c4972e5df', 1794261956610); -- 0021_app_do_cliente_e_painel
 
 COMMIT;

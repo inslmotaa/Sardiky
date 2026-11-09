@@ -16,6 +16,7 @@ export default async function MorePage() {
     ...(p.features.diario || p.features.fotosCorpo || p.features.exames
       ? ([['/paciente/enviar', 'Fotos e exames', 'Envie, se quiser, foto da refeição, do corpo e exames']] as [string, string, string][])
       : []),
+    ...(p.checkinEveryDays ? ([['/paciente/checkin', 'Check-in', 'Questionário curto, peso, medidas e fotos no prazo combinado']] as [string, string, string][]) : []),
     ['/paciente/consultas', 'Agenda', 'Próximas consultas, confirmar presença, remarcar e avaliar'],
     ['/paciente/compras', 'Lista de compras', 'Gerada do seu plano da semana'],
     ['/paciente/receitas', 'Receitas', 'Receitas do seu plano e sugestões'],

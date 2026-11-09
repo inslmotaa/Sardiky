@@ -2,6 +2,9 @@ import { timingSafeEqual } from 'node:crypto'
 import { and, desc, eq, gte, inArray, isNull, lt, ne, or } from 'drizzle-orm'
 import { runReminders } from '@/lib/reminders'
 import { conciliarPendentes, lembretesDeRenovacao } from '@/lib/pagamentos'
+import { checkinReminders } from '@/lib/checkins'
+import { EXPORT_RETENTION_DAYS } from '@/lib/lgpd-export'
+import { deleteUpload } from '@/lib/storage'
 import { db, schema } from '@/db'
 import { audit } from '@/lib/audit'
 import { integrationStatus } from '@/lib/integrations'
@@ -14,7 +17,8 @@ import { fmtDay, zonedParts } from '@/lib/time'
  *   curl -H "Authorization: Bearer $CRON_SECRET" https://seusite/api/cron
  * 1. Lembretes por push: refeições, água, pesagem semanal, pacientes parados há 3 dias, consultas em 24 h e 2 h.
  * 2. Lembrete de consulta por e-mail na véspera (se o e-mail estiver configurado).
- * 2b. Mercado Pago: conciliação das cobranças pendentes e lembrete de renovação (7 dias antes do término).
+ * 2b. Mercado Pago: conciliação das cobranças pendentes e lembretes de renovação (7 e 2 dias antes do término).
+ * 2c. Check-ins periódicos: push quando abre, no prazo e no dia seguinte, se atrasou.
  * 3. Limpeza (no máximo uma vez por hora): sessões e links expirados; interessados não convertidos além do prazo de retenção.
  */
 export async function GET(req: Request) {
@@ -30,6 +34,8 @@ export async function GET(req: Request) {
   // Mercado Pago: confere cobranças pendentes (Pix/boleto, testes sem webhook) e avisa renovações.
   const pagamentos = await conciliarPendentes(now)
   const renovacoes = await lembretesDeRenovacao()
+  // Check-ins: aviso quando abre, no dia do prazo e no dia seguinte, se atrasou.
+  const checkins = await checkinReminders(now)
 
   if (integrationStatus().email) {
     const due = await db
@@ -89,7 +95,7 @@ export async function GET(req: Request) {
     .orderBy(desc(schema.auditLogs.createdAt))
     .limit(1)
   if (lastRun && now.getTime() - lastRun.at.getTime() < 55 * 60_000) {
-    return Response.json({ lembretesEmail: reminders, push, pagamentos, renovacoes })
+    return Response.json({ lembretesEmail: reminders, push, pagamentos, renovacoes, checkins })
   }
 
   const sessions = await db.delete(schema.sessions).where(lt(schema.sessions.expiresAt, now)).returning({ id: schema.sessions.id })
@@ -101,6 +107,12 @@ export async function GET(req: Request) {
     .delete(schema.leads)
     .where(and(ne(schema.leads.status, 'convertido'), lt(schema.leads.createdAt, new Date(now.getTime() - s.leadRetentionDays * 86_400_000))))
     .returning({ id: schema.leads.id })
+  // Exportações LGPD automáticas: guardadas só pelo prazo de entrega ao titular (30 dias).
+  const oldExports = await db
+    .delete(schema.files)
+    .where(and(eq(schema.files.kind, 'lgpd_exportacao'), lt(schema.files.createdAt, new Date(now.getTime() - EXPORT_RETENTION_DAYS * 86_400_000))))
+    .returning({ key: schema.files.storageKey })
+  for (const f of oldExports) await deleteUpload(f.key)
   // Pedidos de agendamento pendentes que já passaram liberam o horário.
   const stale = await db
     .update(schema.appointments)
@@ -108,7 +120,7 @@ export async function GET(req: Request) {
     .where(and(inArray(schema.appointments.status, ['pendente']), lt(schema.appointments.startAt, now)))
     .returning({ id: schema.appointments.id })
 
-  const result = { lembretesEmail: reminders, push, pagamentos, renovacoes, sessoesRemovidas: sessions.length, linksRemovidos: tokens.length, interessadosEliminados: leads.length, pedidosExpirados: stale.length }
+  const result = { lembretesEmail: reminders, push, pagamentos, renovacoes, checkins, sessoesRemovidas: sessions.length, linksRemovidos: tokens.length, interessadosEliminados: leads.length, exportacoesApagadas: oldExports.length, pedidosExpirados: stale.length }
   await audit(null, 'tarefas_periodicas', 'sistema', { details: result })
   return Response.json(result)
 }

@@ -6,6 +6,7 @@ import { ADHERENCE_LABEL as CLASS_LABEL } from '@/lib/acompanhamento'
 import { consumedOn, dayForWeekday, dayTotals, normalizePlan, sortedMeals } from '@/lib/plan'
 import { currentPublishedPlan } from '@/lib/patient-context'
 import { addDays, fmtDay, todayIn, weekdayOf } from '@/lib/time'
+import { fmt, pctOf } from '@/lib/nutricao'
 import { commentDiary } from '@/actions/admin/patients'
 import { DiaryList } from '@/components/DiaryList'
 import { Empty } from '@/components/ui'
@@ -32,15 +33,22 @@ export async function DiaryTab({ patient }: { patient: typeof schema.patients.$i
       const l = logs.filter((x) => x.date === date)
       const e = entries.filter((x) => x.date === date).sort((a, b) => a.time.localeCompare(b.time))
       const day = content ? dayForWeekday(content, weekdayOf(date)) : null
+      const has = l.length > 0 || e.length > 0
+      const real = calc && has ? consumedOn(plans, l, e) : null
+      const planned = calc && day ? dayTotals(day) : null
       return {
         date,
-        kcal: calc && (l.length || e.length) ? consumedOn(plans, l, e).kcal : null,
+        real,
+        planned,
+        kcal: real ? real.kcal : null,
         plannedKcal: calc && day ? dayTotals(day).kcal : null,
         meals: day && (l.length || e.length) ? sortedMeals(day).map((m) => ({ name: m.name, time: m.time, status: l.find((x) => x.mealKey === `${day.id}:${m.id}`)?.status ?? null })) : [],
         entries: e,
       }
     })
-    .filter((d) => d.meals.length || d.entries.length)
+  // Consumo real × planejado por dia (14 dias, inclusive os sem registro, para ver as lacunas).
+  const comparison = days.filter((d) => d.planned)
+  const shown = days.filter((d) => d.meals.length || d.entries.length)
 
   return (
     <div className="stack">
@@ -53,7 +61,52 @@ export async function DiaryTab({ patient }: { patient: typeof schema.patients.$i
         <span className="muted">Sequência: {summary.streak} {summary.streak === 1 ? 'dia' : 'dias'}</span>
         <span className="muted">Último registro: {summary.lastRecord ? fmtDay(summary.lastRecord) : 'nunca'}</span>
       </div>
-      {days.length === 0 ? <Empty>O cliente ainda não registrou refeições nos últimos 14 dias.</Empty> : <DiaryList days={days} commentAction={commentDiary.bind(null, patient.id)} />}
+      {comparison.length > 0 && (
+        <details className="card" open>
+          <summary>
+            <strong>Consumo real × planejado</strong> <span className="muted small">· últimos 14 dias</span>
+          </summary>
+          <p className="small muted" style={{ margin: '8px 0' }}>
+            Real: refeições do plano marcadas (parcial conta metade) e alimentos registrados fora do plano. Planejado: primeira opção de cada refeição do dia do plano.
+          </p>
+          <div className="table-wrap">
+            <table aria-label="Consumo real × planejado">
+              <thead>
+                <tr>
+                  <th>Dia</th>
+                  <th>kcal (real / plano)</th>
+                  <th>Proteína (g)</th>
+                  <th>Carboidrato (g)</th>
+                  <th>Gordura (g)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparison.map((d) => (
+                  <tr key={d.date}>
+                    <td className="nowrap">{fmtDay(d.date)}</td>
+                    {d.real ? (
+                      (['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => {
+                        const p = pctOf(d.real![k], d.planned![k])
+                        return (
+                          <td key={k} className="nowrap">
+                            {fmt(d.real![k], 0)} / {fmt(d.planned![k], 0)}{' '}
+                            {p != null && <span className={`badge ${p < 80 ? 'badge--warn' : p > 115 ? 'badge--danger' : 'badge--ok'}`}>{p}%</span>}
+                          </td>
+                        )
+                      })
+                    ) : (
+                      <td colSpan={4} className="muted small">
+                        Sem registro
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+      {shown.length === 0 ? <Empty>O cliente ainda não registrou refeições nos últimos 14 dias.</Empty> : <DiaryList days={shown} commentAction={commentDiary.bind(null, patient.id)} />}
     </div>
   )
 }

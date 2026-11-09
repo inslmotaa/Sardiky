@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { offUrl, parseOffProduct, validBarcode, type OffSuggestion } from '@/lib/openfoodfacts'
 import { db, schema } from '@/db'
 import { DEFAULT_FEATURES, type AppFeatures } from '@/db/schema'
 import { requireTeam } from '@/lib/auth/session'
@@ -118,6 +119,15 @@ const foodSchema = z.object({
   cookingFactor: optNum(0.1, 5),
   measureName: optStr(60),
   measureGrams: optNum(0.1, 2000),
+  /** Código de barras lido pela câmera ou digitado (produto industrializado). */
+  barcode: z
+    .string()
+    .trim()
+    .optional()
+    .transform((v) => v || null),
+  /** Valores vindos do Open Food Facts: o coach confirma que conferiu com o rótulo. */
+  fromOff: z.literal('1').optional(),
+  offConfirm: z.literal('on').optional(),
 })
 
 /** Cadastra alimento próprio (rótulo nutricional, valores por 100 g). */
@@ -127,8 +137,16 @@ export async function createFood(_: ActionState, fd: FormData): Promise<ActionSt
   const d = parsed.data
   if (d.kcal == null || d.protein == null || d.carbs == null || d.fat == null) return { error: 'Informe calorias, proteína, carboidrato e gordura por 100 g.' }
   if (d.protein + d.carbs + d.fat > 100.5) return { error: 'A soma de proteína, carboidrato e gordura passa de 100 g por 100 g.' }
+  const barcode = d.barcode ? validBarcode(d.barcode) : null
+  if (d.barcode && !barcode) return { fieldErrors: { barcode: 'Código inválido' }, error: 'O código de barras não é válido (confira os números).' }
+  if (d.fromOff && !d.offConfirm)
+    return { fieldErrors: { offConfirm: 'Confirme a conferência' }, error: 'Confira os valores com o rótulo do produto e marque a confirmação antes de salvar.' }
   try {
     const user = await requireTeam('clinico')
+    if (barcode) {
+      const [dup] = await db.select({ id: schema.foods.id, name: schema.foods.name }).from(schema.foods).where(eq(schema.foods.barcode, barcode))
+      if (dup) return { fieldErrors: { barcode: 'Já cadastrado' }, error: `Este código já está cadastrado como “${dup.name}”.` }
+    }
     const [f] = await db
       .insert(schema.foods)
       .values({
@@ -144,15 +162,47 @@ export async function createFood(_: ActionState, fd: FormData): Promise<ActionSt
         sodium: d.sodium,
         cookingFactor: d.cookingFactor,
         nutrients: { kcal: d.kcal, proteina: d.protein, carboidrato: d.carbs, lipideos: d.fat, fibra: d.fiber ?? null, sodio: d.sodium ?? null },
+        barcode,
         createdBy: user.id,
       })
       .returning({ id: schema.foods.id })
     if (d.measureName && d.measureGrams) await db.insert(schema.householdMeasures).values({ foodId: f.id, name: d.measureName, grams: d.measureGrams })
-    await audit(user, 'alimento_criado', 'alimento', { entityId: f.id, details: { nome: d.name } })
+    await audit(user, 'alimento_criado', 'alimento', { entityId: f.id, details: { nome: d.name, ...(barcode ? { codigoDeBarras: barcode, origem: d.fromOff ? 'Open Food Facts (conferido)' : 'rótulo' } : {}) } })
     revalidatePath('/admin/alimentos')
     return { ok: true, message: `“${d.name}” cadastrado como alimento próprio.` }
   } catch (err) {
     return failure(err)
+  }
+}
+
+/**
+ * Busca um produto pelo código de barras: primeiro na base própria; senão, no Open Food Facts.
+ * Só sugere valores; nada é gravado aqui (o coach confere e salva pelo formulário).
+ */
+export async function lookupBarcode(raw: string): Promise<{ error?: string; existing?: { id: string; name: string }; suggestion?: OffSuggestion; notFound?: string }> {
+  try {
+    await requireTeam('clinico')
+    const code = validBarcode(String(raw ?? ''))
+    if (!code) return { error: 'Código de barras inválido. Confira os números (8, 12, 13 ou 14 dígitos).' }
+    const [own] = await db.select({ id: schema.foods.id, name: schema.foods.name }).from(schema.foods).where(eq(schema.foods.barcode, code))
+    if (own) return { existing: own }
+    let json: unknown
+    try {
+      const res = await fetch(offUrl(code, process.env.OPENFOODFACTS_API_BASE), {
+        headers: { 'User-Agent': 'Farion/1.0 (painel do coach; cadastro de alimentos)' },
+        signal: AbortSignal.timeout(8000),
+        cache: 'no-store',
+      })
+      if (res.status === 404) return { notFound: code }
+      if (!res.ok) return { error: 'O Open Food Facts não respondeu agora. Preencha pelo rótulo.' }
+      json = await res.json()
+    } catch {
+      return { error: 'Sem conexão com o Open Food Facts. Preencha pelo rótulo.' }
+    }
+    const suggestion = parseOffProduct(json, code)
+    return suggestion ? { suggestion } : { notFound: code }
+  } catch (err) {
+    return { error: failure(err).error }
   }
 }
 
