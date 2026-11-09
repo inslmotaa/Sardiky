@@ -144,6 +144,13 @@ CREATE TABLE "consents" (
 	"revoked_at" timestamp with time zone
 );
 
+CREATE TABLE "contact_events" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"patient_id" uuid NOT NULL,
+	"kind" text DEFAULT 'whatsapp' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE "data_requests" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"patient_id" uuid,
@@ -174,6 +181,14 @@ CREATE TABLE "diary_entries" (
 	"notes" text,
 	"professional_comment" text,
 	"commented_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "email_log" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"category" text NOT NULL,
+	"ok" boolean NOT NULL,
+	"error" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -431,6 +446,7 @@ CREATE TABLE "patients" (
 	"stage" text DEFAULT 'Avaliação inicial' NOT NULL,
 	"follow_up_days" integer,
 	"next_follow_up" date,
+	"chat_mode" text,
 	"checkin_every_days" integer,
 	"next_checkin_due" date,
 	"mp_preapproval_id" text,
@@ -529,6 +545,16 @@ CREATE TABLE "recipes" (
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE "reminder_channels" (
+	"user_id" uuid PRIMARY KEY NOT NULL,
+	"calendar_token_hash" text,
+	"calendar_token_at" timestamp with time zone,
+	"calendar_downloaded_hash" text,
+	"calendar_downloaded_at" timestamp with time zone,
+	"unsubscribe_token" text,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE "reminder_log" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
@@ -608,6 +634,7 @@ CREATE TABLE "settings" (
 	"quick_replies" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"chat_hours" jsonb,
 	"chat_auto_reply" text,
+	"chat_mode" text DEFAULT 'ambos' NOT NULL,
 	"mp_max_installments" integer DEFAULT 12 NOT NULL,
 	"mp_statement_descriptor" text DEFAULT 'FARION' NOT NULL,
 	"pixels_enabled" boolean DEFAULT false NOT NULL,
@@ -662,7 +689,7 @@ CREATE TABLE "users" (
 	"google_sub" text,
 	"onboarded_at" timestamp with time zone,
 	"own_patients_only" boolean DEFAULT false NOT NULL,
-	"notification_prefs" jsonb DEFAULT '{"refeicoes":true,"agua":true,"plano":true,"mensagens":true,"consultas":true,"lembretes":true,"pesagem":true,"quietStart":"22:00","quietEnd":"07:00","waterEveryH":2,"waterStart":"08:00","waterEnd":"20:00"}'::jsonb NOT NULL,
+	"notification_prefs" jsonb DEFAULT '{"refeicoes":true,"agua":true,"plano":true,"mensagens":true,"consultas":true,"lembretes":true,"pesagem":true,"quietStart":"22:00","quietEnd":"07:00","waterEveryH":2,"waterStart":"08:00","waterEnd":"20:00","emailResumo":false}'::jsonb NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -694,6 +721,7 @@ ALTER TABLE "clinical_notes" ADD CONSTRAINT "clinical_notes_patient_id_patients_
 ALTER TABLE "clinical_notes" ADD CONSTRAINT "clinical_notes_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "consents" ADD CONSTRAINT "consents_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "consents" ADD CONSTRAINT "consents_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "contact_events" ADD CONSTRAINT "contact_events_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "data_requests" ADD CONSTRAINT "data_requests_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "diary_entries" ADD CONSTRAINT "diary_entries_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "files" ADD CONSTRAINT "files_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
@@ -730,6 +758,7 @@ ALTER TABLE "progress_photos" ADD CONSTRAINT "progress_photos_file_id_files_id_f
 ALTER TABLE "progress_photos" ADD CONSTRAINT "progress_photos_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "push_subscriptions" ADD CONSTRAINT "push_subscriptions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "reminder_channels" ADD CONSTRAINT "reminder_channels_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "reminder_log" ADD CONSTRAINT "reminder_log_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "testimonials" ADD CONSTRAINT "testimonials_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE set null ON UPDATE no action;
@@ -748,7 +777,9 @@ CREATE INDEX "audit_patient_idx" ON "audit_logs" USING btree ("patient_id");
 CREATE UNIQUE INDEX "checkins_patient_due_idx" ON "checkins" USING btree ("patient_id","due_date");
 CREATE INDEX "checkins_status_idx" ON "checkins" USING btree ("status","due_date");
 CREATE INDEX "clinical_notes_patient_idx" ON "clinical_notes" USING btree ("patient_id");
+CREATE INDEX "contact_events_patient_idx" ON "contact_events" USING btree ("patient_id","created_at");
 CREATE INDEX "diary_patient_idx" ON "diary_entries" USING btree ("patient_id","date");
+CREATE INDEX "email_log_created_idx" ON "email_log" USING btree ("created_at");
 CREATE INDEX "foods_search_idx" ON "foods" USING btree ("search");
 CREATE UNIQUE INDEX "foods_barcode_idx" ON "foods" USING btree ("barcode");
 CREATE INDEX "form_assignments_patient_idx" ON "form_assignments" USING btree ("patient_id");
@@ -770,6 +801,8 @@ CREATE INDEX "prescriptions_patient_idx" ON "prescriptions" USING btree ("patien
 CREATE INDEX "progress_photos_patient_idx" ON "progress_photos" USING btree ("patient_id","date");
 CREATE UNIQUE INDEX "push_endpoint_idx" ON "push_subscriptions" USING btree ("endpoint");
 CREATE INDEX "push_user_idx" ON "push_subscriptions" USING btree ("user_id");
+CREATE UNIQUE INDEX "reminder_channels_calendar_idx" ON "reminder_channels" USING btree ("calendar_token_hash");
+CREATE UNIQUE INDEX "reminder_channels_unsub_idx" ON "reminder_channels" USING btree ("unsubscribe_token");
 CREATE UNIQUE INDEX "reminder_log_unique" ON "reminder_log" USING btree ("user_id","kind","key");
 CREATE INDEX "sessions_user_idx" ON "sessions" USING btree ("user_id");
 CREATE UNIQUE INDEX "testimonials_appointment_idx" ON "testimonials" USING btree ("appointment_id");
@@ -806,6 +839,7 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('14bee88ebe9c56612d5a9182a2e3abb4e2cf171125eeeca996ca4b2b650110d6', 1794244118204), -- 0018_remover_registro
 	('006e7b8e1cd622cce4f9f9685c59cc71d00ac4cbd64c43be92a88e37772ea1a6', 1794245146457), -- 0019_depoimentos_e_formacoes
 	('e7ef7351f70253404a226c14e9826af7c790500bcb3354ac64e783fc3735c6e7', 1794246522668), -- 0020_conteudos_e_captacao
-	('04f386edd5a6f92b763d235cc2e7713aa91e1e076e34a79186e7139c4972e5df', 1794261956610); -- 0021_app_do_cliente_e_painel
+	('04f386edd5a6f92b763d235cc2e7713aa91e1e076e34a79186e7139c4972e5df', 1794261956610), -- 0021_app_do_cliente_e_painel
+	('19218ebb2f81ae03a677fffb0cd7fa736117b4b45723c8a1a977dd5bd819671f', 1794264395398); -- 0022_whatsapp_e_lembretes
 
 COMMIT;

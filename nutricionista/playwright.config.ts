@@ -20,6 +20,8 @@ const env = {
   // Open Food Facts simulado pelo mesmo servidor falso.
   OPENFOODFACTS_API_BASE: `http://localhost:${MP_PORT}/off`,
   // E-mails dos testes (link mágico) vão para um arquivo local, nunca para a internet.
+  // Relógio simulado só para os testes chamarem a tarefa periódica "às 7h" (resumo por e-mail).
+  CRON_TEST_CLOCK: '1',
   EMAIL_TEST_OUTBOX: path.join(os.tmpdir(), 'consultorio-nutri-e2e-emails.jsonl'),
   ...mp,
 }

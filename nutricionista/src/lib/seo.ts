@@ -25,6 +25,8 @@ export const NO_INDEX_PATHS = [
   '/confirmar-email',
   '/agendar/confirmado',
   '/api/',
+  '/lembretes/',
+  '/descadastrar/',
 ] as const
 
 /** Páginas públicas fixas do site (entram no sitemap). */

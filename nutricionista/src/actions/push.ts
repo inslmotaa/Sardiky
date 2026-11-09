@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { and, eq } from 'drizzle-orm'
 import { headers } from 'next/headers'
 import { z } from 'zod'
+import { setEmailConsent } from '@/lib/email-quota'
 import { db, schema } from '@/db'
 import { DEFAULT_NOTIFICATION_PREFS } from '@/db/schema'
 import { getCurrentUser, requirePatient } from '@/lib/auth/session'
@@ -54,6 +55,7 @@ const prefsSchema = z.object({
   waterEveryH: int(1, 6),
   waterStart: time,
   waterEnd: time,
+  emailResumo: checkbox,
 })
 
 /** Preferências de notificação do paciente: cada tipo liga/desliga e horário de silêncio. */
@@ -62,10 +64,14 @@ export async function saveNotificationPrefs(_: ActionState, fd: FormData): Promi
   const parsed = prefsSchema.safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
   if (parsed.data.waterStart >= parsed.data.waterEnd) return { fieldErrors: { waterEnd: 'O fim precisa ser depois do início' }, error: 'Revise o horário dos lembretes de água.' }
+  const [before] = await db.select({ prefs: schema.users.notificationPrefs }).from(schema.users).where(eq(schema.users.id, user.id))
+  const wasOn = Boolean(before?.prefs?.emailResumo)
   await db
     .update(schema.users)
     .set({ notificationPrefs: { ...DEFAULT_NOTIFICATION_PREFS, ...parsed.data }, updatedAt: new Date() })
     .where(eq(schema.users.id, user.id))
+  // Resumo do dia por e-mail: consentimento registrado ao ligar e revogado ao desligar (LGPD).
+  if (parsed.data.emailResumo !== wasOn) await setEmailConsent(user.id, user.patientId, parsed.data.emailResumo)
   revalidatePath('/paciente/notificacoes')
-  return { ok: true, message: 'Preferências salvas.' }
+  return { ok: true, message: parsed.data.emailResumo && !wasOn ? 'Preferências salvas. O resumo do dia chega por e-mail às 7h.' : 'Preferências salvas.' }
 }

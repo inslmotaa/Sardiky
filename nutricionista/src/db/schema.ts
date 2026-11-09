@@ -61,6 +61,8 @@ export type NotificationPrefs = {
   waterEveryH: number
   waterStart: string
   waterEnd: string
+  /** Resumo do dia por e-mail às 7h (refeições e meta de água). Desligado por padrão. */
+  emailResumo?: boolean
 }
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   refeicoes: true,
@@ -75,6 +77,7 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   waterEveryH: 2,
   waterStart: '08:00',
   waterEnd: '20:00',
+  emailResumo: false,
 }
 export type { Skinfolds }
 export type Bioimpedance = { fatPct?: number; muscleKg?: number; waterPct?: number; visceral?: number; bmrKcal?: number }
@@ -185,6 +188,8 @@ export type MessageTemplates = {
   waCobranca?: string
   waLinkPagamento?: string
   waContato?: string
+  /** Texto do botão "Chamar no WhatsApp" do app do cliente (cliente → coach). */
+  waClienteCoach?: string
   waInteressado?: string
 }
 
@@ -255,6 +260,8 @@ export const settings = pgTable('settings', {
   /** Horário de atendimento do chat; fora dele o paciente recebe a resposta automática. */
   chatHours: jsonb('chat_hours').$type<ChatHours | null>(),
   chatAutoReply: text('chat_auto_reply'),
+  /** Como o cliente conversa com o coach: só pelo app, só pelo WhatsApp ou os dois (padrão). */
+  chatMode: text('chat_mode').$type<'app' | 'whatsapp' | 'ambos'>().notNull().default('ambos'),
   /** Mercado Pago: parcelas máximas no cartão (1 a 12) e nome curto na fatura (até 13 caracteres). */
   mpMaxInstallments: integer('mp_max_installments').notNull().default(12),
   mpStatementDescriptor: text('mp_statement_descriptor').notNull().default('FARION'),
@@ -405,6 +412,8 @@ export const patients = pgTable(
     followUpDays: integer('follow_up_days'),
     nextFollowUp: date('next_follow_up'),
     /** Check-in periódico: a cada N dias (vazio = desligado) e a data do próximo. */
+    /** Conversa com o coach só para este cliente (vazio = o padrão das Configurações). */
+    chatMode: text('chat_mode').$type<'app' | 'whatsapp' | 'ambos'>(),
     checkinEveryDays: integer('checkin_every_days'),
     nextCheckinDue: date('next_checkin_due'),
     /** Assinatura recorrente do Mercado Pago (preapproval), quando o cliente assinou o plano mensal. */
@@ -1067,4 +1076,51 @@ export const checkins = pgTable(
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex('checkins_patient_due_idx').on(t.patientId, t.dueDate), index('checkins_status_idx').on(t.status, t.dueDate)],
+)
+
+/* ------------------------------------------------------------------ */
+/* Conversa pelo WhatsApp e canais de lembrete (Parte 5)               */
+/* ------------------------------------------------------------------ */
+
+/** Toques do cliente em "Chamar no WhatsApp": só data e hora (o conteúdo fica no WhatsApp). */
+export const contactEvents = pgTable(
+  'contact_events',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    kind: text('kind').$type<'whatsapp'>().notNull().default('whatsapp'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('contact_events_patient_idx').on(t.patientId, t.createdAt)],
+)
+
+/**
+ * Canais extras de lembrete por usuário: assinatura do calendário (link secreto, guardado só como
+ * resumo SHA-256, revogável), versão dos horários baixada no .ics e o código de descadastro do e-mail.
+ */
+export const reminderChannels = pgTable('reminder_channels', {
+  userId: uuid('user_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  calendarTokenHash: text('calendar_token_hash'),
+  calendarTokenAt: timestamp('calendar_token_at', { withTimezone: true }),
+  calendarDownloadedHash: text('calendar_downloaded_hash'),
+  calendarDownloadedAt: timestamp('calendar_downloaded_at', { withTimezone: true }),
+  unsubscribeToken: text('unsubscribe_token'),
+  updatedAt: updatedAt(),
+}, (t) => [uniqueIndex('reminder_channels_calendar_idx').on(t.calendarTokenHash), uniqueIndex('reminder_channels_unsub_idx').on(t.unsubscribeToken)])
+
+/** E-mails enviados (sem destinatário nem conteúdo), para respeitar a cota gratuita do provedor. */
+export const emailLog = pgTable(
+  'email_log',
+  {
+    id: id(),
+    category: text('category').$type<'essencial' | 'resumo'>().notNull(),
+    ok: boolean('ok').notNull(),
+    error: text('error'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('email_log_created_idx').on(t.createdAt)],
 )

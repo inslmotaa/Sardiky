@@ -5,13 +5,13 @@ import { DEFAULT_FEATURES, DEFAULT_NOTIFICATION_PREFS } from '@/db/schema'
 import { dayForWeekday, normalizePlan, sortedMeals } from './plan'
 import { waterGoalMl } from './nutricao'
 import { claimReminder, pushToTeam, pushToUser } from './push'
+import { mealPushDue, REMINDER_WINDOW_MIN } from './quiet'
 import { notifyTeam } from './team'
 import { trackingBoard } from './tracking'
 import { getSettings } from './settings'
 import { fmtDateTime, startOfWeek, timeToMinutes, zonedParts } from './time'
 
-/** Janela de cada lembrete: a tarefa roda a cada 5 minutos; 15 minutos de folga cobrem atrasos. */
-const WINDOW_MIN = 15
+const WINDOW_MIN = REMINDER_WINDOW_MIN
 
 const inWindow = (nowMin: number, atMin: number) => nowMin >= atMin && nowMin < atMin + WINDOW_MIN
 
@@ -61,9 +61,9 @@ export async function runReminders(now = new Date()) {
         const plan = normalizePlan(planRow.content)
         const day = dayForWeekday(plan, z.weekday)
         for (const m of day ? sortedMeals(day) : []) {
-          if (!m.time || !inWindow(nowMin, timeToMinutes(m.time))) continue
           const key = `${day.id}:${m.id}`
-          if (logs.some((l) => l.patientId === p.id && l.mealKey === key)) continue
+          // Refeição já marcada no app antes do horário: sem push (horário de silêncio também vale).
+          if (!mealPushDue({ now: z.time, mealTime: m.time, alreadyLogged: logs.some((l) => l.patientId === p.id && l.mealKey === key), quiet: prefs })) continue
           if (!(await claimReminder(userId, 'refeicao', `${today}:${key}`))) continue
           const items = (m.options[0]?.items ?? []).slice(0, 3).map((i) => i.name.split(',')[0])
           if (await send('refeicoes', { title: `${m.name} · ${m.time.replace(':', 'h')}`, body: items.length ? items.join(', ') : 'Veja o que está no seu plano.', url: '/paciente', tag: 'refeicao' }))

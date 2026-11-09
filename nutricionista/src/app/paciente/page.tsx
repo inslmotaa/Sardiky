@@ -13,6 +13,9 @@ import { bookingLink } from '@/lib/format'
 import { contractInfo } from '@/lib/contract'
 import { checkinsOf } from '@/lib/checkins'
 import { checkinState } from '@/lib/checkin-rules'
+import { contactOptionsFor } from '@/lib/contact-options'
+import { calendarOutdated } from '@/lib/lembretes'
+import { ContactOptions } from '@/components/ContactOptions'
 import { changeWater, markNotificationsRead, quickWeight, setMealStatus } from '@/actions/patient'
 import { TodayView, type MealLog, type TodayData } from '@/components/nutri/TodayView'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
@@ -111,6 +114,8 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
   const renew = contract?.daysLeft != null && contract.daysLeft <= 7 ? contract : null
   // Check-in periódico aberto ou atrasado: cartão com o prazo.
   const { pending: checkin } = await checkinsOf(user.patientId, 0)
+  const contact = await contactOptionsFor(user.patientId)
+  const calendarOld = await calendarOutdated(user.id, user.patientId)
   const checkinNow = checkin ? checkinState(checkin, today) : null
 
   return (
@@ -140,6 +145,14 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
               Renovar
             </Link>
           </section>
+        )}
+        {calendarOld && (
+          <div className="hub-banner" role="status">
+            <span>Seus horários mudaram: atualize os lembretes do calendário.</span>
+            <Link href="/paciente/notificacoes#calendario-titulo" className="btn btn--light btn--sm">
+              Atualizar lembretes
+            </Link>
+          </div>
         )}
         {checkin && (checkinNow === 'aberto' || checkinNow === 'atrasado') && (
           <div className="hub-banner" role="status">
@@ -194,9 +207,17 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
         <nav className="hub-quick" aria-label="Atalhos rápidos">
           {f.diario && <Link href="/paciente/diario">Registrar refeição</Link>}
           {(f.diario || f.fotosCorpo || f.exames) && <Link href="/paciente/enviar">Enviar foto ou exame</Link>}
-          {f.chat && <Link href="/paciente/mensagens">Falar com o coach</Link>}
           <Link href="/paciente/meus-dados">Meu perfil</Link>
         </nav>
+
+        {(contact.app || contact.whatsapp) && (
+          <section className="hub-talk" aria-labelledby="falar-titulo">
+            <h2 id="falar-titulo" className="hub-talk__title">
+              Falar com o coach
+            </h2>
+            <ContactOptions app={contact.app} whatsapp={contact.whatsapp} offHoursText={contact.offHoursText} compact />
+          </section>
+        )}
 
         <Stagger className="hub-grid">
           <StaggerItem className="card hub-card">

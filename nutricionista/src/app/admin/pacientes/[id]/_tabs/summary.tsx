@@ -12,6 +12,7 @@ import { RESTRICTIONS } from '@/lib/restricoes'
 import { nutritionistOptions, packageOptions } from '@/lib/team-access'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { PatientFormFields } from '@/components/PatientFormFields'
+import { CHAT_MODES, type ChatMode } from '@/lib/chat-mode'
 
 type P = typeof schema.patients.$inferSelect
 
@@ -133,6 +134,17 @@ export async function SummaryTab({ patient: p, user }: { patient: P; user: Curre
                 </label>
               ))}
             </div>
+            <label className="field" style={{ maxWidth: 360 }}>
+              <span className="field__label">Conversa com o coach</span>
+              <select name="chatMode" defaultValue={p.chatMode ?? ''}>
+                <option value="">Padrão das Configurações ({CHAT_MODES[s.chatMode].toLowerCase()})</option>
+                {(Object.keys(CHAT_MODES) as ChatMode[]).map((k) => (
+                  <option key={k} value={k}>
+                    {CHAT_MODES[k]}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div>
               <SubmitButton className="btn btn--sm btn--primary">Salvar recursos</SubmitButton>
             </div>

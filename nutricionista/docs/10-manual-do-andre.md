@@ -76,6 +76,12 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 - **Recibos:** todo pagamento confirmado tem **Recibo (PDF)** no Financeiro e em Meus dados do cliente. Não é nota fiscal.
 - **Textos do WhatsApp:** em Configurações → Mensagens. Os botões abrem o WhatsApp com o texto pronto; você revisa e envia.
 
+### Conversa pelo WhatsApp e lembretes
+
+- **Configurações → Chat:** escolha se o cliente fala com você pelo app, pelo WhatsApp ou pelos dois (padrão) e edite a mensagem pronta do botão "Chamar no WhatsApp". Para um cliente específico, use a ficha → Resumo → Recursos do app.
+- Cada vez que o cliente toca em "Chamar no WhatsApp", a aba Mensagens da ficha mostra "Cliente abriu conversa pelo WhatsApp" (só a hora; o conteúdo fica no seu WhatsApp).
+- Os lembretes de água e refeição saem por notificação (push). O cliente pode também colocá-los no calendário do celular e ligar um resumo diário por e-mail às 7h. Se o Início mostrar "Limite gratuito de e-mail quase atingido", os e-mails essenciais continuam; só o resumo fica pausado.
+
 ### Conteúdos, interessados e pixels
 
 - **Conteúdos do site** (menu Gestão): escreva textos para o blog em `/conteudos`. Título, resumo, capa, texto em Markdown simples, **Rascunho** ou **Publicado** e a data (data futura = agendado). Rascunho não aparece no site; o botão **Pré-visualizar** mostra como vai ficar. Todo post termina com o convite para agendar ou contratar.

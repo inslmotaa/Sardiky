@@ -14,6 +14,7 @@ import { PageHead, Stat, StatusBadge } from '@/components/ui'
 import { markTeamNotificationsRead } from '@/actions/admin/patients'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
 import { siteUrl } from '@/lib/seo'
+import { emailQuotaStatus } from '@/lib/email-quota'
 
 export default async function AdminHome() {
   const user = await requireTeam()
@@ -171,6 +172,8 @@ export default async function AdminHome() {
         .orderBy(desc(schema.payments.createdAt))
     : []
 
+  // Cota gratuita de e-mail (Resend): aviso quando estiver perto do limite.
+  const quota = can(user, 'config') ? await emailQuotaStatus() : null
   return (
     <div className="stack" style={{ ['--gap' as string]: '24px' }}>
       <PageHead
@@ -191,6 +194,13 @@ export default async function AdminHome() {
           </>
         }
       />
+      {quota?.warn && (
+        <p className="alert alert--warn" role="status">
+          Limite gratuito de e-mail quase atingido: {quota.used.day} de {quota.limits.day} hoje e {quota.used.month} de {quota.limits.month} no mês. Os
+          e-mails essenciais continuam (reserva de {quota.limits.reserve} por dia); o resumo do dia por e-mail fica pausado. As notificações push
+          continuam normalmente.
+        </p>
+      )}
 
       {pendencias.length > 0 && (
         <section className="card card--warn" aria-labelledby="pendencias-titulo">

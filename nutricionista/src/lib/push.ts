@@ -41,14 +41,8 @@ export const pushConfigured = () => vapidKeys() !== null
 export type PushKind = 'refeicoes' | 'agua' | 'plano' | 'mensagens' | 'consultas' | 'lembretes' | 'pesagem' | 'equipe'
 export type PushPayload = { title: string; body?: string; url?: string; tag?: string }
 
-/** Está dentro do horário de silêncio? (janela pode atravessar a meia-noite: 22:00–07:00). */
-export function inQuietHours(prefs: Pick<NotificationPrefs, 'quietStart' | 'quietEnd'>, nowHHMM: string) {
-  const now = timeToMinutes(nowHHMM)
-  const a = timeToMinutes(prefs.quietStart)
-  const b = timeToMinutes(prefs.quietEnd)
-  if (a === b) return false
-  return a < b ? now >= a && now < b : now >= a || now < b
-}
+export { inQuietHours } from './quiet'
+import { inQuietHours } from './quiet'
 
 /** Envia para todos os aparelhos do usuário, respeitando as preferências do tipo. Remove inscrições expiradas. */
 export async function pushToUser(userId: string, kind: PushKind, payload: PushPayload, opts: { nowHHMM?: string; ignoreQuiet?: boolean } = {}) {

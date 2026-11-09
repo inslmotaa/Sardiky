@@ -5,6 +5,7 @@ import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { GOOGLE_TAG_ID, META_PIXEL_ID } from '@/lib/pixels'
 import { WA_TEMPLATES, type WaTemplateKey } from '@/lib/whatsapp'
+import { isChatMode, type ChatMode } from '@/lib/chat-mode'
 import type { MessageTemplates } from '@/db/schema'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
@@ -226,7 +227,11 @@ export async function saveTemplates(_: ActionState, fd: FormData): Promise<Actio
   if (!parsed.success) return zodErrors(parsed.error)
   try {
     const user = await requireTeam('config')
-    const templates = Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => typeof v === 'string' && v.trim())) as MessageTemplates
+    const [cur] = await db.select({ templates: schema.settings.templates }).from(schema.settings).where(eq(schema.settings.id, 1))
+    const templates = {
+      ...(cur?.templates.waClienteCoach ? { waClienteCoach: cur.templates.waClienteCoach } : {}),
+      ...Object.fromEntries(Object.entries(parsed.data).filter(([, v]) => typeof v === 'string' && v.trim())),
+    } as MessageTemplates
     await db.update(schema.settings).set({ templates, updatedAt: new Date() }).where(eq(schema.settings.id, 1))
     await audit(user, 'modelos_mensagem_atualizados', 'configuracoes')
     refreshAll()
@@ -438,12 +443,15 @@ export async function saveChatSettings(_: ActionState, fd: FormData): Promise<Ac
   if (hasHours && weekdays.length === 0) return { error: 'Escolha ao menos um dia de atendimento.' }
   try {
     const user = await requireTeam('config')
+    const [current] = await db.select({ templates: schema.settings.templates }).from(schema.settings).where(eq(schema.settings.id, 1))
     await db
       .update(schema.settings)
       .set({
         quickReplies: lines(d.quickReplies).map((l) => l.slice(0, 300)).slice(0, 20),
         chatAutoReply: d.chatAutoReply,
         chatHours: hasHours ? { start: d.chatStart!, end: d.chatEnd!, weekdays } : null,
+        chatMode: isChatMode(fd.get('chatMode')) ? (fd.get('chatMode') as ChatMode) : 'ambos',
+        templates: { ...current.templates, waClienteCoach: String(fd.get('waClienteCoach') ?? '').trim().slice(0, 500) || undefined },
         updatedAt: new Date(),
       })
       .where(eq(schema.settings.id, 1))

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { offUrl, parseOffProduct, validBarcode, type OffSuggestion } from '@/lib/openfoodfacts'
+import { isChatMode, type ChatMode } from '@/lib/chat-mode'
 import { db, schema } from '@/db'
 import { DEFAULT_FEATURES, type AppFeatures } from '@/db/schema'
 import { requireTeam } from '@/lib/auth/session'
@@ -57,8 +58,9 @@ export async function setPatientFeatures(patientId: string, _: ActionState, fd: 
     if (!uuid.safeParse(patientId).success) return { error: 'Cliente inválido.' }
     await assertPatientAccess(user, patientId)
     const features = Object.fromEntries((Object.keys(DEFAULT_FEATURES) as (keyof AppFeatures)[]).map((k) => [k, fd.get(k) === 'on'])) as AppFeatures
-    await db.update(schema.patients).set({ features, updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
-    await audit(user, 'recursos_app_alterados', 'paciente', { entityId: patientId, patientId, details: features })
+    const chatMode = isChatMode(fd.get('chatMode')) ? (fd.get('chatMode') as ChatMode) : null
+    await db.update(schema.patients).set({ features, chatMode, updatedAt: new Date() }).where(eq(schema.patients.id, patientId))
+    await audit(user, 'recursos_app_alterados', 'paciente', { entityId: patientId, patientId, details: { ...features, conversa: chatMode ?? 'padrao' } })
     revalidatePath(`/admin/pacientes/${patientId}`)
     return { ok: true, message: 'Recursos do app atualizados.' }
   } catch (err) {

@@ -4,15 +4,17 @@ import { getPatient } from '@/lib/patient-context'
 import { getSettings } from '@/lib/settings'
 import { whatsappLink } from '@/lib/format'
 import { PageHead } from '@/components/ui'
+import { contactOptionsFor } from '@/lib/contact-options'
+import { ContactOptions } from '@/components/ContactOptions'
 
 export default async function MorePage() {
   const user = await requireActivePatient()
   const s = await getSettings()
   const p = await getPatient(user.patientId)
-  const wa = whatsappLink(s.whatsapp, 'Olá! Sou cliente e tenho uma dúvida.')
+  const contact = await contactOptionsFor(user.patientId)
   const items: [string, string, string][] = [
     ['/paciente/meus-dados', 'Meu perfil', 'Plano contratado, plano alimentar, dados e senha'],
-    ...(p.features.chat ? ([['/paciente/mensagens', 'Mensagens', 'Converse com o coach']] as [string, string, string][]) : []),
+    ...(contact.any ? ([['/paciente/mensagens', 'Mensagens', 'Converse com o coach pelo app ou pelo WhatsApp']] as [string, string, string][]) : []),
     ...(p.features.diario || p.features.fotosCorpo || p.features.exames
       ? ([['/paciente/enviar', 'Fotos e exames', 'Envie, se quiser, foto da refeição, do corpo e exames']] as [string, string, string][])
       : []),
@@ -53,10 +55,13 @@ export default async function MorePage() {
           {p.anamnesisReceivedAt ? 'Ver minha anamnese' : 'Preencher anamnese'}
         </Link>
       </section>
-      {wa && (
-        <a href={wa} target="_blank" rel="noopener noreferrer" className="btn btn--whatsapp">
-          Falar pelo WhatsApp
-        </a>
+      {(contact.app || contact.whatsapp) && (
+        <section className="card stack" style={{ ['--gap' as string]: '10px' }} aria-labelledby="mais-falar">
+          <h2 id="mais-falar" style={{ fontSize: '1.05rem', margin: 0 }}>
+            Falar com o coach
+          </h2>
+          <ContactOptions app={contact.app} whatsapp={contact.whatsapp} offHoursText={contact.offHoursText} />
+        </section>
       )}
     </div>
   )

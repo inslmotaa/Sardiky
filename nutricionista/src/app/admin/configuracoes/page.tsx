@@ -28,6 +28,10 @@ import { credentialsText } from '@/lib/formacoes'
 import { activePixels } from '@/lib/pixels'
 import { siteUrl } from '@/lib/seo'
 import { WA_TEMPLATES, type WaTemplateKey } from '@/lib/whatsapp'
+import { CHAT_MODES, WA_CLIENTE_PADRAO, type ChatMode } from '@/lib/chat-mode'
+import { emailLimits } from '@/lib/email-cota'
+
+const EMAIL_FREE = emailLimits()
 
 const SECTIONS = [
   { key: 'perfil', label: 'Perfil e identidade', perm: 'config' },
@@ -389,6 +393,22 @@ function ChatSection({ s }: { s: S }) {
   return (
     <section className="card">
       <ActionForm action={saveChatSettings} className="stack">
+        <Field label="Como o cliente fala com você" name="chatMode" hint="Vale para todos; dá para mudar por cliente na ficha (Resumo → Recursos do app).">
+          <select name="chatMode" defaultValue={s.chatMode}>
+            {(Object.keys(CHAT_MODES) as ChatMode[]).map((k) => (
+              <option key={k} value={k}>
+                {CHAT_MODES[k]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field
+          label="Mensagem pronta do botão “Chamar no WhatsApp”"
+          name="waClienteCoach"
+          hint={`Variáveis: {nome} (cliente) e {coach}. Número usado: o WhatsApp do Perfil${s.whatsapp ? ` (${s.whatsapp})` : ' (ainda não cadastrado)'}.`}
+        >
+          <textarea name="waClienteCoach" rows={2} maxLength={500} defaultValue={s.templates.waClienteCoach ?? ''} placeholder={WA_CLIENTE_PADRAO} />
+        </Field>
         <Field label="Respostas rápidas (uma por linha)" name="quickReplies" hint="Aparecem como atalhos no chat e no painel de Acompanhamento. Use {nome} para o primeiro nome do cliente.">
           <textarea name="quickReplies" rows={5} defaultValue={s.quickReplies.join('\n')} />
         </Field>
@@ -410,7 +430,7 @@ function ChatSection({ s }: { s: S }) {
             </Field>
           </div>
         </fieldset>
-        <Field label="Resposta automática fora do horário" name="chatAutoReply" hint="Enviada no máximo uma vez a cada 12 horas por cliente.">
+        <Field label="Resposta automática fora do horário" name="chatAutoReply" hint="Enviada no máximo uma vez a cada 12 horas por cliente. Também aparece embaixo do botão do WhatsApp fora do horário.">
           <textarea
             name="chatAutoReply"
             rows={2}
@@ -805,10 +825,16 @@ function IntegrationsSection({ s }: { s: S }) {
   const st = integrationStatus()
   const rows: [string, boolean, string][] = [
     ['Banco de dados PostgreSQL', Boolean(process.env.DATABASE_URL), process.env.DATABASE_URL ? 'Conectado via DATABASE_URL.' : 'Usando banco embutido de desenvolvimento (PGlite). Em produção, configure DATABASE_URL.'],
-    ['E-mail transacional (Resend)', st.email, st.email ? 'Confirmações, convites e redefinição de senha são enviados por e-mail.' : 'Não configurado: nenhum e-mail é enviado. Defina RESEND_API_KEY e EMAIL_FROM.'],
+    [
+      'E-mail transacional (Resend)',
+      st.email,
+      st.email
+        ? `Confirmações, convites, link de acesso e redefinição de senha por e-mail. Plano gratuito: ${EMAIL_FREE.day} por dia e ${EMAIL_FREE.month} por mês; os essenciais reservam ${EMAIL_FREE.reserve} por dia e o resumo do dia usa o que sobra.`
+        : 'Não configurado: nenhum e-mail é enviado (nada quebra; os lembretes seguem por push). Defina RESEND_API_KEY e EMAIL_FROM.',
+    ],
     ['Tarefa agendada (lembretes)', st.cron, st.cron ? 'Rota /api/cron protegida por CRON_SECRET. Chame a cada 5 minutos (lembretes de refeição, água e consultas).' : 'Não configurada. Defina CRON_SECRET e agende /api/cron a cada 5 minutos.'],
     ['Notificações push', st.push, st.push ? (process.env.VAPID_PUBLIC_KEY ? 'Chaves VAPID configuradas.' : 'Usando chaves locais de desenvolvimento. Em produção, defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT (npx web-push generate-vapid-keys).') : 'Não configurado. Defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT.'],
-    ['WhatsApp (envio automático)', st.whatsappApi, 'Não implementado. Hoje o sistema abre conversas no WhatsApp com a mensagem pronta (envio manual).'],
+    ['WhatsApp (envio automático)', st.whatsappApi, 'Sem API paga: o sistema abre conversas no WhatsApp (wa.me) com a mensagem pronta. Lembretes automáticos de água e refeição saem por push, calendário e, se o cliente quiser, resumo por e-mail.'],
     [
       'Mercado Pago',
       st.payments,
