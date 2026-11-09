@@ -86,11 +86,14 @@ export function SaberMaisForm({ id = 'saber-mais' }: { id?: string }) {
         </Field>
       </div>
       <label className="saber-mais__consent">
-        <input type="checkbox" name="consent" required /> Concordo em ser contatado e com a{' '}
-        <Link href="/privacidade" target="_blank">
-          Política de Privacidade
-        </Link>
-        .
+        <input type="checkbox" name="consent" required />
+        <span>
+          Concordo em ser contatado e com a{' '}
+          <Link href="/privacidade" target="_blank">
+            Política de Privacidade
+          </Link>
+          .
+        </span>
       </label>
       <FieldError name="consent" />
       <SubmitButton className="pill pill--solid" pendingText="Enviando…">
