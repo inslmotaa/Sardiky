@@ -207,11 +207,12 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
         <nav className="hub-quick" aria-label="Atalhos rápidos">
           {f.diario && <Link href="/paciente/diario">Registrar refeição</Link>}
           {(f.diario || f.fotosCorpo || f.exames) && <Link href="/paciente/enviar">Enviar foto ou exame</Link>}
+          {(contact.app || contact.whatsapp) && <a href="#falar-com-o-coach">Falar com o coach</a>}
           <Link href="/paciente/meus-dados">Meu perfil</Link>
         </nav>
 
         {(contact.app || contact.whatsapp) && (
-          <section className="hub-talk" aria-labelledby="falar-titulo">
+          <section className="hub-talk" id="falar-com-o-coach" aria-labelledby="falar-titulo">
             <h2 id="falar-titulo" className="hub-talk__title">
               Falar com o coach
             </h2>
