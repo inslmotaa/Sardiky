@@ -45,6 +45,20 @@ describe('perfil de produção', () => {
     expect(r.code).toBe(0)
   })
 
+  it('recusa o campo registro (não existe mais) e título que não seja de coach', () => {
+    const p = filled()
+    p.profissional.registro = 'CRN-8 12345'
+    const r = check(p)
+    expect(r.code).toBe(1)
+    expect(r.out).toContain('profissional.registro: o campo registro não existe mais')
+
+    const q = filled()
+    q.profissional.titulo = 'Nutricionista'
+    const r2 = check(q)
+    expect(r2.code).toBe(1)
+    expect(r2.out).toContain('profissional.titulo')
+  })
+
   it('barra dados de exemplo esquecidos e formatos errados', () => {
     const p = filled()
     p.contato.email = 'contato@example.com'

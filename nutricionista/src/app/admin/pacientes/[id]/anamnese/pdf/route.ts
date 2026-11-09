@@ -27,7 +27,6 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const s = await getSettings()
   const bytes = await anamnesisPdf(a.answers, {
     professional: s.professionalName,
-    registry: s.registry,
     brandColor: s.brandColor,
     patient: patient.fullName,
     version: a.version,

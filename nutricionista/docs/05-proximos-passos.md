@@ -8,7 +8,6 @@ Tudo pode ser preenchido em **Painel → Configurações**, sem mexer no código
 
 **Quem é o André**
 - [ ] Nome profissional como deve aparecer no site
-- [ ] Número do CRN (ex.: CRN-3 12345)
 - [ ] Foto profissional (de preferência vertical, fundo neutro, boa resolução)
 - [ ] Logotipo, se existir, e a cor principal da marca
 - [ ] Biografia curta (3 a 5 frases): formação, tempo de atuação, como trabalha

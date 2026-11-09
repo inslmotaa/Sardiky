@@ -8,7 +8,7 @@ const A4 = { w: 595.28, h: 841.89 }
 const M = 48
 
 /** PDF da anamnese (uma versão), organizado por etapa, com a identidade do consultório. */
-export async function anamnesisPdf(answers: AnamnesisAnswers, o: { professional: string; registry: string | null; brandColor: string; patient: string; version: number; sentAt: string; generatedAt: string }) {
+export async function anamnesisPdf(answers: AnamnesisAnswers, o: { professional: string; brandColor: string; patient: string; version: number; sentAt: string; generatedAt: string }) {
   const doc = await PDFDocument.create()
   doc.setTitle(pdfSafe(`Anamnese — ${o.patient}`))
   doc.setAuthor(pdfSafe(o.professional))
@@ -53,7 +53,6 @@ export async function anamnesisPdf(answers: AnamnesisAnswers, o: { professional:
   }
   newPage()
   text(o.professional, { size: 15, font: bold, color: brand })
-  if (o.registry) text(o.registry, { size: 9.5, color: muted })
   y -= 8
   text('Anamnese', { size: 20, font: bold })
   text(`Cliente: ${o.patient}   ·   Versão ${o.version}   ·   Enviada em ${o.sentAt}`, { size: 9.5, color: muted })
@@ -70,7 +69,7 @@ export async function anamnesisPdf(answers: AnamnesisAnswers, o: { professional:
     }
   }
   pages.forEach((p, i) => {
-    p.drawText(pdfSafe(`${o.professional}${o.registry ? ` · ${o.registry}` : ''} · Documento confidencial (dados de saúde)`), { x: M, y: 26, size: 7.5, font: regular, color: muted })
+    p.drawText(pdfSafe(`${o.professional} · Documento confidencial (dados de saúde)`), { x: M, y: 26, size: 7.5, font: regular, color: muted })
     const pg = `${i + 1}/${pages.length} · gerado em ${o.generatedAt}`
     p.drawText(pdfSafe(pg), { x: A4.w - M - regular.widthOfTextAtSize(pdfSafe(pg), 7.5), y: 26, size: 7.5, font: regular, color: muted })
   })

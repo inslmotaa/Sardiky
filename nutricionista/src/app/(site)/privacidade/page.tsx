@@ -22,8 +22,7 @@ export default async function PrivacyPage() {
 
         <h2>1. Quem cuida dos seus dados</h2>
         <p>
-          O responsável (controlador) pelos seus dados é {s.professionalName}, {s.professionalTitle}
-          {s.registry ? ` (${s.registry})` : ''}, CPF/CNPJ {doc}. Para qualquer assunto sobre seus dados pessoais, fale pelo e-mail{' '}
+          O responsável (controlador) pelos seus dados é {s.professionalName}, {s.professionalTitle}, CPF/CNPJ {doc}. Para qualquer assunto sobre seus dados pessoais, fale pelo e-mail{' '}
           <strong>{contact}</strong>.
         </p>
 

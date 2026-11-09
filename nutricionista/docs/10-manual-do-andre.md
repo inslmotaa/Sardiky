@@ -9,7 +9,7 @@ Os dados ficam num banco só, e cada área enxerga apenas o que lhe cabe.
 
 Os dois entram pela mesma tela, `/login`, e o sistema leva cada um para a sua área. O botão **Mostrar** ao lado da senha ajuda a conferir o que foi digitado no celular. No site, o botão verde **Entrar** do cabeçalho abre as duas opções: **Entrar** (quem já tem conta) e **Criar conta**. No fim de cada área (cliente, painel e telas de acesso) há o botão **Voltar para a página principal**. No celular, o cliente pode instalar o app pela opção "Adicionar à tela inicial".
 
-O nome do site e do app é **Farion** (cabeçalho, aba do navegador e ícone instalado). Ele é alterado em **Configurações → Perfil → Nome do site**. A apresentação, a página Sobre, o PDF do plano e as mensagens continuam com o nome do André.
+O André é **coach**: o título é sempre Coach, e nenhuma tela, PDF ou configuração mostra registro profissional. O nome do site e do app é **Farion** (cabeçalho, aba do navegador e ícone instalado). Ele é alterado em **Configurações → Perfil → Nome do site**. A apresentação, a página Sobre, o PDF do plano e as mensagens continuam com o nome do André.
 
 ## 1. Painel do André (`/admin`)
 
@@ -72,7 +72,7 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 
 | Onde | O quê |
 |---|---|
-| Configurações → Perfil | Nome do site (Farion), seu nome e título, registro (opcional), biografia, foto, logo, WhatsApp, Instagram |
+| Configurações → Perfil | Nome do site (Farion), seu nome e o título (sempre Coach), biografia, foto, logo, WhatsApp, Instagram |
 | Configurações → Perfil | **Botão "Agendar consulta" do site**: agenda on-line com conta do cliente (padrão) ou WhatsApp |
 | Configurações → Perfil | **Mostrar os valores das consultas no site** (desligado por padrão) |
 | Configurações → Perfil | **Mostrar os valores dos planos** (ligado) e a lista **Todos os planos incluem** |

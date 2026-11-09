@@ -22,7 +22,7 @@ Simples de manter, custo previsível, dados num só lugar e uploads em disco per
    ```bash
    docker compose -f deploy/docker-compose.yml exec app node scripts/create-admin.mjs "André Farion" email@dominio.com.br
    ```
-   O comando imprime um link de primeiro acesso para criar a senha. Em seguida, aplique os dados reais do consultório (CRN, contatos, serviços, horários, textos) a partir de `deploy/perfil.json`. Esse passo também desliga a faixa de demonstração:
+   O comando imprime um link de primeiro acesso para criar a senha. Em seguida, aplique os dados reais da consultoria (contatos, serviços, horários, textos) a partir de `deploy/perfil.json`. Esse passo também desliga a faixa de demonstração:
    ```bash
    docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec -T app node scripts/aplicar-perfil.mjs - < deploy/perfil.json
    ```

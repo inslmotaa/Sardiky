@@ -25,8 +25,7 @@ Crie um site completo, em português do Brasil, para **André Farion, Coach**. S
 
 ## Identidade
 
-- O rótulo acima do nome mostra o título e o registro que estiverem nas Configurações. O padrão é "● COACH".
-  - Se ele for nutricionista com CRN, basta preencher os dois campos e o rótulo vira "● NUTRICIONISTA · CRN …".
+- O rótulo acima do nome é sempre "● COACH".
 - Sem monograma de iniciais. A foto só aparece quando for enviada.
 - Lema: "Mais que dieta, um estilo de vida."
 - WhatsApp: (41) 99155-1789.

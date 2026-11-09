@@ -116,7 +116,7 @@ export default async function MyDataPage() {
             <dd>
               {s.professionalName}
               <span className="small muted" style={{ display: 'block' }}>
-                {[s.professionalTitle, s.registry].filter(Boolean).join(' · ')}
+                {s.professionalTitle}
               </span>
             </dd>
             <dt>Etapa</dt>

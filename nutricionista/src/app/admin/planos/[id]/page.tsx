@@ -65,7 +65,6 @@ export default async function PlanPage({ params, searchParams }: { params: Promi
         <strong>
           {s.professionalName} · {s.professionalTitle}
         </strong>
-        {s.registry && <div>{s.registry}</div>}
         {patient && <div>Cliente: {patient.fullName}</div>}
         <div>
           Versão {plan.version}

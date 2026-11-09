@@ -17,7 +17,7 @@ Construída sobre as fases anteriores. Dados fictícios. Acessos de demonstraç�
 | Notificações push: horário das refeições, água a cada N horas, plano novo (push + e-mail), mensagens, consultas em 24 h e 2 h, 3 dias sem registrar (paciente e coach), pesagem semanal, anamnese recebida; preferências por tipo e horário de silêncio | App → Mais → Notificações · tarefa `/api/cron` a cada 5 min |
 | App instalável (PWA): ícone na tela inicial, plano do dia sem internet depois do primeiro acesso | `public/sw.js`, `manifest` |
 | Plano aparece em até 5 segundos e paciente recebe notificação ao ativar | Atualização ao vivo (`/api/live`) + push |
-| PDF do plano com marca, nome e registro profissional | App → Plano → “Baixar PDF” · Painel → plano → “Baixar PDF” |
+| PDF do plano com marca, nome e título (Coach) | App → Plano → “Baixar PDF” · Painel → plano → “Baixar PDF” |
 | Modelos de plano: salvar plano como modelo; novos modelos (vegetariano, emagrecimento) | Painel → plano → “Salvar como modelo” |
 
 ## Lighthouse (app do paciente)
@@ -40,7 +40,7 @@ Critério da especificação (≥ 90 em desempenho e acessibilidade) atendido. V
 
 ## Ainda não feito
 
-- **CRN do André** e conferência dos valores TACO (pendentes desde a Fase 1).
+- Conferência dos valores TACO (pendente desde a Fase 1).
 - Notificações push testadas apenas no navegador de testes; falta conferir em um Android e um iPhone reais (no iPhone, só com o app instalado, iOS 16.4+).
 - Fotos de evolução e anexos ficam em pasta privada do servidor; **URLs assinadas com validade** (como no Supabase Storage) ainda não — o acesso é conferido a cada pedido.
 - Recordatório e fotos no diário de **dias passados** além do registro rápido; edição de registros antigos pelo paciente é limitada aos últimos 30 dias.

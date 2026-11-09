@@ -49,7 +49,7 @@ export async function EvolutionTab({ patient, compare, viewerId }: { patient: ty
               {[...rows].reverse().map((r) => (
                 <li key={r.id} className="row row--between">
                   <span>
-                    {fmtDay(r.date)} · {r.source === 'profissional' ? 'profissional' : 'paciente'} · {r.weightKg != null ? `${r.weightKg} kg` : ''}
+                    {fmtDay(r.date)} · {r.source === 'profissional' ? 'coach' : 'cliente'} · {r.weightKg != null ? `${r.weightKg} kg` : ''}
                   </span>
                   <form action={deleteMeasurement.bind(null, patient.id, r.id)}>
                     <button className="btn btn--danger btn--sm" type="submit">

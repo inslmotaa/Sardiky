@@ -55,7 +55,6 @@ async function main() {
     siteName: 'Farion',
     professionalName: 'André Farion',
     professionalTitle: 'Coach',
-    registry: null,
     bio: 'Acompanhamento individual para quem quer resultado de verdade, sem fórmulas prontas: um plano que cabe na sua rotina, construído junto com você e ajustado de perto. (Texto de exemplo — ajuste a apresentação em Configurações.)',
     specialties: ['Ganho de massa muscular', 'Emagrecimento saudável', 'Mais energia e disposição', 'Melhor qualidade de vida'],
     method:

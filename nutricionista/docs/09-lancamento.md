@@ -14,7 +14,6 @@ Tudo isto vai aparecer no site e nos PDFs. Nada aqui é senha.
 
 | Informação | Onde aparece | Exemplo |
 |---|---|---|
-| Número do CRN | Rodapé do site, PDFs, assinatura | CRN-8 12345 |
 | WhatsApp (já preenchido: (41) 99155-1789) | Agendamento, contato, botão flutuante, cobranças | (41) 99155-1789 |
 | Instagram | Rodapé e contato | @andrefarion |
 | E-mail de contato | Contato e política de privacidade | contato@andrefarion.com.br |

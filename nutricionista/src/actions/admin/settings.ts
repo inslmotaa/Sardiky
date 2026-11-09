@@ -31,8 +31,8 @@ function refreshAll() {
 const profileSchema = z.object({
   siteName: str(60, 'Informe o nome do site'),
   professionalName: str(120, 'Informe o nome'),
-  professionalTitle: str(80, 'Informe o título'),
-  registry: optStr(120),
+  // O André é coach: o título não aceita "nutricionista" nem número de conselho.
+  professionalTitle: str(80, 'Informe o título').refine((v) => !/nutricionista|\bc\s*r\s*n\b|registro\s+profissional/i.test(v), 'O título é Coach'),
   bio: z.string().trim().max(3000),
   specialties: z.string().max(2000).optional(),
   method: z.string().trim().max(3000),

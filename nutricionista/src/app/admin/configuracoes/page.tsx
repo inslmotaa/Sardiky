@@ -76,9 +76,6 @@ function ProfileSection({ s }: { s: S }) {
           <Field label="Título" name="professionalTitle" required>
             <input name="professionalTitle" defaultValue={s.professionalTitle} />
           </Field>
-          <Field label="Registro profissional (opcional)" name="registry" hint="Deixe vazio para não mostrar no site nem no PDF.">
-            <input name="registry" defaultValue={s.registry ?? ''} />
-          </Field>
           <Field label="Cor principal" name="brandColor" hint="Usada em botões, destaques e gráficos.">
             <input type="color" name="brandColor" defaultValue={s.brandColor} />
           </Field>
@@ -361,7 +358,7 @@ async function ClinicalSection({ s }: { s: S }) {
           )}
         </fieldset>
         <p className="small muted" style={{ margin: 0 }}>
-          Logo, cor da marca, nome e registro profissional ficam em “Perfil e identidade” e também aparecem no PDF.
+          Logo, cor da marca, nome e título (Coach) ficam em “Perfil e identidade” e também aparecem no PDF.
         </p>
         <div>
           <SubmitButton>Salvar</SubmitButton>

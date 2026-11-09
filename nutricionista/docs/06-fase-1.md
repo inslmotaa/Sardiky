@@ -20,7 +20,6 @@ Construída sobre o site e o sistema que já existiam (nada foi refeito do zero)
 
 ## Ainda não feito (fica para as próximas fases ou depende do André)
 
-- **CRN do André:** não foi informado; o site ainda mostra um registro fictício.
 - **Tabela de alimentos:** os valores da base inicial precisam ser conferidos com a TACO oficial; a base completa (≈600 itens) e IBGE/USDA ainda não foram importadas.
 - **Supabase e RLS no banco:** mantivemos PostgreSQL + Next.js; o isolamento é feito no servidor e testado. RLS no banco pode ser adicionado como segunda camada.
 - **Login com Google e link mágico por e-mail.**

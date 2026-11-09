@@ -5,7 +5,7 @@ import { fmt, formatMeasure, scale } from './nutricao'
 import { PRESCRIPTION_TYPES } from './constants'
 
 /**
- * PDF do plano alimentar com a identidade do consultório (nome, registro profissional e cor).
+ * PDF do plano alimentar com a identidade da consultoria (nome do coach, título e cor da marca).
  * Fontes padrão do PDF (Helvetica): cobrem acentos do português; símbolos fora da tabela são trocados.
  */
 
@@ -38,7 +38,6 @@ function hexToRgb(hex: string): RGB {
 type Opts = {
   professionalName: string
   professionalTitle: string
-  registry: string | null
   brandColor: string
   patientName: string | null
   title: string
@@ -123,7 +122,7 @@ export async function planPdf(plan: PlanContent, o: Opts) {
   }
   // Cabeçalho: profissional e registro.
   text(o.professionalName, { font: bold, size: 16, color: brand })
-  text([o.professionalTitle, o.registry].filter(Boolean).join(' · '), { size: 10, color: muted })
+  text(o.professionalTitle, { size: 10, color: muted })
   y -= 8
   text(o.title, { font: bold, size: 20 })
   const meta = [o.patientName ? `Cliente: ${o.patientName}` : 'Modelo de plano', o.validity, `Gerado em ${o.generatedAt}`].filter(Boolean).join('   ·   ')
@@ -242,13 +241,13 @@ export async function planPdf(plan: PlanContent, o: Opts) {
     page.drawLine({ start: { x: M, y: y - 2 }, end: { x: M + 200, y: y - 2 }, thickness: 0.6, color: ink })
     y -= 8
     text(o.professionalName, { font: bold, size: 10 })
-    text([o.professionalTitle, o.registry].filter(Boolean).join(' · '), { size: 9, color: muted })
+    text(o.professionalTitle, { size: 9, color: muted })
     if (o.signature.text) text(o.signature.text, { size: 9, color: muted })
   }
 
   // Rodapé em todas as páginas.
   pages.forEach((p, i) => {
-    const foot = pdfSafe(`${o.professionalName}${o.registry ? ` · ${o.registry}` : ''}${o.contact ? ` · ${o.contact}` : ''}`)
+    const foot = pdfSafe(`${o.professionalName}${o.contact ? ` · ${o.contact}` : ''}`)
     p.drawLine({ start: { x: M, y: 40 }, end: { x: A4.w - M, y: 40 }, thickness: 0.5, color: line })
     p.drawText(foot, { x: M, y: 28, size: 8, font: regular, color: muted })
     p.drawText(pdfSafe('Plano individual. Não substitui atendimento médico de urgência.'), { x: M, y: 18, size: 7.5, font: italic, color: muted })

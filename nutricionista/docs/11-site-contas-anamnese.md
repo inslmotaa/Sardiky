@@ -29,9 +29,9 @@ Para cumprir "mantenha a stack e tudo o que já funciona", cada item foi feito n
 
 - **Logo + nome**: em todas as áreas (site, cliente, painel), é um único link para `/`, com `aria-label="Ir para a página inicial"`. Na própria página principal, rola suavemente ao topo.
 - **Página principal enxuta**, só com:
-  1. hero (nome, Coach, CRN, abordagem, "Agendar consulta" e "Ver planos");
+  1. hero (nome, Coach, abordagem, "Agendar consulta" e "Ver planos");
   2. bloco "Agendar consulta";
-  3. rodapé com privacidade, planos, área do cliente, WhatsApp e CRN.
+  3. rodapé com privacidade, planos, área do cliente e WhatsApp.
 
   Saíram: storytelling, serviços, planos, app, como funciona, FAQ e formulário de contato. Sem foto, aparece o monograma "AF".
 - **Agendar consulta**: visitante vai para `/criar-conta?next=/agendar`; quem está conectado vai para `/agendar`. A opção "Agendar pelo WhatsApp" continua em Configurações. Ela agora vem desligada por padrão.

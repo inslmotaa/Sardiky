@@ -74,7 +74,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                 <p className="tl-footer__motto">Mais que dieta, um estilo de vida.</p>
                 <p>
                   {s.professionalName} · {s.professionalTitle}
-                  {s.registry ? ` · ${s.registry}` : ''}
                 </p>
                 <div className="tl-footer__social">
                   {wa && (

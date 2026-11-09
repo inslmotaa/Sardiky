@@ -56,7 +56,6 @@ export async function GET(req: Request) {
   const bytes = await planPdf(normalizePlan(plan.content), {
     professionalName: s.professionalName,
     professionalTitle: s.professionalTitle,
-    registry: s.registry,
     brandColor: s.brandColor,
     patientName: patient.fullName,
     title: plan.title,

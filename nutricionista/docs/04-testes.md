@@ -72,6 +72,8 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Mercado Pago (unidade) | assinatura do webhook (válida, inválida, `ts` velho, `data.id` em maiúsculas), tradução de status, período do plano e renovação antes de vencer, idempotência (a mesma notificação 3 vezes), valor divergente, `planPrices` sem desconto |
 | Mercado Pago (e2e, com o servidor falso `tests/e2e/mp-falso.mjs`) | plano → conta → pagamento → webhook aprovado → anamnese liberada; Pix pendente → espera → cron concilia → liberado; sem pagamento, anamnese, plano e PDF fechados; cliente A não vê nem aplica a cobrança de B; link de pagamento e liberação manual pelo coach |
 | Semana e medidas (unidade) | dias da semana de cada dia do plano, visão "Semana" com kcal, medida caseira sempre com o peso da base |
+| Coach, sem registro (e2e) | área do cliente (`/paciente`, `/paciente/meus-dados`, `/paciente/plano`), Configurações do painel e o texto extraído dos PDFs do plano e da anamnese não mostram "nutricionista", CRN nem registro profissional (o site público é conferido em `public.spec.ts`) |
+| Perfil de produção (unidade) | `aplicar-perfil.mjs` recusa o campo `registro` ("o campo registro não existe mais") e título que não seja de coach |
 | Banco em SQL (unidade) | `deploy/banco-de-dados.sql` + `deploy/alimentos.sql` criam o mesmo banco que as migrações |
 
 ## Revisão manual recomendada antes da produção

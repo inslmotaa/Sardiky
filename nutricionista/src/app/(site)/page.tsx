@@ -100,8 +100,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
         <div className="tl-container hero__grid">
           <div className="hero__copy">
             <MonoLabel className="hero__label">
-              {s.professionalTitle.toLocaleUpperCase('pt-BR')}
-              {s.registry ? ` · ${s.registry.toLocaleUpperCase('pt-BR')}` : ''} · ALIMENTAÇÃO, ROTINA E BEM-ESTAR
+              COACH · ALIMENTAÇÃO, ROTINA E BEM-ESTAR
             </MonoLabel>
             <h1 className="display hero__title" data-rv="" style={d(80)}>
               Nutrição estratégica, <span className="hero__accent">acompanhada de perto.</span>

@@ -61,12 +61,16 @@ const instagram = z.string().transform((v, ctx) => {
 })
 const reais = z.number({ error: 'informe o valor em reais, só o número (ex. 250 ou 249.90)' }).min(0).max(100000)
 
+// Títulos que não valem para o André (ele é coach).
+const TITULO_PROIBIDO = /nutricionista|\bc\s*r\s*n\b|registro\s+profissional/i
+
 const Perfil = z.object({
   profissional: z.object({
     nome: texto(120),
-    titulo: texto(80),
-    // Registro profissional (opcional): só aparece no site e no PDF se preenchido.
-    registro: z.string().trim().max(120).optional(),
+    // O André é coach: o título não pode ser "nutricionista" nem trazer número de conselho.
+    titulo: texto(80).refine((v) => !TITULO_PROIBIDO.test(v), 'o título é Coach (não use "nutricionista" nem número de conselho)'),
+    // O campo "registro" não existe mais: um perfil que ainda o traga é recusado.
+    registro: z.unknown().optional().refine((v) => v === undefined, 'o campo registro não existe mais'),
     biografia: texto(3000),
     especialidades: z.array(texto(80)).max(12),
     metodo: texto(3000),
@@ -173,7 +177,6 @@ const settings = {
   ...(p.nomeDoSite ? { site_name: String(p.nomeDoSite).trim().slice(0, 60) } : {}),
   professional_name: p.profissional.nome,
   professional_title: p.profissional.titulo,
-  registry: p.profissional.registro || null,
   bio: p.profissional.biografia,
   specialties: sql.json(p.profissional.especialidades),
   method: p.profissional.metodo,

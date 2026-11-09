@@ -178,7 +178,6 @@ export const settings = pgTable('settings', {
   siteName: text('site_name').notNull().default('Farion'),
   professionalName: text('professional_name').notNull(),
   professionalTitle: text('professional_title').notNull().default('Coach'),
-  registry: text('registry'),
   bio: text('bio').notNull().default(''),
   photoFileId: uuid('photo_file_id'),
   logoFileId: uuid('logo_file_id'),

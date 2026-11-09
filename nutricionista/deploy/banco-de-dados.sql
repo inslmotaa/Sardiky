@@ -518,7 +518,6 @@ CREATE TABLE "settings" (
 	"site_name" text DEFAULT 'Farion' NOT NULL,
 	"professional_name" text NOT NULL,
 	"professional_title" text DEFAULT 'Coach' NOT NULL,
-	"registry" text,
 	"bio" text DEFAULT '' NOT NULL,
 	"photo_file_id" uuid,
 	"logo_file_id" uuid,
@@ -714,6 +713,7 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('efffafd63fc67c884d198cdf49f70cb4c153420112520cdbc8193a9edf43088c', 1793746594581), -- 0014_termino_definido_pelo_coach
 	('ce8d6b3f756346cc2c39bf837811809d539e4c83adc2b8e33499795ce8f318ec', 1793746859502), -- 0015_anamnese_por_formulario
 	('9484041a13fa7651753afcca2f161e3da20253bb28af71ac0e44ab6785c9a121', 1793916101839), -- 0016_mercado_pago
-	('5490ee0bd517e4ccea7f372d3a2c9836288a2e192c0d2c2d055b724c607d54dc', 1793916106957); -- 0017_remover_desconto_parceiro
+	('5490ee0bd517e4ccea7f372d3a2c9836288a2e192c0d2c2d055b724c607d54dc', 1793916106957), -- 0017_remover_desconto_parceiro
+	('14bee88ebe9c56612d5a9182a2e3abb4e2cf171125eeeca996ca4b2b650110d6', 1794244118204); -- 0018_remover_registro
 
 COMMIT;

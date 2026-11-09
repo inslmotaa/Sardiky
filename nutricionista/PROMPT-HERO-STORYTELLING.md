@@ -1,6 +1,6 @@
 # Prompt — Site André Farion (hero + storytelling)
 
-Crie a página de um site para o nutricionista **André Farion**: a hero, um storytelling animado logo abaixo, as seções Sobre, Consultoria, Resultados e Contato, e o rodapé. Tudo no mesmo estilo visual da hero.
+Crie a página de um site para o coach **André Farion**: a hero, um storytelling animado logo abaixo, as seções Sobre, Consultoria, Resultados e Contato, e o rodapé. Tudo no mesmo estilo visual da hero.
 
 ---
 
@@ -42,7 +42,7 @@ Crie a página de um site para o nutricionista **André Farion**: a hero, um sto
 - Logo depois do nome, um traço horizontal curto em verde claro, como um cursor, piscando devagar.
 - O nome se ajusta por JavaScript para ocupar exatamente a largura disponível: o script mede o texto e recalcula o font-size no resize e quando as fontes carregarem.
 - No hover, as letras vazadas ganham um preenchimento verde bem transparente.
-- Acima do nome, um rótulo pequeno em mono: um ponto verde + "NUTRICIONISTA · CRN [número]".
+- Acima do nome, um rótulo pequeno em mono: um ponto verde + "COACH".
 
 ### Topo (nav)
 - À esquerda: "AF" ou "ANDRÉ FARION" pequeno, com o traço verde.

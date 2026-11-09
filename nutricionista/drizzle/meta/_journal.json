@@ -127,6 +127,13 @@
       "when": 1793916106957,
       "tag": "0017_remover_desconto_parceiro",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794244118204,
+      "tag": "0018_remover_registro",
+      "breakpoints": true
     }
   ]
 }

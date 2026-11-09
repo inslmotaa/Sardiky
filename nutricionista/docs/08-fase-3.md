@@ -62,7 +62,7 @@ function aoEnviar(e) {
 
 ## Ainda não feito
 
-- **CRN do André** e conferência dos valores da TACO (pendentes desde a Fase 1); base completa da TACO/TBCA.
+- Conferência dos valores da TACO (pendente desde a Fase 1); base completa da TACO/TBCA.
 - Cobrança automática por **Pix/cartão** (Mercado Pago ou Asaas) — a especificação deixa para “fases futuras”; hoje o financeiro registra e lembra pelo WhatsApp.
 - **API oficial do WhatsApp Business** (hoje: links com mensagem pronta).
 - Login com Google e link mágico; modo escuro.

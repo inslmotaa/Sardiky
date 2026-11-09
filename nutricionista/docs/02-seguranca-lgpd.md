@@ -64,7 +64,7 @@ Ficam registrados com data, usuário e IP: logins (inclusive falhos), visualiza�
 
 ### Decisões que cabem ao consultório
 
-1. **Prazo de guarda do prontuário nutricional**: confirme a exigência do CFN/CRN e da legislação aplicável antes de eliminar dados clínicos a pedido do paciente (a LGPD permite a guarda para cumprimento de obrigação legal).
+1. **Prazo de guarda da ficha do cliente**: confirme a exigência da legislação aplicável antes de eliminar dados clínicos a pedido do paciente (a LGPD permite a guarda para cumprimento de obrigação legal).
 2. **Texto final** da Política de Privacidade e dos termos de consentimento.
 3. **Contratos com operadores** (hospedagem, banco, e-mail) com cláusulas de proteção de dados; prefira provedores com servidores no Brasil ou com garantias para transferência internacional.
 4. **Plano de resposta a incidentes**: quem avalia, como comunicar pacientes e a ANPD em caso de vazamento.

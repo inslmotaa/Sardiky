@@ -44,4 +44,4 @@ Com Docker (`deploy/docker-compose.yml`), esses passos não são necessários: a
 | `messages`, `notifications`, `push_subscriptions` | Chat e avisos |
 | `packages`, `payments` | Planos de acompanhamento e financeiro |
 | `consents`, `data_requests`, `audit_logs` | LGPD e trilha de auditoria |
-| `settings` | Configurações: nome do site, contato, textos e link do formulário de anamnese |
+| `settings` | Configurações: nome do site, nome e título do coach (sempre Coach), contato, textos e link do formulário de anamnese. Sem registro profissional: a coluna `registry` saiu na migração `0018_remover_registro` |
