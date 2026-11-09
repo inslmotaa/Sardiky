@@ -2,7 +2,7 @@
 
 O que faz o site aparecer bem no Google e nos links compartilhados, o blog (Conteúdos) e como os contatos chegam com a origem registrada.
 
-> **Importante:** configure `APP_URL` com o endereço público (ex.: `https://farion.com.br`). Ele é a base do canonical, do sitemap, do robots.txt, das imagens de compartilhamento e dos dados estruturados.
+> **Importante:** o endereço público do site (`APP_URL`, ex.: `https://farion.com.br`) precisa ser o final. Com o Docker de `deploy/`, ele vem de `DOMAIN` no `deploy/.env`. Ele é a base do canonical, do sitemap, do robots.txt, das imagens de compartilhamento e dos dados estruturados.
 
 ## 1. robots.txt e sitemap.xml
 
