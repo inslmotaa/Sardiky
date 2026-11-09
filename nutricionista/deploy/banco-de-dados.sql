@@ -526,6 +526,7 @@ CREATE TABLE "settings" (
 	"method" text DEFAULT '' NOT NULL,
 	"differentials" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"how_it_works" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"credentials" jsonb DEFAULT '[]'::jsonb NOT NULL,
 	"address" text,
 	"hours_text" text,
 	"modality_text" text,
@@ -565,6 +566,27 @@ CREATE TABLE "settings" (
 	"mp_statement_descriptor" text DEFAULT 'FARION' NOT NULL,
 	"templates" jsonb NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "testimonials" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"patient_id" uuid,
+	"appointment_id" uuid,
+	"author_display" text NOT NULL,
+	"text" text NOT NULL,
+	"rating" smallint,
+	"date" date NOT NULL,
+	"authorized_at" timestamp with time zone,
+	"authorization_method" text,
+	"published" boolean DEFAULT false NOT NULL,
+	"approved_by" uuid,
+	"approved_at" timestamp with time zone,
+	"before_file_id" uuid,
+	"after_file_id" uuid,
+	"photos_authorized_at" timestamp with time zone,
+	"photos_authorization_method" text,
+	"sort" integer DEFAULT 0 NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE "time_blocks" (
@@ -656,6 +678,11 @@ ALTER TABLE "push_subscriptions" ADD CONSTRAINT "push_subscriptions_user_id_user
 ALTER TABLE "recipes" ADD CONSTRAINT "recipes_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "reminder_log" ADD CONSTRAINT "reminder_log_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "sessions" ADD CONSTRAINT "sessions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "testimonials" ADD CONSTRAINT "testimonials_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "testimonials" ADD CONSTRAINT "testimonials_appointment_id_appointments_id_fk" FOREIGN KEY ("appointment_id") REFERENCES "public"."appointments"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "testimonials" ADD CONSTRAINT "testimonials_approved_by_users_id_fk" FOREIGN KEY ("approved_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "testimonials" ADD CONSTRAINT "testimonials_before_file_id_files_id_fk" FOREIGN KEY ("before_file_id") REFERENCES "public"."files"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "testimonials" ADD CONSTRAINT "testimonials_after_file_id_files_id_fk" FOREIGN KEY ("after_file_id") REFERENCES "public"."files"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "time_blocks" ADD CONSTRAINT "time_blocks_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "water_logs" ADD CONSTRAINT "water_logs_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
 CREATE UNIQUE INDEX "anamneses_patient_version_idx" ON "anamneses" USING btree ("patient_id","version");
@@ -685,6 +712,8 @@ CREATE UNIQUE INDEX "push_endpoint_idx" ON "push_subscriptions" USING btree ("en
 CREATE INDEX "push_user_idx" ON "push_subscriptions" USING btree ("user_id");
 CREATE UNIQUE INDEX "reminder_log_unique" ON "reminder_log" USING btree ("user_id","kind","key");
 CREATE INDEX "sessions_user_idx" ON "sessions" USING btree ("user_id");
+CREATE UNIQUE INDEX "testimonials_appointment_idx" ON "testimonials" USING btree ("appointment_id");
+CREATE INDEX "testimonials_published_idx" ON "testimonials" USING btree ("published");
 CREATE UNIQUE INDEX "users_email_idx" ON "users" USING btree ("email");
 CREATE UNIQUE INDEX "water_logs_unique" ON "water_logs" USING btree ("patient_id","date");
 
@@ -714,6 +743,7 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('ce8d6b3f756346cc2c39bf837811809d539e4c83adc2b8e33499795ce8f318ec', 1793746859502), -- 0015_anamnese_por_formulario
 	('9484041a13fa7651753afcca2f161e3da20253bb28af71ac0e44ab6785c9a121', 1793916101839), -- 0016_mercado_pago
 	('5490ee0bd517e4ccea7f372d3a2c9836288a2e192c0d2c2d055b724c607d54dc', 1793916106957), -- 0017_remover_desconto_parceiro
-	('14bee88ebe9c56612d5a9182a2e3abb4e2cf171125eeeca996ca4b2b650110d6', 1794244118204); -- 0018_remover_registro
+	('14bee88ebe9c56612d5a9182a2e3abb4e2cf171125eeeca996ca4b2b650110d6', 1794244118204), -- 0018_remover_registro
+	('006e7b8e1cd622cce4f9f9685c59cc71d00ac4cbd64c43be92a88e37772ea1a6', 1794245146457); -- 0019_depoimentos_e_formacoes
 
 COMMIT;

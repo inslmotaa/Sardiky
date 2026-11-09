@@ -53,7 +53,7 @@ h3 {
 
 /* --------------------------- painel do coach --------------------------- */
 .sidebar {
-  background: #fff;
+  background: var(--surface);
   color: var(--ink-2);
   border-right: 1px solid var(--line);
   padding: 22px 14px 16px;
@@ -132,7 +132,7 @@ h3 {
   font-weight: 600;
 }
 .topbar .mobile-menu__panel {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--line);
 }
 .topbar .mobile-menu__panel .sidebar__group {
@@ -189,7 +189,7 @@ table th {
 
 /* --------------------------- área do cliente --------------------------- */
 .patient-header {
-  background: rgb(255 255 255 / 0.92);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -202,7 +202,7 @@ table th {
   color: var(--brand);
 }
 .tabbar {
-  background: rgb(255 255 255 / 0.96);
+  background: color-mix(in srgb, var(--surface) 96%, transparent);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
@@ -515,7 +515,7 @@ table th {
   padding: 10px 16px 10px 12px;
   border: 1px solid var(--brand);
   border-radius: 999px;
-  background: #fff;
+  background: var(--surface);
   color: var(--brand);
   font: inherit;
   font-size: 0.86rem;
@@ -538,7 +538,7 @@ table th {
 }
 .back-to-top:hover {
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
 }
 .back-to-top:focus-visible {
   outline: 2px solid var(--brand);
@@ -762,7 +762,7 @@ table th {
 .week-picker__day[aria-pressed="true"] {
   border-color: var(--brand);
   background: var(--brand);
-  color: #fff;
+  color: var(--on-brand);
 }
 .week-picker__day[data-today] {
   border-color: var(--brand);
@@ -787,4 +787,23 @@ table th {
 .week-table tr[data-today] td,
 .week-table tr[data-today] th {
   background: var(--brand-soft);
+}
+
+/* Início: aviso do que falta antes de publicar o site */
+.card--warn {
+  border-color: #e9c77e;
+  background: var(--warn-bg);
+}
+.card--warn h2 {
+  color: var(--warn);
+}
+
+/* Meu perfil: escolha da aparência */
+.theme-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0;
+  padding: 0;
+  border: 0;
 }

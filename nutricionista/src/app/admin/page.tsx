@@ -9,6 +9,7 @@ import { addDays, capitalize, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfM
 import { money } from '@/lib/format'
 import { trackingBoard } from '@/lib/tracking'
 import { contractInfo } from '@/lib/contract'
+import { pendenciasDoSite } from '../../../scripts/pendencias.mjs'
 import { PageHead, Stat, StatusBadge } from '@/components/ui'
 import { markTeamNotificationsRead } from '@/actions/admin/patients'
 
@@ -104,6 +105,8 @@ export default async function AdminHome() {
   ])
 
   const activeToday = todayAppts.filter((a) => a.status !== 'cancelada')
+  // Textos de exemplo e dados que faltam (mesma regra de `aplicar-perfil.mjs --pendencias`).
+  const pendencias = can(user, 'config') || can(user, 'site') ? pendenciasDoSite(s) : []
 
   // Planos para enviar (cliente ativo sem plano alimentar publicado) e acompanhamentos com término definido pelo coach chegando.
   const actives = clinical
@@ -185,6 +188,30 @@ export default async function AdminHome() {
           </>
         }
       />
+
+      {pendencias.length > 0 && (
+        <section className="card card--warn" aria-labelledby="pendencias-titulo">
+          <div className="card__head">
+            <h2 id="pendencias-titulo">Antes de publicar o site</h2>
+            <Link href="/admin/configuracoes?secao=perfil" className="small">
+              Abrir Configurações
+            </Link>
+          </div>
+          <p className="small muted" style={{ marginTop: 0 }}>
+            O site não deve ir ao ar com textos de exemplo. Falta:
+          </p>
+          <ul className="list" aria-label="Pendências do site">
+            {pendencias.map((x) => (
+              <li key={x.campo} className="row row--between">
+                <span>{x.texto}</span>
+                <Link href={`/admin/configuracoes?secao=${x.onde}`} className="btn btn--sm">
+                  Ajustar
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {notes.length > 0 && (
         <section className="card card--soft" aria-label="Avisos">

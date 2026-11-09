@@ -1,15 +1,16 @@
-import { desc, eq } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getSettings } from '@/lib/settings'
 import { fmtDateTime } from '@/lib/time'
 import { bookingLink } from '@/lib/format'
 import { BookingLink } from '@/components/BookingLink'
-import { cancelOwnAppointment, confirmPresence, rateAppointment, requestReschedule } from '@/actions/patient'
+import { cancelOwnAppointment, confirmPresence, rateAppointment, requestReschedule, withdrawTestimonial } from '@/actions/patient'
 import { ActionForm, SubmitButton } from '@/components/form'
 import { PageHead, StatusBadge, Empty } from '@/components/ui'
 
-export default async function PatientAppointments() {
+export default async function PatientAppointments({ searchParams }: { searchParams: Promise<{ avaliada?: string }> }) {
+  const sp = await searchParams
   const user = await requireActivePatient()
   const s = await getSettings()
   const list = await db.select().from(schema.appointments).where(eq(schema.appointments.patientId, user.patientId)).orderBy(desc(schema.appointments.startAt))
@@ -17,6 +18,12 @@ export default async function PatientAppointments() {
   const upcoming = list.filter((a) => a.startAt.getTime() >= now && ['pendente', 'confirmada'].includes(a.status)).reverse()
   const past = list.filter((a) => !upcoming.includes(a))
   const toRate = past.filter((a) => a.status === 'realizada' && !a.ratedAt)
+  // Avaliações que o cliente autorizou publicar como depoimento (podem ser retiradas a qualquer momento).
+  const myTestimonials = await db
+    .select({ id: schema.testimonials.id, appointmentId: schema.testimonials.appointmentId, published: schema.testimonials.published })
+    .from(schema.testimonials)
+    .where(and(eq(schema.testimonials.patientId, user.patientId)))
+  const tByAppt = new Map(myTestimonials.filter((t) => t.appointmentId).map((t) => [t.appointmentId!, t]))
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <PageHead
@@ -27,6 +34,11 @@ export default async function PatientAppointments() {
           </BookingLink>
         }
       />
+      {sp.avaliada && (
+        <p className="alert alert--ok" role="status">
+          {sp.avaliada === 'depoimento' ? 'Obrigado! Sua avaliação vai para o site depois que o coach aprovar.' : 'Obrigado pela avaliação!'}
+        </p>
+      )}
       <section>
         <h2 style={{ fontSize: '1.15rem' }}>Próximas</h2>
         {upcoming.length === 0 ? (
@@ -106,7 +118,7 @@ export default async function PatientAppointments() {
       {toRate.length > 0 && (
         <section className="card">
           <h2 style={{ fontSize: '1.15rem' }}>Como foi a sua última consulta?</h2>
-          <p className="muted small">Sua avaliação ajuda a melhorar o atendimento. Ela não é publicada no site.</p>
+          <p className="muted small">Sua avaliação ajuda a melhorar o atendimento. Ela só vai para o site se você autorizar e o coach aprovar.</p>
           <ActionForm action={rateAppointment} className="stack">
             <input type="hidden" name="id" value={toRate[0].id} />
             <fieldset>
@@ -126,6 +138,23 @@ export default async function PatientAppointments() {
               <span className="field__label">Comentário (opcional)</span>
               <textarea name="comment" rows={2} maxLength={1000} />
             </label>
+            <fieldset className="stack" style={{ ['--gap' as string]: '8px' }}>
+              <legend className="small">Depoimento no site (opcional)</legend>
+              <label className="check">
+                <input type="checkbox" name="publicar" /> Autorizo publicar esta avaliação como depoimento no site
+              </label>
+              <label className="field">
+                <span className="field__label small">Como assinar</span>
+                <select name="assinatura" defaultValue="iniciais">
+                  <option value="iniciais">Só as iniciais</option>
+                  <option value="nome">Primeiro nome e inicial do sobrenome</option>
+                </select>
+              </label>
+              <p className="small muted" style={{ margin: 0 }}>
+                Só o texto e a nota vão para o site, depois da aprovação do coach. Fotos nunca são publicadas sem uma autorização específica. Você pode retirar a
+                autorização quando quiser, aqui no histórico.
+              </p>
+            </fieldset>
             <div>
               <SubmitButton>Enviar avaliação</SubmitButton>
             </div>
@@ -157,7 +186,19 @@ export default async function PatientAppointments() {
                     <td>
                       <StatusBadge status={a.status} />
                     </td>
-                    <td aria-label={a.rating ? `${a.rating} de 5 estrelas` : 'sem avaliação'}>{a.rating ? '★'.repeat(a.rating) : '—'}</td>
+                    <td>
+                      <span aria-label={a.rating ? `${a.rating} de 5 estrelas` : 'sem avaliação'}>{a.rating ? '★'.repeat(a.rating) : '—'}</span>
+                      {tByAppt.get(a.id) && (
+                        <div className="small muted">
+                          {tByAppt.get(a.id)!.published ? 'Publicada no site' : 'Autorizada · aguardando o coach'} ·{' '}
+                          <form action={withdrawTestimonial.bind(null, tByAppt.get(a.id)!.id)} style={{ display: 'inline' }}>
+                            <button type="submit" className="link-btn small">
+                              Retirar autorização
+                            </button>
+                          </form>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

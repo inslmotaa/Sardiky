@@ -1,11 +1,12 @@
 import Link from 'next/link'
-import { asc, eq } from 'drizzle-orm'
+import { asc, desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'
 import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
 import { planPrices } from '@/lib/planos'
 import { emailLink, instagramLink } from '@/lib/social'
+import { fotosPublicas, podePublicar } from '@/lib/depoimentos'
 import { BookingLink } from '@/components/BookingLink'
 import { MonoLabel, NatureBg, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
@@ -58,11 +59,14 @@ const d = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties
 /** Página inicial: hero com a plataforma (painel e app), storytelling em capítulos, Sobre, Consultoria, Resultados e Contato. */
 export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
-  const [s, user, packages] = await Promise.all([
+  const [s, user, packages, published] = await Promise.all([
     getSettings(),
     getCurrentUser(),
     db.select().from(schema.packages).where(eq(schema.packages.active, true)).orderBy(asc(schema.packages.sort), asc(schema.packages.months)),
+    // Só depoimentos aprovados pelo coach (e com autorização registrada: conferido de novo abaixo).
+    db.select().from(schema.testimonials).where(eq(schema.testimonials.published, true)).orderBy(asc(schema.testimonials.sort), desc(schema.testimonials.approvedAt)).limit(6),
   ])
+  const testimonials = published.filter(podePublicar).slice(0, 3)
   const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de mais informações sobre o acompanhamento.')
   const first = s.professionalName.split(' ')[0]
@@ -327,16 +331,47 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             {numbers.map((n, i) => (
               <div key={n.label} className="numbers__item" data-rv="" style={d(i * 80)}>
                 <dt>{n.label}</dt>
+                {/* O valor final já vem no HTML; leitores de tela leem o texto completo, sem a animação. */}
                 <dd>
-                  {n.prefix && <small>{n.prefix.trim()}</small>}
-                  <span data-count={n.to}>{n.to.toLocaleString('pt-BR')}</span>
-                  {n.suffix && <small>{n.suffix.trim()}</small>}
+                  <span className="sr-only">{`${n.prefix}${n.to.toLocaleString('pt-BR')}${n.suffix}`.trim()}</span>
+                  <span aria-hidden>
+                    {n.prefix && <small>{n.prefix.trim()}</small>}
+                    <span data-count={n.to}>{n.to.toLocaleString('pt-BR')}</span>
+                    {n.suffix && <small>{n.suffix.trim()}</small>}
+                  </span>
                 </dd>
               </div>
             ))}
           </dl>
+          {testimonials.length > 0 && (
+            <ul className="quotes" aria-label="Depoimentos">
+              {testimonials.map((t, i) => (
+                <li key={t.id} className="quote" data-rv="" style={d(i * 90)}>
+                  {fotosPublicas(t) && (
+                    <div className="quote__photos">
+                      <figure>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/arquivos/${t.beforeFileId}`} alt={`Antes · ${t.authorDisplay}`} loading="lazy" />
+                        <figcaption>ANTES</figcaption>
+                      </figure>
+                      <figure>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={`/arquivos/${t.afterFileId}`} alt={`Depois · ${t.authorDisplay}`} loading="lazy" />
+                        <figcaption>DEPOIS</figcaption>
+                      </figure>
+                    </div>
+                  )}
+                  <blockquote>“{t.text}”</blockquote>
+                  <p className="quote__by">
+                    {t.authorDisplay.toLocaleUpperCase('pt-BR')}
+                    {t.rating ? <span className="quote__rating"> · NOTA {t.rating} DE 5</span> : null}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
           <p className="tl-note" data-rv="">
-            Resultados variam de pessoa para pessoa.
+            Resultados variam de pessoa para pessoa.{testimonials.length > 0 ? ' Depoimentos publicados com autorização.' : ''}
           </p>
         </div>
       </section>

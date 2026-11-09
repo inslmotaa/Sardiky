@@ -3,16 +3,50 @@
 // Uso:
 //   node scripts/aplicar-perfil.mjs deploy/perfil.json --conferir   (só confere, não grava)
 //   DATABASE_URL=... node scripts/aplicar-perfil.mjs deploy/perfil.json
+//   DATABASE_URL=... node scripts/aplicar-perfil.mjs --pendencias   (lista o que ainda falta no site já no ar:
+//     biografia com PREENCHER, e-mail example.com, Instagram vazio, foto não enviada, "(Texto de exemplo — …)")
 // No servidor (Docker), lendo o arquivo pela entrada padrão:
 //   docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec -T app node scripts/aplicar-perfil.mjs - < deploy/perfil.json
 // Pode ser rodado de novo sempre que os dados mudarem. Foto, logo e assinatura são enviadas pelo painel (Configurações).
 import { readFileSync } from 'node:fs'
 import { z } from 'zod'
+import { pendenciasDoSite } from './pendencias.mjs'
 
 const [fileArg, ...flags] = process.argv.slice(2)
 const onlyCheck = flags.includes('--conferir')
+
+/** Pendências de conteúdo do site, lidas do banco. Sai com código 1 se houver alguma. */
+async function listarPendencias() {
+  if (!process.env.DATABASE_URL) {
+    console.error('DATABASE_URL não definida.')
+    process.exit(1)
+  }
+  const { default: postgres } = await import('postgres')
+  const db = postgres(process.env.DATABASE_URL, { max: 1, onnotice: () => {} })
+  const [s] = await db`select bio, method, specialties, differentials, contact_email, privacy_contact, instagram, photo_file_id from settings where id = 1`
+  await db.end()
+  const list = pendenciasDoSite({
+    bio: s?.bio,
+    method: s?.method,
+    specialties: s?.specialties,
+    differentials: s?.differentials,
+    contactEmail: s?.contact_email,
+    privacyContact: s?.privacy_contact,
+    instagram: s?.instagram,
+    photoFileId: s?.photo_file_id,
+  })
+  if (!list.length) {
+    console.log('Nenhuma pendência de conteúdo: o site pode ir ao ar.')
+    return 0
+  }
+  console.log('O site ainda não pode ir ao ar. Falta:')
+  for (const x of list) console.log(`  - ${x.texto}`)
+  return 1
+}
+
+if (fileArg === '--pendencias') process.exit(await listarPendencias())
 if (!fileArg) {
-  console.error('Uso: node scripts/aplicar-perfil.mjs deploy/perfil.json [--conferir]')
+  console.error('Uso: node scripts/aplicar-perfil.mjs deploy/perfil.json [--conferir]  |  node scripts/aplicar-perfil.mjs --pendencias')
   process.exit(1)
 }
 
@@ -25,7 +59,7 @@ try {
 }
 
 // 1. Campos ainda não preenchidos ou dados de exemplo esquecidos.
-const EXAMPLE = [/PREENCHER/i, /example\.com/i, /^5500000000000$/, /Rua Exemplo/i, /\(exemplo/i, /fict[ií]ci/i]
+const EXAMPLE = [/PREENCHER/i, /example\.com/i, /^5500000000000$/, /Rua Exemplo/i, /\(exemplo/i, /\(Texto de exemplo/i, /fict[ií]ci/i]
 const pending = []
 ;(function scan(v, path) {
   if (typeof v === 'string') {
@@ -33,6 +67,8 @@ const pending = []
   } else if (Array.isArray(v)) v.forEach((x, i) => scan(x, `${path}[${i}]`))
   else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) scan(x, path ? `${path}.${k}` : k)
 })(raw, '')
+// Instagram vazio também conta: o site não vai ao ar sem ele.
+if (!String(raw?.contato?.instagram ?? '').trim()) pending.push('contato.instagram: vazio (use @usuario)')
 if (pending.length) {
   console.error('Ainda faltam dados reais nestes campos:')
   for (const p of pending) console.error(`  - ${p}`)
@@ -297,3 +333,6 @@ if (todo.length) {
   console.log('Ainda falta:')
   for (const t of todo) console.log(`  - ${t}`)
 }
+// Mesma checagem do aviso no Início do painel (foto, textos de exemplo, e-mail, Instagram).
+const code = await listarPendencias()
+if (code) console.log('Rode de novo com --pendencias depois de enviar a foto e ajustar os textos.')

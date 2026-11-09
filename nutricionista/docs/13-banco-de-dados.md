@@ -43,5 +43,6 @@ Com Docker (`deploy/docker-compose.yml`), esses passos não são necessários: a
 | `foods`, `household_measures`, `measure_refs` | TACO 4ª ed. e medidas caseiras |
 | `messages`, `notifications`, `push_subscriptions` | Chat e avisos |
 | `packages`, `payments` | Planos de acompanhamento e financeiro |
+| `testimonials` | Depoimentos: texto, nota, data e forma da autorização, aprovação do coach e fotos de antes e depois com autorização específica (migração `0019_depoimentos_e_formacoes`) |
 | `consents`, `data_requests`, `audit_logs` | LGPD e trilha de auditoria |
 | `settings` | Configurações: nome do site, nome e título do coach (sempre Coach), contato, textos e link do formulário de anamnese. Sem registro profissional: a coluna `registry` saiu na migração `0018_remover_registro` |

@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can, STAFF_PERMISSIONS } from '@/lib/auth/permissions'
@@ -21,6 +21,9 @@ import {
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
 import { DemoTag, NoAccess, PageHead, Tabs } from '@/components/ui'
 import { titledText } from '@/lib/planos'
+import { AUTH_METHODS, PHOTO_AUTH_METHODS } from '@/lib/depoimentos'
+import { approveTestimonial, createTestimonial, deleteTestimonial, hideTestimonial, removeTestimonialPhotos, saveTestimonialPhotos } from '@/actions/admin/testimonials'
+import { credentialsText } from '@/lib/formacoes'
 
 const SECTIONS = [
   { key: 'perfil', label: 'Perfil e identidade', perm: 'config' },
@@ -29,7 +32,7 @@ const SECTIONS = [
   { key: 'mensagens', label: 'Mensagens', perm: 'config' },
   { key: 'chat', label: 'Chat', perm: 'config' },
   { key: 'planos', label: 'Planos, anamnese e PDF', perm: 'config' },
-  { key: 'site', label: 'Dúvidas do site', perm: 'site' },
+  { key: 'site', label: 'Depoimentos e dúvidas', perm: 'site' },
   { key: 'equipe', label: 'Equipe e permissões', perm: 'config' },
   { key: 'integracoes', label: 'Integrações', perm: 'config' },
 ] as const
@@ -97,8 +100,15 @@ function ProfileSection({ s }: { s: S }) {
         <Field label="Como funciona o acompanhamento" name="howItWorks" hint="Uma etapa por linha, no formato: Título | descrição">
           <textarea name="howItWorks" rows={4} defaultValue={s.howItWorks.map((h) => `${h.title} | ${h.text}`).join('\n')} />
         </Field>
+        <Field
+          label="Formações e certificações"
+          name="credentials"
+          hint="Uma por linha, no formato: Curso | Instituição | Ano. Aparecem na página Sobre (as mais recentes primeiro)."
+        >
+          <textarea name="credentials" rows={4} placeholder="Coaching em saúde e bem-estar | Instituto … | 2021" defaultValue={credentialsText(s.credentials)} />
+        </Field>
         <div className="form-grid">
-          <Field label="Foto profissional" name="photo" hint="JPG, PNG ou WebP até 5 MB. Aparece no site.">
+          <Field label="Foto profissional" name="photo" hint="JPG, PNG ou WebP até 5 MB. Na página Sobre aparece na vertical (retrato, de preferência 4:5).">
             <input type="file" name="photo" accept="image/jpeg,image/png,image/webp" />
           </Field>
           <Field label="Logotipo" name="logo" hint="Substitui o ícone padrão no cabeçalho.">
@@ -438,8 +448,151 @@ function TemplatesSection({ s }: { s: S }) {
 }
 
 async function SiteSection() {
-  const faqs = await db.select().from(schema.faqs).orderBy(asc(schema.faqs.sort))
+  const [faqs, testimonials] = await Promise.all([
+    db.select().from(schema.faqs).orderBy(asc(schema.faqs.sort)),
+    db.select().from(schema.testimonials).orderBy(asc(schema.testimonials.published), desc(schema.testimonials.createdAt)),
+  ])
+  const pending = testimonials.filter((t) => !t.published)
   return (
+    <div className="stack" style={{ ['--gap' as string]: '24px' }}>
+    <section className="stack" aria-labelledby="depoimentos-titulo">
+      <h2 id="depoimentos-titulo" style={{ fontSize: '1.1rem' }}>
+        Depoimentos{pending.length ? ` (${pending.length} aguardando aprovação)` : ''}
+      </h2>
+      <p className="alert alert--info small">
+        Um depoimento só aparece no site com a autorização registrada (data e forma) e a sua aprovação. Fotos de antes e depois exigem uma autorização
+        específica e nunca são publicadas por padrão. Sem promessas de resultado e sem dados de saúde identificáveis.
+      </p>
+      {testimonials.length === 0 ? (
+        <p className="muted">Nenhum depoimento ainda. Quando um cliente autoriza publicar a avaliação da consulta, ela aparece aqui.</p>
+      ) : (
+        <ul className="card list" aria-label="Depoimentos">
+          {testimonials.map((t) => (
+            <li key={t.id} className="stack" style={{ ['--gap' as string]: '6px' }}>
+              <div className="row row--between">
+                <strong>{t.authorDisplay}</strong>
+                <span className={`badge ${t.published ? 'badge--ok' : 'badge--warn'}`}>{t.published ? 'Publicado' : 'Aguardando aprovação'}</span>
+              </div>
+              <div className="small">“{t.text}”{t.rating ? ` · nota ${t.rating} de 5` : ''}</div>
+              <div className="small muted">
+                {t.authorizedAt
+                  ? `Autorização em ${fmtDateTime(t.authorizedAt)} · ${AUTH_METHODS[t.authorizationMethod as keyof typeof AUTH_METHODS] ?? t.authorizationMethod}`
+                  : 'Sem autorização registrada: não pode ser publicado'}
+                {t.photosAuthorizedAt
+                  ? ` · Fotos autorizadas em ${fmtDateTime(t.photosAuthorizedAt)} (${PHOTO_AUTH_METHODS[t.photosAuthorizationMethod as keyof typeof PHOTO_AUTH_METHODS] ?? ''})`
+                  : ' · Sem fotos'}
+              </div>
+              <div className="row small">
+                {t.published ? (
+                  <form action={hideTestimonial.bind(null, t.id)}>
+                    <button className="btn btn--sm" type="submit">
+                      Ocultar do site
+                    </button>
+                  </form>
+                ) : (
+                  t.authorizedAt && (
+                    <form action={approveTestimonial.bind(null, t.id)}>
+                      <button className="btn btn--sm btn--primary" type="submit">
+                        Aprovar e publicar
+                      </button>
+                    </form>
+                  )
+                )}
+                {t.beforeFileId && (
+                  <form action={removeTestimonialPhotos.bind(null, t.id)}>
+                    <button className="btn btn--sm" type="submit">
+                      Remover fotos
+                    </button>
+                  </form>
+                )}
+                <form action={deleteTestimonial.bind(null, t.id)}>
+                  <button className="btn btn--sm btn--danger" type="submit">
+                    Excluir
+                  </button>
+                </form>
+              </div>
+              {!t.beforeFileId && (
+                <details className="disclosure">
+                  <summary className="small">Adicionar fotos de antes e depois (exige autorização específica)</summary>
+                  <ActionForm action={saveTestimonialPhotos.bind(null, t.id)} className="stack" encType="multipart/form-data" resetOnSuccess>
+                    <div className="form-grid">
+                      <Field label="Foto de antes" name="before">
+                        <input type="file" name="before" accept="image/jpeg,image/png,image/webp" />
+                      </Field>
+                      <Field label="Foto de depois" name="after">
+                        <input type="file" name="after" accept="image/jpeg,image/png,image/webp" />
+                      </Field>
+                      <Field label="Data da autorização das fotos" name="photosAuthorizedAt">
+                        <input type="date" name="photosAuthorizedAt" />
+                      </Field>
+                      <Field label="Forma da autorização das fotos" name="photosAuthorizationMethod">
+                        <select name="photosAuthorizationMethod" defaultValue="">
+                          <option value="">Escolha</option>
+                          {Object.entries(PHOTO_AUTH_METHODS).map(([k, v]) => (
+                            <option key={k} value={k}>
+                              {v}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
+                    </div>
+                    <label className="check">
+                      <input type="checkbox" name="confirm" /> O cliente autorizou especificamente a publicação destas fotos
+                    </label>
+                    <FieldError name="confirm" />
+                    <div>
+                      <SubmitButton className="btn btn--sm">Salvar fotos</SubmitButton>
+                    </div>
+                  </ActionForm>
+                </details>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <details className="disclosure">
+        <summary>Novo depoimento recebido fora do app</summary>
+        <ActionForm action={createTestimonial} className="stack" resetOnSuccess>
+          <div className="form-grid">
+            <Field label="Nome ou iniciais" name="authorDisplay" hint="Prefira iniciais. Ex.: M. S.">
+              <input name="authorDisplay" maxLength={80} />
+            </Field>
+            <Field label="Nota (opcional)" name="rating">
+              <select name="rating" defaultValue="">
+                <option value="">Sem nota</option>
+                {[5, 4, 3, 2, 1].map((n) => (
+                  <option key={n} value={n}>
+                    {n} de 5
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Data da autorização" name="authorizedAt">
+              <input type="date" name="authorizedAt" />
+            </Field>
+            <Field label="Forma da autorização" name="authorizationMethod">
+              <select name="authorizationMethod" defaultValue="">
+                <option value="">Escolha</option>
+                {Object.entries(PHOTO_AUTH_METHODS).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+          <Field label="Depoimento" name="text">
+            <textarea name="text" rows={3} maxLength={1000} />
+          </Field>
+          <label className="check">
+            <input type="checkbox" name="publish" /> Publicar no site agora
+          </label>
+          <div>
+            <SubmitButton>Salvar depoimento</SubmitButton>
+          </div>
+        </ActionForm>
+      </details>
+    </section>
     <div className="grid-2" style={{ alignItems: 'start' }}>
       <section className="stack">
         <h2 style={{ fontSize: '1.1rem' }}>Perguntas frequentes</h2>
@@ -495,6 +648,7 @@ async function SiteSection() {
           </ActionForm>
         </div>
       </section>
+    </div>
     </div>
   )
 }

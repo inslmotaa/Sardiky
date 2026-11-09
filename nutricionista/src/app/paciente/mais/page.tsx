@@ -23,6 +23,7 @@ export default async function MorePage() {
     ['/paciente/formularios', 'Anamnese e questionários', 'Formulários enviados pelo coach'],
     ...(p.features.calculadoras ? ([['/paciente/calculadoras', 'Calculadoras', 'Porções, IMC, água e mais']] as [string, string, string][]) : []),
     ['/paciente/notificacoes', 'Notificações', 'Lembretes de refeição e água, horário de silêncio'],
+    ['/paciente/meus-dados#aparencia-titulo', 'Aparência', 'Automático, claro ou escuro'],
     ['/paciente/meus-dados#privacidade', 'Privacidade (LGPD)', 'Baixar meus dados, solicitações e excluir conta'],
   ]
   return (

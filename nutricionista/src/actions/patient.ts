@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { and, eq, inArray, isNull } from 'drizzle-orm'
 import { z } from 'zod'
@@ -22,6 +23,8 @@ import { pushToTeam } from '@/lib/push'
 import { sendEmail } from '@/lib/notify'
 import { deletePhoto, saveProgressPhotos } from '@/lib/photos'
 import { rateLimit } from '@/lib/rate-limit'
+import { assinatura } from '@/lib/depoimentos'
+import { THEME_COOKIE } from '@/lib/tema'
 import { addDays, fmtDateTime, todayIn } from '@/lib/time'
 import type { DiaryItem } from '@/lib/plan'
 import { day, int, optNum, optStr, str, time, uuid } from '@/lib/validation'
@@ -459,8 +462,13 @@ export async function requestReschedule(_: ActionState, fd: FormData): Promise<A
 /** Avaliação da consulta realizada (1 a 5 estrelas e comentário opcional). */
 export async function rateAppointment(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
-  const parsed = z.object({ id: uuid, rating: int(1, 5), comment: optStr(1000) }).safeParse(formObject(fd))
+  const parsed = z
+    .object({ id: uuid, rating: int(1, 5), comment: optStr(1000), publicar: z.literal('on').optional(), assinatura: z.enum(['iniciais', 'nome']).default('iniciais') })
+    .safeParse(formObject(fd))
   if (!parsed.success) return { fieldErrors: { rating: 'Escolha de 1 a 5 estrelas' }, error: 'Escolha de 1 a 5 estrelas.' }
+  // "Autorizo publicar": vira depoimento (aguardando a aprovação do coach); precisa do comentário.
+  const publicar = parsed.data.publicar === 'on'
+  if (publicar && !parsed.data.comment) return { fieldErrors: { comment: 'Escreva o comentário' }, error: 'Para publicar como depoimento, escreva um comentário.' }
   const [a] = await db
     .select()
     .from(schema.appointments)
@@ -471,10 +479,67 @@ export async function rateAppointment(_: ActionState, fd: FormData): Promise<Act
     .update(schema.appointments)
     .set({ rating: parsed.data.rating, ratingComment: parsed.data.comment, ratedAt: new Date() })
     .where(eq(schema.appointments.id, a.id))
-  await notifyTeam('agenda', `Nova avaliação de consulta: ${'★'.repeat(parsed.data.rating)}`, user.name, `/admin/agenda/${a.id}`, user.patientId)
+  await notifyTeam('agenda', `Nova avaliação de consulta: nota ${parsed.data.rating} de 5`, user.name, `/admin/agenda/${a.id}`, user.patientId)
   await audit(user, 'consulta_avaliada', 'consulta', { entityId: a.id, patientId: user.patientId, details: { nota: parsed.data.rating } })
+  if (publicar) {
+    const s = await getSettings()
+    const [t] = await db
+      .insert(schema.testimonials)
+      .values({
+        patientId: user.patientId,
+        appointmentId: a.id,
+        authorDisplay: assinatura(user.name, parsed.data.assinatura),
+        text: parsed.data.comment!,
+        rating: parsed.data.rating,
+        date: todayIn(s.timezone),
+        authorizedAt: new Date(),
+        authorizationMethod: 'app',
+        published: false,
+      })
+      .onConflictDoNothing()
+      .returning({ id: schema.testimonials.id })
+    if (t) {
+      // Registro da autorização (LGPD): o que, quando e por qual meio.
+      await db.insert(schema.consents).values({ userId: user.id, patientId: user.patientId, kind: 'publicacao_depoimento', version: t.id })
+      await notifyTeam('site', 'Depoimento aguardando aprovação', `${user.name} autorizou publicar a avaliação da consulta.`, '/admin/configuracoes?secao=site')
+      await audit(user, 'depoimento_autorizado', 'depoimento', { entityId: t.id, patientId: user.patientId, details: { forma: 'app' } })
+    }
+  }
   revalidatePath('/paciente/consultas')
-  return { ok: true, message: 'Obrigado pela avaliação!' }
+  // O formulário some depois da avaliação: a confirmação aparece no topo da página.
+  redirect(`/paciente/consultas?avaliada=${publicar ? 'depoimento' : '1'}`)
+}
+
+/** Aparência do app (Meu perfil): automático, claro ou escuro. Fica neste aparelho (cookie). */
+export async function setTheme(fd: FormData): Promise<void> {
+  await requirePatient()
+  const parsed = z.enum(['auto', 'claro', 'escuro']).safeParse(fd.get('tema'))
+  if (!parsed.success) return
+  const jar = await cookies()
+  if (parsed.data === 'auto') jar.delete(THEME_COOKIE)
+  else jar.set(THEME_COOKIE, parsed.data, { path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax', httpOnly: true, secure: process.env.NODE_ENV === 'production' })
+  revalidatePath('/', 'layout')
+}
+
+/** O cliente retira a autorização: o depoimento sai do site e é apagado. */
+export async function withdrawTestimonial(id: string): Promise<void> {
+  const user = await requirePatient()
+  if (!uuid.safeParse(id).success) return
+  const [t] = await db
+    .delete(schema.testimonials)
+    .where(and(eq(schema.testimonials.id, id), eq(schema.testimonials.patientId, user.patientId)))
+    .returning()
+  if (!t) return
+  // Fotos de antes e depois deixam de ser públicas na hora.
+  const photos = [t.beforeFileId, t.afterFileId].filter((x): x is string => Boolean(x))
+  if (photos.length) await db.update(schema.files).set({ isPublic: false }).where(inArray(schema.files.id, photos))
+  await db
+    .update(schema.consents)
+    .set({ revokedAt: new Date() })
+    .where(and(eq(schema.consents.patientId, user.patientId), eq(schema.consents.kind, 'publicacao_depoimento'), eq(schema.consents.version, id)))
+  await audit(user, 'depoimento_autorizacao_retirada', 'depoimento', { entityId: id, patientId: user.patientId })
+  revalidatePath('/paciente/consultas')
+  revalidatePath('/')
 }
 
 /* -------------------------------- LGPD -------------------------------- */
@@ -582,6 +647,9 @@ export async function deleteMyAccount(_: ActionState, fd: FormData): Promise<Act
       .set({ isActive: false, email: `excluido-${user.id}@conta-removida.invalid`, name: 'Conta excluída', passwordHash: null, googleSub: null, updatedAt: new Date() })
       .where(eq(schema.users.id, user.id))
     await tx.update(schema.patients).set({ userId: null, status: 'inativo', updatedAt: new Date() }).where(eq(schema.patients.id, user.patientId))
+    // Depoimentos autorizados saem do site junto com a conta (e as fotos deixam de ser públicas).
+    await tx.update(schema.files).set({ isPublic: false }).where(and(eq(schema.files.patientId, user.patientId), eq(schema.files.kind, 'depoimento')))
+    await tx.delete(schema.testimonials).where(eq(schema.testimonials.patientId, user.patientId))
   })
   await notifyTeam('config', 'Conta excluída pelo cliente', user.name, '/admin/privacidade')
   await audit(user, 'conta_excluida', 'usuario', { entityId: user.id, patientId: user.patientId })

@@ -1,4 +1,6 @@
 import Link from 'next/link'
+import { cookies } from 'next/headers'
+import { THEME_COOKIE, THEME_LABEL, type ThemeChoice } from '@/lib/tema'
 import { and, asc, desc, eq, gt, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requirePatient } from '@/lib/auth/session'
@@ -8,7 +10,7 @@ import { CONTRACT_STATUS, contractInfo } from '@/lib/contract'
 import { dayForWeekday, normalizePlan } from '@/lib/plan'
 import { whatsappLink } from '@/lib/format'
 import { changePassword } from '@/actions/auth'
-import { createDataRequest, deleteMyAccount } from '@/actions/patient'
+import { createDataRequest, deleteMyAccount, setTheme } from '@/actions/patient'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { PageHead, StatusBadge } from '@/components/ui'
 
@@ -30,6 +32,8 @@ export default async function MyDataPage() {
     db.select().from(schema.files).where(eq(schema.files.patientId, user.patientId)).orderBy(desc(schema.files.createdAt)),
   ])
   const sharedDocs = docs.filter((d) => d.visibleToPatient && d.kind === 'documento')
+  const themeCookie = (await cookies()).get(THEME_COOKIE)?.value
+  const currentTheme: ThemeChoice = themeCookie === 'claro' || themeCookie === 'escuro' ? themeCookie : 'auto'
   const today = todayIn(s.timezone)
   const [[pkg], [plan], [next]] = await Promise.all([
     patient.packageId ? db.select().from(schema.packages).where(eq(schema.packages.id, patient.packageId)) : Promise.resolve([]),
@@ -201,6 +205,30 @@ export default async function MyDataPage() {
           )}
         </section>
       </div>
+
+      <section className="card" aria-labelledby="aparencia-titulo">
+        <h2 id="aparencia-titulo" style={{ fontSize: '1.1rem' }}>
+          Aparência
+        </h2>
+        <form action={setTheme} className="stack" style={{ ['--gap' as string]: '10px' }}>
+          <fieldset className="theme-choice">
+            <legend className="sr-only">Aparência do app</legend>
+            {(Object.keys(THEME_LABEL) as ThemeChoice[]).map((k) => (
+              <label key={k} className="check">
+                <input type="radio" name="tema" value={k} defaultChecked={k === currentTheme} /> {THEME_LABEL[k]}
+              </label>
+            ))}
+          </fieldset>
+          <div>
+            <button type="submit" className="btn btn--sm">
+              Aplicar
+            </button>
+          </div>
+        </form>
+        <p className="small muted" style={{ margin: '8px 0 0' }}>
+          Vale para este aparelho. No automático, o app fica escuro quando o celular ou o computador está no modo escuro.
+        </p>
+      </section>
 
       <div className="grid-2">
         <section className="card">

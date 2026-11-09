@@ -46,6 +46,10 @@ test('página principal: hero com a plataforma, storytelling em capítulos, Sobr
   await expect(page.locator('#consultoria .step')).toHaveCount(4)
   await expect(page.locator('#consultoria .tl-plan__name')).toHaveText(['Mensal', 'Trimestral', 'Semestral', 'Anual'])
   await expect(page.locator('#resultados .numbers__item').first()).toBeAttached()
+  // Os números já vêm com o valor final no HTML (sem "0 dias" quando a animação não roda).
+  const raw = await (await page.request.get('/')).text()
+  expect(raw).toMatch(/data-count="15">15</)
+  expect(raw).not.toMatch(/data-count="\d+">0</)
   await expect(page.locator('#resultados')).toContainText('Resultados variam de pessoa para pessoa.')
   await expect(page.locator('#contato').getByRole('link', { name: '(41) 99155-1789' })).toHaveAttribute('href', new RegExp(`^${WA}`))
   await expect(page.locator('a[href*="forms.gle"]')).toHaveCount(0)
@@ -257,4 +261,19 @@ test('política de privacidade (LGPD) com contato e responsável', async ({ page
   }
   await expect(page.getByText('dados pessoais sensíveis')).toBeVisible()
   await expect(page.getByText('[CPF/CNPJ DO RESPONSÁVEL]').first()).toBeVisible()
+})
+
+test('números de Resultados: valor final sem animação (movimento reduzido, impressão e leitor de tela)', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/')
+  const item = page.locator('#resultados .numbers__item', { hasText: 'entre cada revisão' })
+  await expect(item.locator('[data-count]')).toHaveText('15')
+  await expect(item.locator('.sr-only')).toHaveText('15 dias')
+  // Com animação, mas sem rolar até a seção (como numa impressão ou captura): nada fica em 0.
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+  await page.goto('/')
+  await page.emulateMedia({ media: 'print' })
+  await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')))
+  for (const t of await page.locator('#resultados [data-count]').allTextContents()) expect(t).not.toBe('0')
+  await expect(item.locator('[data-count]')).toHaveText('15')
 })

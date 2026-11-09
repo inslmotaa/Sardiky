@@ -335,11 +335,21 @@ function mountReveal(root: ParentNode, reduce: boolean): Cleanup {
   return () => io.disconnect()
 }
 
+/**
+ * Contadores da seção Resultados. O HTML do servidor já traz o valor final (é o que aparece na prévia,
+ * na impressão, para leitores de tela e com movimento reduzido). A animação só roda por cima, quando o
+ * número entra na tela, e termina sempre no valor final; ao imprimir, o valor final volta na hora.
+ */
 function mountCounters(root: ParentNode, reduce: boolean): Cleanup {
   const els = Array.from(root.querySelectorAll<HTMLElement>('[data-count]'))
-  if (reduce || !els.length) return () => {}
+  if (reduce || !els.length || typeof IntersectionObserver === 'undefined') return () => {}
   const fmt = (n: number) => n.toLocaleString('pt-BR')
+  const final = (el: HTMLElement) => fmt(Number(el.dataset.count))
   const rafs: number[] = []
+  const finishAll = () => {
+    rafs.forEach(cancelAnimationFrame)
+    els.forEach((el) => (el.textContent = final(el)))
+  }
   const io = new IntersectionObserver(
     (entries) => {
       for (const e of entries) {
@@ -347,10 +357,11 @@ function mountCounters(root: ParentNode, reduce: boolean): Cleanup {
         io.unobserve(e.target)
         const el = e.target as HTMLElement
         const to = Number(el.dataset.count)
+        if (!Number.isFinite(to) || to <= 0) continue
         const t0 = performance.now()
         const step = (now: number) => {
           const k = clamp01((now - t0) / 1400)
-          el.textContent = fmt(Math.round(to * (1 - Math.pow(1 - k, 3))))
+          el.textContent = k >= 1 ? final(el) : fmt(Math.round(to * (1 - Math.pow(1 - k, 3))))
           if (k < 1) rafs.push(requestAnimationFrame(step))
         }
         rafs.push(requestAnimationFrame(step))
@@ -358,14 +369,13 @@ function mountCounters(root: ParentNode, reduce: boolean): Cleanup {
     },
     { threshold: 0.4 },
   )
-  els.forEach((el) => {
-    el.textContent = '0'
-    io.observe(el)
-  })
+  // Sem zerar nada antes: quem nunca vê a animação fica com o valor final.
+  els.forEach((el) => io.observe(el))
+  window.addEventListener('beforeprint', finishAll)
   return () => {
     io.disconnect()
-    rafs.forEach(cancelAnimationFrame)
-    els.forEach((el) => (el.textContent = fmt(Number(el.dataset.count))))
+    window.removeEventListener('beforeprint', finishAll)
+    finishAll()
   }
 }
 

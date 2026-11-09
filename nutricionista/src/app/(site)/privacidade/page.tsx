@@ -62,6 +62,11 @@ export default async function PrivacyPage() {
           autoridades apenas quando a lei exigir.
         </p>
         <p>
+          <strong>Depoimentos:</strong> sua avaliação de consulta só aparece no site se você marcar &quot;autorizo publicar&quot; e o coach aprovar,
+          assinada com as iniciais (ou o primeiro nome, se você escolher). Fotos de antes e depois exigem uma autorização específica e nunca são publicadas
+          por padrão. Você pode retirar a autorização a qualquer momento em Consultas, e o depoimento sai do site na hora.
+        </p>
+        <p>
           <strong>Pagamentos:</strong> o pagamento dos planos é feito pelo <strong>Mercado Pago</strong>, que atua como operador e processa os dados de
           pagamento (nome, e-mail, CPF, cartão, Pix ou boleto) no ambiente dele, conforme a política de privacidade do Mercado Pago. Este site{' '}
           <strong>não recebe nem guarda dados de cartão</strong>: só o valor, a situação e a forma de pagamento.

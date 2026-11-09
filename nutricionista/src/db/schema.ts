@@ -186,6 +186,8 @@ export const settings = pgTable('settings', {
   method: text('method').notNull().default(''),
   differentials: jsonb('differentials').$type<string[]>().notNull().default([]),
   howItWorks: jsonb('how_it_works').$type<{ title: string; text: string }[]>().notNull().default([]),
+  /** Formações e certificações do coach (página Sobre): curso, instituição e ano. */
+  credentials: jsonb('credentials').$type<{ course: string; institution: string; year: number }[]>().notNull().default([]),
   address: text('address'),
   hoursText: text('hours_text'),
   modalityText: text('modality_text'),
@@ -273,6 +275,42 @@ export const timeBlocks = pgTable('time_blocks', {
   createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
   createdAt: createdAt(),
 })
+
+/**
+ * Depoimentos. Só aparecem no site com autorização registrada (data e forma) E aprovação do coach.
+ * Fotos de antes e depois exigem uma autorização específica, separada, e nunca são publicadas por padrão.
+ */
+export const testimonials = pgTable(
+  'testimonials',
+  {
+    id: id(),
+    patientId: uuid('patient_id').references(() => patients.id, { onDelete: 'set null' }),
+    /** Avaliação de consulta que virou depoimento (o cliente marcou "autorizo publicar"). */
+    appointmentId: uuid('appointment_id').references(() => appointments.id, { onDelete: 'set null' }),
+    /** Como aparece no site: nome ou iniciais. */
+    authorDisplay: text('author_display').notNull(),
+    text: text('text').notNull(),
+    /** Nota de 1 a 5 (opcional). */
+    rating: smallint('rating'),
+    /** Data do depoimento. */
+    date: date('date').notNull(),
+    /** Autorização de publicação: quando e por qual meio (app, escrita, e-mail, WhatsApp). */
+    authorizedAt: timestamp('authorized_at', { withTimezone: true }),
+    authorizationMethod: text('authorization_method').$type<'app' | 'escrita' | 'email' | 'whatsapp'>(),
+    /** Aprovado pelo coach e publicado no site. */
+    published: boolean('published').notNull().default(false),
+    approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'set null' }),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    /** Fotos de antes e depois: só com autorização específica registrada (data e meio). */
+    beforeFileId: uuid('before_file_id').references(() => files.id, { onDelete: 'set null' }),
+    afterFileId: uuid('after_file_id').references(() => files.id, { onDelete: 'set null' }),
+    photosAuthorizedAt: timestamp('photos_authorized_at', { withTimezone: true }),
+    photosAuthorizationMethod: text('photos_authorization_method').$type<'escrita' | 'email' | 'whatsapp'>(),
+    sort: integer('sort').notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('testimonials_appointment_idx').on(t.appointmentId), index('testimonials_published_idx').on(t.published)],
+)
 
 export const faqs = pgTable('faqs', {
   id: id(),

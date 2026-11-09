@@ -17,17 +17,35 @@ export default async function AboutPage() {
     <>
       <PageHead label={`SOBRE · ${s.professionalTitle.toLocaleUpperCase('pt-BR')}`} title={s.professionalName} lead={s.bio} />
 
+      {/* Foto vertical ao lado do texto; sem foto, o texto ocupa a largura toda (sem buraco). */}
       <section className="tl-page">
-        <div className="tl-container about">
-          <div>
-            <p className="sec-label" data-rv="">
-              / COMO EU TRABALHO
-            </p>
-            <h2 className="display" data-rv="">
-              Mais que dieta, um estilo de vida.
-            </h2>
-          </div>
+        <div className={`tl-container about${s.photoFileId ? ' about--portrait' : ' about--nophoto'}`}>
+          {s.photoFileId ? (
+            <figure className="about__portrait" data-rv="">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/arquivos/${s.photoFileId}`} alt={`Foto de ${s.professionalName}, ${s.professionalTitle}`} />
+            </figure>
+          ) : (
+            <div>
+              <p className="sec-label" data-rv="">
+                / COMO EU TRABALHO
+              </p>
+              <h2 className="display" data-rv="">
+                Mais que dieta, um estilo de vida.
+              </h2>
+            </div>
+          )}
           <div className="about__text">
+            {s.photoFileId && (
+              <>
+                <p className="sec-label" data-rv="">
+                  / COMO EU TRABALHO
+                </p>
+                <h2 className="display" data-rv="">
+                  Mais que dieta, um estilo de vida.
+                </h2>
+              </>
+            )}
             {s.method && (
               <p className="tl-lead" data-rv="">
                 {s.method}
@@ -46,6 +64,32 @@ export default async function AboutPage() {
           </div>
         </div>
       </section>
+
+      {s.credentials.length > 0 && (
+        <section className="tl-page" aria-labelledby="formacao-titulo">
+          <div className="tl-container about">
+            <div>
+              <p className="sec-label" data-rv="">
+                / FORMAÇÃO
+              </p>
+              <h2 id="formacao-titulo" className="display" data-rv="">
+                Formações e certificações
+              </h2>
+            </div>
+            <ul className="creds" aria-label="Formações e certificações">
+              {s.credentials.map((c, i) => (
+                <li key={`${c.course}-${c.year}`} className="creds__item" data-rv="" style={{ '--d': `${i * 60}ms` } as React.CSSProperties}>
+                  <span className="creds__year">{c.year}</span>
+                  <span>
+                    <strong className="creds__course">{c.course}</strong>
+                    <span className="creds__inst">{c.institution}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
 
       {s.specialties.length > 0 && (
         <section className="tl-page">

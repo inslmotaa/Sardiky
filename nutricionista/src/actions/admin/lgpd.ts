@@ -66,6 +66,8 @@ export async function anonymizePatient(_: ActionState, fd: FormData): Promise<Ac
         .set({ contactName: 'Cliente anonimizado', contactEmail: 'anonimizado@invalid', contactPhone: '0000000000', patientNotes: null, internalNotes: null, meetingUrl: null })
         .where(eq(schema.appointments.patientId, id))
       if (p.userId) await tx.delete(schema.users).where(eq(schema.users.id, p.userId))
+      // Depoimentos do cliente saem do site e são apagados (a autorização deixa de valer).
+      await tx.delete(schema.testimonials).where(eq(schema.testimonials.patientId, id))
       await tx
         .update(schema.patients)
         .set({ fullName: 'Cliente anonimizado', email: null, phone: null, birthDate: null, objective: null, userId: null, status: 'inativo', anonymizedAt: new Date() })

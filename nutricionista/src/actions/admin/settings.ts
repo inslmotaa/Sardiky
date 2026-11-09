@@ -15,6 +15,7 @@ import { IMAGE_TYPES, saveUpload } from '@/lib/storage'
 import { checkbox, email, int, optEmail, optStr, str, time, uuid } from '@/lib/validation'
 import { titledLines } from '@/lib/planos'
 import { instagramLink } from '@/lib/social'
+import { parseCredentials } from '@/lib/formacoes'
 
 const lines = (v: string | null | undefined) =>
   (v ?? '')
@@ -38,6 +39,7 @@ const profileSchema = z.object({
   method: z.string().trim().max(3000),
   differentials: z.string().max(3000).optional(),
   howItWorks: z.string().max(3000).optional(),
+  credentials: z.string().max(6000).optional(),
   whatsapp: z
     .string()
     .optional()
@@ -89,6 +91,8 @@ export async function saveProfile(_: ActionState, fd: FormData): Promise<ActionS
   const d = parsed.data
   try {
     const user = await requireTeam('config')
+    const creds = parseCredentials(d.credentials)
+    if (creds.error) return { fieldErrors: { credentials: creds.error }, error: creds.error }
     const howItWorks = lines(d.howItWorks).map((l) => {
       const [title, ...rest] = l.split('|')
       return { title: title.trim(), text: rest.join('|').trim() }
@@ -98,6 +102,7 @@ export async function saveProfile(_: ActionState, fd: FormData): Promise<ActionS
       specialties: lines(d.specialties),
       differentials: lines(d.differentials),
       howItWorks,
+      credentials: creds.items,
       plansIncluded: titledLines(d.plansIncluded),
       updatedAt: new Date(),
     }

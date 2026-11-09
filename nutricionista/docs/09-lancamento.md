@@ -90,6 +90,8 @@ Para usar e-mail (recuperação de senha e confirmações):
 ## Checklist antes de divulgar
 
 - [ ] `aplicar-perfil.mjs --conferir` sem pendências e perfil aplicado
+- [ ] `aplicar-perfil.mjs --pendencias` sem pendências (biografia, e-mail, Instagram, foto e textos de exemplo); o quadro "Antes de publicar o site" sumiu do Início do painel
+- [ ] Formações e certificações preenchidas (Configurações → Perfil)
 - [ ] Senha do André criada pelo link e login testado no celular
 - [ ] Foto profissional, logo e assinatura enviados
 - [ ] Site abre em `https://` com cadeado; `https://DOMINIO/api/health` responde `{"ok":true}`

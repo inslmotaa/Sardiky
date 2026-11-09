@@ -74,6 +74,8 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Semana e medidas (unidade) | dias da semana de cada dia do plano, visão "Semana" com kcal, medida caseira sempre com o peso da base |
 | Coach, sem registro (e2e) | área do cliente (`/paciente`, `/paciente/meus-dados`, `/paciente/plano`), Configurações do painel e o texto extraído dos PDFs do plano e da anamnese não mostram "nutricionista", CRN nem registro profissional (o site público é conferido em `public.spec.ts`) |
 | Perfil de produção (unidade) | `aplicar-perfil.mjs` recusa o campo `registro` ("o campo registro não existe mais") e título que não seja de coach |
+| Conteúdo (unidade) | pendências (PREENCHER, example.com, Instagram vazio, foto, "(Texto de exemplo —"), formações, regras dos depoimentos e contraste AA do tema claro e escuro (lido do CSS) |
+| Conteúdo (e2e) | aviso no Início; formações no Sobre e layout sem foto; depoimento autorizado pelo cliente, aprovado pelo coach, fotos só com autorização específica e retirada da autorização (foto deixa de ser pública); modo escuro automático e chave no app; números de Resultados com o valor final sem animação |
 | Banco em SQL (unidade) | `deploy/banco-de-dados.sql` + `deploy/alimentos.sql` criam o mesmo banco que as migrações |
 
 ## Revisão manual recomendada antes da produção

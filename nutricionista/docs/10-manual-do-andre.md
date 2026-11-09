@@ -56,6 +56,16 @@ O quadro **O que precisa de você** mostra, nesta ordem, cada item com um botão
 
 Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguardando e planos que terminam em 7 dias.
 
+### Antes de publicar, depoimentos e formações
+
+- **Antes de publicar o site** (Início): lista o que ainda é texto de exemplo (biografia, e-mail, Instagram, foto, "(Texto de exemplo — …)"). Cada item tem **Ajustar**.
+- **Formações e certificações** (Configurações → Perfil): uma por linha, `Curso | Instituição | Ano`. Aparecem na página Sobre, ao lado da foto vertical.
+- **Depoimentos** (Configurações → Depoimentos e dúvidas):
+  - quando o cliente marca "autorizo publicar" na avaliação da consulta, o depoimento chega aqui como **Aguardando aprovação**, e só vai ao site depois de **Aprovar e publicar**;
+  - depoimentos recebidos por fora pedem a data e a forma da autorização;
+  - fotos de antes e depois só com a **autorização específica** das fotos (data, forma e a confirmação marcada);
+  - o cliente pode retirar a autorização quando quiser.
+
 ### Acompanhamento do dia a dia
 
 - **Acompanhamento:** mostra quem está em dia, com dificuldade ou sem progresso, pela adesão dos últimos 7 dias. Quem está há 3 dias sem registrar gera um alerta.
@@ -89,6 +99,7 @@ O cliente vê **somente os próprios dados**:
   - plano contratado, vigência e dias restantes, com o botão **Renovar o plano** quando estiver perto do fim;
   - o coach, a etapa, o objetivo e a próxima consulta;
   - o plano alimentar ativo, com as refeições do dia, **Ver plano completo**, **Baixar PDF** e **Lista de compras**;
+  - **Aparência**: automático (segue o celular), claro ou escuro;
   - cadastro, troca de senha e privacidade (LGPD);
 - **Fotos e exames** (em **Mais**), tudo opcional:
   - foto da refeição, pelo diário;

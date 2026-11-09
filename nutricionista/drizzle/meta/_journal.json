@@ -134,6 +134,13 @@
       "when": 1794244118204,
       "tag": "0018_remover_registro",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794245146457,
+      "tag": "0019_depoimentos_e_formacoes",
+      "breakpoints": true
     }
   ]
 }

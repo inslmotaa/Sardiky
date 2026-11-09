@@ -1,0 +1,268 @@
+/* ==========================================================================
+   Modo escuro. Segue o aparelho (prefers-color-scheme) e pode ser fixado pelo
+   cliente no app (Meu perfil → Aparência), que grava data-theme no <html>.
+   Contraste AA conferido em tests/unit/contraste.test.ts (a partir deste arquivo).
+   ========================================================================== */
+
+/* Claro (padrão): tokens que o modo escuro troca. */
+:root {
+  --on-brand: #fff;
+  --brand-hover: #174a2e;
+  --tl-surface: #fff;
+  --tl-card: rgb(255 255 255 / 0.55);
+  color-scheme: light;
+}
+body {
+  --brand: var(--brand-custom, var(--verde-principal));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+  --bg: #0f1512;
+  --off-white: #0f1512;
+  --surface: #161f1a;
+  --surface-2: #1d2822;
+  --ink: #e7efe9;
+  --ink-2: #cdd9d1;
+  --muted: #a3b3a8;
+  --line: #2b3a31;
+  --line-strong: #3d5045;
+  --verde-escuro: #b9e3c9;
+  --verde-principal: #7fc79c;
+  --verde-claro: #8dbf8b;
+  --verde-menta: #1d2d23;
+  --brand-dark: #7fc79c;
+  --brand-hover: #9bd6b2;
+  --brand-ink: #b9e3c9;
+  --brand-soft: #1f3327;
+  --brand-softer: #19291f;
+  --on-brand: #0d1a12;
+  --accent: #e0a07c;
+  --ok: #7fd0a0;
+  --ok-bg: #173324;
+  --warn: #f0c070;
+  --warn-bg: #3a2c12;
+  --danger: #ff9b8f;
+  --danger-bg: #3b1a17;
+  --info: #8fc1ec;
+  --info-bg: #15283a;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.35);
+  /* site público */
+  --tl-bg: #0f1512;
+  --tl-surface: #161f1a;
+  --tl-card: rgb(22 31 26 / 0.7);
+  --tl-green: #7fc79c;
+  --tl-green-2: #8dbf8b;
+  --tl-muted: #a3b3a8;
+  --tl-ink: #e7efe9;
+  --tl-line: rgb(127 199 156 / 0.22);
+  color-scheme: dark;
+  }
+  :root:not([data-theme="light"]) body,
+  :root:not([data-theme="light"]) .tl {
+  --bg: #0f1512;
+  --off-white: #0f1512;
+  --surface: #161f1a;
+  --surface-2: #1d2822;
+  --ink: #e7efe9;
+  --ink-2: #cdd9d1;
+  --muted: #a3b3a8;
+  --line: #2b3a31;
+  --line-strong: #3d5045;
+  --verde-escuro: #b9e3c9;
+  --verde-principal: #7fc79c;
+  --verde-claro: #8dbf8b;
+  --verde-menta: #1d2d23;
+  --brand-dark: #7fc79c;
+  --brand-hover: #9bd6b2;
+  --brand-ink: #b9e3c9;
+  --brand-soft: #1f3327;
+  --brand-softer: #19291f;
+  --on-brand: #0d1a12;
+  --accent: #e0a07c;
+  --ok: #7fd0a0;
+  --ok-bg: #173324;
+  --warn: #f0c070;
+  --warn-bg: #3a2c12;
+  --danger: #ff9b8f;
+  --danger-bg: #3b1a17;
+  --info: #8fc1ec;
+  --info-bg: #15283a;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.35);
+  /* site público */
+  --tl-bg: #0f1512;
+  --tl-surface: #161f1a;
+  --tl-card: rgb(22 31 26 / 0.7);
+  --tl-green: #7fc79c;
+  --tl-green-2: #8dbf8b;
+  --tl-muted: #a3b3a8;
+  --tl-ink: #e7efe9;
+  --tl-line: rgb(127 199 156 / 0.22);
+  color-scheme: dark;
+  --brand: var(--brand-dark);
+  background: var(--bg);
+  color: var(--ink);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0f1512;
+  --off-white: #0f1512;
+  --surface: #161f1a;
+  --surface-2: #1d2822;
+  --ink: #e7efe9;
+  --ink-2: #cdd9d1;
+  --muted: #a3b3a8;
+  --line: #2b3a31;
+  --line-strong: #3d5045;
+  --verde-escuro: #b9e3c9;
+  --verde-principal: #7fc79c;
+  --verde-claro: #8dbf8b;
+  --verde-menta: #1d2d23;
+  --brand-dark: #7fc79c;
+  --brand-hover: #9bd6b2;
+  --brand-ink: #b9e3c9;
+  --brand-soft: #1f3327;
+  --brand-softer: #19291f;
+  --on-brand: #0d1a12;
+  --accent: #e0a07c;
+  --ok: #7fd0a0;
+  --ok-bg: #173324;
+  --warn: #f0c070;
+  --warn-bg: #3a2c12;
+  --danger: #ff9b8f;
+  --danger-bg: #3b1a17;
+  --info: #8fc1ec;
+  --info-bg: #15283a;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.35);
+  /* site público */
+  --tl-bg: #0f1512;
+  --tl-surface: #161f1a;
+  --tl-card: rgb(22 31 26 / 0.7);
+  --tl-green: #7fc79c;
+  --tl-green-2: #8dbf8b;
+  --tl-muted: #a3b3a8;
+  --tl-ink: #e7efe9;
+  --tl-line: rgb(127 199 156 / 0.22);
+  color-scheme: dark;
+}
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] .tl {
+--bg: #0f1512;
+--off-white: #0f1512;
+--surface: #161f1a;
+--surface-2: #1d2822;
+--ink: #e7efe9;
+--ink-2: #cdd9d1;
+--muted: #a3b3a8;
+--line: #2b3a31;
+--line-strong: #3d5045;
+--verde-escuro: #b9e3c9;
+--verde-principal: #7fc79c;
+--verde-claro: #8dbf8b;
+--verde-menta: #1d2d23;
+--brand-dark: #7fc79c;
+--brand-hover: #9bd6b2;
+--brand-ink: #b9e3c9;
+--brand-soft: #1f3327;
+--brand-softer: #19291f;
+--on-brand: #0d1a12;
+--accent: #e0a07c;
+--ok: #7fd0a0;
+--ok-bg: #173324;
+--warn: #f0c070;
+--warn-bg: #3a2c12;
+--danger: #ff9b8f;
+--danger-bg: #3b1a17;
+--info: #8fc1ec;
+--info-bg: #15283a;
+--shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.35);
+/* site público */
+--tl-bg: #0f1512;
+--tl-surface: #161f1a;
+--tl-card: rgb(22 31 26 / 0.7);
+--tl-green: #7fc79c;
+--tl-green-2: #8dbf8b;
+--tl-muted: #a3b3a8;
+--tl-ink: #e7efe9;
+--tl-line: rgb(127 199 156 / 0.22);
+color-scheme: dark;
+  --brand: var(--brand-dark);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Detalhes que não usam tokens */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) img[src^="/arquivos/"][alt="Assinatura atual"] {
+    background: #fff;
+  }
+}
+:root[data-theme="dark"] .tl .whatsapp-float,
+:root:not([data-theme="light"]) .tl .whatsapp-float {
+  color: var(--on-brand);
+}
+
+/* Site público: fundos claros fixos (abertura, cabeçalho, menu, faixa e abas do acesso). */
+@media (prefers-color-scheme: dark) {
+  html:not([data-theme="light"]):has(.tl) {
+    background: #0f1512;
+  }
+  :root:not([data-theme="light"]) [data-nature-host] {
+    background: linear-gradient(180deg, #121a16 0%, #0f1512 100%);
+  }
+  :root:not([data-theme="light"]) .tl-header[data-scrolled] {
+    background: rgb(15 21 18 / 0.86);
+  }
+  :root:not([data-theme="light"]) .tl .site-menu__panel {
+    background: #161f1a;
+  }
+  :root:not([data-theme="light"]) .ticker {
+    background: rgb(15 21 18 / 0.4);
+  }
+  :root:not([data-theme="light"]) .login-menu__opt:hover, :root:not([data-theme="light"]) .login-menu__opt:focus-visible {
+    background: #1d2a22;
+  }
+  :root:not([data-theme="light"]) .auth-tabs {
+    background: #1d2822;
+  }
+  :root:not([data-theme="light"]) .auth-tabs__tab:not([aria-current]):hover {
+    background: #26342b;
+  }
+  :root:not([data-theme="light"]) .tl-auth {
+    background: #0f1512;
+  }
+  :root:not([data-theme="light"]) .demo-banner {
+    background: #3a2c12; color: #f0c070;
+  }
+}
+html[data-theme="dark"]:has(.tl) {
+  background: #0f1512;
+}
+:root[data-theme="dark"] [data-nature-host] {
+  background: linear-gradient(180deg, #121a16 0%, #0f1512 100%);
+}
+:root[data-theme="dark"] .tl-header[data-scrolled] {
+  background: rgb(15 21 18 / 0.86);
+}
+:root[data-theme="dark"] .tl .site-menu__panel {
+  background: #161f1a;
+}
+:root[data-theme="dark"] .ticker {
+  background: rgb(15 21 18 / 0.4);
+}
+:root[data-theme="dark"] .login-menu__opt:hover, :root[data-theme="dark"] .login-menu__opt:focus-visible {
+  background: #1d2a22;
+}
+:root[data-theme="dark"] .auth-tabs {
+  background: #1d2822;
+}
+:root[data-theme="dark"] .auth-tabs__tab:not([aria-current]):hover {
+  background: #26342b;
+}
+:root[data-theme="dark"] .tl-auth {
+  background: #0f1512;
+}
+:root[data-theme="dark"] .demo-banner {
+  background: #3a2c12; color: #f0c070;
+}
