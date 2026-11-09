@@ -75,7 +75,7 @@ export async function reviewCheckin(id: string, _: ActionState, fd: FormData): P
 
 const scale = z.union([z.literal(''), int(1, 5)]).optional().transform((v) => (v ? Number(v) : undefined))
 const checkinSchema = z.object({
-  adesao: z.union([z.literal(''), int(1, 5)], 'Diga quanto seguiu o plano').transform((v) => (v ? Number(v) : undefined)),
+  adesao: scale,
   energia: scale,
   fome: scale,
   sono: scale,

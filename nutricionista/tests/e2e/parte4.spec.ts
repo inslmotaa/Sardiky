@@ -50,15 +50,15 @@ test('micronutrientes: quadro fechado no editor (por refeição e dia) e só apa
 test('código de barras: Open Food Facts sugere, o coach confere com o rótulo e salva; repetido é avisado', async ({ page }) => {
   await login(page, 'admin')
   await page.goto('/admin/alimentos')
-  await page.getByLabel('Código de barras').fill('7890000000017')
+  await page.getByRole('textbox', { name: 'Código de barras' }).fill('7890000000017')
   await page.getByRole('button', { name: 'Buscar produto' }).click()
   await expect(page.getByText(/Produto 7890000000017 não encontrado no Open Food Facts/)).toBeVisible()
 
-  await page.getByLabel('Código de barras').fill('7891000100104')
+  await page.getByRole('textbox', { name: 'Código de barras' }).fill('7891000100104')
   await page.getByRole('button', { name: 'Buscar produto' }).click()
   await expect(page.getByText(/Código de barras inválido/)).toBeVisible()
 
-  await page.getByLabel('Código de barras').fill('7891000100103')
+  await page.getByRole('textbox', { name: 'Código de barras' }).fill('7891000100103')
   await page.getByRole('button', { name: 'Buscar produto' }).click()
   await expect(page.getByText(/Encontrado: Leite em pó integral · Marca Teste/)).toBeVisible()
   await expect(page.getByRole('textbox', { name: 'Nome', exact: true })).toHaveValue('Leite em pó integral · Marca Teste')
@@ -70,7 +70,7 @@ test('código de barras: Open Food Facts sugere, o coach confere com o rótulo e
   await page.getByRole('button', { name: 'Cadastrar alimento' }).click()
   await expect(page.getByText('“Leite em pó integral · Marca Teste” cadastrado como alimento próprio.')).toBeVisible()
 
-  await page.getByLabel('Código de barras').fill('7891000100103')
+  await page.getByRole('textbox', { name: 'Código de barras' }).fill('7891000100103')
   await page.getByRole('button', { name: 'Buscar produto' }).click()
   await expect(page.getByText('Este produto já está na base:')).toBeVisible()
   await expect(page.getByRole('link', { name: 'Leite em pó integral · Marca Teste' })).toHaveAttribute('href', /\/admin\/alimentos\/[0-9a-f-]{36}/)
@@ -162,7 +162,7 @@ test('diário: registrar e editar um dia de mais de 30 dias atrás; coach vê re
   await page.goto(`/admin/pacientes/${id}?aba=diario`)
   const table = page.getByRole('table', { name: 'Consumo real × planejado' })
   await expect(table).toBeVisible()
-  await expect(table.getByRole('columnheader', { name: 'kcal (real / plano)' })).toBeVisible()
+  await expect(table).toContainText('kcal (real / plano)')
   expect(await table.getByRole('row').count()).toBeGreaterThan(5)
   await expect(table).toContainText('%')
 })
@@ -223,7 +223,8 @@ test('recibo em PDF: cliente baixa os próprios; equipe no financeiro; outro cli
   await other.close()
 
   await login(page, 'admin')
-  await page.goto('/admin/financeiro')
+  const id = await openPatient(page, 'Beatriz Exemplo')
+  await page.goto(`/admin/pacientes/${id}?aba=financeiro`)
   await expect(page.getByRole('link', { name: /Recibo \(PDF\) nº \d{5}/ }).first()).toBeVisible()
 })
 

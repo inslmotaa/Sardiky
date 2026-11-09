@@ -98,7 +98,7 @@ export function FoodCreateForm({ groups }: { groups: Groups }) {
 
   return (
     <div className="stack">
-      <div className="card card--inset stack" style={{ ['--gap' as string]: '10px' }} aria-labelledby="barcode-titulo">
+      <section className="card card--inset stack" style={{ ['--gap' as string]: '10px' }} aria-labelledby="barcode-titulo">
         <h3 id="barcode-titulo" style={{ margin: 0, fontSize: '1rem' }}>
           Produto industrializado: código de barras
         </h3>
@@ -146,7 +146,7 @@ export function FoodCreateForm({ groups }: { groups: Groups }) {
             {result.suggestion.incomplete ? 'faltam dados, complete pelo rótulo' : 'confira cada um com o rótulo'} antes de salvar.
           </p>
         )}
-      </div>
+      </section>
 
       <ActionForm key={formKey} action={createFood} className="stack" resetOnSuccess>
         {barcode && <input type="hidden" name="barcode" value={barcode} />}
