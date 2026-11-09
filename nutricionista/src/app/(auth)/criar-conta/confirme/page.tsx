@@ -1,9 +1,10 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { noIndex } from '@/lib/seo'
 import { resendVerification } from '@/actions/auth'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 
-export const metadata: Metadata = { title: 'Confirme seu e-mail', robots: { index: false } }
+export const metadata: Metadata = { title: 'Confirme seu e-mail', robots: noIndex }
 
 export default async function ConfirmEmailPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams

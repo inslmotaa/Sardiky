@@ -141,6 +141,13 @@
       "when": 1794245146457,
       "tag": "0019_depoimentos_e_formacoes",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1794246522668,
+      "tag": "0020_conteudos_e_captacao",
+      "breakpoints": true
     }
   ]
 }

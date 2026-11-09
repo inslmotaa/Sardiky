@@ -10,8 +10,12 @@ import { bookingLink, maskPhone, money } from '@/lib/format'
 import { fmtDayLong, isValidDay, isValidTime, todayIn, weekdayOf, weekdayShort, zonedParts } from '@/lib/time'
 import { createBooking } from '@/actions/public'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
+import { sitePageMeta } from '@/lib/seo-server'
 
-export const metadata: Metadata = { title: 'Agendar consulta' }
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings()
+  return sitePageMeta({ title: 'Agendar consulta', description: `Agende sua consulta on-line com ${s.professionalName}, ${s.professionalTitle}, pelo site ou pelo WhatsApp.`, path: '/agendar' })
+}
 
 type SP = Promise<Record<string, string | string[] | undefined>>
 const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)

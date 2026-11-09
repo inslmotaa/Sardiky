@@ -14,6 +14,7 @@ home = BeautifulSoup(get('/').decode(), 'html.parser')
 priv = BeautifulSoup(get('/privacidade').decode(), 'html.parser')
 plans = BeautifulSoup(get('/planos').decode(), 'html.parser')
 faqp = BeautifulSoup(get('/duvidas').decode(), 'html.parser')
+posts = BeautifulSoup(get('/conteudos').decode(), 'html.parser')
 demo_css = open(os.path.join(ROOT, 'previa/src/demo.css'), encoding='utf-8').read()
 with tempfile.TemporaryDirectory() as tmp:
     bundle = os.path.join(tmp, 'app.js')
@@ -43,6 +44,8 @@ for t in home.find_all('link'): t.decompose()
 for c in home.find_all(string=lambda s: isinstance(s, Comment)): c.extract()
 for t in home.select('div[hidden]'): t.decompose()
 for t in home.select('meta[name=robots]'): t.decompose()
+# Open Graph, Twitter e canonical apontam para o servidor local da geração: ficam só no site publicado.
+for t in home.select('meta[property^="og:"], meta[name^="twitter:"]'): t.decompose()
 html_tag = home.find('html')
 if html_tag.get('id') == '__next_error__': del html_tag['id']
 
@@ -69,12 +72,13 @@ for a in home.find_all('a', href=True):
     elif h == '/sobre': a['href'] = '#sobre'
     elif h == '/como-funciona': a['href'] = '#consultoria'
     elif h == '/duvidas': a['href'] = '#duvidas'
+    elif h.startswith('/conteudos'): a['href'] = '#conteudos'
     elif h.startswith('/entrar'): a['href'] = '#entrar'
     elif h.startswith('/login'): a['href'] = '#entrar'
     elif h.startswith('/privacidade'): a['href'] = '#privacidade'; a.attrs.pop('target', None)
 
-# Formulário de contato -> WhatsApp (só existe com a agenda on-line ligada; no modo WhatsApp o contato já monta a mensagem)
-form = home.find('form')
+# Formulário "Quero saber mais" -> WhatsApp (na prévia não há servidor para gravar o interessado)
+form = home.find('form', id='saber-mais') or home.find('form')
 if form:
     for k in ['action', 'method', 'enctype', 'encType']: form.attrs.pop(k, None)
     form['id'] = 'form-contato'
@@ -109,6 +113,7 @@ def bring(doc, first_id):
 # Páginas de planos e dúvidas (no site publicado ficam em /planos e /duvidas).
 bring(plans, 'planos')
 bring(faqp, 'duvidas')
+bring(posts, 'conteudos')
 psec = priv.find('main').find('section')
 psec['id'] = 'privacidade'
 psec['class'] = ['section', 'section--alt']
@@ -174,7 +179,7 @@ script.string = r'''
       else if (!form.elements.consent.checked) err = 'É preciso concordar com a Política de Privacidade.';
       msg.hidden = false;
       if (err) { msg.className = 'alert alert--error'; msg.textContent = err; return; }
-      var text = 'Olá! Meu nome é ' + v('name') + '. Telefone: ' + v('phone') +
+      var text = 'Olá! Vim pelo site e quero saber mais. Meu nome é ' + v('name') + '. WhatsApp: ' + v('phone') +
         (v('email') ? '. E-mail: ' + v('email') : '') + (v('interest') ? '. Interesse: ' + v('interest') : '') +
         (v('message') ? '. ' + v('message') : '');
       msg.className = 'alert alert--ok';

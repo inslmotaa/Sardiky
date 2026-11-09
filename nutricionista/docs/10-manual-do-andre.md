@@ -66,6 +66,12 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
   - fotos de antes e depois só com a **autorização específica** das fotos (data, forma e a confirmação marcada);
   - o cliente pode retirar a autorização quando quiser.
 
+### Conteúdos, interessados e pixels
+
+- **Conteúdos do site** (menu Gestão): escreva textos para o blog em `/conteudos`. Título, resumo, capa, texto em Markdown simples, **Rascunho** ou **Publicado** e a data (data futura = agendado). Rascunho não aparece no site; o botão **Pré-visualizar** mostra como vai ficar. Todo post termina com o convite para agendar ou contratar.
+- **Interessados:** quem preencheu "Quero saber mais" ou o contato, com a **origem** (ex.: "instagram / bio · campanha novembro"). Use links com UTM nas divulgações: `https://SEU-SITE/?utm_source=instagram&utm_medium=bio&utm_campaign=novembro`.
+- **Configurações → Captação e pixels:** pixels da Meta e do Google, **desligados por padrão**. Ligados, o site pede o consentimento de cookies e só carrega os pixels para quem aceitar, apenas nas páginas públicas. Detalhes em [16-seo-e-captacao.md](16-seo-e-captacao.md).
+
 ### Acompanhamento do dia a dia
 
 - **Acompanhamento:** mostra quem está em dia, com dificuldade ou sem progresso, pela adesão dos últimos 7 dias. Quem está há 3 dias sem registrar gera um alerta.
@@ -86,6 +92,7 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 | Configurações → Perfil | **Botão "Agendar consulta" do site**: agenda on-line com conta do cliente (padrão) ou WhatsApp |
 | Configurações → Perfil | **Mostrar os valores das consultas no site** (desligado por padrão) |
 | Configurações → Perfil | **Mostrar os valores dos planos** (ligado) e a lista **Todos os planos incluem** |
+| Configurações → Captação e pixels | Pixels da Meta e do Google (desligados por padrão) e exemplo de link com UTM |
 | Configurações → Equipe | Convidar recepção ou outro coach. Cada um pode ver só os próprios clientes. |
 | Privacidade e auditoria | Quem acessou o quê, pedidos de exportação e exclusão de dados (LGPD) |
 

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { noIndex } from '@/lib/seo'
 import { eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
@@ -8,7 +9,7 @@ import { whatsappLink } from '@/lib/format'
 import { integrationStatus } from '@/lib/integrations'
 import { StatusBadge } from '@/components/ui'
 
-export const metadata: Metadata = { title: 'Pedido de agendamento', robots: { index: false } }
+export const metadata: Metadata = { title: 'Pedido de agendamento', robots: noIndex }
 
 export default async function ConfirmedPage({ searchParams }: { searchParams: Promise<{ codigo?: string }> }) {
   const { codigo } = await searchParams

@@ -16,6 +16,7 @@ import {
   saveClinicalSettings,
   saveTemplates,
   saveMercadoPagoSettings,
+  savePixelSettings,
   updateStaff,
 } from '@/actions/admin/settings'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
@@ -24,6 +25,8 @@ import { titledText } from '@/lib/planos'
 import { AUTH_METHODS, PHOTO_AUTH_METHODS } from '@/lib/depoimentos'
 import { approveTestimonial, createTestimonial, deleteTestimonial, hideTestimonial, removeTestimonialPhotos, saveTestimonialPhotos } from '@/actions/admin/testimonials'
 import { credentialsText } from '@/lib/formacoes'
+import { activePixels } from '@/lib/pixels'
+import { siteUrl } from '@/lib/seo'
 
 const SECTIONS = [
   { key: 'perfil', label: 'Perfil e identidade', perm: 'config' },
@@ -33,6 +36,7 @@ const SECTIONS = [
   { key: 'chat', label: 'Chat', perm: 'config' },
   { key: 'planos', label: 'Planos, anamnese e PDF', perm: 'config' },
   { key: 'site', label: 'Depoimentos e dúvidas', perm: 'site' },
+  { key: 'captacao', label: 'Captação e pixels', perm: 'site' },
   { key: 'equipe', label: 'Equipe e permissões', perm: 'config' },
   { key: 'integracoes', label: 'Integrações', perm: 'config' },
 ] as const
@@ -56,6 +60,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       {sec.key === 'chat' && <ChatSection s={s} />}
       {sec.key === 'planos' && <ClinicalSection s={s} />}
       {sec.key === 'site' && <SiteSection />}
+      {sec.key === 'captacao' && <PixelsSection s={s} />}
       {sec.key === 'equipe' && <TeamSection tz={s.timezone} />}
       {sec.key === 'integracoes' && <IntegrationsSection s={s} />}
     </div>
@@ -444,6 +449,59 @@ function TemplatesSection({ s }: { s: S }) {
         </div>
       </ActionForm>
     </section>
+  )
+}
+
+/** Pixels da Meta e do Google (desligados por padrão) e o consentimento de cookies que eles exigem. */
+function PixelsSection({ s }: { s: S }) {
+  const on = activePixels(s)
+  return (
+    <div className="stack" style={{ ['--gap' as string]: '18px' }}>
+      <section className="card stack" aria-labelledby="pixels-titulo">
+        <h2 id="pixels-titulo" style={{ fontSize: '1.1rem', margin: 0 }}>
+          Pixels de anúncio (Meta e Google)
+        </h2>
+        <p className="small muted" style={{ margin: 0 }}>
+          Desligados por padrão. Ligados, o site mostra um aviso de cookies e só carrega os pixels para quem clicar em “Aceitar”, e apenas nas páginas
+          públicas (nunca no login, na área do cliente ou no painel). A Política de Privacidade passa a citar os pixels automaticamente.
+        </p>
+        <p className={`alert ${on ? 'alert--ok' : 'alert--info'} small`} role="status" style={{ margin: 0 }}>
+          {on
+            ? `Ligados: ${[on.meta && 'Meta', on.google && 'Google'].filter(Boolean).join(' e ')}. O aviso de cookies aparece para os visitantes.`
+            : 'Desligados: nenhum script de terceiros é carregado e não há aviso de cookies.'}
+        </p>
+        <ActionForm action={savePixelSettings} className="stack">
+          <label className="check">
+            <input type="checkbox" name="pixelsEnabled" defaultChecked={s.pixelsEnabled} /> Ligar os pixels (com consentimento de cookies)
+          </label>
+          <div className="form-grid">
+            <Field label="ID do pixel da Meta" name="metaPixelId" hint="Gerenciador de Eventos da Meta → Fontes de dados. Só números.">
+              <input name="metaPixelId" defaultValue={s.metaPixelId} inputMode="numeric" maxLength={20} autoComplete="off" />
+            </Field>
+            <Field label="ID da tag do Google" name="googleTagId" hint="G-XXXXXXX (Google Analytics 4) ou AW-XXXXXXX (Google Ads).">
+              <input name="googleTagId" defaultValue={s.googleTagId} maxLength={24} autoComplete="off" />
+            </Field>
+          </div>
+          <div className="row">
+            <SubmitButton>Salvar pixels</SubmitButton>
+          </div>
+        </ActionForm>
+      </section>
+      <section className="card stack" aria-labelledby="utm-titulo">
+        <h2 id="utm-titulo" style={{ fontSize: '1.1rem', margin: 0 }}>
+          Origem dos interessados (UTM)
+        </h2>
+        <p className="small" style={{ margin: 0 }}>
+          O formulário “Quero saber mais” guarda de onde veio cada contato. Nos links das suas divulgações, acrescente os parâmetros UTM, por exemplo:
+        </p>
+        <code className="small" style={{ overflowWrap: 'anywhere' }}>
+          {`${siteUrl()}/?utm_source=instagram&utm_medium=bio&utm_campaign=novembro`}
+        </code>
+        <p className="small muted" style={{ margin: 0 }}>
+          A origem aparece em Interessados. Sem UTM, fica registrado só o site que indicou a visita (ex.: l.instagram.com), quando houver.
+        </p>
+      </section>
+    </div>
   )
 }
 

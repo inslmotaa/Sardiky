@@ -1,12 +1,17 @@
 import type { Metadata } from 'next'
 import { getSettings } from '@/lib/settings'
 import { PRIVACY_VERSION } from '@/lib/constants'
+import { sitePageMeta } from '@/lib/seo-server'
+import { activePixels } from '@/lib/pixels'
 
-export const metadata: Metadata = { title: 'Política de privacidade' }
+export async function generateMetadata(): Promise<Metadata> {
+  return sitePageMeta({ title: 'Política de privacidade', description: 'Como o site e o app tratam seus dados pessoais conforme a LGPD: o que é coletado, para quê e como pedir acesso, correção ou exclusão.', path: '/privacidade' })
+}
 
 /** Política de privacidade (LGPD). Campos ainda não preenchidos em Configurações aparecem entre colchetes. */
 export default async function PrivacyPage() {
   const s = await getSettings()
+  const pixels = activePixels(s)
   const contact = s.privacyContact || s.contactEmail || '[E-MAIL DE CONTATO]'
   const doc = s.responsibleDocument || '[CPF/CNPJ DO RESPONSÁVEL]'
   return (
@@ -49,10 +54,15 @@ export default async function PrivacyPage() {
             <strong>Pagamentos</strong> (plano escolhido, valores e recibos): para cumprir obrigações legais e contratuais.
           </li>
           <li>
+            <strong>Contato pelo site</strong> (nome, WhatsApp, objetivo e, quando houver, a origem da visita: a campanha do link e o site que indicou):
+            para responder ao seu pedido e saber quais divulgações funcionam. Os contatos não convertidos são eliminados automaticamente após{' '}
+            {s.leadRetentionDays} dias.
+          </li>
+          <li>
             <strong>Registros de acesso</strong> (data, hora e endereço IP de ações relevantes): para segurança e cumprimento do Marco Civil da Internet.
           </li>
         </ul>
-        <p>Não vendemos dados e não usamos seus dados para publicidade.</p>
+        <p>Não vendemos dados e não usamos seus dados de saúde para publicidade.</p>
 
         <h2>3. Quem acessa</h2>
         <p>
@@ -111,11 +121,21 @@ export default async function PrivacyPage() {
           (ANPD).
         </p>
 
-        <h2>7. Cookies</h2>
+        <h2 id="cookies">7. Cookies</h2>
         <p>
-          Usamos apenas cookies essenciais: um mantém você conectado e outro, temporário, protege o login com o Google. Não usamos cookies de publicidade
-          nem rastreamento de terceiros.
+          Usamos cookies essenciais: um mantém você conectado, outro, temporário, protege o login com o Google, e um terceiro guarda a aparência escolhida no
+          app (claro ou escuro).
         </p>
+        {pixels ? (
+          <p>
+            Com a sua permissão, dada no aviso de cookies, as páginas públicas do site carregam também cookies de medição de{' '}
+            {[pixels.meta && 'Meta (Facebook e Instagram)', pixels.google && 'Google'].filter(Boolean).join(' e ')}, para medir de onde vêm as visitas e
+            melhorar os anúncios. Eles nunca rodam no login, na área do cliente ou no painel, e não recebem dados de saúde. Você pode mudar a escolha a
+            qualquer momento em “Preferências de cookies”, no rodapé.
+          </p>
+        ) : (
+          <p>Não usamos cookies de publicidade nem rastreamento de terceiros.</p>
+        )}
 
         <h2>8. Alterações</h2>
         <p>Quando esta política mudar, a nova versão será publicada nesta página com a data de atualização.</p>

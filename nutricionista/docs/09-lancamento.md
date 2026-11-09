@@ -105,6 +105,8 @@ Para usar e-mail (recuperação de senha e confirmações):
   - [ ] pagamento real de valor baixo aprovado, aparecendo como "Confirmado por mercadopago", e depois estornado;
   - [ ] "Simular notificação" no painel do Mercado Pago respondida com 200;
   - [ ] parcelas máximas e nome na fatura conferidos em Configurações → Integrações
+- [ ] SEO ([16-seo-e-captacao.md](16-seo-e-captacao.md)): `APP_URL` com o domínio final; `https://DOMINIO/robots.txt` e `https://DOMINIO/sitemap.xml` abrem; site cadastrado no Google Search Console com o sitemap enviado; link do site testado no Depurador de compartilhamento da Meta (imagem verde aparece)
+- [ ] Pixels: se for anunciar, IDs da Meta/Google em Configurações → Captação e pixels e aviso de cookies conferido; se não, deixar desligados
 - [ ] Política de privacidade revisada por profissional jurídico
 - [ ] Backup externo configurado e uma restauração testada ([03-publicacao.md](03-publicacao.md))
 - [ ] Monitoramento de disponibilidade ativo (UptimeRobot ou similar)

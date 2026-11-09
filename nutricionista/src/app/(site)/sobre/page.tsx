@@ -5,8 +5,15 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { bookingLink } from '@/lib/format'
 import { BookingLink } from '@/components/BookingLink'
 import { PageHead } from '@/components/SiteBlocks'
+import { sitePageMeta } from '@/lib/seo-server'
+import { JsonLd } from '@/components/JsonLd'
+import { siteUrl } from '@/lib/seo'
+import { aboutLd } from '@/lib/jsonld'
 
-export const metadata: Metadata = { title: 'Sobre' }
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings()
+  return sitePageMeta({ title: 'Sobre', description: `Conheça ${s.professionalName}, ${s.professionalTitle}: trajetória, formações e o método de acompanhamento on-line de alimentação, rotina e bem-estar.`, path: '/sobre' })
+}
 
 /** Quem é o André: apresentação, método, diferenciais e objetivos (textos editáveis em Configurações). */
 export default async function AboutPage() {
@@ -15,6 +22,7 @@ export default async function AboutPage() {
   const first = s.professionalName.split(' ')[0]
   return (
     <>
+      <JsonLd data={aboutLd(s, siteUrl())} />
       <PageHead label={`SOBRE · ${s.professionalTitle.toLocaleUpperCase('pt-BR')}`} title={s.professionalName} lead={s.bio} />
 
       {/* Foto vertical ao lado do texto; sem foto, o texto ocupa a largura toda (sem buraco). */}

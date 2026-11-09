@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { cookies } from 'next/headers'
 import { getSettings } from '@/lib/settings'
 import { THEME_COOKIE, themeAttr } from '@/lib/tema'
+import { clip, siteUrl } from '@/lib/seo'
 // Fontes empacotadas no projeto (não dependem de download do Google no build).
 import '@fontsource-variable/inter'
 import '@fontsource-variable/archivo/wdth.css'
@@ -16,10 +17,16 @@ export const dynamic = 'force-dynamic'
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings()
   const title = `${s.siteName} · ${s.professionalName}, ${s.professionalTitle}`
+  const description = clip(s.bio)
   return {
+    // Endereço público (APP_URL): base de canonical, Open Graph e imagens.
+    metadataBase: new URL(siteUrl()),
     title: { default: title, template: `%s · ${s.siteName}` },
-    description: s.bio.slice(0, 160),
+    description,
     applicationName: s.siteName,
+    // Padrões de compartilhamento; cada página pública troca título, descrição e endereço.
+    openGraph: { type: 'website', locale: 'pt_BR', siteName: s.siteName, title, description },
+    twitter: { card: 'summary_large_image', title, description },
     robots: { index: true, follow: true },
     // App instalável: ícone na tela inicial do iPhone e barra de status integrada.
     appleWebApp: { capable: true, title: s.siteName, statusBarStyle: 'default' },

@@ -7,6 +7,7 @@ import { fmtDateTime } from '@/lib/time'
 import { whatsappLink } from '@/lib/format'
 import { deleteLead, setLeadStatus } from '@/actions/admin/settings'
 import { NoAccess, PageHead, StatusBadge, Empty } from '@/components/ui'
+import { originLabel } from '@/lib/utm'
 
 export default async function LeadsPage() {
   const user = await requireTeam()
@@ -15,17 +16,21 @@ export default async function LeadsPage() {
   const leads = await db.select().from(schema.leads).orderBy(desc(schema.leads.createdAt))
   return (
     <div className="stack">
-      <PageHead title="Interessados" subtitle={`Contatos enviados pelo formulário do site. Não convertidos são eliminados automaticamente após ${s.leadRetentionDays} dias.`} />
+      <PageHead
+        title="Interessados"
+        subtitle={`Contatos enviados pelos formulários do site, com a origem da visita (UTM) quando houver. Não convertidos são eliminados automaticamente após ${s.leadRetentionDays} dias.`}
+      />
       {leads.length === 0 ? (
         <Empty>Nenhum contato recebido.</Empty>
       ) : (
         <div className="table-wrap">
-          <table>
+          <table aria-label="Interessados">
             <thead>
               <tr>
                 <th>Recebido</th>
                 <th>Contato</th>
                 <th>Interesse / mensagem</th>
+                <th>Origem</th>
                 <th>Situação</th>
                 <th>Ações</th>
               </tr>
@@ -44,6 +49,13 @@ export default async function LeadsPage() {
                     <td className="small">
                       {l.interest && <strong>{l.interest}</strong>}
                       {l.message && <div>{l.message}</div>}
+                    </td>
+                    <td className="small">
+                      <div>{l.form === 'saber-mais' ? 'Quero saber mais' : 'Contato'}</div>
+                      {originLabel(l) && <div className="muted">{originLabel(l)}</div>}
+                      {l.utmContent && <div className="muted">conteúdo: {l.utmContent}</div>}
+                      {l.utmTerm && <div className="muted">termo: {l.utmTerm}</div>}
+                      {l.landingPath && <div className="muted">entrou por {l.landingPath}</div>}
                     </td>
                     <td>
                       <StatusBadge status={l.status} />

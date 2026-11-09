@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { noIndex } from '@/lib/seo'
 import Link from 'next/link'
 import { requirePatient } from '@/lib/auth/session'
 import { getSettings } from '@/lib/settings'
@@ -15,7 +16,7 @@ import { removePushSubscription, savePushSubscription } from '@/actions/push'
 import { vapidKeys } from '@/lib/push'
 import { IconBook, IconChart, IconChat, IconHome, IconMoney, IconPlate, IconSettings, IconUser } from '@/components/icons'
 
-export const metadata: Metadata = { title: 'Área do cliente', robots: { index: false } }
+export const metadata: Metadata = { title: 'Área do cliente', robots: noIndex }
 
 export default async function PatientLayout({ children }: { children: React.ReactNode }) {
   const user = await requirePatient()

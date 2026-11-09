@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { noIndex } from '@/lib/seo'
 import { resetPassword } from '@/actions/auth'
 import { findValidToken } from '@/lib/auth/reset'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 
-export const metadata: Metadata = { title: 'Definir senha', robots: { index: false }, referrer: 'no-referrer' }
+export const metadata: Metadata = { title: 'Definir senha', robots: noIndex, referrer: 'no-referrer' }
 
 export default async function ResetPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const { token = '' } = await searchParams

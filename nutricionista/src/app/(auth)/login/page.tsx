@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { noIndex } from '@/lib/seo'
 import { redirect } from 'next/navigation'
 import { login, logout } from '@/actions/auth'
 import { getCurrentUser } from '@/lib/auth/session'
@@ -10,7 +11,7 @@ import { GoogleLink, PasswordInput } from '@/components/AuthWidgets'
 import { ClearCacheOnMount } from '@/components/pwa'
 import { AuthTabs } from '@/components/AuthTabs'
 
-export const metadata: Metadata = { title: 'Entrar', robots: { index: false } }
+export const metadata: Metadata = { title: 'Entrar', robots: noIndex }
 
 const ERRORS: Record<string, string> = {
   google: 'Não foi possível entrar com o Google. Tente novamente ou use e-mail e senha.',

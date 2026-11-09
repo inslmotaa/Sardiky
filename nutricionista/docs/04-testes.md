@@ -25,6 +25,7 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Composição corporal | Siri; Jackson-Pollock 3 dobras (homem e mulher, dobras certas por sexo); Jackson-Pollock 7 dobras; Durnin-Womersley com coeficiente por faixa etária; dobra faltando não calcula; massa magra |
 | Lista de compras, restrições, feriados | soma semanal por dia da semana, cozido → cru pelo fator de cocção, unidades; alertas de lactose/glúten/vegetariano/ovo (com exceções “sem lactose” e “pão de queijo”); Páscoa 2025–2027, Carnaval, Sexta-feira Santa, Corpus Christi; nome da sala do Jitsi |
 | Adesão ao plano | feita = 1, parcial = ½; dias antes do plano não contam; dias da semana com números diferentes de refeições; limites configuráveis; sequência de dias; adesão semanal |
+| SEO e captação | Markdown dos Conteúdos (HTML e `javascript:` viram texto), endereço sem acento, rascunho e data futura fora do site; UTM limpo (só o domínio de quem indicou, página sem query); IDs de pixel (Meta só números, Google `G-`/`AW-`), pixels desligados por padrão e só em páginas públicas; JSON-LD (Coach, on-line, FAQ) e JSON seguro dentro de `<script>`; canonical, Open Graph e descrição até 160 caracteres |
 | Validação | formulários configuráveis (obrigatórios, opções inválidas, campos desconhecidos descartados); plano alimentar v2 (dias, opções, itens calculados) e conversão de planos antigos; valores em reais; telefones |
 
 ### Ponta a ponta (`tests/e2e`)
@@ -34,6 +35,9 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Site público | storytelling, nome do profissional, serviços, planos sem desconto, botão Contratar |
 | Interessados | consentimento obrigatório; dados digitados não se perdem no erro; contato salvo |
 | Agendamento | 5 passos até a confirmação com código; **o mesmo horário deixa de ser oferecido** |
+| SEO | `robots.txt` (painel, cliente e login fora), `sitemap.xml` sem rascunhos, título/descrição/canonical/Open Graph/Twitter por página, imagem 1200×630, JSON-LD Person + ProfessionalService e FAQPage |
+| Conteúdos | coach cria → rascunho dá 404 ao público e pré-visualização ao coach → publicado aparece na lista, no sitemap e termina com Agendar/Contratar |
+| Captação e pixels | "Quero saber mais" guarda a origem UTM e aparece em Interessados; sem pixels, nenhum aviso de cookies; ligados, recusar não carrega nada, aceitar carrega com a CSP liberada só nas páginas públicas e o login abre sem pixels |
 | Responsividade | sem rolagem horizontal a 360 px no site, no app do paciente e no painel |
 | Acesso | áreas privadas exigem login; exportação e CSV recusam anônimos; senha errada com mensagem genérica; cookie `httpOnly` e `SameSite=Lax` |
 | Isolamento | paciente não abre formulário nem foto de outro paciente (404) e é redirecionado ao tentar o painel; anônimo não baixa fotos |

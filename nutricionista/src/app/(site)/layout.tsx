@@ -11,6 +11,9 @@ import { LoginMenu, MobileMenu, SiteBrand, SiteFx, SiteNavLinks, UserMenu } from
 import { SITE_NAV, SITE_PAGES, TIMELESS_URL } from '@/lib/constants'
 import { MotionRoot } from '@/components/motion'
 import { IconInstagram, IconMail, IconWhatsApp } from '@/components/icons'
+import { UtmCapture } from '@/components/Captacao'
+import { CookiePrefsButton, SitePixels } from '@/components/Pixels'
+import { activePixels } from '@/lib/pixels'
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [s, user] = await Promise.all([getSettings(), getCurrentUser()])
@@ -20,10 +23,14 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de mais informações sobre o acompanhamento.')
   const area = user ? (user.role === 'patient' ? '/paciente' : '/admin') : '/entrar'
+  // Pixels (Meta/Google): só com a chave ligada no painel e um ID válido; aí aparece o aviso de cookies.
+  const pixels = activePixels(s)
   return (
     <MotionRoot>
       <div className="tl">
         <SiteFx />
+        <UtmCapture />
+        {pixels && <SitePixels config={pixels} />}
         <a className="skip-link" href="#conteudo">
           Pular para o conteúdo
         </a>
@@ -101,6 +108,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                   </Link>
                 ))}
                 <Link href="/privacidade">/ Política de privacidade</Link>
+                {pixels && <CookiePrefsButton />}
               </nav>
               <nav aria-label="Páginas">
                 <h2>Páginas</h2>

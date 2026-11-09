@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { asc, desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
@@ -11,6 +12,11 @@ import { BookingLink } from '@/components/BookingLink'
 import { MonoLabel, NatureBg, PlanGrid } from '@/components/SiteBlocks'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
 import { AppMock, HeroTicker, PanelMock } from '@/components/HeroArt'
+import { sitePageMeta } from '@/lib/seo-server'
+import { SaberMaisForm } from '@/components/Captacao'
+import { JsonLd } from '@/components/JsonLd'
+import { siteUrl } from '@/lib/seo'
+import { homeLd } from '@/lib/jsonld'
 
 const SERVICES = ['Emagrecimento', 'Performance esportiva', 'Reeducação alimentar']
 
@@ -57,6 +63,16 @@ const DEFAULT_GOALS = ['Ganho de massa muscular', 'Emagrecimento saudável', 'Ma
 const d = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties
 
 /** Página inicial: hero com a plataforma (painel e app), storytelling em capítulos, Sobre, Consultoria, Resultados e Contato. */
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings()
+  return sitePageMeta({
+    title: `${s.siteName} · ${s.professionalName}, ${s.professionalTitle}`,
+    absolute: true,
+    description: `Acompanhamento on-line de alimentação e rotina com ${s.professionalName}, ${s.professionalTitle}: plano individualizado no app, ajustes frequentes e contato direto.`,
+    path: '/',
+  })
+}
+
 export default async function HomePage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
   const [s, user, packages, published] = await Promise.all([
@@ -91,6 +107,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <>
+      <JsonLd data={homeLd(s, siteUrl())} />
       {sp.conta === 'excluida' && (
         <p className="alert alert--ok tl-container tl-alert" role="status">
           Sua conta foi excluída e o acesso foi encerrado. Obrigado por ter feito parte do acompanhamento.
@@ -433,6 +450,13 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 <dd>On-line, por videochamada e pelo app</dd>
               </div>
             </dl>
+          </div>
+          <div className="saber-mais-box" data-rv="" aria-labelledby="saber-mais-titulo">
+            <h3 id="saber-mais-titulo" className="saber-mais-box__title">
+              Quero saber mais
+            </h3>
+            <p className="saber-mais-box__lead">Deixe nome e WhatsApp: o {first} chama você para explicar como funciona, sem compromisso.</p>
+            <SaberMaisForm />
           </div>
         </div>
       </section>

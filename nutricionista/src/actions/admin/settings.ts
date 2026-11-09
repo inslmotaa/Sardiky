@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
+import { GOOGLE_TAG_ID, META_PIXEL_ID } from '@/lib/pixels'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { STAFF_PERMISSIONS } from '@/lib/auth/permissions'
@@ -254,6 +255,47 @@ export async function saveMercadoPagoSettings(_: ActionState, fd: FormData): Pro
     await audit(user, 'configuracoes_mercadopago', 'configuracoes', { details: parsed.data })
     revalidatePath('/admin/configuracoes')
     return { ok: true, message: 'Configurações do Mercado Pago salvas.' }
+  } catch (err) {
+    return failure(err)
+  }
+}
+
+/* --------------------------- pixels e cookies --------------------------- */
+
+/** Pixels da Meta e do Google: desligados por padrão; ligados, o site pede consentimento de cookies antes de carregar. */
+export async function savePixelSettings(_: ActionState, fd: FormData): Promise<ActionState> {
+  const parsed = z
+    .object({
+      pixelsEnabled: checkbox,
+      metaPixelId: z
+        .string()
+        .trim()
+        .optional()
+        .transform((v) => v ?? '')
+        .refine((v) => v === '' || META_PIXEL_ID.test(v), 'O ID do pixel da Meta tem só números (ex.: 123456789012345)'),
+      googleTagId: z
+        .string()
+        .trim()
+        .optional()
+        .transform((v) => (v ?? '').toUpperCase())
+        .refine((v) => v === '' || GOOGLE_TAG_ID.test(v), 'Use o ID da tag do Google: G-XXXXXXX (Analytics) ou AW-XXXXXXX (Google Ads)'),
+    })
+    .safeParse(formObject(fd))
+  if (!parsed.success) return zodErrors(parsed.error)
+  const d = parsed.data
+  if (d.pixelsEnabled && !d.metaPixelId && !d.googleTagId)
+    return { fieldErrors: { metaPixelId: 'Informe ao menos um ID' }, error: 'Para ligar os pixels, informe o ID da Meta, do Google ou dos dois.' }
+  try {
+    const user = await requireTeam('site')
+    await db.update(schema.settings).set({ ...d, updatedAt: new Date() }).where(eq(schema.settings.id, 1))
+    await audit(user, 'configuracoes_pixels', 'configuracoes', { details: { ligado: d.pixelsEnabled, meta: Boolean(d.metaPixelId), google: Boolean(d.googleTagId) } })
+    revalidatePath('/', 'layout')
+    return {
+      ok: true,
+      message: d.pixelsEnabled
+        ? 'Pixels ligados. O site passa a pedir o consentimento de cookies e só carrega os pixels para quem aceitar.'
+        : 'Pixels desligados. Nenhum script da Meta ou do Google é carregado e o aviso de cookies não aparece.',
+    }
   } catch (err) {
     return failure(err)
   }

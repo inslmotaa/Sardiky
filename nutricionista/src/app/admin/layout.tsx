@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { noIndex } from '@/lib/seo'
 import { and, count, eq, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
@@ -21,6 +22,7 @@ import {
   IconForm,
   IconHome,
   IconInbox,
+  IconBook,
   IconMoney,
   IconPlate,
   IconRecipe,
@@ -30,7 +32,7 @@ import {
   IconUsers,
 } from '@/components/icons'
 
-export const metadata: Metadata = { title: 'Painel', robots: { index: false } }
+export const metadata: Metadata = { title: 'Painel', robots: noIndex }
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireTeam()
@@ -82,6 +84,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         { href: '/admin/financeiro', label: 'Financeiro', icon: <IconMoney />, show: s.financeEnabled && can(user, 'financeiro') },
         { href: '/admin/relatorios', label: 'Relatórios', icon: <IconReport />, show: can(user, 'relatorios') },
         { href: '/admin/interessados', label: 'Interessados', icon: <IconInbox />, count: newLeads.n, show: can(user, 'site') },
+        { href: '/admin/conteudos', label: 'Conteúdos do site', icon: <IconBook />, show: can(user, 'site') },
       ],
     },
     {

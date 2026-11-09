@@ -45,7 +45,7 @@ async function main() {
   await db.execute(sql`
     TRUNCATE audit_logs, data_requests, consents, payments, files, clinical_notes, form_assignments,
       form_templates, anamneses, notifications, messages, diary_entries, meal_logs, water_logs, progress_photos, push_subscriptions, reminder_log, recipes, materials, prescriptions, meal_plans, household_measures, measure_refs, foods, measurements, goals, leads,
-      appointments, patients, packages, faqs, time_blocks, working_hours, services,
+      appointments, patients, packages, faqs, posts, time_blocks, working_hours, services,
       settings, auth_tokens, sessions, users CASCADE
   `)
 
@@ -194,6 +194,25 @@ async function main() {
       sort: 6,
     },
   ])
+
+  // Conteúdos (blog): um rascunho de exemplo, que não aparece no site, para mostrar o editor no painel.
+  await db.insert(s.posts).values({
+    slug: 'exemplo-de-conteudo',
+    title: 'Exemplo de conteúdo (rascunho)',
+    summary: 'Rascunho de exemplo: edite ou exclua em Conteúdos do site.',
+    body: [
+      '(Texto de exemplo — escreva aqui o seu conteúdo.)',
+      '',
+      '## Um título de seção',
+      '',
+      'Parágrafos separados por uma linha em branco. Use **negrito** para destacar e [links](/planos) para outras páginas.',
+      '',
+      '- Itens de lista começam com hífen',
+      '- O convite para agendar entra sozinho no fim',
+    ].join('\n'),
+    status: 'rascunho',
+    publishedOn: '2026-01-01',
+  })
 
   // Planos de acompanhamento (valores do material de divulgação do André).
   const exclusive = [

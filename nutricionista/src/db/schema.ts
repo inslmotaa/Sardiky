@@ -242,6 +242,13 @@ export const settings = pgTable('settings', {
   /** Mercado Pago: parcelas máximas no cartão (1 a 12) e nome curto na fatura (até 13 caracteres). */
   mpMaxInstallments: integer('mp_max_installments').notNull().default(12),
   mpStatementDescriptor: text('mp_statement_descriptor').notNull().default('FARION'),
+  /**
+   * Pixels de anúncio (Meta e Google): desligados por padrão. Só carregam com a chave ligada,
+   * um ID válido e o consentimento de cookies do visitante.
+   */
+  pixelsEnabled: boolean('pixels_enabled').notNull().default(false),
+  metaPixelId: text('meta_pixel_id').notNull().default(''),
+  googleTagId: text('google_tag_id').notNull().default(''),
   templates: jsonb('templates').$type<MessageTemplates>().notNull(),
   updatedAt: updatedAt(),
 })
@@ -440,8 +447,40 @@ export const leads = pgTable('leads', {
   message: text('message'),
   status: text('status').notNull().default('novo'),
   consentAt: timestamp('consent_at', { withTimezone: true }).notNull(),
+  /** De qual formulário veio: contato (início) ou "quero saber mais". */
+  form: text('form').notNull().default('contato'),
+  /** Origem da visita (UTM) e a página em que o formulário foi enviado. */
+  utmSource: text('utm_source'),
+  utmMedium: text('utm_medium'),
+  utmCampaign: text('utm_campaign'),
+  utmContent: text('utm_content'),
+  utmTerm: text('utm_term'),
+  landingPath: text('landing_path'),
+  referrer: text('referrer'),
   createdAt: createdAt(),
 })
+
+/** Conteúdos (blog): Markdown simples, rascunho ou publicado, com data de publicação. */
+export const posts = pgTable(
+  'posts',
+  {
+    id: id(),
+    slug: text('slug').notNull(),
+    title: text('title').notNull(),
+    summary: text('summary').notNull().default(''),
+    /** Capa (arquivo público enquanto o post estiver publicado). */
+    coverFileId: uuid('cover_file_id').references(() => files.id, { onDelete: 'set null' }),
+    coverAlt: text('cover_alt').notNull().default(''),
+    body: text('body').notNull().default(''),
+    status: text('status').$type<'rascunho' | 'publicado'>().notNull().default('rascunho'),
+    /** Data exibida e usada na ordem; posts com data futura só aparecem a partir dela. */
+    publishedOn: date('published_on').notNull(),
+    authorId: uuid('author_id').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [uniqueIndex('posts_slug_idx').on(t.slug), index('posts_status_idx').on(t.status, t.publishedOn)],
+)
 
 export const goals = pgTable('goals', {
   id: id(),

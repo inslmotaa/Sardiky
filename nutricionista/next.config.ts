@@ -1,24 +1,38 @@
 import type { NextConfig } from 'next'
+import { CONSENT_COOKIE, PIXEL_CSP, PUBLIC_SITE_PATHS } from './src/lib/pixels'
 
 const isDev = process.env.NODE_ENV !== 'production'
 
 // Next.js injeta scripts inline; sem nonce, 'unsafe-inline' é necessário.
 // 'unsafe-eval' só é liberado em desenvolvimento (recarregamento a quente).
-const csp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob:",
-  "font-src 'self' data:",
-  "media-src 'self' blob:",
-  "worker-src 'self'",
-  "manifest-src 'self'",
-  "connect-src 'self'",
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "object-src 'none'",
-].join('; ')
+// Com `pixels`, libera também os domínios da Meta e do Google (só no site público e só para quem aceitou os cookies).
+const cspFor = (pixels: boolean) => {
+  const extra = (list: readonly string[]) => (pixels ? ` ${list.join(' ')}` : '')
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}${extra(PIXEL_CSP.script)}`,
+    "style-src 'self' 'unsafe-inline'",
+    `img-src 'self' data: blob:${extra(PIXEL_CSP.img)}`,
+    "font-src 'self' data:",
+    "media-src 'self' blob:",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    `connect-src 'self'${extra(PIXEL_CSP.connect)}`,
+    ...(pixels ? [`frame-src ${PIXEL_CSP.frame.join(' ')}`] : []),
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "object-src 'none'",
+  ].join('; ')
+}
+const csp = cspFor(false)
+
+// Páginas do site público em que os pixels podem rodar, com o cookie de aceite.
+const pixelRoutes = [...PUBLIC_SITE_PATHS, '/conteudos/:slug'].map((source) => ({
+  source,
+  has: [{ type: 'cookie' as const, key: CONSENT_COOKIE, value: 'aceito' }],
+  headers: [{ key: 'Content-Security-Policy', value: cspFor(true) }],
+}))
 
 const securityHeaders = [
   { key: 'Content-Security-Policy', value: csp },
@@ -50,6 +64,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },
+      // Depois da regra geral: no mesmo endereço, a última regra vence (só troca a CSP).
+      ...pixelRoutes,
       // O service worker precisa ser verificado a cada visita para receber atualizações.
       { source: '/sw.js', headers: [{ key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' }, { key: 'Service-Worker-Allowed', value: '/' }] },
     ]

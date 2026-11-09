@@ -1,10 +1,11 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { noIndex } from '@/lib/seo'
 import { requestPasswordReset } from '@/actions/auth'
 import { integrationStatus } from '@/lib/integrations'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 
-export const metadata: Metadata = { title: 'Recuperar senha', robots: { index: false } }
+export const metadata: Metadata = { title: 'Recuperar senha', robots: noIndex }
 
 export default function ForgotPage() {
   const email = integrationStatus().email

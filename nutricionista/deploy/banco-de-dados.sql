@@ -259,6 +259,14 @@ CREATE TABLE "leads" (
 	"message" text,
 	"status" text DEFAULT 'novo' NOT NULL,
 	"consent_at" timestamp with time zone NOT NULL,
+	"form" text DEFAULT 'contato' NOT NULL,
+	"utm_source" text,
+	"utm_medium" text,
+	"utm_campaign" text,
+	"utm_content" text,
+	"utm_term" text,
+	"landing_path" text,
+	"referrer" text,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -432,6 +440,21 @@ CREATE TABLE "payments" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
+CREATE TABLE "posts" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"slug" text NOT NULL,
+	"title" text NOT NULL,
+	"summary" text DEFAULT '' NOT NULL,
+	"cover_file_id" uuid,
+	"cover_alt" text DEFAULT '' NOT NULL,
+	"body" text DEFAULT '' NOT NULL,
+	"status" text DEFAULT 'rascunho' NOT NULL,
+	"published_on" date NOT NULL,
+	"author_id" uuid,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
 CREATE TABLE "prescriptions" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"patient_id" uuid NOT NULL,
@@ -564,6 +587,9 @@ CREATE TABLE "settings" (
 	"chat_auto_reply" text,
 	"mp_max_installments" integer DEFAULT 12 NOT NULL,
 	"mp_statement_descriptor" text DEFAULT 'FARION' NOT NULL,
+	"pixels_enabled" boolean DEFAULT false NOT NULL,
+	"meta_pixel_id" text DEFAULT '' NOT NULL,
+	"google_tag_id" text DEFAULT '' NOT NULL,
 	"templates" jsonb NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -669,6 +695,8 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_patient_id_patients_id_fk" FOREI
 ALTER TABLE "payments" ADD CONSTRAINT "payments_appointment_id_appointments_id_fk" FOREIGN KEY ("appointment_id") REFERENCES "public"."appointments"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "payments" ADD CONSTRAINT "payments_package_id_packages_id_fk" FOREIGN KEY ("package_id") REFERENCES "public"."packages"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "payments" ADD CONSTRAINT "payments_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "posts" ADD CONSTRAINT "posts_cover_file_id_files_id_fk" FOREIGN KEY ("cover_file_id") REFERENCES "public"."files"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "posts" ADD CONSTRAINT "posts_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "prescriptions" ADD CONSTRAINT "prescriptions_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "prescriptions" ADD CONSTRAINT "prescriptions_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "progress_photos" ADD CONSTRAINT "progress_photos_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
@@ -706,6 +734,8 @@ CREATE UNIQUE INDEX "patients_user_idx" ON "patients" USING btree ("user_id");
 CREATE INDEX "patients_status_idx" ON "patients" USING btree ("status");
 CREATE INDEX "payments_patient_idx" ON "payments" USING btree ("patient_id");
 CREATE INDEX "payments_provider_ref_idx" ON "payments" USING btree ("provider_ref");
+CREATE UNIQUE INDEX "posts_slug_idx" ON "posts" USING btree ("slug");
+CREATE INDEX "posts_status_idx" ON "posts" USING btree ("status","published_on");
 CREATE INDEX "prescriptions_patient_idx" ON "prescriptions" USING btree ("patient_id");
 CREATE INDEX "progress_photos_patient_idx" ON "progress_photos" USING btree ("patient_id","date");
 CREATE UNIQUE INDEX "push_endpoint_idx" ON "push_subscriptions" USING btree ("endpoint");
@@ -744,6 +774,7 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('9484041a13fa7651753afcca2f161e3da20253bb28af71ac0e44ab6785c9a121', 1793916101839), -- 0016_mercado_pago
 	('5490ee0bd517e4ccea7f372d3a2c9836288a2e192c0d2c2d055b724c607d54dc', 1793916106957), -- 0017_remover_desconto_parceiro
 	('14bee88ebe9c56612d5a9182a2e3abb4e2cf171125eeeca996ca4b2b650110d6', 1794244118204), -- 0018_remover_registro
-	('006e7b8e1cd622cce4f9f9685c59cc71d00ac4cbd64c43be92a88e37772ea1a6', 1794245146457); -- 0019_depoimentos_e_formacoes
+	('006e7b8e1cd622cce4f9f9685c59cc71d00ac4cbd64c43be92a88e37772ea1a6', 1794245146457), -- 0019_depoimentos_e_formacoes
+	('e7ef7351f70253404a226c14e9826af7c790500bcb3354ac64e783fc3735c6e7', 1794246522668); -- 0020_conteudos_e_captacao
 
 COMMIT;

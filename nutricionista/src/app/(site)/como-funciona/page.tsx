@@ -6,8 +6,12 @@ import { bookingLink } from '@/lib/format'
 import { BookingLink } from '@/components/BookingLink'
 import { PageHead } from '@/components/SiteBlocks'
 import { PhoneMock } from '@/components/PhoneMock'
+import { sitePageMeta } from '@/lib/seo-server'
 
-export const metadata: Metadata = { title: 'Como funciona' }
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings()
+  return sitePageMeta({ title: 'Como funciona', description: `Como funciona o acompanhamento on-line com ${s.professionalName}: anamnese, plano individualizado no app, ajustes a cada 15 dias e contato direto com o coach.`, path: '/como-funciona' })
+}
 
 const STEPS = [
   { title: 'Escolha o seu plano', text: 'Mensal, trimestral, semestral ou anual. Quanto mais longo, menor o valor por mês.' },

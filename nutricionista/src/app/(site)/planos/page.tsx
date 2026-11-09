@@ -6,8 +6,12 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { featuredPlan, monthsLabel, planPrices } from '@/lib/planos'
 import { PageHead, PlanGrid } from '@/components/SiteBlocks'
 import { mpConfigured } from '@/lib/mercadopago'
+import { sitePageMeta } from '@/lib/seo-server'
 
-export const metadata: Metadata = { title: 'Planos', description: 'Planos de acompanhamento: mensal, trimestral, semestral e anual.' }
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings()
+  return sitePageMeta({ title: 'Planos', description: `Planos de acompanhamento on-line com ${s.professionalName}, ${s.professionalTitle}: mensal, trimestral, semestral e anual, com pagamento pelo Mercado Pago.`, path: '/planos' })
+}
 
 /** Planos de acompanhamento: cartões e comparação do que cada um inclui. */
 export default async function PlansPage() {

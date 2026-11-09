@@ -1,5 +1,5 @@
 /** Versão vigente da Política de Privacidade; registrada junto a cada consentimento. */
-export const PRIVACY_VERSION = '2026-10'
+export const PRIVACY_VERSION = '2026-11'
 
 export const MATERIAL_KINDS: Record<string, string> = { ebook: 'E-book / PDF', video: 'Vídeo', guia: 'Guia', link: 'Link' }
 export const PRESCRIPTION_TYPES = {
@@ -19,6 +19,7 @@ export const SITE_NAV = [
   { href: '/#sobre', label: 'Sobre' },
   { href: '/#consultoria', label: 'Consultoria' },
   { href: '/#resultados', label: 'Resultados' },
+  { href: '/conteudos', label: 'Conteúdos' },
   { href: '/#contato', label: 'Contato' },
 ]
 
@@ -28,6 +29,7 @@ export const SITE_PAGES = [
   { href: '/sobre', label: 'Sobre' },
   { href: '/como-funciona', label: 'Como funciona' },
   { href: '/planos', label: 'Planos' },
+  { href: '/conteudos', label: 'Conteúdos' },
   { href: '/duvidas', label: 'Dúvidas' },
 ]
 

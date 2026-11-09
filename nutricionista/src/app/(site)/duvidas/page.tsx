@@ -4,8 +4,15 @@ import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { whatsappLink } from '@/lib/format'
 import { PageHead } from '@/components/SiteBlocks'
+import { sitePageMeta } from '@/lib/seo-server'
+import { JsonLd } from '@/components/JsonLd'
+import { siteUrl } from '@/lib/seo'
+import { faqLd } from '@/lib/jsonld'
 
-export const metadata: Metadata = { title: 'Dúvidas' }
+export async function generateMetadata(): Promise<Metadata> {
+  const s = await getSettings()
+  return sitePageMeta({ title: 'Dúvidas', description: `Perguntas frequentes sobre o acompanhamento on-line com ${s.professionalName}, ${s.professionalTitle}: como funciona, planos, app e pagamento.`, path: '/duvidas' })
+}
 
 /** Perguntas frequentes (cadastradas no painel) e contato pelo WhatsApp. */
 export default async function FaqPage() {
@@ -16,6 +23,7 @@ export default async function FaqPage() {
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e tenho uma dúvida.')
   return (
     <>
+      <JsonLd data={faqLd(faqs, siteUrl())} />
       <PageHead
         label="DÚVIDAS"
         title="Perguntas frequentes"

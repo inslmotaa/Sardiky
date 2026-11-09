@@ -15,6 +15,8 @@ import { notifyTeam } from '@/lib/team'
 import { renderTemplate, sendEmail } from '@/lib/notify'
 import { fmtDay, zonedToUtc } from '@/lib/time'
 import { PRIVACY_VERSION } from '@/lib/constants'
+import { originFromForm, originLabel } from '@/lib/utm'
+import { siteUrl } from '@/lib/seo'
 import { day, email, optEmail, optStr, phone, str, time, uuid } from '@/lib/validation'
 
 const bookingSchema = z.object({
@@ -111,6 +113,8 @@ const leadSchema = z.object({
   interest: optStr(120),
   message: optStr(1500),
   consent: z.literal('on', 'É preciso concordar com a Política de Privacidade'),
+  // De qual formulário veio: contato completo ou o curto "quero saber mais".
+  form: z.enum(['contato', 'saber-mais']).optional().default('contato'),
 })
 
 export async function createLead(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -121,9 +125,20 @@ export async function createLead(_: ActionState, fd: FormData): Promise<ActionSt
   if (!parsed.success) return zodErrors(parsed.error)
   try {
     const d = parsed.data
-    await db.insert(schema.leads).values({ name: d.name, phone: d.phone, email: d.email, interest: d.interest, message: d.message, consentAt: new Date() })
-    await notifyTeam('site', 'Novo interessado pelo site', `${d.name}${d.interest ? ` · ${d.interest}` : ''}`, '/admin/interessados')
-    return { ok: true, message: 'Obrigado! Recebemos seu contato e retornaremos em breve pelo telefone informado.' }
+    // Origem (UTM, página de entrada e domínio de quem indicou), revalidada no servidor.
+    const origin = originFromForm(formObject(fd), new URL(siteUrl()).hostname)
+    await db
+      .insert(schema.leads)
+      .values({ name: d.name, phone: d.phone, email: d.email, interest: d.interest, message: d.message, consentAt: new Date(), form: d.form, ...origin })
+    const via = originLabel(origin)
+    await notifyTeam('site', 'Novo interessado pelo site', `${d.name}${d.interest ? ` · ${d.interest}` : ''}${via ? ` · ${via}` : ''}`, '/admin/interessados')
+    return {
+      ok: true,
+      message:
+        d.form === 'saber-mais'
+          ? 'Obrigado! Recebemos seu contato e vamos chamar você no WhatsApp informado.'
+          : 'Obrigado! Recebemos seu contato e retornaremos em breve pelo telefone informado.',
+    }
   } catch (err) {
     return failure(err)
   }
