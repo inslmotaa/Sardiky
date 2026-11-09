@@ -50,7 +50,7 @@ test('conversa: chat do app e WhatsApp lado a lado; toque registrado na ficha; m
   await login(page, 'beatriz')
   await page.goto('/paciente/mensagens')
   await expect(page.locator('.contact-option__note')).toHaveText('Respondo assim que possível, no horário comercial.')
-  expect((await page.request.get('/paciente/whatsapp', { maxRedirects: 0 })).headers()['location']).toContain(encodeURIComponent('Olá, André! Sou Beatriz. '))
+  expect((await page.request.get('/paciente/whatsapp', { maxRedirects: 0 })).headers()['location']).toContain(encodeURIComponent('Olá, André! Sou Beatriz.'))
 
   // Só pelo app (padrão) e, para a Beatriz, só WhatsApp (ficha).
   await login(page, 'admin')
@@ -82,7 +82,9 @@ test('conversa: chat do app e WhatsApp lado a lado; toque registrado na ficha; m
   await form.getByLabel('Conversa com o coach').selectOption('')
   await form.getByRole('button', { name: 'Salvar recursos' }).click()
   await expect(page.getByText('Recursos do app atualizados.')).toBeVisible()
-  await saveChat(page, (p) => p.getByLabel('Como o cliente fala com você').selectOption('ambos'))
+  await saveChat(page, async (p) => {
+    await p.getByLabel('Como o cliente fala com você').selectOption('ambos')
+  })
 })
 
 test('calendário: .ics válido sem duplicar ao baixar de novo; aviso de horários mudados; link webcal revogável', async ({ page, browser }) => {
