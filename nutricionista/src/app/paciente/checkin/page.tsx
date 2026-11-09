@@ -39,7 +39,8 @@ function Scale({ name, required }: { name: CheckinScale; required?: boolean }) {
 }
 
 /** Check-in periódico do cliente: questionário curto, peso, medidas e fotos opcionais e privadas. */
-export default async function CheckinPage() {
+export default async function CheckinPage({ searchParams }: { searchParams: Promise<{ enviado?: string }> }) {
+  const sp = await searchParams
   const user = await requireActivePatient()
   const s = await getSettings()
   const today = todayIn(s.timezone)
@@ -50,6 +51,11 @@ export default async function CheckinPage() {
     <div className="stack" style={{ ['--gap' as string]: '18px' }}>
       <PageHead title="Check-in" subtitle="Um retrato rápido dos últimos dias para o coach ajustar o seu plano. Leva poucos minutos." />
 
+      {sp.enviado && (
+        <p className="alert alert--ok" role="status">
+          Check-in enviado! O coach vai olhar e ajustar o que for preciso.
+        </p>
+      )}
       {!pending && sent.length === 0 && <Empty>Seu coach ainda não ativou os check-ins periódicos. Quando ativar, eles aparecem aqui com o prazo.</Empty>}
 
       {pending && state === 'aguardando' && (

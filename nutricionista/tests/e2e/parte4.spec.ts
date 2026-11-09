@@ -32,6 +32,7 @@ test('micronutrientes: quadro fechado no editor (por refeição e dia) e só apa
   // Cliente: desligado por padrão.
   await login(page, 'beatriz')
   await page.goto('/paciente/plano')
+  if (await page.getByRole('link', { name: 'Ver' }).count()) await page.getByRole('link', { name: 'Ver' }).first().click()
   await expect(page.locator('details.micro-box')).toHaveCount(0)
 
   await login(page, 'admin')
@@ -41,8 +42,10 @@ test('micronutrientes: quadro fechado no editor (por refeição e dia) e só apa
   await form.getByRole('button', { name: 'Salvar recursos' }).click()
   await expect(page.getByText('Recursos do app atualizados.')).toBeVisible()
 
+  // Plano atual ou, se o coach encerrou, uma versão do histórico: o quadro aparece fechado.
   await login(page, 'beatriz')
   await page.goto('/paciente/plano')
+  if ((await page.locator('details.micro-box').count()) === 0) await page.getByRole('link', { name: 'Ver' }).first().click()
   await expect(page.locator('details.micro-box')).toBeVisible()
   await expect(page.locator('details.micro-box')).not.toHaveAttribute('open', /.*/)
 })

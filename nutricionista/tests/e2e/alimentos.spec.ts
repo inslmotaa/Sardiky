@@ -39,7 +39,9 @@ test('editor de plano mostra vitaminas e minerais do dia (TACO)', async ({ page 
   await login(page, 'admin')
   await page.goto('/admin/planos')
   await page.locator('tr', { hasText: 'Rascunho' }).first().getByRole('link').first().click()
-  const card = page.getByRole('region', { name: /Vitaminas e minerais/ })
+  // Quadro recolhível (começa fechado): abre e confere os nutrientes.
+  const card = page.locator('details.micro-box')
   await expect(card).toBeVisible()
+  await card.locator('summary').click()
   for (const n of ['Cálcio', 'Ferro', 'Potássio', 'Vitamina C', 'Colesterol']) await expect(card).toContainText(n)
 })

@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { db, schema } from '@/db'
@@ -157,10 +158,10 @@ export async function submitCheckin(_: ActionState, fd: FormData): Promise<Actio
     await audit(user, 'checkin_enviado', 'paciente', { entityId: c.id, patientId: user.patientId, details: { fotos: photoIds.length, atrasado: state === 'atrasado' } })
     await notifyTeam('clinico', 'Check-in recebido', `${p?.name ?? 'Cliente'} enviou o check-in`, `/admin/pacientes/${user.patientId}?aba=checkins`, user.patientId)
     await pushToTeam('clinico', { title: 'Check-in recebido', body: `${p?.name ?? 'Cliente'} enviou o check-in`, url: `/admin/pacientes/${user.patientId}?aba=checkins` }, user.patientId)
-    revalidatePath('/paciente/checkin')
     revalidatePath('/paciente')
-    return { ok: true, message: 'Check-in enviado! O coach vai olhar e ajustar o que for preciso.' }
   } catch (err) {
     return failure(err)
   }
+  // O formulário some depois do envio (o próximo prazo ainda não abriu): a confirmação vem na página.
+  redirect('/paciente/checkin?enviado=1')
 }
