@@ -499,8 +499,10 @@ svg { width: 1em; height: 1em; flex: none; }
 /* ==========================================================
    Cardápio em livro (js/book.js)
    ========================================================== */
-.book-on #menuBody, .book-on #menuEmpty, .book-on .menu__foot { display: none !important; }
+.book-on #menuBody, .book-on #menuEmpty, .book-on .menu__foot, .book-on .menu__bar { display: none !important; }
 .book-on .menu { padding-bottom: 0; }
+/* while the book is open the page behind it stays still */
+.book-open, .book-open body { overflow: hidden; }
 
 /* search results, shown above the book */
 .results {
@@ -520,17 +522,105 @@ svg { width: 1em; height: 1em; flex: none; }
 .result .item__prices { display: flex; gap: 10px; }
 .result .price__val { font-size: 1.12rem; }
 
-/* the table the book rests on */
-.book-wrap {
-  position: relative; width: 100%; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  padding: 14px 16px 16px; color: var(--on-dark);
+/* the table the book rests on; also used by the preview on the page */
+.book-wrap, .book-teaser {
+  color: var(--on-dark);
   background:
     var(--grain-light),
     radial-gradient(ellipse 70% 60% at 50% 45%, rgba(244, 240, 233, .07), transparent 70%),
     radial-gradient(120% 100% at 50% 0%, #2a2522 0%, var(--ink) 70%);
 }
-.book-stage { position: relative; display: flex; justify-content: center; }
+
+/* the open book: full screen, over the site */
+.book-wrap {
+  position: fixed; inset: 0; z-index: 100; overflow: hidden; overscroll-behavior: contain;
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+  opacity: 0; visibility: hidden; transition: opacity .3s, visibility 0s linear .3s;
+}
+.book-open .book-wrap { opacity: 1; visibility: visible; transition: opacity .3s; }
+.book-wrap:focus { outline: none; }
+.book-stage { position: relative; flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; touch-action: pinch-zoom; }
+
+/* top bar of the open book: logo, "Ir para…" and close */
+.book-top { display: flex; align-items: center; gap: 12px; width: min(100%, 1180px); height: 52px; flex: none; }
+.book-top__logo { width: 46px; height: 46px; margin-right: auto; }
+.book-top__jump {
+  height: 42px; max-width: 280px; flex: 0 1 260px; padding: 0 38px 0 18px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(244, 240, 233, .3); color: var(--on-dark); font-size: .92rem;
+  -webkit-appearance: none; appearance: none;
+  background: rgba(244, 240, 233, .05) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6' fill='none' stroke='%23f4f0e9' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 16px center;
+}
+.book-top__jump option, .book-top__jump optgroup { color: var(--ink); background: #fff; }
+.book-top__close {
+  display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: 999px; cursor: pointer;
+  border: 1px solid rgba(244, 240, 233, .3); background: transparent; color: var(--on-dark);
+  font-family: var(--f-label); font-weight: 500; font-size: .82rem; letter-spacing: .14em; text-transform: uppercase;
+  transition: background .2s, color .2s;
+}
+.book-top__close:hover { background: var(--on-dark); color: var(--ink); }
+.book-top__close svg { width: 18px; height: 18px; }
+@media (max-width: 699px) {
+  .book-top { height: 44px; gap: 8px; }
+  .book-top__logo { width: 40px; height: 40px; }
+  .book-top__jump { flex: 1; }
+  .book-top__close { width: 42px; padding: 0; justify-content: center; }
+  .book-top__close span { display: none; }
+}
+
+/* ---------- preview on the page ---------- */
+.book-teaser { padding: 64px 0; }
+.book-teaser__inner { display: grid; gap: 40px; justify-items: center; text-align: center; }
+@media (min-width: 900px) {
+  .book-teaser__inner { grid-template-columns: auto 1fr; gap: 80px; align-items: center; justify-items: start; text-align: left; }
+}
+.book-teaser__book { padding: 0; border: 0; background: none; cursor: pointer; perspective: 1400px; }
+.book-teaser__cover {
+  position: relative; width: clamp(210px, 24vw, 290px); aspect-ratio: 1 / 1.38; font-size: clamp(10px, 1.15vw, 13px);
+  border-radius: 3px 8px 8px 3px; transform: rotateY(-14deg) rotateZ(-1.5deg); transform-origin: left center;
+  box-shadow: 1px 0 0 #d8d0c2, 2px 0 0 #efe9de, 3px 0 0 #d8d0c2, 4px 0 0 #efe9de, 5px 0 0 #d8d0c2, 6px 0 0 #efe9de,
+    0 30px 50px -18px rgba(0, 0, 0, .8);
+  transition: transform .5s cubic-bezier(.2, .7, .2, 1);
+}
+.book-teaser__book:hover .book-teaser__cover, .book-teaser__book:focus-visible .book-teaser__cover { transform: rotateY(-4deg) rotateZ(0deg) translateY(-4px); }
+.book-teaser__cover .page { font-size: inherit; border-radius: inherit; }
+.book-teaser__title {
+  margin: 0 0 14px; font-family: var(--f-brush); font-weight: 400; color: var(--on-dark);
+  font-size: clamp(2.6rem, 6vw, 3.6rem); line-height: 1; transform: rotate(-2deg);
+}
+.book-teaser__lead { margin: 0 auto 26px; max-width: 30em; color: var(--on-dark-muted); font-size: 1.05rem; }
+@media (min-width: 900px) { .book-teaser__lead { margin-left: 0; } }
+.book-teaser__open { min-height: 52px; padding: 0 28px; }
+.book-teaser__label {
+  margin: 32px 0 12px; font-family: var(--f-label); font-size: .74rem; letter-spacing: .22em; text-transform: uppercase; color: var(--on-dark-muted);
+}
+.book-teaser__group { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-bottom: 12px; }
+@media (min-width: 900px) { .book-teaser__group { justify-content: flex-start; } }
+.book-teaser__group-label {
+  width: 100%; font-family: var(--f-label); font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--on-dark-muted);
+}
+@media (min-width: 900px) { .book-teaser__group-label { width: auto; min-width: 74px; } }
+.book-teaser__cat {
+  height: 36px; padding: 0 14px; border-radius: 999px; cursor: pointer; font-size: .88rem;
+  border: 1px solid rgba(244, 240, 233, .26); background: rgba(244, 240, 233, .04); color: var(--on-dark);
+  transition: background .2s, color .2s, border-color .2s;
+}
+.book-teaser__cat:hover, .book-teaser__cat:focus-visible { background: var(--on-dark); color: var(--ink); border-color: var(--on-dark); }
+
+/* floating "Cardápio" button, bottom left; appears with the back-to-top button */
+.book-fab {
+  position: fixed; left: 16px; bottom: calc(22px + env(safe-area-inset-bottom)); z-index: 60;
+  display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 20px; border-radius: 999px; cursor: pointer;
+  background: var(--ink); color: var(--on-dark); border: 1px solid rgba(244, 240, 233, .35);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .3);
+  font-family: var(--f-label); font-weight: 500; font-size: .84rem; letter-spacing: .16em; text-transform: uppercase;
+  opacity: 0; pointer-events: none; transform: translateY(12px);
+  transition: opacity .25s, transform .25s, background .2s, color .2s;
+}
+.book-fab svg { width: 20px; height: 20px; }
+.show-top .book-fab { opacity: 1; pointer-events: auto; transform: none; }
+.show-top.teaser-in-view .book-fab { opacity: 0; pointer-events: none; transform: translateY(12px); }
+.book-fab:hover { background: var(--on-dark); color: var(--ink); }
 
 .book { position: relative; width: var(--pw); height: var(--ph); cursor: pointer; }
 .is-spread .book { width: calc(var(--pw) * 2); }
@@ -685,7 +775,7 @@ svg { width: 1em; height: 1em; flex: none; }
 
 /* ---------- navigation ---------- */
 .book-nav {
-  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  position: relative; flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px;
   width: min(100%, 560px);
 }
 .book-nav__btn {
@@ -710,9 +800,7 @@ svg { width: 1em; height: 1em; flex: none; }
 .book-nav__track { width: 100%; max-width: 260px; height: 2px; margin-top: 4px; background: rgba(244, 240, 233, .14); border-radius: 2px; overflow: hidden; }
 .book-nav__progress { display: block; height: 100%; background: var(--on-dark); transform-origin: left; transform: scaleX(0); }
 
-/* on phones the floating WhatsApp button would cover the navigation */
 @media (max-width: 699px) {
-  .book-pinned .wa-float, .book-pinned .to-top { opacity: 0; pointer-events: none; transform: translateY(16px); transition: opacity .25s, transform .25s; }
   .book-nav { gap: 10px; }
   .book-nav__btn { width: 42px; height: 42px; }
 }

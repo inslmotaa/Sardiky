@@ -1,41 +1,44 @@
 /*
- * Cardápio em formato de livro: as páginas viram conforme a rolagem (GSAP + ScrollTrigger).
+ * Cardápio em formato de livro (GSAP).
  *
  * O conteúdo vem da lista do cardápio no index.html (#menuBody), que continua sendo a
  * única fonte: para mudar um preço, edite a lista como antes e o livro se refaz sozinho.
- * Sem JavaScript, ou em telas baixas demais para um livro legível, a lista aparece normalmente.
+ * Na página fica uma prévia com o livro fechado e o botão "Abrir o cardápio". O livro abre
+ * em tela cheia, por cima do site, e as páginas viram com a roda do mouse, as setas do
+ * teclado, os botões, um clique na página ou deslizando o dedo. Rolar o site passa direto
+ * pela prévia, sem folhear. Sem JavaScript, ou em telas baixas demais para um livro
+ * legível, a lista aparece normalmente.
  */
 (function () {
   "use strict";
 
   var source = document.getElementById("menuBody");
-  if (!window.gsap || !window.ScrollTrigger || !source) return;
-
-  gsap.registerPlugin(ScrollTrigger);
-  ScrollTrigger.config({ ignoreMobileResize: true });
+  if (!window.gsap || !source) return;
 
   var root = document.documentElement;
-  var header = document.querySelector(".header");
-  var bar = document.getElementById("menuBar");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var touch = window.matchMedia("(pointer: coarse)").matches;
 
-  // timeline units: a page turn, then a pause so the open pages can be read
-  var FLIP = reduceMotion ? 0.06 : 1;
-  var HOLD = reduceMotion ? 1.6 : 0.9;
+  // the timeline holds one unit per page turn; TURN is how long one turn takes, in seconds
+  var FLIP = 1;
+  var TURN = reduceMotion ? 0 : 0.8;
 
   var wrap, bookEl, spreadEl, measureEl, navPrev, navNext, navCat, navPage, progressEl;
+  var jumpSelect, teaser, fab;
   var S = blank();
+  var isOpen = false, lastFocus = null, tween = null;
 
   var Book = window.MenuBook = {
     active: false,
+    open: open,
+    close: requestClose,
     goToItem: goToItem,
     goToCategory: goToCategory,
     pageOf: function (i) { return S.itemPage[i]; }
   };
 
   function blank() {
-    return { pages: [], leaves: [], itemPage: {}, catPage: {}, labels: [], mids: [], flips: 0, current: -1, tl: null, st: null, g: null, jumpY: null };
+    return { pages: [], leaves: [], itemPage: {}, catPage: {}, catTitle: {}, parts: [], labels: [], mids: [], flips: 0, current: -1, target: 0, tl: null, g: null };
   }
 
   /* ---------- helpers ---------- */
@@ -69,14 +72,46 @@
     return node ? node.textContent.trim() : "";
   }
 
-  /* ---------- shell: stage, navigation, measuring box ---------- */
+  function button(cls, label, iconId) {
+    var b = el("button", cls);
+    b.type = "button";
+    if (iconId) b.appendChild(icon(iconId));
+    if (label) b.appendChild(el("span", null, label));
+    return b;
+  }
+
+  // categories as they appear in the menu list: [{ id, label, cats: [{ id, title }] }]
+  function menuParts() {
+    return Array.prototype.map.call(source.querySelectorAll(".part"), function (part) {
+      return {
+        id: part.id,
+        label: text(".part__title", part),
+        cats: Array.prototype.map.call(part.querySelectorAll(".category"), function (cat) {
+          return { id: cat.id, title: text(".category__title", cat) };
+        })
+      };
+    });
+  }
+
+  /* ---------- the book viewer: full screen, over the site ---------- */
 
   function shell() {
     wrap = el("div", "book-wrap");
     wrap.id = "livro";
-    wrap.hidden = true;
-    wrap.setAttribute("role", "region");
-    wrap.setAttribute("aria-label", "Cardápio em formato de livro");
+    wrap.setAttribute("role", "dialog");
+    wrap.setAttribute("aria-modal", "true");
+    wrap.setAttribute("aria-label", "Cardápio");
+    wrap.tabIndex = -1;
+    wrap.inert = true;
+
+    var top = el("div", "book-top");
+    top.appendChild(img("assets/logo-white.png", "book-top__logo"));
+    jumpSelect = el("select", "book-top__jump");
+    jumpSelect.setAttribute("aria-label", "Ir para uma categoria");
+    var closeBtn = button("book-top__close", "Fechar", "i-close");
+    closeBtn.setAttribute("aria-label", "Fechar o cardápio");
+    top.appendChild(jumpSelect);
+    top.appendChild(closeBtn);
 
     var stage = el("div", "book-stage");
     bookEl = el("div", "book");
@@ -85,15 +120,10 @@
     stage.appendChild(bookEl);
 
     var nav = el("div", "book-nav");
-    navPrev = el("button", "book-nav__btn book-nav__btn--prev");
-    navPrev.type = "button";
+    navPrev = button("book-nav__btn book-nav__btn--prev", null, "i-chevron");
     navPrev.setAttribute("aria-label", "Página anterior");
-    navPrev.appendChild(icon("i-chevron"));
-    navNext = el("button", "book-nav__btn");
-    navNext.type = "button";
+    navNext = button("book-nav__btn", null, "i-chevron");
     navNext.setAttribute("aria-label", "Próxima página");
-    navNext.appendChild(icon("i-chevron"));
-
     var status = el("div", "book-nav__status");
     status.setAttribute("aria-live", "polite");
     navCat = el("span", "book-nav__cat");
@@ -104,7 +134,6 @@
     status.appendChild(navCat);
     status.appendChild(navPage);
     status.appendChild(track);
-
     nav.appendChild(navPrev);
     nav.appendChild(status);
     nav.appendChild(navNext);
@@ -112,15 +141,21 @@
     measureEl = el("div", "book-measure");
     measureEl.setAttribute("aria-hidden", "true");
 
+    wrap.appendChild(top);
     wrap.appendChild(stage);
     wrap.appendChild(nav);
     wrap.appendChild(measureEl);
-    source.parentNode.insertBefore(wrap, source.nextSibling);
+    document.body.appendChild(wrap);
 
     navPrev.addEventListener("click", function () { step(-1); });
     navNext.addEventListener("click", function () { step(1); });
+    closeBtn.addEventListener("click", requestClose);
+    jumpSelect.addEventListener("change", function () {
+      if (jumpSelect.value) goToCategory(jumpSelect.value);
+      jumpSelect.value = "";
+    });
 
-    // links inside pages (sumário) and tap/click on a page to turn it
+    // links inside pages (sumário) and a click on a page to turn it
     wrap.addEventListener("click", function (e) {
       var link = e.target.closest("[data-page]");
       if (link) {
@@ -131,36 +166,127 @@
       if (!bookEl.contains(e.target) || e.target.closest("a, button")) return;
       var rect = bookEl.getBoundingClientRect();
       var x = (e.clientX - rect.left) / rect.width;
-      if (S.current <= 0) step(1);
-      else if (S.current >= S.flips) step(-1);
+      if (S.target <= 0) step(1);
+      else if (S.target >= S.flips) step(-1);
       else if (S.g.spread) step(x < 0.5 ? -1 : 1);
       else step(x < 0.3 ? -1 : 1);
     });
 
-    // horizontal swipe also turns pages
+    // swipe on phones: left or up turns forward, right or down turns back
     var sx = 0, sy = 0;
-    bookEl.addEventListener("touchstart", function (e) {
+    stage.addEventListener("touchstart", function (e) {
       sx = e.touches[0].clientX;
       sy = e.touches[0].clientY;
     }, { passive: true });
-    bookEl.addEventListener("touchend", function (e) {
+    stage.addEventListener("touchend", function (e) {
       var dx = e.changedTouches[0].clientX - sx;
       var dy = e.changedTouches[0].clientY - sy;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) step(dx < 0 ? 1 : -1);
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 40) return;
+      if (Math.abs(dx) > Math.abs(dy)) step(dx < 0 ? 1 : -1);
+      else step(dy < 0 ? 1 : -1);
     }, { passive: true });
 
+    // mouse wheel / trackpad: one page per gesture (a pause starts a new one),
+    // or one more page every 0.7 s while a long spin keeps going
+    var wheelAcc = 0, lastWheel = 0, turnedAt = 0;
+    wrap.addEventListener("wheel", function (e) {
+      if (e.target.closest("select")) return;
+      e.preventDefault();
+      var now = Date.now();
+      if (now - lastWheel > 220) { wheelAcc = 0; turnedAt = 0; }
+      lastWheel = now;
+      if (turnedAt && now - turnedAt < 700) return;
+      wheelAcc += Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (Math.abs(wheelAcc) < 30) return;
+      step(wheelAcc > 0 ? 1 : -1);
+      wheelAcc = 0;
+      turnedAt = now;
+    }, { passive: false });
+
     document.addEventListener("keydown", function (e) {
-      if (!Book.active || !root.classList.contains("book-pinned") || /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-      if (e.key === "ArrowRight") { e.preventDefault(); step(1); }
-      if (e.key === "ArrowLeft") { e.preventDefault(); step(-1); }
+      if (!isOpen) return;
+      if (e.key === "Escape") { e.preventDefault(); requestClose(); return; }
+      if (e.key === "Tab") { trapFocus(e); return; }
+      if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+      var next = { ArrowRight: 1, ArrowDown: 1, PageDown: 1, " ": 1, ArrowLeft: -1, ArrowUp: -1, PageUp: -1 }[e.key];
+      if (next) { e.preventDefault(); step(next); }
+      if (e.key === "Home") { e.preventDefault(); goToState(0); }
+      if (e.key === "End") { e.preventDefault(); goToState(S.flips); }
     });
 
-    // header links like #cozinha and #bar open the book on that section
+    // the phone's back button closes the book instead of leaving the site
+    window.addEventListener("popstate", function () { if (isOpen) close(); });
+
+    // "Ver o cardápio" and the header's Cozinha / Bar links open the book
     document.addEventListener("click", function (e) {
       var a = e.target.closest('a[href^="#"]');
       if (!a || !Book.active || wrap.contains(a)) return;
-      if (goToCategory(a.getAttribute("href").slice(1))) e.preventDefault();
+      var id = a.getAttribute("href").slice(1);
+      if (id === "cardapio") { e.preventDefault(); open(); }
+      else if (goToCategory(id)) e.preventDefault();
     });
+  }
+
+  function trapFocus(e) {
+    var items = Array.prototype.filter.call(
+      wrap.querySelectorAll("button:not([disabled]), select, a[href]"),
+      function (n) { return !n.closest("[inert]") && n.getClientRects().length; }
+    );
+    if (!items.length) return;
+    var first = items[0], last = items[items.length - 1];
+    if (!wrap.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
+  /* ---------- on the page: closed book, "Abrir o cardápio" and quick links ---------- */
+
+  function buildTeaser() {
+    teaser = el("div", "book-teaser");
+    var inner = el("div", "container book-teaser__inner");
+
+    var bookBtn = el("button", "book-teaser__book");
+    bookBtn.type = "button";
+    bookBtn.setAttribute("aria-label", "Abrir o cardápio");
+    var cover = el("div", "book-teaser__cover");
+    cover.appendChild(coverPage());
+    bookBtn.appendChild(cover);
+    bookBtn.addEventListener("click", function () { open(); });
+
+    var copy = el("div", "book-teaser__text");
+    copy.appendChild(el("h3", "book-teaser__title", "Folheie o cardápio"));
+    copy.appendChild(el("p", "book-teaser__lead", "Entradas, pizzas tradicionais, especiais e doces, sobremesas e a carta completa do bar, página por página."));
+    var openBtn = button("btn btn--light book-teaser__open", "Abrir o cardápio", "i-book");
+    openBtn.addEventListener("click", function () { open(); });
+    copy.appendChild(openBtn);
+    copy.appendChild(el("p", "book-teaser__label", "Ou vá direto para"));
+    menuParts().forEach(function (part) {
+      var group = el("div", "book-teaser__group");
+      group.appendChild(el("span", "book-teaser__group-label", part.label));
+      part.cats.forEach(function (c) {
+        var b = button("book-teaser__cat", c.title.replace(" do Mamma", ""));
+        b.addEventListener("click", function () { goToCategory(c.id); });
+        group.appendChild(b);
+      });
+      copy.appendChild(group);
+    });
+
+    inner.appendChild(bookBtn);
+    inner.appendChild(copy);
+    teaser.appendChild(inner);
+    source.parentNode.insertBefore(teaser, source);
+
+    // floating "Cardápio" button, so the book is one tap away anywhere on the page
+    fab = button("book-fab", "Cardápio", "i-book");
+    fab.setAttribute("aria-label", "Abrir o cardápio");
+    fab.addEventListener("click", function () { open(); });
+    document.body.appendChild(fab);
+    // not needed while the preview itself, with its own button, is on screen
+    if (window.IntersectionObserver) {
+      new IntersectionObserver(function (entries) {
+        root.classList.toggle("teaser-in-view", entries[0].isIntersecting);
+      }, { threshold: 0.15 }).observe(teaser);
+    }
   }
 
   /* ---------- size of the book for this screen ---------- */
@@ -168,14 +294,13 @@
   function geometry() {
     var vw = root.clientWidth;
     var vh = window.innerHeight;
-    var top = header.offsetHeight + bar.offsetHeight;
-    var wrapH = vh - top;
-    var availH = wrapH - 112; // navigation, padding and shadow
+    var topH = vw < 700 ? 56 : 64;
+    var availH = vh - topH - 112; // top bar, navigation, padding and shadow
     var availW = Math.min(vw, 1280) - 40;
-    var g = { top: top, wrapH: wrapH, spread: availW >= 760 };
+    var g = { spread: availW >= 760 };
 
     if (g.spread) {
-      g.pw = Math.floor(Math.min(availW / 2, availH / 1.34, 540));
+      g.pw = Math.floor(Math.min(availW / 2, availH / 1.34, 560));
       g.ph = Math.floor(Math.min(availH, g.pw * 1.42));
       if (g.pw < 330) g.spread = false;
     }
@@ -458,11 +583,11 @@
     S.flips = g.spread ? count : count - 1;
   }
 
-  /* ---------- scroll-driven timeline ---------- */
+  /* ---------- page-turn timeline ---------- */
 
   function buildTimeline(g) {
     var leaves = S.leaves, n = leaves.length;
-    // update the page indicator whenever the animation moves (it keeps easing after the scroll stops)
+    // the page indicator follows the animation
     var tl = gsap.timeline({ paused: true, defaults: { ease: "none" }, onUpdate: update });
     var labels = [0], mids = [];
 
@@ -479,15 +604,15 @@
       gsap.set([leaf._front.cast, leaf._back.cast], { opacity: 0 });
     });
 
-    var t = HOLD / 2;
+    var t = 0;
     for (var i = 0; i < S.flips; i++) {
       var leaf = leaves[i];
       tl.set(leaf, { zIndex: n + 5 }, t);
       tl.to(leaf, { rotationY: -180, duration: FLIP, ease: "power1.inOut" }, t);
       if (!reduceMotion) {
         // the sheet darkens as it lifts, its back brightens as it lands,
-        // and it casts a shadow on the pages underneath
-        // perspective makes the lifted edge grow toward the reader; ease its height so it stays within the book
+        // and it casts a shadow on the pages underneath;
+        // perspective makes the lifted edge grow toward the reader, so its height eases to stay within the book
         tl.to(leaf, { scaleY: 0.87, duration: FLIP / 2, ease: "sine.out" }, t);
         tl.to(leaf, { scaleY: 1, duration: FLIP / 2, ease: "sine.in" }, t + FLIP / 2);
         tl.to(leaf._front.shade, { opacity: 0.45, duration: FLIP / 2, ease: "power1.in" }, t);
@@ -501,52 +626,13 @@
       tl.set(leaf, { zIndex: i + 1 }, t + FLIP);
       mids.push(t + FLIP / 2);
       t += FLIP;
-      labels.push(t + HOLD / 2);
-      t += HOLD;
+      labels.push(t);
     }
     tl.set({}, {}, t);
 
     S.tl = tl;
     S.labels = labels;
     S.mids = mids;
-
-    // scroll distance for one page turn plus its reading pause (about 60% of the screen height)
-    var unit = window.innerHeight * (g.spread ? 0.34 : 0.3);
-    // after the reader stops scrolling, finish the page turn in the direction they were going;
-    // a jump from the buttons already lands on a page, so it is left alone
-    var toPage = ScrollTrigger.snapDirectional(labels.map(function (l) { return l / tl.duration(); }));
-    S.st = ScrollTrigger.create({
-      trigger: wrap,
-      start: function () { return "top " + (header.offsetHeight + bar.offsetHeight) + "px"; },
-      end: function () { return "+=" + Math.round(tl.duration() * unit); },
-      pin: true,
-      anticipatePin: 1,
-      scrub: reduceMotion ? true : 0.35,
-      animation: tl,
-      snap: {
-        snapTo: function (value, self) {
-          if (S.jumpY != null) {
-            var arrived = Math.abs(self.scroll() - S.jumpY) < 3;
-            S.jumpY = null;
-            if (arrived) return value;
-          }
-          return toPage(value, self.direction);
-        },
-        inertia: false,
-        duration: { min: 0.2, max: 0.45 },
-        delay: 0.12,
-        ease: "power1.inOut"
-      },
-      onRefresh: update
-    });
-
-    // while the book is on screen (on phones the floating WhatsApp button would cover its navigation)
-    S.viewSt = ScrollTrigger.create({
-      trigger: wrap,
-      start: "top bottom-=80",
-      end: function () { return "+=" + Math.round(S.st.end - S.st.start + wrap.offsetHeight); },
-      onToggle: function (self) { root.classList.toggle("book-pinned", self.isActive); }
-    });
   }
 
   /* ---------- state: which pages are open ---------- */
@@ -591,7 +677,7 @@
     var nums = vis.filter(function (i) { return i > 0 && i < last; });
     navPage.textContent = nums.length ? "pág. " + nums.join("–") + " de " + (last - 1) : "";
     navPage.classList.toggle("is-hint", s === 0);
-    if (s === 0) navPage.textContent = touch ? "Role a tela para virar as páginas" : "Role para virar as páginas";
+    if (s === 0) navPage.textContent = touch ? "Deslize ou toque para abrir" : "Role o mouse ou use as setas";
 
     navPrev.disabled = s === 0;
     navNext.disabled = s === S.flips;
@@ -624,66 +710,134 @@
 
   /* ---------- navigation ---------- */
 
-  function goToState(s, instant) {
-    if (!S.st) return;
+  // turn to a state (0 = closed cover); several pages at once riffle through quickly
+  function goToState(s, done) {
+    if (!S.tl) return;
     s = Math.max(0, Math.min(S.flips, s));
-    var p = S.labels[s] / S.tl.duration();
-    var y = Math.round(S.st.start + p * (S.st.end - S.st.start));
-    S.jumpY = y;
-    S.jumpState = s;
-    window.scrollTo({ top: y, behavior: instant ? "auto" : "smooth" });
-  }
-
-  // the page the scroll position points at (the animation itself trails slightly behind)
-  function scrollState() {
-    if (S.jumpY != null) return S.jumpState;
-    var time = S.st.progress * S.tl.duration();
-    var best = 0;
-    S.labels.forEach(function (l, i) {
-      if (Math.abs(l - time) < Math.abs(S.labels[best] - time)) best = i;
+    S.target = s;
+    if (tween) tween.kill();
+    var time = S.labels[s];
+    var dist = Math.abs(time - S.tl.time()) / FLIP;
+    if (!TURN || dist < 0.01) {
+      tween = null;
+      S.tl.time(time);
+      if (done) done();
+      return;
+    }
+    tween = gsap.to(S.tl, {
+      time: time,
+      duration: Math.min(dist <= 1 ? TURN * Math.max(dist, 0.4) : TURN * (1 + 0.18 * (dist - 1)), 2.4),
+      ease: dist > 1.2 ? "power1.inOut" : "none",
+      onComplete: function () { tween = null; if (done) done(); }
     });
-    return best;
   }
 
   function step(dir) {
-    if (S.st) goToState(scrollState() + dir);
+    goToState(S.target + dir);
   }
 
-  function goToCategory(id, instant) {
+  function open(target, done) {
+    if (!Book.active) return;
+    if (target == null) target = stateOfPage(2); // the table of contents
+    if (isOpen) { goToState(target, done); return; }
+
+    isOpen = true;
+    lastFocus = document.activeElement;
+    root.classList.add("book-open");
+    wrap.inert = false;
+    setPageInert(true);
+    try { history.pushState({ rmmBook: true }, ""); } catch (err) { /* file:// or sandboxed */ }
+    wrap.focus({ preventScroll: true });
+
+    // it opens from the closed cover, so the reader sees the book being opened
+    if (tween) tween.kill();
+    S.tl.time(0);
+    S.target = 0;
+    setTimeout(function () { if (isOpen) goToState(target, done); }, TURN ? 320 : 0);
+  }
+
+  // the close button and Esc go "back", so the phone's history stays in step
+  function requestClose() {
+    if (!isOpen) return;
+    if (history.state && history.state.rmmBook) history.back();
+    else close();
+  }
+
+  function close() {
+    if (!isOpen) return;
+    isOpen = false;
+    root.classList.remove("book-open");
+    wrap.inert = true;
+    setPageInert(false);
+    if (lastFocus && lastFocus.focus) lastFocus.focus({ preventScroll: true });
+    // back to the closed cover once it has faded out
+    setTimeout(function () {
+      if (isOpen || !S.tl) return;
+      if (tween) tween.kill();
+      tween = null;
+      S.tl.time(0);
+      S.target = 0;
+    }, 400);
+  }
+
+  // while the book is open, the site behind it can't be reached with the keyboard
+  function setPageInert(on) {
+    document.querySelectorAll("body > header, body > main, body > footer, .wa-float, .to-top, .book-fab").forEach(function (n) {
+      n.inert = on;
+    });
+  }
+
+  function goToCategory(id) {
     if (!Book.active || S.catPage[id] == null) return false;
-    goToState(stateOfPage(S.catPage[id]), instant);
+    open(stateOfPage(S.catPage[id]));
     return true;
   }
 
   function goToItem(i) {
     var p = S.itemPage[i];
     if (p == null) return;
-    goToState(stateOfPage(p));
     var target = S.pages[p].querySelector('.item[data-i="' + i + '"]');
-    if (!target) return;
-    target.classList.remove("is-flash");
-    setTimeout(function () { target.classList.add("is-flash"); }, 700);
+    if (target) target.classList.remove("is-flash");
+    open(stateOfPage(p), function () {
+      if (target) target.classList.add("is-flash");
+    });
   }
 
   /* ---------- build / rebuild ---------- */
 
+  function fillJumpList() {
+    jumpSelect.textContent = "";
+    var first = el("option", null, "Ir para…");
+    first.value = "";
+    jumpSelect.appendChild(first);
+    S.parts.forEach(function (part) {
+      var group = el("optgroup");
+      group.label = part.label;
+      part.cats.forEach(function (c) {
+        var o = el("option", null, c.title);
+        o.value = c.id;
+        group.appendChild(o);
+      });
+      jumpSelect.appendChild(group);
+    });
+  }
+
   function teardown() {
-    if (S.viewSt) S.viewSt.kill();
-    if (S.st) S.st.kill();
+    if (tween) tween.kill();
+    tween = null;
     if (S.tl) S.tl.kill();
     gsap.set(spreadEl, { clearProps: "all" });
     spreadEl.textContent = "";
     S = blank();
     Book.active = false;
-    root.classList.remove("book-on", "book-pinned");
-    wrap.hidden = true;
+    root.classList.remove("book-on");
   }
 
   function build() {
-    // reopen on the same item after a resize, if the reader was inside the book
+    // after a resize, reopen on the page that was being read
     var keep = null;
-    if (S.st && S.st.isActive) {
-      var shown = S.pages[visiblePages(S.current).pop()];
+    if (isOpen && S.pages.length) {
+      var shown = S.pages[visiblePages(S.target).pop()];
       var first = shown && shown.querySelector(".item");
       if (first) keep = first.dataset.i;
     }
@@ -691,10 +845,7 @@
     teardown();
     var g = geometry();
     if (g) {
-      root.classList.add("book-on");
-      wrap.hidden = false;
       wrap.classList.toggle("is-spread", g.spread);
-      wrap.style.height = g.wrapH + "px";
       wrap.style.setProperty("--pw", g.pw + "px");
       wrap.style.setProperty("--ph", g.ph + "px");
       wrap.style.setProperty("--fs", g.fs + "px");
@@ -705,31 +856,19 @@
       S.itemPage = r.itemPage;
       S.catPage = r.catPage;
       S.catTitle = r.catTitle;
+      S.parts = menuParts();
       buildLeaves(g);
       buildTimeline(g);
+      fillJumpList();
       Book.active = true;
-    }
-
-    ScrollTrigger.refresh();
-    if (Book.active) {
+      root.classList.add("book-on");
       S.current = -1;
       update();
-      if (keep != null && S.itemPage[keep] != null) goToState(stateOfPage(S.itemPage[keep]), true);
+      if (isOpen) goToState(keep != null && S.itemPage[keep] != null ? stateOfPage(S.itemPage[keep]) : stateOfPage(2));
+    } else if (isOpen) {
+      requestClose();
     }
     if (window.MenuUI) window.MenuUI.refresh();
-  }
-
-  // the search results above the book change the page height: re-measure the scroll positions
-  if (window.ResizeObserver) {
-    var pending = false;
-    new ResizeObserver(function () {
-      if (!Book.active || pending) return;
-      pending = true;
-      requestAnimationFrame(function () {
-        pending = false;
-        ScrollTrigger.refresh();
-      });
-    }).observe(document.getElementById("busca"));
   }
 
   var lastW = window.innerWidth, lastH = window.innerHeight, timer;
@@ -746,8 +885,10 @@
 
   (document.fonts ? document.fonts.ready : Promise.resolve()).then(function () {
     shell();
+    buildTeaser();
     build();
+    // a link straight to a category (e.g. …/#pizzas-doces) opens the book there
     var id = location.hash.slice(1);
-    if (id) goToCategory(id, true);
+    if (id) goToCategory(id);
   });
 })();

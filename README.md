@@ -8,9 +8,9 @@ Site cardápio do Rock Me Mamma, pizza bar na Al. Júlia da Costa, 1829, no Bigo
 index.html        Página única: abertura, cardápio completo, como chegar e rodapé
 css/style.css     Estilos (cores e fontes no topo, em :root)
 js/main.js        Busca, filtros e destaque da categoria durante a rolagem
-js/book.js        Cardápio em formato de livro, com páginas que viram com a rolagem
+js/book.js        Cardápio em formato de livro, aberto pelo botão "Abrir o cardápio"
 js/gallery.js     Carrossel de fotos da seção "A casa"
-js/vendor/        GSAP 3.12.5 e ScrollTrigger (licença gratuita da GSAP), servidos pelo próprio site
+js/vendor/        GSAP 3.12.5 (licença gratuita da GSAP), servido pelo próprio site
 assets/           Logo (branca e preta), favicon, imagem de compartilhamento, textura do papel e a pizza da abertura (hero-pizza.webp)
 ```
 
@@ -19,13 +19,12 @@ O cardápio e os contatos estão escritos direto no `index.html`, então aparece
 ## Recursos
 
 - **A casa:** descrição do restaurante com título em letra de pincel (Mr Dafoe, como o "Mamma" do logo) e texto em Montserrat (como o "ROCK ME"), ao lado de um carrossel de fotos do ambiente e dos pratos. O carrossel desliza com o dedo, tem setas, pontinhos, teclado e troca de foto sozinho enquanto está na tela.
-- **Cardápio em livro:** capa com o logo, boas-vindas, sumário clicável, páginas do cardápio e contracapa. As páginas viram em 3D conforme a rolagem, no ritmo de quem rola, e voltam ao rolar para cima. Duas páginas abertas no computador e uma por vez no celular.
-- **Navegação do livro:** botões de página anterior e próxima, indicador da categoria e da página, barra de progresso, setas do teclado, toque na página e deslizar para o lado no celular. As categorias da barra fixa e os links "Cozinha" e "Bar" do topo abrem o livro na página certa.
+- **Cardápio em livro:** na página aparece o livro fechado, o botão **"Abrir o cardápio"** e atalhos para cada categoria; rolar o site passa direto, sem folhear. O livro abre em tela cheia, por cima do site, com capa, boas-vindas, sumário clicável, páginas do cardápio e contracapa. Duas páginas abertas no computador e uma por vez no celular.
+- **Navegação do livro:** as páginas viram em 3D com a roda do mouse (uma página por movimento), as setas do teclado, os botões de anterior e próxima, um clique na página ou deslizando o dedo no celular. Tem a lista "Ir para…" com as categorias, indicador da página e barra de progresso. Fecha no "Fechar", no Esc ou no botão voltar do celular, e o site continua onde estava. O botão "Ver o cardápio" da abertura e os links "Cozinha" e "Bar" do topo abrem o livro na página certa.
 - Cardápio inteiro do PDF, separado em **Cozinha** e **Bar**, com títulos em letra cursiva como no cardápio impresso.
-- Barra de categorias fixa que acompanha a rolagem.
 - Busca por nome ou ingrediente (sem diferenciar acentos), com botão de busca no topo do site e na barra de categorias, contador de resultados e filtros **Vegetariano**, **Vegano** e **Zero lactose**. No modo livro, os resultados aparecem em lista com a página de cada item; tocar em um resultado abre o livro nessa página e destaca o prato.
 - Seção "Visite" com endereço, mapa (com alternativa caso o mapa não carregue), rota no Google Maps, WhatsApp e Instagram.
-- Botões flutuantes do WhatsApp e de **voltar ao início** (aparece depois da abertura e leva direto ao topo, sem folhear o livro). No celular, os dois se escondem enquanto o livro está na tela, para não cobrir os botões de página; o logo do topo também leva ao início.
+- Botões flutuantes: **Cardápio** (à esquerda, abre o livro de qualquer ponto da página), WhatsApp e **voltar ao início** (à direita). Os de cardápio e de voltar aparecem depois da abertura; o logo do topo também leva ao início.
 
 ## Como atualizar o cardápio
 
