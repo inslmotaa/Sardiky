@@ -1,15 +1,8 @@
 import 'server-only'
 import { and, asc, count, eq, gte, isNull, lt, sql } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { zonedToUtc } from './time'
 
 export type Range = { from: string; to: string; tz: string } // to = exclusivo
-
-const inRange = (r: Range) => and(gte(schema.appointments.startAt, zonedToUtc(r.from, '00:00', r.tz)), lt(schema.appointments.startAt, zonedToUtc(r.to, '00:00', r.tz)))
-
-export async function appointmentsInRange(r: Range) {
-  return db.select().from(schema.appointments).where(inRange(r)).orderBy(asc(schema.appointments.startAt))
-}
 
 export async function patientsByStatus() {
   return db.select({ status: schema.patients.status, n: count() }).from(schema.patients).where(isNull(schema.patients.anonymizedAt)).groupBy(schema.patients.status)

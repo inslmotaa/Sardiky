@@ -23,7 +23,6 @@ export const NO_INDEX_PATHS = [
   '/redefinir-senha',
   '/nova-senha',
   '/confirmar-email',
-  '/agendar/confirmado',
   '/api/',
   '/lembretes/',
   '/descadastrar/',
@@ -34,10 +33,8 @@ export const PUBLIC_PAGES: { path: string; priority: number; changeFrequency: 'w
   { path: '/', priority: 1, changeFrequency: 'weekly' },
   { path: '/sobre', priority: 0.8, changeFrequency: 'monthly' },
   { path: '/como-funciona', priority: 0.8, changeFrequency: 'monthly' },
-  { path: '/planos', priority: 0.9, changeFrequency: 'monthly' },
   { path: '/conteudos', priority: 0.7, changeFrequency: 'weekly' },
   { path: '/duvidas', priority: 0.6, changeFrequency: 'monthly' },
-  { path: '/agendar', priority: 0.6, changeFrequency: 'monthly' },
   { path: '/privacidade', priority: 0.2, changeFrequency: 'yearly' },
 ]
 

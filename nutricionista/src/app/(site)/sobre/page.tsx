@@ -1,9 +1,7 @@
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getSettings } from '@/lib/settings'
-import { getCurrentUser } from '@/lib/auth/session'
-import { bookingLink } from '@/lib/format'
-import { BookingLink } from '@/components/BookingLink'
+import { startWhatsApp } from '@/lib/format'
+import { StartCtas } from '@/components/StartCtas'
 import { PageHead } from '@/components/SiteBlocks'
 import { sitePageMeta } from '@/lib/seo-server'
 import { JsonLd } from '@/components/JsonLd'
@@ -17,8 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 /** Quem é o André: apresentação, método, diferenciais e objetivos (textos editáveis em Configurações). */
 export default async function AboutPage() {
-  const [s, user] = await Promise.all([getSettings(), getCurrentUser()])
-  const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
+  const s = await getSettings()
   const first = s.professionalName.split(' ')[0]
   return (
     <>
@@ -134,12 +131,7 @@ export default async function AboutPage() {
             Conte ao {first} onde você quer chegar.
           </h2>
           <div className="tl-actions" data-rv="">
-            <BookingLink to={booking} className="pill">
-              Agendar consulta <span aria-hidden>→</span>
-            </BookingLink>
-            <Link href="/planos" className="ulink">
-              Ver planos
-            </Link>
+            <StartCtas whatsapp={startWhatsApp(s)} />
           </div>
         </div>
       </section>

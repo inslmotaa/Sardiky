@@ -1,10 +1,13 @@
 import Link from 'next/link'
-import { and, asc, eq, isNull, lte } from 'drizzle-orm'
+import { and, asc, eq, gte, isNull, lte } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
-import { appointmentsInRange, patientsByStatus, paymentsInRange, weightEvolution } from '@/lib/reports'
+import { patientsByStatus, paymentsInRange, weightEvolution } from '@/lib/reports'
+import { trackingBoard } from '@/lib/tracking'
+import { ADHERENCE_LABEL } from '@/lib/acompanhamento'
+import { isRestricted } from '@/lib/team-access'
 import { addDays, addMonths, fmtDay, isValidDay, startOfMonth, todayIn } from '@/lib/time'
 import { money, num, STATUS_LABEL } from '@/lib/format'
 import { NoAccess, PageHead, Stat } from '@/components/ui'
@@ -21,26 +24,19 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   const clinical = can(user, 'clinico')
   const finance = s.financeEnabled && can(user, 'financeiro')
 
-  const [appts, statuses, evolution, payments, overdue, pendingConfirm] = await Promise.all([
-    appointmentsInRange(range),
+  const [statuses, evolution, payments, endings, board] = await Promise.all([
     patientsByStatus(),
     clinical ? weightEvolution() : Promise.resolve([]),
     finance ? paymentsInRange(range) : Promise.resolve([]),
+    // Vencimentos: planos com término dentro do período (para renovar a tempo).
     db
-      .select()
+      .select({ id: schema.patients.id, name: schema.patients.fullName, end: schema.patients.packageEnd })
       .from(schema.patients)
-      .where(and(eq(schema.patients.status, 'ativo'), lte(schema.patients.nextFollowUp, today), isNull(schema.patients.anonymizedAt)))
-      .orderBy(asc(schema.patients.nextFollowUp)),
-    db.select().from(schema.appointments).where(eq(schema.appointments.status, 'pendente')),
+      .where(and(eq(schema.patients.status, 'ativo'), isNull(schema.patients.anonymizedAt), gte(schema.patients.packageEnd, from), lte(schema.patients.packageEnd, toIncl)))
+      .orderBy(asc(schema.patients.packageEnd)),
+    clinical ? trackingBoard(today, s.timezone, { good: s.adherenceGood, low: s.adherenceLow }, isRestricted(user) ? user.id : null) : Promise.resolve([]),
   ])
-  const by = (st: string) => appts.filter((a) => a.status === st).length
-  const done = by('realizada')
-  const canceled = by('cancelada')
-  const noShow = by('faltou')
-  const decided = done + noShow
-  const byService = Object.entries(
-    appts.filter((a) => a.status === 'realizada').reduce<Record<string, number>>((acc, a) => ((acc[a.serviceName] = (acc[a.serviceName] ?? 0) + 1), acc), {}),
-  )
+  const adherence = (['em_dia', 'dificuldade', 'sem_progresso'] as const).map((k) => ({ k, n: board.filter((r) => r.klass === k).length }))
   const revenue = payments.reduce((n, r) => n + r.pay.amountCents - r.pay.discountCents, 0)
   const qs = `de=${from}&ate=${toIncl}`
 
@@ -65,41 +61,6 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         </div>
       </form>
 
-      <section className="stack">
-        <div className="row row--between">
-          <h2 style={{ fontSize: '1.15rem', margin: 0 }}>Atendimentos</h2>
-          <a className="btn btn--sm" href={`/admin/relatorios/csv?tipo=atendimentos&${qs}`}>
-            Exportar CSV
-          </a>
-        </div>
-        <div className="grid-4">
-          <Stat value={done} label="Realizados" />
-          <Stat value={canceled} label="Cancelados" />
-          <Stat value={noShow} label="Não comparecimentos" />
-          <Stat value={decided ? `${Math.round((noShow / decided) * 100)}%` : '—'} label="Taxa de faltas" />
-        </div>
-        {byService.length > 0 && (
-          <div className="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Serviço</th>
-                  <th className="num">Realizados</th>
-                </tr>
-              </thead>
-              <tbody>
-                {byService.map(([name, n]) => (
-                  <tr key={name}>
-                    <td>{name}</td>
-                    <td className="num">{n}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
       <div className="grid-2" style={{ alignItems: 'start' }}>
         <section className="card">
           <div className="card__head">
@@ -120,30 +81,42 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           </table>
         </section>
         <section className="card">
-          <h2 style={{ fontSize: '1.1rem' }}>Pendências da agenda</h2>
-          <ul className="list">
-            <li className="row row--between">
-              <span>Pedidos aguardando confirmação</span>
-              <Link href="/admin/agenda?status=pendente">{pendingConfirm.length}</Link>
-            </li>
-            <li>
-              <div className="row row--between">
-                <span>Clientes ativos com retorno vencido</span>
-                <strong>{overdue.length}</strong>
-              </div>
-              {overdue.length > 0 && (
-                <ul className="small" style={{ margin: '6px 0 0', paddingLeft: 18 }}>
-                  {overdue.slice(0, 10).map((p) => (
-                    <li key={p.id}>
-                      <Link href={`/admin/pacientes/${p.id}`}>{p.fullName}</Link> · previsto {fmtDay(p.nextFollowUp)}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          </ul>
+          <div className="card__head">
+            <h2>Vencimentos no período</h2>
+            <a className="small" href={`/admin/relatorios/csv?tipo=vencimentos&${qs}`}>
+              CSV
+            </a>
+          </div>
+          {endings.length === 0 ? (
+            <p className="muted">Nenhum plano termina no período.</p>
+          ) : (
+            <ul className="list" aria-label="Vencimentos no período">
+              {endings.map((p) => (
+                <li key={p.id} className="row row--between">
+                  <Link href={`/admin/pacientes/${p.id}`}>{p.name}</Link>
+                  <span className="small muted">{fmtDay(p.end)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
       </div>
+
+      {clinical && (
+        <section className="card">
+          <div className="card__head">
+            <h2>Adesão (últimos 7 dias completos)</h2>
+            <Link href="/admin/acompanhamento" className="small">
+              Acompanhamento
+            </Link>
+          </div>
+          <div className="grid-3">
+            {adherence.map((a) => (
+              <Stat key={a.k} value={a.n} label={ADHERENCE_LABEL[a.k]} href={`/admin/acompanhamento?grupo=${a.k}`} />
+            ))}
+          </div>
+        </section>
+      )}
 
       {clinical && (
         <section className="stack">

@@ -184,7 +184,7 @@ test('vencimento: semana no painel com WhatsApp; vencido mostra só o histórico
   const id = await openPatient(page, 'Lucas')
   await page.getByLabel('Término (opcional)').fill(isoDay(-1))
   await page.getByRole('button', { name: 'Salvar alterações' }).click()
-  await expect(page.getByText(/salv|atualizad/i).first()).toBeVisible()
+  await expect(page.getByText('Cadastro atualizado.')).toBeVisible()
 
   try {
     await page.context().clearCookies()
@@ -207,7 +207,7 @@ test('vencimento: semana no painel com WhatsApp; vencido mostra só o histórico
     await page.goto(`/admin/pacientes/${id}`)
     await page.getByLabel('Término (opcional)').fill(isoDay(5))
     await page.getByRole('button', { name: 'Salvar alterações' }).click()
-    await expect(page.getByText(/salv|atualizad/i).first()).toBeVisible()
+    await expect(page.getByText('Cadastro atualizado.')).toBeVisible()
   }
 })
 
@@ -270,7 +270,7 @@ test('login por link mágico: link de uso único, com confirmação de um clique
 
 async function signUpMonthly(page: Page, name: string, email: string) {
   await page.context().clearCookies()
-  await page.goto('/planos')
+  await page.goto('/#planos')
   await page.locator('.tl-plan', { hasText: 'Mensal' }).getByRole('link', { name: /Contratar/ }).click()
   await page.getByLabel('Nome completo').fill(name)
   await page.getByLabel('E-mail').fill(email)

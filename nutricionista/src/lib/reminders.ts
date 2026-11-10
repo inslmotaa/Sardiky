@@ -25,7 +25,7 @@ export async function runReminders(now = new Date()) {
   const z = zonedParts(now, tz)
   const today = z.date
   const nowMin = timeToMinutes(z.time)
-  const out = { refeicoes: 0, agua: 0, pesagem: 0, inativos: 0, consultas: 0 }
+  const out = { refeicoes: 0, agua: 0, pesagem: 0, inativos: 0 }
 
   const patients = await db
     .select({ p: schema.patients, prefs: schema.users.notificationPrefs })
@@ -114,32 +114,5 @@ export async function runReminders(now = new Date()) {
     }
   }
 
-  // 5. Consultas confirmadas em 24 h e em 2 h: paciente e equipe.
-  const appts = await db
-    .select({ a: schema.appointments, userId: schema.patients.userId })
-    .from(schema.appointments)
-    .leftJoin(schema.patients, eq(schema.patients.id, schema.appointments.patientId))
-    .where(and(eq(schema.appointments.status, 'confirmada'), gte(schema.appointments.startAt, now), lt(schema.appointments.startAt, new Date(now.getTime() + 24 * 3_600_000))))
-  for (const { a, userId } of appts) {
-    const hours = (a.startAt.getTime() - now.getTime()) / 3_600_000
-    const which = hours <= 2 ? '2h' : '24h'
-    const owner = userId ?? null
-    // Chave por consulta e janela (24 h ou 2 h); a equipe usa o registro do primeiro administrador.
-    const claimFor = owner ?? (await firstAdminId())
-    if (!claimFor || !(await claimReminder(claimFor, `consulta${which}`, a.id))) continue
-    const when = fmtDateTime(a.startAt, tz)
-    if (owner)
-      await pushToUser(owner, 'consultas', { title: which === '2h' ? 'Sua consulta é daqui a pouco' : 'Lembrete: consulta amanhã', body: `${a.serviceName} · ${when}${a.modality === 'online' ? ' · on-line' : ''}`, url: '/paciente/consultas', tag: `consulta-${a.id}` }, { nowHHMM: z.time })
-    await pushToTeam('agenda', { title: `Consulta em ${which === '2h' ? '2 horas' : '24 horas'}`, body: `${a.contactName} · ${when}`, url: `/admin/agenda/${a.id}`, tag: `consulta-${a.id}` }, a.patientId)
-    out.consultas++
-  }
   return out
-}
-
-let adminId: string | null | undefined
-async function firstAdminId() {
-  if (adminId !== undefined) return adminId
-  const [u] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.role, 'admin')).limit(1)
-  adminId = u?.id ?? null
-  return adminId
 }

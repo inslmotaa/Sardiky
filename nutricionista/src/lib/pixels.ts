@@ -27,7 +27,7 @@ export function activePixels(s: { pixelsEnabled: boolean; metaPixelId: string; g
 }
 
 /** Páginas do site público onde os pixels podem rodar (nunca painel, área do cliente ou login). */
-export const PUBLIC_SITE_PATHS = ['/', '/sobre', '/como-funciona', '/planos', '/conteudos', '/duvidas', '/agendar', '/privacidade'] as const
+export const PUBLIC_SITE_PATHS = ['/', '/sobre', '/como-funciona', '/conteudos', '/duvidas', '/privacidade'] as const
 
 export function isPublicSitePath(path: string): boolean {
   const p = path.split(/[?#]/)[0].replace(/\/+$/, '') || '/'

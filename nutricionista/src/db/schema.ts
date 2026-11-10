@@ -51,7 +51,8 @@ export type NotificationPrefs = {
   agua: boolean
   plano: boolean
   mensagens: boolean
-  consultas: boolean
+  /** Lembretes de consulta: saíram com o agendamento (campo antigo, ignorado). */
+  consultas?: boolean
   lembretes: boolean
   pesagem: boolean
   /** Horário de silêncio (HH:MM); nada é enviado entre início e fim. */
@@ -69,7 +70,6 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   agua: true,
   plano: true,
   mensagens: true,
-  consultas: true,
   lembretes: true,
   pesagem: true,
   quietStart: '22:00',
@@ -177,11 +177,11 @@ export const authTokens = pgTable('auth_tokens', {
 /* ------------------------------------------------------------------ */
 
 export type MessageTemplates = {
-  confirmacao: string
-  lembrete: string
-  cancelamento: string
+  /** Modelos antigos de consulta (o agendamento saiu do sistema; campos mantidos só por compatibilidade). */
+  confirmacao?: string
+  lembrete?: string
+  cancelamento?: string
   /** Mensagens dos botões de WhatsApp do painel (wa.me, sem API paga). Vazias = texto padrão. */
-  waLembreteConsulta?: string
   waPlanoNovo?: string
   waCheckin?: string
   waVencimento?: string
@@ -226,7 +226,7 @@ export const settings = pgTable('settings', {
   demoBanner: boolean('demo_banner').notNull().default(true),
   /** Valores dos serviços e planos visíveis no site público. */
   showPrices: boolean('show_prices').notNull().default(false),
-  /** Valores dos planos de acompanhamento no site (independe dos valores das consultas). */
+  /** Valores dos planos de acompanhamento no site. */
   showPlanPrices: boolean('show_plan_prices').notNull().default(true),
   /** "Todos os planos incluem": itens comuns a todos os planos, exibidos no site. */
   plansIncluded: jsonb('plans_included').$type<{ title: string; text: string }[]>().notNull().default([]),

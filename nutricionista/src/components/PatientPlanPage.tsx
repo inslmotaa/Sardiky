@@ -46,7 +46,7 @@ export function PlanPage({
       />
       {!isCurrent && (
         <p className="alert alert--warn">
-          Esta é uma versão anterior, mantida apenas para consulta. <Link href="/paciente/plano">Ver o plano atual</Link>.
+          Esta é uma versão anterior, mantida só como histórico. <Link href="/paciente/plano">Ver o plano atual</Link>.
         </p>
       )}
       <p className="muted small no-print" style={{ margin: 0 }}>

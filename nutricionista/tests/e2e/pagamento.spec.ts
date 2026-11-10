@@ -10,7 +10,7 @@ const MP = 'http://localhost:3299'
 
 async function signUp(page: Page, name: string, email: string, plan?: string) {
   if (plan) {
-    await page.goto('/planos')
+    await page.goto('/#planos')
     await page.locator('.tl-plan', { hasText: plan }).getByRole('link', { name: /Contratar/ }).click()
     await expect(page).toHaveURL(/\/criar-conta\?plano=[0-9a-f-]{36}$/)
   } else await page.goto('/criar-conta')

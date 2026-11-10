@@ -12,7 +12,6 @@ import { CONTRACT_STATUS, contractInfo } from '@/lib/contract'
 import { uuid } from '@/lib/validation'
 import { NoAccess, PageHead, StatusBadge, Tabs } from '@/components/ui'
 import { SummaryTab } from './_tabs/summary'
-import { AppointmentsTab } from './_tabs/appointments'
 import { EvolutionTab } from './_tabs/evolution'
 import { PlansTab } from './_tabs/plans'
 import { DiaryTab } from './_tabs/diary'
@@ -33,7 +32,6 @@ import { updatePatientHeight } from '@/actions/admin/corpo'
 
 const TABS = [
   { key: 'resumo', label: 'Resumo', perm: 'cadastro' },
-  { key: 'consultas', label: 'Consultas', perm: 'cadastro' },
   { key: 'evolucao', label: 'Avaliações e evolução', perm: 'clinico' },
   { key: 'planos', label: 'Planos alimentares', perm: 'clinico' },
   { key: 'diario', label: 'Diário', perm: 'clinico' },
@@ -91,11 +89,6 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
         actions={
           <>
             <WhatsAppButton phone={p.phone} template="waContato" vars={{ nome: p.fullName.split(' ')[0] }} />
-            {can(user, 'agenda') && (
-              <Link href={`/admin/agenda/nova?paciente=${p.id}`} className="btn btn--sm">
-                Agendar
-              </Link>
-            )}
             {can(user, 'clinico') && (
               <Link href={`/admin/pacientes/${p.id}?aba=planos`} className="btn btn--sm btn--primary">
                 Plano alimentar
@@ -137,7 +130,6 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
       )}
       <Tabs current={tab.key} items={visible.map((t) => ({ key: t.key, label: t.label, href: `/admin/pacientes/${p.id}?aba=${t.key}` }))} />
       {tab.key === 'resumo' && <SummaryTab patient={p} user={user} />}
-      {tab.key === 'consultas' && <AppointmentsTab patient={p} />}
       {tab.key === 'evolucao' && <EvolutionTab patient={p} compare={{ a: sp.a, b: sp.b }} />}
       {tab.key === 'planos' && <PlansTab patient={p} />}
       {tab.key === 'diario' && <DiaryTab patient={p} view={sp.vista} />}

@@ -30,11 +30,13 @@ const paymentSchema = z.object({
     .string()
     .optional()
     .transform((v) => v || null),
+  // Todo pagamento é de um plano contratado (não há consultas avulsas).
   packageId: z
     .string()
     .optional()
-    .transform((v) => v || null),
-  description: str(200, 'Descreva o lançamento'),
+    .transform((v) => v || null)
+    .refine((v) => v === null || uuid.safeParse(v).success, 'Plano inválido'),
+  description: optStr(200),
   amount: money(),
   discount: money('Desconto inválido'),
   discountReason: optStr(200),
@@ -58,15 +60,18 @@ export async function createPayment(_: ActionState, fd: FormData): Promise<Actio
   if (d.amount <= 0) return { fieldErrors: { amount: 'Informe o valor' }, error: 'Informe o valor.' }
   if (d.discount > d.amount) return { fieldErrors: { discount: 'Desconto maior que o valor' }, error: 'Desconto maior que o valor.' }
   if (d.discount > 0 && !d.discountReason) return { fieldErrors: { discountReason: 'Informe o motivo do desconto' }, error: 'Informe o motivo do desconto.' }
+  if (!d.packageId) return { fieldErrors: { packageId: 'Escolha o plano' }, error: 'Escolha o plano contratado.' }
   try {
     const user = await ensureFinance()
     const s = await getSettings()
+    const [pkg] = await db.select({ name: schema.packages.name }).from(schema.packages).where(eq(schema.packages.id, d.packageId))
+    if (!pkg) return { fieldErrors: { packageId: 'Plano inválido' }, error: 'Plano inválido.' }
     const [row] = await db
       .insert(schema.payments)
       .values({
         patientId: d.patientId,
         packageId: d.packageId,
-        description: d.description,
+        description: d.description || `Plano ${pkg.name}`,
         amountCents: d.amount,
         discountCents: d.discount,
         discountReason: d.discountReason,
@@ -115,17 +120,6 @@ export async function setPaymentStatus(id: string, status: 'cancelado' | 'estorn
   revalidatePath('/admin/financeiro')
 }
 
-/** Lança a cobrança de uma consulta realizada, usando o valor registrado no agendamento. */
-export async function chargeAppointment(appointmentId: string): Promise<void> {
-  const user = await ensureFinance()
-  const [a] = await db.select().from(schema.appointments).where(eq(schema.appointments.id, appointmentId))
-  if (!a) return
-  const [exists] = await db.select({ id: schema.payments.id }).from(schema.payments).where(eq(schema.payments.appointmentId, a.id))
-  if (exists) return
-  await db.insert(schema.payments).values({ patientId: a.patientId, appointmentId: a.id, description: a.serviceName, amountCents: a.priceCents, status: 'pendente', createdBy: user.id })
-  await audit(user, 'lancamento_criado', 'pagamento', { patientId: a.patientId, details: { consulta: a.id } })
-  revalidatePath('/admin/financeiro')
-}
 
 const packageSchema = z.object({
   id: z.string().optional(),

@@ -5,7 +5,7 @@ import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { todayIn } from '@/lib/time'
-import { bookingLink } from '@/lib/format'
+import { startWhatsApp } from '@/lib/format'
 import { postBySlug } from '@/lib/posts'
 import { dataPost, postVisivel, SLUG } from '@/lib/conteudos'
 import { plainText, readingMinutes } from '@/lib/markdown'
@@ -51,7 +51,6 @@ export default async function PostPage({ params }: Props) {
   const r = await load((await params).slug)
   if (!r) notFound()
   const { p, s, user, preview } = r
-  const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
   return (
     <>
       {!preview && <JsonLd data={postLd(p, s, siteUrl())} />}
@@ -79,7 +78,7 @@ export default async function PostPage({ params }: Props) {
             <img src={`/arquivos/${p.coverFileId}`} alt={p.coverAlt} className="post__cover" />
           )}
           <Markdown source={p.body} className="post-body" />
-          <PostCta booking={booking} firstName={s.professionalName.split(' ')[0]} />
+          <PostCta whatsapp={startWhatsApp(s)} firstName={s.professionalName.split(' ')[0]} />
           <p className="post__back">
             <Link href="/conteudos" className="ulink">
               ← Todos os conteúdos

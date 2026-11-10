@@ -18,6 +18,7 @@ export const PRESCRIPTION_TYPE_KEYS = ['livre', 'suplemento', 'manipulado', 'erg
 export const SITE_NAV = [
   { href: '/#sobre', label: 'Sobre' },
   { href: '/#consultoria', label: 'Consultoria' },
+  { href: '/#planos', label: 'Planos' },
   { href: '/#resultados', label: 'Resultados' },
   { href: '/conteudos', label: 'Conteúdos' },
   { href: '/#contato', label: 'Contato' },
@@ -28,7 +29,7 @@ export const SITE_PAGES = [
   { href: '/', label: 'Início' },
   { href: '/sobre', label: 'Sobre' },
   { href: '/como-funciona', label: 'Como funciona' },
-  { href: '/planos', label: 'Planos' },
+  { href: '/#planos', label: 'Planos' },
   { href: '/conteudos', label: 'Conteúdos' },
   { href: '/duvidas', label: 'Dúvidas' },
 ]

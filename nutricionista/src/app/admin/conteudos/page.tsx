@@ -18,7 +18,7 @@ export default async function PostsPage() {
     <div className="stack">
       <PageHead
         title="Conteúdos"
-        subtitle="Textos do blog em /conteudos. Cada conteúdo termina com um convite para agendar ou contratar. Só os publicados (com data de hoje ou passada) aparecem no site e no Google."
+        subtitle="Textos do blog em /conteudos. Cada conteúdo termina com um convite para contratar um plano. Só os publicados (com data de hoje ou passada) aparecem no site e no Google."
         actions={
           <Link href="/admin/conteudos/novo" className="btn btn--primary">
             Novo conteúdo

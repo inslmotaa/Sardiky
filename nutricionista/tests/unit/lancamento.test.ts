@@ -22,10 +22,6 @@ const filled = () => {
     email: 'contato@andrefarion.com.br',
     emailPrivacidade: 'contato@andrefarion.com.br',
   })
-  p.servicos.forEach((s: { preco: unknown; descricao: string }, i: number) => {
-    s.preco = 100 + i
-    s.descricao = 'Descrição de teste.'
-  })
   return p
 }
 const check = (p: unknown) => run(['scripts/aplicar-perfil.mjs', '-', '--conferir'], { input: JSON.stringify(p) })
@@ -66,13 +62,20 @@ describe('perfil de produção', () => {
 
     const q = filled()
     q.contato.whatsapp = '999'
-    q.servicos[0].preco = '250'
-    q.agenda.horarios[0].dia = 'segundou'
+    q.planos[0].preco = '250'
+    q.chat.horario = { inicio: '08:00', fim: '18:00', dias: ['segundou'] }
     const r = check(q)
     expect(r.code).toBe(1)
     expect(r.out).toMatch(/whatsapp.*DDD/)
-    expect(r.out).toContain('servicos.0.preco')
+    expect(r.out).toContain('planos.0.preco')
     expect(r.out).toContain('dia inválido')
+  })
+
+  it('sem agendamento de consultas: o arquivo não tem serviços nem horários de atendimento', () => {
+    const p = example()
+    expect(p.servicos).toBeUndefined()
+    expect(p.site.agendamento).toBeUndefined()
+    expect(Object.keys(p.agenda)).toEqual(['fusoHorario'])
   })
 })
 
@@ -104,20 +107,11 @@ describe('gerador de segredos', () => {
   })
 })
 
-describe('destino do "Agendar consulta"', () => {
-  it('vai para o WhatsApp quando escolhido e preenchido; senão, para a agenda on-line', async () => {
-    const { bookingLink } = await import('@/lib/format')
-    expect(bookingLink({ whatsapp: '5541991551789', bookingChannel: 'whatsapp' }, 'Oi!')).toEqual({ href: 'https://wa.me/5541991551789?text=Oi!', external: true })
-    expect(bookingLink({ whatsapp: '5541991551789', bookingChannel: 'site' })).toEqual({ href: '/agendar', external: false })
-    expect(bookingLink({ whatsapp: null, bookingChannel: 'whatsapp' })).toEqual({ href: '/agendar', external: false })
-  })
-})
-
-describe('agendar pelo site com conta', () => {
-  it('visitante passa pelo cadastro; quem está conectado vai direto para a agenda', async () => {
-    const { bookingLink } = await import('@/lib/format')
-    const s = { whatsapp: '5541991551789', bookingChannel: 'site' }
-    expect(bookingLink(s, undefined, { loggedIn: false })).toEqual({ href: '/criar-conta?next=/agendar', external: false })
-    expect(bookingLink(s, undefined, { loggedIn: true })).toEqual({ href: '/agendar', external: false })
+describe('"Falar no WhatsApp" do site (sem consultas avulsas)', () => {
+  it('abre o WhatsApp com a mensagem pronta; sem número, não há link', async () => {
+    const { startWhatsApp } = await import('@/lib/format')
+    expect(startWhatsApp({ whatsapp: '5541991551789' }, 'Oi!')).toBe('https://wa.me/5541991551789?text=Oi!')
+    expect(startWhatsApp({ whatsapp: '5541991551789' })).toContain('planos%20de%20acompanhamento')
+    expect(startWhatsApp({ whatsapp: null })).toBeNull()
   })
 })

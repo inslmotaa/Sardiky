@@ -1,10 +1,8 @@
 import Link from 'next/link'
-import { BookingLink } from '@/components/BookingLink'
-import type { BookingTarget } from '@/lib/format'
 import { SaberMaisForm } from '@/components/Captacao'
 
-/** Fim de cada conteúdo: convite para agendar a consulta ou contratar um plano. */
-export function PostCta({ booking, firstName }: { booking: BookingTarget; firstName: string }) {
+/** Fim de cada conteúdo: convite para ver os planos (ou falar no WhatsApp). */
+export function PostCta({ whatsapp, firstName }: { whatsapp: string | null; firstName: string }) {
   return (
     <aside className="post-cta" aria-labelledby="post-cta-titulo">
       <p className="sec-label">/ PRÓXIMO PASSO</p>
@@ -13,12 +11,14 @@ export function PostCta({ booking, firstName }: { booking: BookingTarget; firstN
       </h2>
       <p>No acompanhamento, o {firstName} monta um plano para a sua realidade e ajusta junto com você, pelo app.</p>
       <div className="tl-actions">
-        <BookingLink to={booking} className="pill pill--solid">
-          Agendar consulta <span aria-hidden>→</span>
-        </BookingLink>
-        <Link href="/planos" className="pill">
+        <Link href="/#planos" className="pill pill--solid">
           Contratar um plano <span aria-hidden>→</span>
         </Link>
+        {whatsapp && (
+          <a href={whatsapp} className="pill" target="_blank" rel="noopener noreferrer">
+            Falar no WhatsApp
+          </a>
+        )}
       </div>
       <div className="post-cta__more">
         <p className="post-cta__more-title">Prefere tirar dúvidas antes? Deixe seu WhatsApp.</p>

@@ -58,7 +58,7 @@ export function serviceLd(s: SiteData, base: string): Json {
     availableChannel: {
       '@type': 'ServiceChannel',
       name: 'Atendimento on-line (videochamada e app)',
-      serviceUrl: `${base}/agendar`,
+      serviceUrl: `${base}/#planos`,
       ...(digits ? { servicePhone: { '@type': 'ContactPoint', telephone: `+${digits}` } } : {}),
     },
     ...(s.specialties.length ? { serviceType: s.specialties } : {}),
@@ -68,14 +68,34 @@ export function serviceLd(s: SiteData, base: string): Json {
   }
 }
 
-/** Grafo da página inicial: site, pessoa e serviço. */
-export function homeLd(s: SiteData, base: string): Json {
+export type PlanLd = { name: string; months: number; priceCents: number }
+
+/** Grafo da página inicial: site, pessoa e serviço, com os planos (na seção #planos) como catálogo de ofertas. */
+export function homeLd(s: SiteData, base: string, plans: PlanLd[] = [], showPrices = true): Json {
+  const service = serviceLd(s, base)
+  const catalog = plans.length
+    ? {
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'Planos de acompanhamento',
+          url: `${base}/#planos`,
+          itemListElement: plans.map((p) => ({
+            '@type': 'Offer',
+            name: `Plano ${p.name}`,
+            description: p.months === 1 ? 'Acompanhamento on-line por 1 mês' : `Acompanhamento on-line por ${p.months} meses`,
+            url: `${base}/#planos`,
+            ...(showPrices ? { price: (p.priceCents / 100).toFixed(2), priceCurrency: 'BRL' } : {}),
+            availability: 'https://schema.org/InStock',
+          })),
+        },
+      }
+    : {}
   return {
     '@context': 'https://schema.org',
     '@graph': [
       { '@type': 'WebSite', '@id': ids(base).site, url: `${base}/`, name: s.siteName, inLanguage: 'pt-BR', publisher: { '@id': ids(base).person } },
       personLd(s, base),
-      serviceLd(s, base),
+      { ...(service as Record<string, unknown>), ...catalog },
     ],
   }
 }

@@ -1,5 +1,5 @@
 import { timingSafeEqual } from 'node:crypto'
-import { and, desc, eq, gte, inArray, isNull, lt, ne, or } from 'drizzle-orm'
+import { and, desc, eq, lt, ne, or } from 'drizzle-orm'
 import { runReminders } from '@/lib/reminders'
 import { conciliarPendentes, lembretesDeRenovacao } from '@/lib/pagamentos'
 import { checkinReminders } from '@/lib/checkins'
@@ -8,16 +8,12 @@ import { EXPORT_RETENTION_DAYS } from '@/lib/lgpd-export'
 import { deleteUpload } from '@/lib/storage'
 import { db, schema } from '@/db'
 import { audit } from '@/lib/audit'
-import { integrationStatus } from '@/lib/integrations'
-import { renderTemplate, sendEmail } from '@/lib/notify'
 import { getSettings } from '@/lib/settings'
-import { fmtDay, zonedParts } from '@/lib/time'
 
 /**
  * Tarefas periódicas — agende uma chamada a cada 5 minutos:
  *   curl -H "Authorization: Bearer $CRON_SECRET" https://seusite/api/cron
- * 1. Lembretes por push: refeições, água, pesagem semanal, pacientes parados há 3 dias, consultas em 24 h e 2 h.
- * 2. Lembrete de consulta por e-mail na véspera (se o e-mail estiver configurado).
+ * 1. Lembretes por push: refeições, água, pesagem semanal e pacientes parados há 3 dias.
  * 2b. Mercado Pago: conciliação das cobranças pendentes e lembretes de renovação (7 e 2 dias antes do término).
  * 2c. Check-ins periódicos: push quando abre, no prazo e no dia seguinte, se atrasou.
  * 2d. Resumo do dia por e-mail às 7h, para quem ligou (cota gratuita; até 2 tentativas).
@@ -33,7 +29,8 @@ export async function GET(req: Request) {
   // Só nos testes automáticos (CRON_TEST_CLOCK=1): o cabeçalho x-cron-now simula o horário da execução.
   const fake = process.env.CRON_TEST_CLOCK === '1' ? req.headers.get('x-cron-now') : null
   const now = fake && !Number.isNaN(Date.parse(fake)) ? new Date(fake) : new Date()
-  let reminders = 0
+  // Lembretes de consulta (24 h e 2 h) saíram com o agendamento: o acompanhamento é por planos.
+  const reminders = 0
   const push = await runReminders(now)
   // Mercado Pago: confere cobranças pendentes (Pix/boleto, testes sem webhook) e avisa renovações.
   const pagamentos = await conciliarPendentes(now)
@@ -45,56 +42,6 @@ export async function GET(req: Request) {
     console.error('[cron] resumo por e-mail', err)
     return { enviados: 0, falhas: 1 }
   })
-
-  if (integrationStatus().email) {
-    const due = await db
-      .select()
-      .from(schema.appointments)
-      .where(
-        and(
-          eq(schema.appointments.status, 'confirmada'),
-          isNull(schema.appointments.reminderSentAt),
-          gte(schema.appointments.startAt, now),
-          lt(schema.appointments.startAt, new Date(now.getTime() + 26 * 3_600_000)),
-        ),
-      )
-    for (const a of due) {
-      const p = zonedParts(a.startAt, s.timezone)
-      const ok = await sendEmail(
-        a.contactEmail,
-        'Lembrete de consulta',
-        renderTemplate(s.templates.lembrete, { nome: a.contactName.split(' ')[0], data: fmtDay(p.date), hora: p.time, servico: a.serviceName, codigo: a.code }),
-      )
-      if (ok) {
-        await db.update(schema.appointments).set({ reminderSentAt: new Date() }).where(eq(schema.appointments.id, a.id))
-        reminders++
-      }
-    }
-    // Lembrete 2 horas antes (com o link da videochamada, se for on-line).
-    const soon = await db
-      .select()
-      .from(schema.appointments)
-      .where(
-        and(
-          eq(schema.appointments.status, 'confirmada'),
-          isNull(schema.appointments.reminder2hSentAt),
-          gte(schema.appointments.startAt, now),
-          lt(schema.appointments.startAt, new Date(now.getTime() + 2 * 3_600_000 + 15 * 60_000)),
-        ),
-      )
-    for (const a of soon) {
-      const p = zonedParts(a.startAt, s.timezone)
-      const ok = await sendEmail(
-        a.contactEmail,
-        'Sua consulta é daqui a pouco',
-        `Olá, ${a.contactName.split(' ')[0]}! Lembrete: sua consulta (${a.serviceName}) é hoje às ${p.time}.${a.meetingUrl ? `\nLink da videochamada: ${a.meetingUrl}` : ''}`,
-      )
-      if (ok) {
-        await db.update(schema.appointments).set({ reminder2hSentAt: new Date() }).where(eq(schema.appointments.id, a.id))
-        reminders++
-      }
-    }
-  }
 
   // A limpeza roda no máximo uma vez por hora.
   const [lastRun] = await db
@@ -122,14 +69,7 @@ export async function GET(req: Request) {
     .where(and(eq(schema.files.kind, 'lgpd_exportacao'), lt(schema.files.createdAt, new Date(now.getTime() - EXPORT_RETENTION_DAYS * 86_400_000))))
     .returning({ key: schema.files.storageKey })
   for (const f of oldExports) await deleteUpload(f.key)
-  // Pedidos de agendamento pendentes que já passaram liberam o horário.
-  const stale = await db
-    .update(schema.appointments)
-    .set({ status: 'cancelada', cancelReason: 'Pedido não confirmado antes do horário' })
-    .where(and(inArray(schema.appointments.status, ['pendente']), lt(schema.appointments.startAt, now)))
-    .returning({ id: schema.appointments.id })
-
-  const result = { lembretesEmail: reminders, push, pagamentos, renovacoes, checkins, resumos, sessoesRemovidas: sessions.length, linksRemovidos: tokens.length, interessadosEliminados: leads.length, exportacoesApagadas: oldExports.length, pedidosExpirados: stale.length }
+  const result = { lembretesEmail: reminders, push, pagamentos, renovacoes, checkins, resumos, sessoesRemovidas: sessions.length, linksRemovidos: tokens.length, interessadosEliminados: leads.length, exportacoesApagadas: oldExports.length }
   await audit(null, 'tarefas_periodicas', 'sistema', { details: result })
   return Response.json(result)
 }

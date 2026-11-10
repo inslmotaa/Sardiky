@@ -128,7 +128,7 @@ describe('WhatsApp sem custo (wa.me)', () => {
     expect(waHref('', 'x')).toBeNull()
   })
   it('modelos para todos os botões do painel', () => {
-    for (const k of ['waLembreteConsulta', 'waPlanoNovo', 'waCheckin', 'waVencimento', 'waCobranca'] as const) expect(WA_TEMPLATES[k].text.length).toBeGreaterThan(20)
+    for (const k of ['waPlanoNovo', 'waCheckin', 'waVencimento', 'waCobranca'] as const) expect(WA_TEMPLATES[k].text.length).toBeGreaterThan(20)
   })
 })
 

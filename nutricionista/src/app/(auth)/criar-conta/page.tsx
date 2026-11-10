@@ -14,13 +14,13 @@ export const metadata: Metadata = { title: 'Criar conta' }
 
 type SP = Promise<Record<string, string | undefined>>
 
-/** Cadastro do cliente. ?plano=<id> guarda o plano escolhido; ?next=/agendar segue para o agendamento depois da anamnese. */
+/** Cadastro do cliente. ?plano=<id> guarda o plano escolhido e segue para o pagamento (Mercado Pago), depois a anamnese. */
 export default async function CreateAccountPage({ searchParams }: { searchParams: SP }) {
   const sp = await searchParams
   const plano = sp.plano && /^[0-9a-f-]{36}$/.test(sp.plano) ? sp.plano : null
   const next = sp.next && sp.next.startsWith('/') && !sp.next.startsWith('//') ? sp.next : null
   const user = await getCurrentUser()
-  if (user) redirect(user.role === 'patient' ? (plano ? `/agendar?plano=${plano}` : (next ?? '/paciente')) : '/admin')
+  if (user) redirect(user.role === 'patient' ? (plano ? `/paciente/pagamento?plano=${plano}` : (next ?? '/paciente')) : '/admin')
   const [pkg] = plano ? await db.select().from(schema.packages).where(and(eq(schema.packages.id, plano), eq(schema.packages.active, true))) : []
   return (
     <div className="card stack">
@@ -28,7 +28,7 @@ export default async function CreateAccountPage({ searchParams }: { searchParams
       <div>
         <h1 style={{ fontSize: '1.6rem' }}>Criar conta</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Com a conta você preenche a anamnese, agenda a consulta e acompanha o seu plano pelo app.
+          Com a conta você responde a anamnese logo depois da contratação e acompanha o seu plano pelo app.
         </p>
       </div>
       {pkg && (

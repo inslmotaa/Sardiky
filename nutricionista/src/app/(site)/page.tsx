@@ -4,12 +4,13 @@ import { asc, desc, eq } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'
-import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
+import { phoneLabel, startWhatsApp, whatsappLink } from '@/lib/format'
 import { planPrices } from '@/lib/planos'
 import { emailLink, instagramLink } from '@/lib/social'
 import { fotosPublicas, podePublicar } from '@/lib/depoimentos'
-import { BookingLink } from '@/components/BookingLink'
-import { MonoLabel, NatureBg, PlanGrid } from '@/components/SiteBlocks'
+import { StartCtas } from '@/components/StartCtas'
+import { MonoLabel, NatureBg, PlansSection } from '@/components/SiteBlocks'
+import { mpConfigured } from '@/lib/mercadopago'
 import { ArtClock, ArtPlate, ArtProgress, ArtTries } from '@/components/StoryArt'
 import { AppMock, HeroTicker, PanelMock } from '@/components/HeroArt'
 import { sitePageMeta } from '@/lib/seo-server'
@@ -52,9 +53,9 @@ const CHAPTERS = [
 ]
 
 const DEFAULT_STEPS = [
-  { title: 'Escolha seu plano', text: 'Mensal, trimestral, semestral ou anual.' },
-  { title: 'Responda a anamnese', text: 'No próprio site, em etapas curtas.' },
-  { title: 'Avaliação e metas', text: 'Conversa, avaliação física e definição de metas.' },
+  { title: 'Escolha seu plano', text: 'Mensal, trimestral, semestral ou anual, com pagamento pelo Mercado Pago.' },
+  { title: 'Crie sua conta e responda a anamnese', text: 'No próprio site, em etapas curtas, logo depois da contratação.' },
+  { title: 'Avaliação e metas', text: 'Por videochamada, combinada pelo WhatsApp.' },
   { title: 'Plano no app', text: 'Ajustado a cada 15 dias.' },
 ]
 
@@ -66,9 +67,9 @@ const d = (ms: number) => ({ '--d': `${ms}ms` }) as React.CSSProperties
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings()
   return sitePageMeta({
-    title: `${s.siteName} · ${s.professionalName}, ${s.professionalTitle}`,
+    title: `${s.siteName} · ${s.professionalName}, ${s.professionalTitle} · Planos de acompanhamento`,
     absolute: true,
-    description: `Acompanhamento on-line de alimentação e rotina com ${s.professionalName}, ${s.professionalTitle}: plano individualizado no app, ajustes frequentes e contato direto.`,
+    description: `Acompanhamento on-line de alimentação e rotina com ${s.professionalName}, ${s.professionalTitle}: planos mensal, trimestral, semestral e anual, plano individualizado no app, ajustes frequentes e contato direto.`,
     path: '/',
   })
 }
@@ -83,7 +84,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
     db.select().from(schema.testimonials).where(eq(schema.testimonials.published, true)).orderBy(asc(schema.testimonials.sort), desc(schema.testimonials.approvedAt)).limit(6),
   ])
   const testimonials = published.filter(podePublicar).slice(0, 3)
-  const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
+  const start = startWhatsApp(s)
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de mais informações sobre o acompanhamento.')
   const first = s.professionalName.split(' ')[0]
   const plans = planPrices(packages)
@@ -107,7 +108,7 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
 
   return (
     <>
-      <JsonLd data={homeLd(s, siteUrl())} />
+      <JsonLd data={homeLd(s, siteUrl(), plans, s.showPlanPrices)} />
       {sp.conta === 'excluida' && (
         <p className="alert alert--ok tl-container tl-alert" role="status">
           Sua conta foi excluída e o acesso foi encerrado. Obrigado por ter feito parte do acompanhamento.
@@ -131,12 +132,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
               segue o plano, registra as refeições e vê a sua evolução pelo app.
             </p>
             <div className="tl-actions hero__actions" data-rv="" style={d(220)}>
-              <BookingLink to={booking} className="pill pill--solid">
-                Agendar consulta <span aria-hidden>→</span>
-              </BookingLink>
-              <Link href="/como-funciona" className="ulink">
-                Conhecer a plataforma
-              </Link>
+              <StartCtas whatsapp={start} plansHref="#planos">
+                <Link href="/como-funciona" className="ulink">
+                  Conhecer a plataforma
+                </Link>
+              </StartCtas>
             </div>
             <ul className="hero__proof" aria-label="Destaques" data-rv="" style={d(280)}>
               {PROOF.map((p) => (
@@ -219,12 +219,10 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
           <div className="tl-container story__close-inner">
             <MonoLabel>PRÓXIMO CAPÍTULO</MonoLabel>
             <h2 className="display story__close-title" data-rv="" style={d(80)}>
-              A sua história começa na primeira consulta.
+              A sua história começa com o primeiro passo.
             </h2>
             <div className="tl-actions" data-rv="" style={d(160)}>
-              <BookingLink to={booking} className="pill">
-                Escrever o próximo capítulo <span aria-hidden>→</span>
-              </BookingLink>
+              <StartCtas whatsapp={start} plansHref="#planos" solid={false} />
               <a href="#sobre" className="ulink">
                 Conhecer o {first}
               </a>
@@ -306,32 +304,24 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
             ))}
           </ol>
 
-          {plans.length > 0 && (
-            <>
-              <h3 className="mono-label tl-subhead" data-rv="">
-                PLANOS
-              </h3>
-              <PlanGrid plans={plans} showPrices={s.showPlanPrices} href={planHref} />
-            </>
-          )}
-          {s.plansIncluded.length > 0 && (
-            <div className="included" data-rv="">
-              <h3 className="mono-label">INCLUSO EM TODOS</h3>
-              <ul className="mono-list mono-list--wrap">
-                {s.plansIncluded.map((it) => (
-                  <li key={it.title}>
-                    {it.title}
-                    {it.text ? ` (${it.text.replace(/\.$/, '').toLocaleLowerCase('pt-BR')})` : ''}
-                  </li>
-                ))}
-              </ul>
-              <Link href="/planos" className="ulink">
-                Comparar os planos →
-              </Link>
-            </div>
-          )}
+          <div className="tl-actions" data-rv="">
+            <a href="#planos" className="pill">
+              Ver planos <span aria-hidden>→</span>
+            </a>
+          </div>
         </div>
       </section>
+
+      {/* -------------------------------- PLANOS -------------------------------- */}
+      <PlansSection
+        plans={plans}
+        showPrices={s.showPlanPrices}
+        href={planHref}
+        whatsapp={(name) => whatsappLink(s.whatsapp, `Olá! Tenho interesse no Plano ${name}.`)}
+        included={s.plansIncluded}
+        payNote={mpConfigured() ? `Pix, cartão em até ${s.mpMaxInstallments}x ou boleto · pagamento seguro pelo Mercado Pago` : 'Contratação pelo WhatsApp ou na sua conta'}
+        nextNote={`Depois do pagamento você responde a anamnese e o ${first} monta seu plano.`}
+      />
 
       {/* ------------------------------ RESULTADOS ------------------------------ */}
       <section className="tl-sec" id="resultados" aria-labelledby="resultados-titulo">
@@ -408,12 +398,11 @@ export default async function HomePage({ searchParams }: { searchParams: Promise
                 Conte onde você quer chegar. A resposta vem direto do {first}.
               </p>
               <div className="tl-actions" data-rv="" style={d(140)}>
-                <BookingLink to={booking} className="pill">
-                  Agendar consulta <span aria-hidden>→</span>
-                </BookingLink>
-                <Link href="/duvidas" className="ulink">
-                  Dúvidas frequentes
-                </Link>
+                <StartCtas whatsapp={start} plansHref="#planos" solid={false}>
+                  <Link href="/duvidas" className="ulink">
+                    Dúvidas frequentes
+                  </Link>
+                </StartCtas>
               </div>
             </div>
             <dl className="contact__list" data-rv="" style={d(120)}>

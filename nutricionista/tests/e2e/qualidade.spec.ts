@@ -139,7 +139,7 @@ test('check-in com lembrete: abre 3 dias antes, a tarefa periódica avisa o clie
 
 test('recibo: só existe depois que o webhook do Mercado Pago confirma o pagamento', async ({ page }) => {
   await page.context().clearCookies()
-  await page.goto('/planos')
+  await page.goto('/#planos')
   await page.locator('.tl-plan', { hasText: 'Mensal' }).getByRole('link', { name: /Contratar/ }).click()
   await page.getByLabel('Nome completo').fill('Cliente Recibo Teste')
   await page.getByLabel('E-mail').fill('recibo.teste@example.com')

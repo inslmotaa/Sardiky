@@ -21,15 +21,15 @@
     "comoFunciona": [
       {
         "titulo": "Escolha seu plano",
-        "texto": "Mensal, trimestral, semestral ou anual."
+        "texto": "Mensal, trimestral, semestral ou anual, com pagamento pelo Mercado Pago."
       },
       {
-        "titulo": "Responda a anamnese",
-        "texto": "No próprio site, em etapas curtas, depois de criar sua conta."
+        "titulo": "Crie sua conta e responda a anamnese",
+        "texto": "No próprio site, em etapas curtas, logo depois da contratação."
       },
       {
         "titulo": "Avaliação e metas",
-        "texto": "Conversa, avaliação física e definição de metas."
+        "texto": "Por videochamada, combinada pelo WhatsApp."
       },
       {
         "titulo": "Plano no app",
@@ -46,68 +46,10 @@
     "emailPrivacidade": "PREENCHER: e-mail para pedidos da LGPD (pode ser o mesmo)"
   },
   "site": {
-    "agendamento": "site",
-    "mostrarValores": false,
     "mostrarValoresPlanos": true
   },
   "agenda": {
-    "fusoHorario": "America/Sao_Paulo",
-    "intervaloMinutos": 30,
-    "folgaEntreConsultasMinutos": 10,
-    "antecedenciaMinimaHoras": 12,
-    "diasAFrente": 45,
-    "horarios": [
-      {
-        "dia": "segunda",
-        "inicio": "08:00",
-        "fim": "12:00"
-      },
-      {
-        "dia": "segunda",
-        "inicio": "13:30",
-        "fim": "18:00"
-      },
-      {
-        "dia": "terca",
-        "inicio": "08:00",
-        "fim": "12:00"
-      },
-      {
-        "dia": "terca",
-        "inicio": "13:30",
-        "fim": "18:00"
-      },
-      {
-        "dia": "quarta",
-        "inicio": "08:00",
-        "fim": "12:00"
-      },
-      {
-        "dia": "quarta",
-        "inicio": "13:30",
-        "fim": "18:00"
-      },
-      {
-        "dia": "quinta",
-        "inicio": "08:00",
-        "fim": "12:00"
-      },
-      {
-        "dia": "quinta",
-        "inicio": "13:30",
-        "fim": "18:00"
-      },
-      {
-        "dia": "sexta",
-        "inicio": "08:00",
-        "fim": "12:00"
-      },
-      {
-        "dia": "sexta",
-        "inicio": "13:30",
-        "fim": "18:00"
-      }
-    ]
+    "fusoHorario": "America/Sao_Paulo"
   },
   "chat": {
     "horario": {
@@ -145,26 +87,6 @@
     {
       "nome": "Jantar",
       "horario": "19:30"
-    }
-  ],
-  "servicos": [
-    {
-      "nome": "Primeira consulta",
-      "descricao": "Avaliação completa, definição de metas e elaboração do plano alimentar individualizado.",
-      "modalidade": "online",
-      "duracaoMinutos": 60
-    },
-    {
-      "nome": "Retorno",
-      "descricao": "Reavaliação, análise da evolução e ajustes no plano.",
-      "modalidade": "online",
-      "duracaoMinutos": 40
-    },
-    {
-      "nome": "Consultoria on-line",
-      "descricao": "PREENCHER: o que inclui, por quanto tempo e como é o acompanhamento.",
-      "modalidade": "online",
-      "duracaoMinutos": 50
     }
   ],
   "planos": [
@@ -222,12 +144,12 @@
   ],
   "perguntasFrequentes": [
     {
-      "pergunta": "Como funciona a primeira consulta?",
-      "resposta": "Conversamos sobre sua rotina, histórico de saúde, preferências e objetivos. Fazemos a avaliação e, em poucos dias, seu plano fica disponível no app."
+      "pergunta": "Como começa o acompanhamento?",
+      "resposta": "Você escolhe o plano, faz o pagamento pelo Mercado Pago e cria sua conta. Em seguida responde a anamnese no próprio site e combinamos a avaliação pelo WhatsApp. Em poucos dias o seu plano aparece no app."
     },
     {
-      "pergunta": "A consulta on-line tem a mesma qualidade?",
-      "resposta": "Segue a mesma estrutura, por videochamada. Algumas medidas podem ser informadas por você com orientação e aparecem identificadas nos gráficos."
+      "pergunta": "Como é a avaliação por videochamada?",
+      "resposta": "É uma conversa por vídeo, combinada pelo WhatsApp, sobre rotina, histórico e objetivos, com medidas feitas por você com orientação. O acompanhamento continua pelo app, com ajustes a cada 15 dias."
     },
     {
       "pergunta": "Quanto tempo leva para ver resultados?",

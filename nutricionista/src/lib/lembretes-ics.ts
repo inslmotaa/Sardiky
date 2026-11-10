@@ -12,6 +12,7 @@ import type { NotificationPrefs } from '@/db/schema'
 import { dayForWeekday, sortedMeals, type PlanContent } from './plan'
 import { inQuietHours } from './quiet'
 import { addDays, timeToMinutes, weekdayOf } from './time'
+import { foldLine, icsStamp, icsText } from './ics'
 
 export type ReminderSlot = { kind: 'refeicao' | 'agua'; slot: number; title: string; time: string; weekdays: number[] }
 
@@ -70,31 +71,9 @@ export function parseDownloadMark(mark: string | null | undefined) {
 
 const BYDAY = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA']
 
-/** Texto de propriedade do iCalendar: escapa \ ; , e quebras de linha. */
-export const icsText = (t: string) => t.replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/[,;]/g, (m) => `\\${m}`)
-
-/** Dobra linhas em 75 octetos (RFC 5545), sem partir caracteres acentuados. */
-export function foldLine(line: string) {
-  const bytes = Buffer.from(line, 'utf8')
-  if (bytes.length <= 75) return line
-  const parts: string[] = []
-  let cur = ''
-  let size = 0
-  for (const ch of line) {
-    const n = Buffer.byteLength(ch, 'utf8')
-    if (size + n > (parts.length ? 74 : 75)) {
-      parts.push(cur)
-      cur = ''
-      size = 0
-    }
-    cur += ch
-    size += n
-  }
-  parts.push(cur)
-  return parts.join('\r\n ')
-}
-
-const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+// Gerador básico do iCalendar (escapar texto, dobrar linhas, data em UTC): src/lib/ics.ts.
+export { foldLine, icsText } from './ics'
+const stamp = icsStamp
 const local = (day: string, time: string) => `${day.replace(/-/g, '')}T${time.replace(':', '')}00`
 
 /** Deslocamento fixo do fuso (ex.: America/Sao_Paulo → -0300), para o VTIMEZONE. */

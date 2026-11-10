@@ -15,7 +15,6 @@ import { CloseOnNavigate, NavLinks, type NavItem } from '@/components/NavLinks'
 import {
   IconApple,
   IconCalculator,
-  IconCalendar,
   IconChart,
   IconChat,
   IconFolder,
@@ -37,8 +36,7 @@ export const metadata: Metadata = { title: 'Painel', robots: noIndex }
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requireTeam()
   const s = await getSettings()
-  const [[pendingAppts], [unread], [newLeads]] = await Promise.all([
-    db.select({ n: count() }).from(schema.appointments).where(eq(schema.appointments.status, 'pendente')),
+  const [[unread], [newLeads]] = await Promise.all([
     can(user, 'clinico')
       ? db
           .select({ n: count() })
@@ -61,7 +59,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       title: 'Dia a dia',
       items: [
         { href: '/admin', label: 'Início', icon: <IconHome />, exact: true, show: true },
-        { href: '/admin/agenda', label: 'Agenda', icon: <IconCalendar />, count: pendingAppts.n, show: can(user, 'agenda') },
         { href: '/admin/pacientes', label: 'Clientes', icon: <IconUsers />, show: can(user, 'cadastro') || can(user, 'clinico') },
         { href: '/admin/mensagens', label: 'Mensagens', icon: <IconChat />, count: unread.n, show: can(user, 'clinico') },
         { href: '/admin/acompanhamento', label: 'Acompanhamento', icon: <IconChart />, show: can(user, 'clinico') },

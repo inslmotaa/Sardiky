@@ -31,25 +31,25 @@ describe('tokens', () => {
     expect(hashToken(t)).toMatch(/^[0-9a-f]{64}$/)
     expect(hashToken(t)).not.toBe(t)
   })
-  it('códigos de agendamento sem caracteres ambíguos', () => {
+  it('códigos curtos sem caracteres ambíguos', () => {
     expect(newCode()).toMatch(/^[A-HJ-NP-Z2-9]{8}$/)
   })
 })
 
 describe('permissões', () => {
-  const staff = { role: 'staff' as const, permissions: ['agenda'] }
+  const staff = { role: 'staff' as const, permissions: ['cadastro'] }
   it('administrador pode tudo', () => {
     expect(can({ role: 'admin', permissions: [] }, 'clinico')).toBe(true)
     expect(can({ role: 'admin', permissions: [] }, 'config')).toBe(true)
   })
   it('equipe só acessa o que foi liberado e nunca as configurações', () => {
-    expect(can(staff, 'agenda')).toBe(true)
+    expect(can(staff, 'cadastro')).toBe(true)
     expect(can(staff, 'clinico')).toBe(false)
     expect(can({ role: 'staff', permissions: ['config'] }, 'config')).toBe(false)
   })
   it('paciente não tem permissões de equipe', () => {
     expect(can({ role: 'patient', permissions: ['clinico'] }, 'clinico')).toBe(false)
-    expect(can(null, 'agenda')).toBe(false)
+    expect(can(null, 'cadastro')).toBe(false)
   })
 })
 

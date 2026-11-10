@@ -45,7 +45,7 @@ export const FORM_KINDS: Record<string, string> = {
   preferencias: 'Preferências e restrições',
   acompanhamento: 'Questionário de acompanhamento',
   consentimento: 'Termo de consentimento',
-  pre_consulta: 'Questionário pré-consulta',
+  pre_consulta: 'Questionário inicial (antes da avaliação)',
   questionario: 'Outro questionário',
 }
 

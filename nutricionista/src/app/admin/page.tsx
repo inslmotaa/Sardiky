@@ -2,7 +2,8 @@ import Link from 'next/link'
 import { and, asc, count, desc, eq, gte, inArray, isNotNull, isNull, lt, lte, sql, sum } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
-import { isRestricted } from '@/lib/team-access'
+import { isRestricted, visiblePatientIds } from '@/lib/team-access'
+import { overdueCheckins } from '@/lib/checkins'
 import { can } from '@/lib/auth/permissions'
 import { getSettings } from '@/lib/settings'
 import { addDays, capitalize, fmtDateTime, fmtDay, fmtDayLong, fmtTime, startOfMonth, todayIn, zonedToUtc } from '@/lib/time'
@@ -21,10 +22,6 @@ export default async function AdminHome() {
   const s = await getSettings()
   const tz = s.timezone
   const today = todayIn(tz)
-  const dayStart = zonedToUtc(today, '00:00', tz)
-  const dayEnd = zonedToUtc(addDays(today, 1), '00:00', tz)
-  const weekEnd = zonedToUtc(addDays(today, 8), '00:00', tz)
-  const agenda = can(user, 'agenda')
   const clinical = can(user, 'clinico')
   const cadastro = can(user, 'cadastro') || clinical
   const finance = s.financeEnabled && can(user, 'financeiro')
@@ -49,35 +46,17 @@ export default async function AdminHome() {
     .where(and(eq(schema.notifications.userId, user.id), isNull(schema.notifications.readAt)))
     .orderBy(desc(schema.notifications.createdAt))
     .limit(8)
-  const [[active], [newPatients], todayAppts, upcoming, pending, followUp, forms, unread, [monthPaid], [openAmount]] = await Promise.all([
+  const [[active], [newPatients], checkinsLate, checkinsOpen, forms, unread, [monthPaid], [openAmount]] = await Promise.all([
     db.select({ n: count() }).from(schema.patients).where(and(eq(schema.patients.status, 'ativo'), isNull(schema.patients.anonymizedAt))),
     db.select({ n: count() }).from(schema.patients).where(gte(schema.patients.createdAt, zonedToUtc(addDays(today, -30), '00:00', tz))),
-    agenda
-      ? db.select().from(schema.appointments).where(and(gte(schema.appointments.startAt, dayStart), lt(schema.appointments.startAt, dayEnd))).orderBy(asc(schema.appointments.startAt))
-      : [],
-    agenda
+    // Check-ins: atrasados (prazo vencido) e abertos (prazo nos próximos dias, ainda sem resposta).
+    clinical ? overdueCheckins(today, (await visiblePatientIds(user)) ?? undefined) : [],
+    clinical
       ? db
-          .select()
-          .from(schema.appointments)
-          .where(and(gte(schema.appointments.startAt, dayEnd), lt(schema.appointments.startAt, weekEnd), inArray(schema.appointments.status, ['pendente', 'confirmada'])))
-          .orderBy(asc(schema.appointments.startAt))
-          .limit(8)
-      : [],
-    agenda
-      ? db
-          .select()
-          .from(schema.appointments)
-          .where(and(eq(schema.appointments.status, 'pendente'), gte(schema.appointments.startAt, new Date())))
-          .orderBy(asc(schema.appointments.startAt))
-      : [],
-    cadastro
-      ? db
-          .select()
-          .from(schema.patients)
-          .where(and(eq(schema.patients.status, 'ativo'), lte(schema.patients.nextFollowUp, addDays(today, 3))))
-          .orderBy(asc(schema.patients.nextFollowUp))
-          .limit(8)
-      : [],
+          .select({ n: count() })
+          .from(schema.checkins)
+          .where(and(eq(schema.checkins.status, 'pendente'), gte(schema.checkins.dueDate, today), lte(schema.checkins.dueDate, addDays(today, 3))))
+      : [{ n: 0 }],
     clinical
       ? db
           .select({ id: schema.formAssignments.id, title: schema.formAssignments.title, dueDate: schema.formAssignments.dueDate, patientId: schema.patients.id, name: schema.patients.fullName })
@@ -107,7 +86,6 @@ export default async function AdminHome() {
       : [{ v: null }],
   ])
 
-  const activeToday = todayAppts.filter((a) => a.status !== 'cancelada')
   // Textos de exemplo e dados que faltam (mesma regra de `aplicar-perfil.mjs --pendencias`).
   const pendencias = can(user, 'config') || can(user, 'site') ? pendenciasDoSite(s) : []
 
@@ -181,11 +159,6 @@ export default async function AdminHome() {
         subtitle={capitalize(fmtDayLong(today))}
         actions={
           <>
-            {agenda && (
-              <Link href="/admin/agenda/nova" className="btn">
-                Nova consulta
-              </Link>
-            )}
             {cadastro && (
               <Link href="/admin/pacientes/novo" className="btn btn--primary">
                 Novo cliente
@@ -365,80 +338,12 @@ export default async function AdminHome() {
       <div className="grid-4">
         <Stat value={active.n} label="Clientes ativos" href={cadastro ? '/admin/pacientes?status=ativo' : undefined} />
         <Stat value={newPatients.n} label="Novos cadastros (30 dias)" href={cadastro ? '/admin/pacientes' : undefined} />
-        {agenda && <Stat value={activeToday.length} label="Consultas hoje" href="/admin/agenda?view=dia" />}
-        {agenda && <Stat value={pending.length} label="Aguardando confirmação" href="/admin/agenda?status=pendente" />}
+        {clinical && <Stat value={checkinsLate.length + Number(checkinsOpen[0]?.n ?? 0)} label="Check-ins pendentes" href="/admin/acompanhamento" />}
+        {clinical && tracking && <Stat value={tracking.inactive.length} label="Sem registro há 3+ dias" href="/admin/acompanhamento?grupo=sem_progresso" />}
         {finance && <Stat value={money(Number(monthPaid.v ?? 0))} label="Recebido no mês (registrado)" href="/admin/financeiro" />}
         {finance && <Stat value={money(Number(openAmount.v ?? 0))} label="Valores pendentes" href="/admin/financeiro?status=pendente" />}
         {finance && overdue > 0 && <Stat value={overdue} label="Pagamentos atrasados" href="/admin/financeiro?status=pendente" />}
       </div>
-
-      {agenda && (
-        <div className="grid-2">
-          <section className="card">
-            <div className="card__head">
-              <h2>Agenda de hoje</h2>
-              <Link href="/admin/agenda?view=dia" className="small">
-                Abrir agenda
-              </Link>
-            </div>
-            {todayAppts.length === 0 ? (
-              <p className="muted">Nenhuma consulta hoje.</p>
-            ) : (
-              <ul className="timeline">
-                {todayAppts.map((a) => (
-                  <li key={a.id}>
-                    <time>{fmtTime(a.startAt, tz)}</time>
-                    <Link href={`/admin/agenda/${a.id}`} className={`cal-event cal-event--${a.status}`}>
-                      <strong>{a.contactName}</strong> · {a.serviceName} · on-line
-                      <div>
-                        <StatusBadge status={a.status} />
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
-          <section className="card">
-            <div className="card__head">
-              <h2>Pendentes de confirmação</h2>
-            </div>
-            {pending.length === 0 ? (
-              <p className="muted">Nenhum pedido aguardando.</p>
-            ) : (
-              <ul className="list">
-                {pending.map((a) => (
-                  <li key={a.id} className="row row--between">
-                    <span>
-                      <strong>{a.contactName}</strong>
-                      {!a.isReturning && <span className="badge badge--info" style={{ marginLeft: 6 }}>Novo</span>}
-                      <div className="small muted">
-                        {fmtDateTime(a.startAt, tz)} · {a.serviceName}
-                      </div>
-                    </span>
-                    <Link href={`/admin/agenda/${a.id}`} className="btn btn--sm btn--primary">
-                      Revisar
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {upcoming.length > 0 && (
-              <>
-                <h3 style={{ marginTop: 20 }}>Próximos 7 dias</h3>
-                <ul className="list small">
-                  {upcoming.map((a) => (
-                    <li key={a.id}>
-                      <Link href={`/admin/agenda/${a.id}`}>{fmtDateTime(a.startAt, tz)}</Link> · {a.contactName} · {a.serviceName}
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </section>
-        </div>
-      )}
 
       {finance && (
         <section className="card" aria-labelledby="pagamentos-titulo">
@@ -505,21 +410,23 @@ export default async function AdminHome() {
       )}
 
       <div className="grid-3">
-        {cadastro && (
+        {clinical && (
           <section className="card">
             <div className="card__head">
-              <h2>Precisam de acompanhamento</h2>
+              <h2>Check-ins atrasados</h2>
+              <Link href="/admin/acompanhamento" className="small">
+                Acompanhamento
+              </Link>
             </div>
-            {followUp.length === 0 ? (
-              <p className="muted">Nenhum retorno vencido.</p>
+            {checkinsLate.length === 0 ? (
+              <p className="muted">Nenhum check-in atrasado.</p>
             ) : (
               <ul className="list">
-                {followUp.map((p) => (
-                  <li key={p.id}>
-                    <Link href={`/admin/pacientes/${p.id}`}>{p.fullName}</Link>
+                {checkinsLate.slice(0, 8).map((c) => (
+                  <li key={c.id}>
+                    <Link href={`/admin/pacientes/${c.patientId}?aba=checkins`}>{c.name}</Link>
                     <div className="small muted">
-                      Retorno previsto: {fmtDay(p.nextFollowUp)}
-                      {p.nextFollowUp && p.nextFollowUp < today && <span className="badge badge--danger" style={{ marginLeft: 6 }}>Atrasado</span>}
+                      Prazo: {fmtDay(c.dueDate)} <span className="badge badge--danger" style={{ marginLeft: 6 }}>Atrasado</span>
                     </div>
                   </li>
                 ))}

@@ -21,12 +21,9 @@ export default async function PatientsPage({ searchParams }: { searchParams: Pro
   const stage = sp.etapa?.slice(0, 80)
   const like = `%${q.replace(/[%_\\]/g, (c) => '\\' + c)}%`
 
-  const lastVisit = sql<Date | null>`(select max(a.start_at) from appointments a where a.patient_id = ${schema.patients.id} and a.status = 'realizada')`
-  const nextVisit = sql<Date | null>`(select min(a.start_at) from appointments a where a.patient_id = ${schema.patients.id} and a.status in ('pendente','confirmada') and a.start_at > now())`
-
   const [rows, stages] = await Promise.all([
     db
-      .select({ p: schema.patients, lastVisit, nextVisit })
+      .select({ p: schema.patients })
       .from(schema.patients)
       .where(
         and(
@@ -104,14 +101,13 @@ export default async function PatientsPage({ searchParams }: { searchParams: Pro
                 <th>Cliente</th>
                 <th>Situação</th>
                 <th>Etapa</th>
-                <th>Última consulta</th>
-                <th>Próxima</th>
-                <th>Retorno previsto</th>
+                <th>Término do plano</th>
+                <th>Próximo check-in</th>
                 <th>Acesso</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map(({ p, lastVisit: lv, nextVisit: nv }) => (
+              {rows.map(({ p }) => (
                 <tr key={p.id}>
                   <td>
                     <Link href={`/admin/pacientes/${p.id}`}>
@@ -123,16 +119,15 @@ export default async function PatientsPage({ searchParams }: { searchParams: Pro
                     <StatusBadge status={p.status} />
                   </td>
                   <td>{p.stage}</td>
-                  <td className="nowrap">{fmtDay(asDate(lv))}</td>
-                  <td className="nowrap">{fmtDay(asDate(nv))}</td>
                   <td className="nowrap">
-                    {fmtDay(p.nextFollowUp)}
-                    {p.status === 'ativo' && p.nextFollowUp && p.nextFollowUp < today && !nv && (
+                    {fmtDay(p.packageEnd)}
+                    {p.status === 'ativo' && p.packageEnd && p.packageEnd < today && (
                       <span className="badge badge--danger" style={{ marginLeft: 6 }}>
-                        Atrasado
+                        Vencido
                       </span>
                     )}
                   </td>
+                  <td className="nowrap">{fmtDay(p.nextCheckinDue)}</td>
                   <td>{p.userId ? <span className="badge badge--ok">Liberado</span> : <span className="badge badge--plain">Sem acesso</span>}</td>
                 </tr>
               ))}

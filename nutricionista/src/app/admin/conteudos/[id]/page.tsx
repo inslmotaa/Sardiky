@@ -80,7 +80,7 @@ export default async function PostEditPage({ params, searchParams }: { params: P
         <Field
           label="Texto (Markdown)"
           name="body"
-          hint="## Título de seção · **negrito** · *itálico* · [link](https://...) · linhas com “- ” viram lista · “> ” vira citação. O convite para agendar entra sozinho no fim."
+          hint="## Título de seção · **negrito** · *itálico* · [link](https://...) · linhas com “- ” viram lista · “> ” vira citação. O convite para ver os planos entra sozinho no fim."
         >
           <textarea name="body" rows={18} defaultValue={p?.body ?? ''} maxLength={40000} style={{ fontFamily: 'var(--font-mono, monospace)' }} />
         </Field>

@@ -7,16 +7,19 @@ import { ageOn, bmiBand, bmiOf, daysSince, heightOn, missingBodyData, weightChan
 /** Altura: registros próprios (height_logs) e alturas medidas nas avaliações. */
 export async function heightEntries(patientId: string): Promise<(HeightEntry & { source: string })[]> {
   const [logs, evals] = await Promise.all([
-    db.select().from(schema.heightLogs).where(eq(schema.heightLogs.patientId, patientId)).orderBy(asc(schema.heightLogs.date), asc(schema.heightLogs.createdAt)),
+    db.select().from(schema.heightLogs).where(eq(schema.heightLogs.patientId, patientId)),
     db
-      .select({ date: schema.measurements.date, heightCm: schema.measurements.heightCm, source: schema.measurements.source })
+      .select({ date: schema.measurements.date, heightCm: schema.measurements.heightCm, source: schema.measurements.source, createdAt: schema.measurements.createdAt })
       .from(schema.measurements)
       .where(and(eq(schema.measurements.patientId, patientId), isNotNull(schema.measurements.heightCm))),
   ])
+  // Na mesma data, vale o registro mais recente (de qualquer origem).
   return [
-    ...logs.map((l) => ({ date: l.date, heightCm: Number(l.heightCm), source: l.source as string })),
-    ...evals.map((e) => ({ date: e.date, heightCm: Number(e.heightCm), source: e.source as string })),
-  ].sort((a, b) => a.date.localeCompare(b.date))
+    ...logs.map((l) => ({ date: l.date, heightCm: Number(l.heightCm), source: l.source as string, at: l.createdAt.getTime() })),
+    ...evals.map((e) => ({ date: e.date, heightCm: Number(e.heightCm), source: e.source as string, at: e.createdAt.getTime() })),
+  ]
+    .sort((a, b) => a.date.localeCompare(b.date) || a.at - b.at)
+    .map(({ at: _at, ...h }) => h)
 }
 
 /**

@@ -1,9 +1,7 @@
-import Link from 'next/link'
 import type { Metadata } from 'next'
 import { getSettings } from '@/lib/settings'
-import { getCurrentUser } from '@/lib/auth/session'
-import { bookingLink } from '@/lib/format'
-import { BookingLink } from '@/components/BookingLink'
+import { startWhatsApp } from '@/lib/format'
+import { StartCtas } from '@/components/StartCtas'
 import { PageHead } from '@/components/SiteBlocks'
 import { PhoneMock } from '@/components/PhoneMock'
 import { sitePageMeta } from '@/lib/seo-server'
@@ -14,24 +12,21 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 const STEPS = [
-  { title: 'Escolha o seu plano', text: 'Mensal, trimestral, semestral ou anual. Quanto mais longo, menor o valor por mês.' },
-  { title: 'Crie sua conta', text: 'Em menos de um minuto, com e-mail e WhatsApp. Seus dados ficam protegidos.' },
+  { title: 'Escolha o seu plano', text: 'Mensal, trimestral, semestral ou anual, com pagamento pelo Mercado Pago. Quanto mais longo, menor o valor por mês.' },
   {
-    title: 'Responda a anamnese',
-    text: 'No próprio site, em etapas curtas: saúde, rotina, alimentação e objetivo. Dá para parar e continuar depois.',
+    title: 'Crie sua conta e responda a anamnese',
+    text: 'A conta leva menos de um minuto. A anamnese é no próprio site, em etapas curtas: saúde, rotina, alimentação e objetivo.',
   },
-  { title: 'Avaliação', text: 'Por videochamada: conversa, avaliação com medidas orientadas e definição das primeiras metas.' },
-  { title: 'Plano no app', text: 'Seu plano aparece na área do cliente, com refeições por horário, quantidades e substituições.' },
+  { title: 'Avaliação e metas', text: 'Por videochamada, combinada pelo WhatsApp: conversa, medidas orientadas e definição das primeiras metas.' },
   {
-    title: 'Acompanhamento e ajustes',
-    text: 'Diário, mensagens e evolução no app. A estratégia é revista a cada 15 dias, conforme o seu progresso.',
+    title: 'Plano no app, ajustado a cada 15 dias',
+    text: 'Refeições por horário, quantidades e substituições no app, com diário, mensagens e evolução. A estratégia é revista a cada 15 dias.',
   },
 ]
 
 /** Passo a passo do acompanhamento e o que está incluso em todos os planos. */
 export default async function HowItWorksPage() {
-  const [s, user] = await Promise.all([getSettings(), getCurrentUser()])
-  const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
+  const s = await getSettings()
   return (
     <>
       <PageHead
@@ -47,7 +42,7 @@ export default async function HowItWorksPage() {
               / PASSO A PASSO
             </p>
             <h2 className="display" data-rv="">
-              Seis etapas, no seu ritmo
+              Quatro etapas, no seu ritmo
             </h2>
           </div>
           <ol className="timeline-tl">
@@ -67,34 +62,8 @@ export default async function HowItWorksPage() {
       <section className="tl-page">
         <div className="tl-container about">
           <div>
-            <p className="sec-label" data-rv="">
-              / INCLUSO EM TODOS OS PLANOS
-            </p>
-            <h2 className="display" data-rv="">
-              O que você recebe
-            </h2>
-            {s.plansIncluded.length > 0 ? (
-              <ol className="timeline-tl tl-gap">
-                {s.plansIncluded.map((it) => (
-                  <li key={it.title} data-rv="">
-                    <span className="step__mark" aria-hidden />
-                    <div>
-                      <h3 className="step__title">{it.title}</h3>
-                      {it.text && <p>{it.text}</p>}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p className="tl-lead">Avaliação, plano individual e acompanhamento pelo app.</p>
-            )}
             <div className="tl-actions" data-rv="">
-              <BookingLink to={booking} className="pill">
-                Agendar consulta <span aria-hidden>→</span>
-              </BookingLink>
-              <Link href="/planos" className="ulink">
-                Ver planos
-              </Link>
+              <StartCtas whatsapp={startWhatsApp(s)} />
             </div>
           </div>
           <div className="phone-wrap" data-rv="">

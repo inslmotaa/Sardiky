@@ -14,7 +14,9 @@ test('robots.txt e sitemap.xml: áreas privadas fora do índice, páginas públi
   const res = await request.get('/sitemap.xml')
   expect(res.ok()).toBe(true)
   const xml = await res.text()
-  for (const p of ['/sobre', '/como-funciona', '/planos', '/conteudos', '/duvidas']) expect(xml).toContain(`${p}</loc>`)
+  for (const p of ['/sobre', '/como-funciona', '/conteudos', '/duvidas']) expect(xml).toContain(`${p}</loc>`)
+  // Planos só na página inicial (#planos): /planos e /agendar não existem mais no mapa.
+  expect(xml).not.toMatch(/\/(planos|agendar)<\/loc>/)
   expect(xml).not.toMatch(/\/(admin|paciente|login)/)
   // O rascunho de exemplo do seed não entra.
   expect(xml).not.toContain('exemplo-de-conteudo')
@@ -36,9 +38,8 @@ test('título, descrição, canonical, Open Graph, Twitter Card e lang em cada p
   // Títulos próprios e sem duplicar canonical entre páginas.
   const seen = new Set<string>()
   for (const [path, title] of [
-    ['/', 'Farion · André Farion, Coach'],
+    ['/', 'Farion · André Farion, Coach · Planos de acompanhamento'],
     ['/como-funciona', 'Como funciona · Farion'],
-    ['/planos', 'Planos · Farion'],
     ['/duvidas', 'Dúvidas · Farion'],
     ['/conteudos', 'Conteúdos · Farion'],
   ]) {
@@ -94,7 +95,7 @@ test('Conteúdos: coach escreve, rascunho fica fora do site, publica com convite
   await page.getByLabel('Título').fill('Café da manhã prático: 3 ideias')
   await page.getByLabel('Resumo').fill('Três combinações simples para a manhã corrida.')
   await page.getByLabel('Texto (Markdown)').fill(
-    '## Por que planejar\n\nUma manhã **organizada** começa na noite anterior.\n\n- Iogurte com fruta\n- Ovos mexidos\n- Pão com queijo\n\nVeja os [planos](/planos).\n\n<script>alert(1)</script>',
+    '## Por que planejar\n\nUma manhã **organizada** começa na noite anterior.\n\n- Iogurte com fruta\n- Ovos mexidos\n- Pão com queijo\n\nVeja os [planos](/#planos).\n\n<script>alert(1)</script>',
   )
   await page.getByRole('button', { name: 'Criar conteúdo' }).click()
   await expect(page).toHaveURL(/\/admin\/conteudos\/[0-9a-f-]{36}\?criado=1/)
@@ -120,14 +121,14 @@ test('Conteúdos: coach escreve, rascunho fica fora do site, publica com convite
   await expect(body.getByRole('heading', { level: 2, name: 'Por que planejar' })).toBeVisible()
   await expect(body.locator('strong')).toHaveText('organizada')
   await expect(body.getByRole('listitem')).toHaveCount(3)
-  await expect(body.getByRole('link', { name: 'planos' })).toHaveAttribute('href', '/planos')
+  await expect(body.getByRole('link', { name: 'planos' })).toHaveAttribute('href', '/#planos')
   // HTML digitado aparece como texto, nunca como elemento.
   await expect(body).toContainText('<script>alert(1)</script>')
   expect(await body.locator('script').count()).toBe(0)
   // Convite final para agendar ou contratar.
   const cta = page.getByRole('complementary', { name: 'Quer levar isso para a sua rotina?' })
   await expect(cta.getByRole('link', { name: /Agendar consulta/ })).toBeVisible()
-  await expect(cta.getByRole('link', { name: /Contratar um plano/ })).toHaveAttribute('href', '/planos')
+  await expect(cta.getByRole('link', { name: /Contratar um plano/ })).toHaveAttribute('href', '/#planos')
   expect(await page.locator('meta[property="og:type"]').getAttribute('content')).toBe('article')
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!)
   expect(ld).toMatchObject({ '@type': 'BlogPosting', headline: 'Café da manhã prático: 3 ideias', author: { name: 'André Farion', jobTitle: 'Coach' } })

@@ -265,7 +265,7 @@ export async function lembretesDeRenovacao() {
     await pushToUser(p.userId, 'lembretes', { title: 'Renove o seu plano', body, url: '/paciente/pagamento', tag: 'renovacao' })
     if (p.email) {
       const greeting = `Olá, ${p.name.split(' ')[0]}!`
-      await sendEmail(p.email, days <= 2 ? 'Seu plano termina em breve' : 'Seu plano está terminando', `${greeting}\n\n${body}\nRenove em ${url}\n`, {
+      await sendEmail(p.email, days <= 2 ? 'Seu plano termina em breve' : 'Seu plano está terminando', `${greeting}\n\n${body}\nRenove em ${url}\nVer todos os planos: ${appUrl()}/#planos\n`, {
         html: emailWithButton({ greeting, body, button: 'Renovar meu plano', url }),
       })
     }

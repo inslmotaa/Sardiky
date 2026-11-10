@@ -84,17 +84,12 @@ export function chatFileTitle(mime: string) {
   return 'Anexo'
 }
 
-export const BOOKING_MESSAGE = 'Olá! Vim pelo site e gostaria de agendar uma consulta.'
-export type BookingTarget = { href: string; external: boolean }
+/** Mensagem pronta do "Falar no WhatsApp" do site (o caminho principal é Ver planos → Contratar). */
+export const START_MESSAGE = 'Olá! Vim pelo site e gostaria de saber mais sobre os planos de acompanhamento.'
 
-/**
- * Destino do "Agendar consulta": o WhatsApp do consultório (quando escolhido e preenchido) ou a agenda on-line.
- * Na agenda on-line, quem ainda não entrou passa antes pelo cadastro (loggedIn === false).
- */
-export function bookingLink(s: { whatsapp: string | null; bookingChannel: string }, text = BOOKING_MESSAGE, opts: { loggedIn?: boolean } = {}): BookingTarget {
-  const wa = s.bookingChannel === 'whatsapp' ? whatsappLink(s.whatsapp, text) : null
-  if (wa) return { href: wa, external: true }
-  return { href: opts.loggedIn === false ? '/criar-conta?next=/agendar' : '/agendar', external: false }
+/** Link do "Falar no WhatsApp" do site, com a mensagem pronta (null sem número cadastrado). */
+export function startWhatsApp(s: { whatsapp: string | null }, text = START_MESSAGE) {
+  return whatsappLink(s.whatsapp, text)
 }
 
 /** Número do WhatsApp para exibir: 5541991551789 → (41) 99155-1789. */

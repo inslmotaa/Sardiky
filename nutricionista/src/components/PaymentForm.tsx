@@ -26,21 +26,19 @@ export function PaymentForm({
           </select>
         </Field>
       )}
-      <Field label="Descrição" name="description" required>
-        <input name="description" maxLength={200} placeholder="Ex.: Consulta de retorno" />
+      <Field label="Plano contratado" name="packageId" required>
+        <select name="packageId" defaultValue="">
+          <option value="">Escolha o plano</option>
+          {packages.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} ({(p.priceCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
+            </option>
+          ))}
+        </select>
       </Field>
-      {packages.length > 0 && (
-        <Field label="Pacote (opcional)" name="packageId">
-          <select name="packageId" defaultValue="">
-            <option value="">—</option>
-            {packages.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name} ({(p.priceCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})
-              </option>
-            ))}
-          </select>
-        </Field>
-      )}
+      <Field label="Descrição (opcional)" name="description" hint="Em branco, fica “Plano” e o nome do plano.">
+        <input name="description" maxLength={200} placeholder="Ex.: Plano Trimestral (renovação)" />
+      </Field>
       <div className="form-grid">
         <Field label="Valor (R$)" name="amount" required>
           <input name="amount" inputMode="decimal" placeholder="150,00" />

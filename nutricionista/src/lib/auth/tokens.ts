@@ -8,7 +8,7 @@ export function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
 }
 
-/** Código curto e legível para confirmação de agendamento. */
+/** Código curto e legível (sem caracteres ambíguos). */
 export function newCode(len = 8) {
   const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
   const bytes = randomBytes(len)

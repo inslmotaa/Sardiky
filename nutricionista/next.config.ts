@@ -54,6 +54,10 @@ const nextConfig: NextConfig = {
   // Endereços curtos equivalentes (documento de requisitos): /entrar, /nova-senha, /app, /painel.
   async redirects() {
     return [
+      // Uma única seção de planos, na página inicial: /planos e /agendar (consultas avulsas não existem mais) vão para lá.
+      { source: '/planos', destination: '/#planos', statusCode: 301 },
+      { source: '/agendar', destination: '/#planos', statusCode: 301 },
+      { source: '/agendar/:path*', destination: '/#planos', statusCode: 301 },
       { source: '/entrar', destination: '/login', permanent: false },
       { source: '/nova-senha', destination: '/redefinir-senha', permanent: false },
       { source: '/app', destination: '/paciente', permanent: false },

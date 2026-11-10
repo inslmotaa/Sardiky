@@ -4,12 +4,11 @@ import { db, schema } from '@/db'
 import { requireActivePatient } from '@/lib/auth/patient-gate'
 import { getSettings } from '@/lib/settings'
 import { currentPublishedPlan, getPatient } from '@/lib/patient-context'
-import { latest, measurementsOf, nextAppointment, series } from '@/lib/patient-data'
+import { latest, measurementsOf, series } from '@/lib/patient-data'
 import { currentDraft } from '@/lib/anamnese-store'
 import { dayForWeekday, itemsNutrients, normalizePlan } from '@/lib/plan'
 import { waterGoalMl } from '@/lib/nutricao'
 import { capitalize, fmtDateTime, fmtDay, fmtDayLong, todayIn, weekdayOf, zonedParts } from '@/lib/time'
-import { bookingLink } from '@/lib/format'
 import { contractInfo } from '@/lib/contract'
 import { checkinsOf } from '@/lib/checkins'
 import { checkinState } from '@/lib/checkin-rules'
@@ -24,10 +23,9 @@ import { TodayView, type MealLog, type TodayData } from '@/components/nutri/Toda
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { LineChart } from '@/components/LineChart'
 import { FadeUp, MotionRoot, Stagger, StaggerItem } from '@/components/motion'
-import { IlloCalendar, IlloLeaf, IlloPlate, IlloScale } from '@/components/Illustrations'
-import { IconCalendar } from '@/components/icons'
+import { IlloLeaf, IlloPlate, IlloScale } from '@/components/Illustrations'
 
-const STEPS = ['Conta criada', 'Anamnese', 'Consulta', 'Plano alimentar', 'Acompanhamento'] as const
+const STEPS = ['Plano contratado', 'Anamnese', 'Avaliação e metas', 'Plano no app', 'Acompanhamento'] as const
 
 export default async function PatientToday({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const sp = await searchParams
@@ -35,10 +33,9 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
   const s = await getSettings()
   const patient = await getPatient(user.patientId)
   const today = todayIn(s.timezone)
-  const [plan, rows, next, notes, guidanceMsg, logs, water, diaryToday, draft, done, logsEver, pkg] = await Promise.all([
+  const [plan, rows, notes, guidanceMsg, logs, water, diaryToday, draft, logsEver, pkg] = await Promise.all([
     currentPublishedPlan(user.patientId),
     measurementsOf(user.patientId),
-    nextAppointment(user.patientId),
     db
       .select()
       .from(schema.notifications)
@@ -64,10 +61,6 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
       .from(schema.diaryEntries)
       .where(and(eq(schema.diaryEntries.patientId, user.patientId), eq(schema.diaryEntries.date, today))),
     currentDraft(user.patientId),
-    db
-      .select({ n: count() })
-      .from(schema.appointments)
-      .where(and(eq(schema.appointments.patientId, user.patientId), eq(schema.appointments.status, 'realizada'))),
     db.select({ n: count() }).from(schema.mealLogs).where(eq(schema.mealLogs.patientId, user.patientId)),
     patient.packageId ? db.select().from(schema.packages).where(eq(schema.packages.id, patient.packageId)) : [],
   ])
@@ -75,7 +68,6 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
   const day = content ? dayForWeekday(content, weekdayOf(today)) : null
   const weight = latest(rows, 'weightKg')
   const f = patient.features
-  const booking = bookingLink(s, 'Olá! Gostaria de agendar uma consulta.')
 
   const data: TodayData = {
     firstName: user.name.split(' ')[0],
@@ -90,13 +82,6 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
     waterMl: water[0]?.ml ?? 0,
     waterGoalMl: weight ? waterGoalMl(weight.value, s.waterMlPerKg) : 2000,
     features: { calorias: f.calorias, macros: f.macros, agua: f.agua, peso: f.peso, chat: f.chat, diario: f.diario },
-    nextAppointment: next
-      ? {
-          when: fmtDateTime(next.startAt, s.timezone),
-          label: `${next.serviceName} · on-line · ${next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}`,
-          meetingUrl: next.modality === 'online' && next.status === 'confirmada' ? next.meetingUrl : null,
-        }
-      : null,
     guidance: guidanceMsg[0]?.body ?? null,
     lastWeight: weight ? { value: weight.value, date: fmtDay(weight.date) } : null,
     extraConsumed: itemsNutrients(diaryToday.flatMap((e) => e.items ?? [])),
@@ -105,11 +90,12 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
 
   // Etapas do acompanhamento: a primeira não concluída é a atual.
   const anamnesisDone = Boolean(patient.anamnesisReceivedAt) && !draft
-  const doneSteps = [true, anamnesisDone, done[0].n > 0 || Boolean(plan), Boolean(plan), Boolean(plan) && logsEver[0].n > 0]
+  // Avaliação feita: medida registrada pelo coach (a avaliação por videochamada é combinada pelo WhatsApp).
+  const evaluated = rows.some((r) => r.source === 'profissional') || Boolean(plan)
+  const doneSteps = [Boolean(patient.packageId) || !patient.paymentRequired, anamnesisDone, evaluated, Boolean(plan), Boolean(plan) && logsEver[0].n > 0]
   // Tudo concluído: a etapa atual é o próprio acompanhamento.
   const pendingStep = doneSteps.findIndex((d) => !d)
   const current = pendingStep === -1 ? STEPS.length - 1 : pendingStep
-  const days = next ? Math.max(0, Math.round((Date.parse(zonedParts(next.startAt, s.timezone).date) - Date.parse(today)) / 86_400_000)) : null
   const weights = series(rows, 'weightKg').slice(-8)
   const firstName = user.name.split(' ')[0]
 
@@ -265,43 +251,6 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
         )}
 
         <Stagger className="hub-grid">
-          <StaggerItem className="card hub-card">
-            <h2>Próxima consulta</h2>
-            {next ? (
-              <>
-                <p className="hub-big">{fmtDateTime(next.startAt, s.timezone)}</p>
-                <p className="muted" style={{ margin: 0 }}>
-                  {next.serviceName} · on-line · {next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}
-                </p>
-                <div className="row" style={{ marginTop: 12 }}>
-                  {next.modality === 'online' && next.status === 'confirmada' && next.meetingUrl && (
-                    <a href={next.meetingUrl} target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm">
-                      Entrar na videochamada
-                    </a>
-                  )}
-                  <a href={`/paciente/consultas/${next.id}/agenda.ics`} className="btn btn--sm">
-                    <IconCalendar /> Adicionar à agenda
-                  </a>
-                  <Link href="/paciente/consultas" className="btn btn--sm btn--ghost">
-                    Remarcar
-                  </Link>
-                </div>
-              </>
-            ) : (
-              <div className="hub-empty">
-                <IlloCalendar />
-                <p>Você ainda não tem consulta marcada.</p>
-                <a
-                  href={booking.href}
-                  className="btn btn--primary btn--sm btn--fx"
-                  {...(booking.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-                >
-                  Agendar consulta
-                </a>
-              </div>
-            )}
-          </StaggerItem>
-
           {f.peso && (
             <StaggerItem className="card hub-card">
               <h2>Peso</h2>
@@ -352,18 +301,20 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
               <span className="eyebrow">Seu acompanhamento</span>
               <p className="hub-status__plan">{pkg[0] ? `Plano ${pkg[0].name}` : 'Nenhum plano contratado ainda'}</p>
               {!pkg[0] && (
-                <Link href="/planos" className="small">
+                <Link href="/#planos" className="small">
                   Ver planos
                 </Link>
               )}
             </div>
             <div className="hub-status__days">
-              {days === null ? (
-                <span className="muted small">Sem consulta marcada</span>
+              {contract?.daysLeft == null ? (
+                <span className="muted small">Plano sem data de término</span>
+              ) : contract.daysLeft < 0 ? (
+                <span className="muted small">Plano encerrado</span>
               ) : (
                 <>
-                  <strong>{days === 0 ? 'Hoje' : days}</strong>
-                  <span className="small muted">{days === 0 ? 'é dia de consulta' : days === 1 ? 'dia até a consulta' : 'dias até a consulta'}</span>
+                  <strong>{contract.daysLeft === 0 ? 'Hoje' : contract.daysLeft}</strong>
+                  <span className="small muted">{contract.daysLeft === 0 ? 'é o último dia do plano' : contract.daysLeft === 1 ? 'dia de plano' : 'dias de plano'}</span>
                 </>
               )}
             </div>

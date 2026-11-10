@@ -17,7 +17,6 @@ const TYPES = [
   ['agua', 'Lembrete de água (no intervalo escolhido abaixo)'],
   ['plano', 'Plano novo ou alterado'],
   ['mensagens', 'Mensagens e comentários do coach'],
-  ['consultas', 'Consultas (24 h e 2 h antes)'],
   ['lembretes', 'Lembrete gentil se ficar 3 dias sem registrar'],
   ['pesagem', 'Lembrete de pesagem semanal'],
 ] as const
@@ -66,7 +65,7 @@ export default async function NotificationsPage() {
           <summary>Assinar por link (atualiza sozinho)</summary>
           <div className="stack" style={{ ['--gap' as string]: '8px', marginTop: 8 }}>
             <p className="small muted" style={{ margin: 0 }}>
-              O calendário consulta o link de tempos em tempos e acompanha as mudanças do plano. O link é secreto: não compartilhe. Dá para cancelar
+              O calendário confere o link de tempos em tempos e acompanha as mudanças do plano. O link é secreto: não compartilhe. Dá para cancelar
               quando quiser.
             </p>
             <CalendarLinkTool action={createCalendarLink} hasLink={Boolean(ch.calendarTokenHash)} />

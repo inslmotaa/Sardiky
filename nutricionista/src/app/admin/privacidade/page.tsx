@@ -113,7 +113,7 @@ export default async function PrivacyAdminPage({ searchParams }: { searchParams:
       <section className="card">
         <h2 style={{ fontSize: '1.1rem' }}>Anonimizar cliente</h2>
         <p className="small">
-          Remove de forma irreversível nome, contatos, conta de acesso, mensagens, diário, avaliações, planos, formulários, notas e arquivos. Consultas e lançamentos financeiros
+          Remove de forma irreversível nome, contatos, conta de acesso, mensagens, diário, avaliações, planos, formulários, notas e arquivos. Os lançamentos financeiros
           ficam apenas como registros sem identificação. <strong>Antes, verifique o prazo de guarda da ficha exigido pelas normas profissionais e pela legislação.</strong>
         </p>
         <ActionForm action={anonymizePatient} className="stack" confirm="Esta ação é irreversível. Continuar?">

@@ -37,25 +37,13 @@ export default async function MyDataPage({ searchParams }: { searchParams: Promi
   const themeCookie = (await cookies()).get(THEME_COOKIE)?.value
   const currentTheme: ThemeChoice = themeCookie === 'claro' || themeCookie === 'escuro' ? themeCookie : 'auto'
   const today = todayIn(s.timezone)
-  const [[pkg], [plan], [next]] = await Promise.all([
+  const [[pkg], [plan]] = await Promise.all([
     patient.packageId ? db.select().from(schema.packages).where(eq(schema.packages.id, patient.packageId)) : Promise.resolve([]),
     db
       .select()
       .from(schema.mealPlans)
       .where(and(eq(schema.mealPlans.patientId, user.patientId), eq(schema.mealPlans.status, 'publicado')))
       .orderBy(desc(schema.mealPlans.publishedAt))
-      .limit(1),
-    db
-      .select()
-      .from(schema.appointments)
-      .where(
-        and(
-          eq(schema.appointments.patientId, user.patientId),
-          inArray(schema.appointments.status, ['pendente', 'confirmada']),
-          gt(schema.appointments.startAt, new Date()),
-        ),
-      )
-      .orderBy(asc(schema.appointments.startAt))
       .limit(1),
   ])
   const contract = pkg ? contractInfo(pkg, patient.packageStart, patient.packageEnd, today) : null
@@ -140,12 +128,10 @@ export default async function MyDataPage({ searchParams }: { searchParams: Promi
                 <dd>{patient.objective}</dd>
               </>
             )}
-            <dt>Próxima consulta</dt>
-            <dd>{next ? `${fmtDateTime(next.startAt, s.timezone)} · ${next.status === 'confirmada' ? 'confirmada' : 'aguardando confirmação'}` : 'Nenhuma marcada'}</dd>
           </dl>
           <div className="row">
             {!contract && (
-              <Link href="/planos" className="btn btn--primary btn--sm">
+              <Link href="/#planos" className="btn btn--primary btn--sm">
                 Conhecer os planos
               </Link>
             )}
@@ -154,8 +140,8 @@ export default async function MyDataPage({ searchParams }: { searchParams: Promi
                 Renovar o plano
               </Link>
             )}
-            <Link href="/paciente/consultas" className="btn btn--sm">
-              Minhas consultas
+            <Link href="/paciente/meu-corpo" className="btn btn--sm">
+              Meu corpo
             </Link>
             {patient.features.chat ? (
               <Link href="/paciente/mensagens" className="btn btn--sm btn--ghost">
@@ -355,7 +341,7 @@ export default async function MyDataPage({ searchParams }: { searchParams: Promi
           </a>
         </div>
         <p className="small muted" style={{ margin: '6px 0 0' }}>
-          O arquivo (JSON) traz cadastro, anamnese, consultas, planos, diário, medidas, histórico de peso e altura, mensagens e consentimentos. O ZIP leva também todas as suas fotos (corpo, pratos e check-ins).
+          O arquivo (JSON) traz cadastro, anamnese, planos, diário, medidas, histórico de peso e altura, mensagens e consentimentos. O ZIP leva também todas as suas fotos (corpo, pratos e check-ins).
         </p>
         <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '20px 0' }} />
         <ActionForm action={createDataRequest} className="stack" resetOnSuccess>
@@ -414,7 +400,7 @@ export default async function MyDataPage({ searchParams }: { searchParams: Promi
       <section className="card card--danger" id="excluir-conta">
         <h2 style={{ fontSize: '1.1rem' }}>Excluir minha conta</h2>
         <p className="small">
-          Seu acesso é encerrado na hora: login, sessões e notificações. A sua ficha (anamnese, consultas e planos) fica guardada apenas
+          Seu acesso é encerrado na hora: login, sessões e notificações. A sua ficha (anamnese, avaliações e planos) fica guardada apenas
           pelo prazo exigido pelas normas profissionais e depois é anonimizado. Esta ação não pode ser desfeita.
         </p>
         <p className="small muted">

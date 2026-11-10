@@ -5,9 +5,8 @@ import { getSettings } from '@/lib/settings'
 import { getPatient } from '@/lib/patient-context'
 import { anamnesisVersions, currentDraft, startFirstDraft } from '@/lib/anamnese-store'
 import { ANAMNESIS_STEPS, answerText } from '@/lib/anamnese-form'
-import { bookingLink } from '@/lib/format'
+import { whatsappLink } from '@/lib/format'
 import { fmtDateTime } from '@/lib/time'
-import { BookingLink } from '@/components/BookingLink'
 import { AnamnesisWizard } from '@/components/AnamnesisWizard'
 import { PageHead } from '@/components/ui'
 import { confirmExternalAnamnesis } from '@/actions/anamnese'
@@ -22,7 +21,7 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
   const user = await requireActivePatient()
   const s = await getSettings()
   const next = sp.next && sp.next.startsWith('/') && !sp.next.startsWith('//') ? sp.next : null
-  const booking = next === '/agendar' ? { href: '/agendar', external: false } : bookingLink(s, 'Olá! Enviei minha anamnese e gostaria de agendar a consulta.')
+  const wa = whatsappLink(s.whatsapp, 'Olá! Enviei minha anamnese. Podemos combinar a avaliação por videochamada?')
 
   if (sp.enviada) {
     return (
@@ -33,16 +32,18 @@ export default async function AnamnesisPage({ searchParams }: { searchParams: SP
         <h1>Obrigado! Sua anamnese foi enviada.</h1>
         <p className="muted">
           {sp.via === 'formulario'
-            ? `Avisamos o ${s.professionalName.split(' ')[0]} que você respondeu pelo formulário. Ele vai usar as respostas para preparar o seu acompanhamento. O próximo passo é a consulta.`
-            : `${s.professionalName.split(' ')[0]} já recebeu as suas respostas e vai usá-las para preparar o seu acompanhamento. O próximo passo é a consulta.`}
+            ? `Avisamos o ${s.professionalName.split(' ')[0]} que você respondeu pelo formulário. Ele vai usar as respostas para preparar o seu acompanhamento. O próximo passo é a avaliação por videochamada, combinada pelo WhatsApp, e depois o seu plano no app.`
+            : `${s.professionalName.split(' ')[0]} já recebeu as suas respostas e vai usá-las para preparar o seu acompanhamento. O próximo passo é a avaliação por videochamada, combinada pelo WhatsApp, e depois o seu plano no app.`}
         </p>
         <div className="row" style={{ justifyContent: 'center' }}>
-          <BookingLink to={booking} className="btn btn--primary btn--lg btn--fx btn--pulse">
-            Agendar consulta
-          </BookingLink>
-          <Link href="/paciente" className="btn btn--lg">
+          <Link href="/paciente" className="btn btn--primary btn--lg btn--fx">
             Ir para minha área
           </Link>
+          {wa && (
+            <a href={wa} className="btn btn--lg btn--whatsapp" target="_blank" rel="noopener noreferrer">
+              Falar no WhatsApp
+            </a>
+          )}
         </div>
       </div>
     )

@@ -38,7 +38,7 @@ export function vapidKeys(): Keys | null {
 
 export const pushConfigured = () => vapidKeys() !== null
 
-export type PushKind = 'refeicoes' | 'agua' | 'plano' | 'mensagens' | 'consultas' | 'lembretes' | 'pesagem' | 'equipe'
+export type PushKind = 'refeicoes' | 'agua' | 'plano' | 'mensagens' | 'lembretes' | 'pesagem' | 'equipe'
 export type PushPayload = { title: string; body?: string; url?: string; tag?: string }
 
 export { inQuietHours } from './quiet'

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { shoppingList, shoppingQuantity } from '@/lib/compras'
 import { restrictionAlerts, restrictionsFromText } from '@/lib/restricoes'
-import { easter, jitsiRoom, nationalHolidays } from '@/lib/feriados'
 import type { PlanContent } from '@/lib/plan'
 
 const per100 = { kcal: 100, protein: 1, carbs: 1, fat: 1, fiber: 0 }
@@ -67,22 +66,6 @@ describe('restrições alimentares', () => {
   it('converte as opções marcadas na anamnese', () => {
     expect(restrictionsFromText(['Lactose', 'Glúten', 'Vegetariano(a)', 'Nenhuma']).sort()).toEqual(['gluten', 'lactose', 'vegetariano'])
     expect(restrictionsFromText(['Frutos do mar'])).toEqual(['frutos_do_mar'])
-  })
-})
-
-describe('feriados e videochamada', () => {
-  it('Páscoa e feriados móveis', () => {
-    expect(easter(2025)).toBe('2025-04-20')
-    expect(easter(2026)).toBe('2026-04-05')
-    expect(easter(2027)).toBe('2027-03-28')
-    const h = nationalHolidays(2026)
-    expect(h.find((x) => x.name === 'Sexta-feira Santa')!.date).toBe('2026-04-03')
-    expect(h.find((x) => x.name === 'Carnaval (terça-feira)')!.date).toBe('2026-02-17')
-    expect(h.find((x) => x.name === 'Corpus Christi')!.date).toBe('2026-06-04')
-    expect(h.filter((x) => !x.optional)).toHaveLength(10)
-  })
-  it('sala do Jitsi com nome da marca sem acentos', () => {
-    expect(jitsiRoom('André Farion', 'ab12cd34ef')).toBe('https://meet.jit.si/AndreFarion-ab12cd34ef')
   })
 })
 

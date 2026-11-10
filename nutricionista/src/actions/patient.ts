@@ -413,120 +413,50 @@ export async function submitForm(assignmentId: string, _: ActionState, fd: FormD
   }
 }
 
-/* ------------------------------ consultas ------------------------------ */
+/* ------------------------------ depoimento ------------------------------ */
 
-export async function cancelOwnAppointment(_: ActionState, fd: FormData): Promise<ActionState> {
-  const user = await requirePatient()
-  const id = String(fd.get('id') ?? '')
-  const reason = String(fd.get('reason') ?? '').trim().slice(0, 300)
-  if (!uuid.safeParse(id).success) return { error: 'Consulta inválida.' }
-  const [a] = await db
-    .select()
-    .from(schema.appointments)
-    .where(and(eq(schema.appointments.id, id), eq(schema.appointments.patientId, user.patientId)))
-  if (!a || !['pendente', 'confirmada'].includes(a.status)) return { error: 'Esta consulta não pode ser cancelada.' }
-  const s = await getSettings()
-  const hoursLeft = (a.startAt.getTime() - Date.now()) / 3_600_000
-  if (hoursLeft < 24) {
-    return { error: 'Cancelamentos com menos de 24 horas de antecedência devem ser combinados diretamente com o seu coach.' }
-  }
-  await db
-    .update(schema.appointments)
-    .set({ status: 'cancelada', cancelReason: reason ? `Cancelada pelo cliente: ${reason}` : 'Cancelada pelo cliente', updatedAt: new Date() })
-    .where(eq(schema.appointments.id, a.id))
-  await notifyTeam('agenda', 'Consulta cancelada pelo cliente', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
-  await audit(user, 'consulta_cancelada', 'consulta', { entityId: a.id, patientId: user.patientId })
-  revalidatePath('/paciente/consultas')
-  return { ok: true, message: 'Consulta cancelada. O horário foi liberado.' }
-}
-
-/** O paciente confirma presença numa consulta já confirmada. */
-export async function confirmPresence(id: string): Promise<void> {
-  const user = await requirePatient()
-  if (!uuid.safeParse(id).success) return
-  const [a] = await db
-    .select()
-    .from(schema.appointments)
-    .where(and(eq(schema.appointments.id, id), eq(schema.appointments.patientId, user.patientId)))
-  if (!a || a.status !== 'confirmada' || a.startAt < new Date()) return
-  await db.update(schema.appointments).set({ patientConfirmedAt: new Date(), updatedAt: new Date() }).where(eq(schema.appointments.id, a.id))
-  const s = await getSettings()
-  await notifyTeam('agenda', 'Cliente confirmou presença', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, `/admin/agenda/${a.id}`, user.patientId)
-  await audit(user, 'presenca_confirmada', 'consulta', { entityId: a.id, patientId: user.patientId })
-  revalidatePath('/paciente/consultas')
-}
-
-/** Pedido de remarcação: a equipe recebe o aviso e combina o novo horário. */
-export async function requestReschedule(_: ActionState, fd: FormData): Promise<ActionState> {
-  const user = await requirePatient()
-  const parsed = z.object({ id: uuid, note: optStr(500) }).safeParse(formObject(fd))
-  if (!parsed.success) return { error: 'Consulta inválida.' }
-  const [a] = await db
-    .select()
-    .from(schema.appointments)
-    .where(and(eq(schema.appointments.id, parsed.data.id), eq(schema.appointments.patientId, user.patientId)))
-  if (!a || !['pendente', 'confirmada'].includes(a.status) || a.startAt < new Date()) return { error: 'Esta consulta não pode ser remarcada.' }
-  await db
-    .update(schema.appointments)
-    .set({ rescheduleRequestedAt: new Date(), rescheduleNote: parsed.data.note, updatedAt: new Date() })
-    .where(eq(schema.appointments.id, a.id))
-  const s = await getSettings()
-  await notifyTeam('agenda', 'Pedido de remarcação', `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}${parsed.data.note ? ` · ${parsed.data.note}` : ''}`, `/admin/agenda/${a.id}`, user.patientId)
-  await pushToTeam('agenda', { title: 'Pedido de remarcação', body: `${user.name} · ${fmtDateTime(a.startAt, s.timezone)}`, url: `/admin/agenda/${a.id}` }, user.patientId)
-  await audit(user, 'remarcacao_pedida', 'consulta', { entityId: a.id, patientId: user.patientId })
-  revalidatePath('/paciente/consultas')
-  return { ok: true, message: 'Pedido enviado. Seu coach vai entrar em contato para combinar o novo horário.' }
-}
-
-/** Avaliação da consulta realizada (1 a 5 estrelas e comentário opcional). */
-export async function rateAppointment(_: ActionState, fd: FormData): Promise<ActionState> {
+/**
+ * Avaliação do acompanhamento (1 a 5 estrelas e comentário). Com "Autorizo publicar", vira depoimento
+ * aguardando a aprovação do coach, com a autorização registrada (LGPD). Uma avaliação por cliente:
+ * enviar de novo atualiza a que ainda não foi publicada.
+ */
+export async function submitTestimonial(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
   const parsed = z
-    .object({ id: uuid, rating: int(1, 5), comment: optStr(1000), publicar: z.literal('on').optional(), assinatura: z.enum(['iniciais', 'nome']).default('iniciais') })
+    .object({ rating: int(1, 5), comment: optStr(1000), publicar: z.literal('on').optional(), assinatura: z.enum(['iniciais', 'nome']).default('iniciais') })
     .safeParse(formObject(fd))
   if (!parsed.success) return { fieldErrors: { rating: 'Escolha de 1 a 5 estrelas' }, error: 'Escolha de 1 a 5 estrelas.' }
-  // "Autorizo publicar": vira depoimento (aguardando a aprovação do coach); precisa do comentário.
   const publicar = parsed.data.publicar === 'on'
   if (publicar && !parsed.data.comment) return { fieldErrors: { comment: 'Escreva o comentário' }, error: 'Para publicar como depoimento, escreva um comentário.' }
-  const [a] = await db
-    .select()
-    .from(schema.appointments)
-    .where(and(eq(schema.appointments.id, parsed.data.id), eq(schema.appointments.patientId, user.patientId)))
-  if (!a || a.status !== 'realizada') return { error: 'Só é possível avaliar consultas realizadas.' }
-  if (a.ratedAt) return { error: 'Esta consulta já foi avaliada. Obrigado!' }
-  await db
-    .update(schema.appointments)
-    .set({ rating: parsed.data.rating, ratingComment: parsed.data.comment, ratedAt: new Date() })
-    .where(eq(schema.appointments.id, a.id))
-  await notifyTeam('agenda', `Nova avaliação de consulta: nota ${parsed.data.rating} de 5`, user.name, `/admin/agenda/${a.id}`, user.patientId)
-  await audit(user, 'consulta_avaliada', 'consulta', { entityId: a.id, patientId: user.patientId, details: { nota: parsed.data.rating } })
+  if (!rateLimit(`depoimento:${user.id}`, 10, 3_600_000)) return { error: 'Muitos envios seguidos. Tente mais tarde.' }
+  await notifyTeam('site', `Nova avaliação do acompanhamento: nota ${parsed.data.rating} de 5`, user.name, '/admin/configuracoes?secao=site', user.patientId)
+  await audit(user, 'acompanhamento_avaliado', 'paciente', { entityId: user.patientId, patientId: user.patientId, details: { nota: parsed.data.rating } })
   if (publicar) {
     const s = await getSettings()
-    const [t] = await db
-      .insert(schema.testimonials)
-      .values({
-        patientId: user.patientId,
-        appointmentId: a.id,
-        authorDisplay: assinatura(user.name, parsed.data.assinatura),
-        text: parsed.data.comment!,
-        rating: parsed.data.rating,
-        date: todayIn(s.timezone),
-        authorizedAt: new Date(),
-        authorizationMethod: 'app',
-        published: false,
-      })
-      .onConflictDoNothing()
-      .returning({ id: schema.testimonials.id })
-    if (t) {
-      // Registro da autorização (LGPD): o que, quando e por qual meio.
-      await db.insert(schema.consents).values({ userId: user.id, patientId: user.patientId, kind: 'publicacao_depoimento', version: t.id })
-      await notifyTeam('site', 'Depoimento aguardando aprovação', `${user.name} autorizou publicar a avaliação da consulta.`, '/admin/configuracoes?secao=site')
-      await audit(user, 'depoimento_autorizado', 'depoimento', { entityId: t.id, patientId: user.patientId, details: { forma: 'app' } })
+    const values = {
+      patientId: user.patientId,
+      authorDisplay: assinatura(user.name, parsed.data.assinatura),
+      text: parsed.data.comment!,
+      rating: parsed.data.rating,
+      date: todayIn(s.timezone),
+      authorizedAt: new Date(),
+      authorizationMethod: 'app' as const,
+      published: false,
     }
+    const [pending] = await db
+      .select({ id: schema.testimonials.id })
+      .from(schema.testimonials)
+      .where(and(eq(schema.testimonials.patientId, user.patientId), eq(schema.testimonials.published, false)))
+    const [t] = pending
+      ? await db.update(schema.testimonials).set(values).where(eq(schema.testimonials.id, pending.id)).returning({ id: schema.testimonials.id })
+      : await db.insert(schema.testimonials).values(values).returning({ id: schema.testimonials.id })
+    // Registro da autorização (LGPD): o que, quando e por qual meio.
+    await db.insert(schema.consents).values({ userId: user.id, patientId: user.patientId, kind: 'publicacao_depoimento', version: t.id })
+    await notifyTeam('site', 'Depoimento aguardando aprovação', `${user.name} autorizou publicar a avaliação do acompanhamento.`, '/admin/configuracoes?secao=site')
+    await audit(user, 'depoimento_autorizado', 'depoimento', { entityId: t.id, patientId: user.patientId, details: { forma: 'app' } })
   }
-  revalidatePath('/paciente/consultas')
-  // O formulário some depois da avaliação: a confirmação aparece no topo da página.
-  redirect(`/paciente/consultas?avaliada=${publicar ? 'depoimento' : '1'}`)
+  revalidatePath('/paciente/depoimento')
+  redirect(`/paciente/depoimento?avaliada=${publicar ? 'depoimento' : '1'}`)
 }
 
 /** Aparência do app (Meu perfil): automático, claro ou escuro. Fica neste aparelho (cookie). */
@@ -557,7 +487,7 @@ export async function withdrawTestimonial(id: string): Promise<void> {
     .set({ revokedAt: new Date() })
     .where(and(eq(schema.consents.patientId, user.patientId), eq(schema.consents.kind, 'publicacao_depoimento'), eq(schema.consents.version, id)))
   await audit(user, 'depoimento_autorizacao_retirada', 'depoimento', { entityId: id, patientId: user.patientId })
-  revalidatePath('/paciente/consultas')
+  revalidatePath('/paciente/depoimento')
   revalidatePath('/')
 }
 

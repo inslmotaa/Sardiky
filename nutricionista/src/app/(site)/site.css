@@ -334,7 +334,8 @@ html:has(.tl) {
 .tl-nav__link:hover {
   color: var(--tl-green);
 }
-.tl-nav__link:hover::after {
+.tl-nav__link:hover::after,
+.tl-nav__link.is-active::after {
   transform: scaleX(1);
 }
 .tl-nav .user-menu {
@@ -2721,4 +2722,22 @@ html:has(.tl) {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* Comparação dos planos, recolhida por padrão dentro da seção #planos */
+.plans-compare {
+  margin-top: 28px;
+}
+.plans-compare > summary {
+  display: inline-flex;
+  cursor: pointer;
+  list-style: none;
+  min-height: 32px;
+  align-items: center;
+}
+.plans-compare > summary::-webkit-details-marker {
+  display: none;
+}
+.plans-compare[open] > summary {
+  margin-bottom: 16px;
 }

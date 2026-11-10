@@ -23,12 +23,12 @@ export function HeroTicker() {
   )
 }
 
-const SIDE = ['Início', 'Clientes', 'Planos', 'Agenda', 'Mensagens', 'Financeiro']
+const SIDE = ['Início', 'Clientes', 'Planos', 'Check-ins', 'Mensagens', 'Financeiro']
 
 const KPIS = [
   { label: 'Clientes ativos', to: 48, suffix: '' },
   { label: 'Adesão média', to: 86, suffix: '%' },
-  { label: 'Consultas hoje', to: 6, suffix: '' },
+  { label: 'Check-ins', to: 6, suffix: '' },
 ]
 
 const MEALS = [

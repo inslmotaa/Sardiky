@@ -5,7 +5,6 @@
  * - patient: somente os próprios dados, sempre derivados da sessão.
  */
 export const STAFF_PERMISSIONS = {
-  agenda: 'Agenda e agendamentos',
   cadastro: 'Dados cadastrais de clientes',
   clinico: 'Dados clínicos (avaliações, planos, diário, formulários, mensagens)',
   financeiro: 'Financeiro',

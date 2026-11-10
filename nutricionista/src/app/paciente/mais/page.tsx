@@ -19,7 +19,8 @@ export default async function MorePage() {
       ? ([['/paciente/enviar', 'Fotos e exames', 'Envie, se quiser, foto da refeição, do corpo e exames']] as [string, string, string][])
       : []),
     ...(p.checkinEveryDays ? ([['/paciente/checkin', 'Check-in', 'Questionário curto, peso, medidas e fotos no prazo combinado']] as [string, string, string][]) : []),
-    ['/paciente/consultas', 'Agenda', 'Próximas consultas, confirmar presença, remarcar e avaliar'],
+    ['/paciente/meu-corpo', 'Meu corpo', 'Peso, altura, IMC e fotos do corpo'],
+    ['/paciente/depoimento', 'Seu depoimento', 'Avalie o acompanhamento e, se quiser, autorize o depoimento no site'],
     ['/paciente/compras', 'Lista de compras', 'Gerada do seu plano da semana'],
     ['/paciente/receitas', 'Receitas', 'Receitas do seu plano e sugestões'],
     ['/paciente/materiais', 'Materiais', 'E-books, vídeos e guias'],

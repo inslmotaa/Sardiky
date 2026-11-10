@@ -47,8 +47,8 @@ export default async function PrivacyPage() {
             consentimento específico (art. 11 da LGPD).
           </li>
           <li>
-            <strong>Acompanhamento</strong> (plano alimentar, diário, fotos de refeições e de evolução, água, peso, mensagens, consultas e prescrições): para
-            acompanhar a sua evolução entre as consultas.
+            <strong>Acompanhamento</strong> (plano alimentar, diário, fotos de refeições e do corpo, água, peso, altura, mensagens, check-ins e prescrições):
+            para acompanhar a sua evolução e ajustar o plano.
           </li>
           <li>
             <strong>Pagamentos</strong> (plano escolhido, valores e recibos): para cumprir obrigações legais e contratuais.
@@ -72,9 +72,9 @@ export default async function PrivacyPage() {
           autoridades apenas quando a lei exigir.
         </p>
         <p>
-          <strong>Depoimentos:</strong> sua avaliação de consulta só aparece no site se você marcar &quot;autorizo publicar&quot; e o coach aprovar,
+          <strong>Depoimentos:</strong> sua avaliação do acompanhamento só aparece no site se você marcar &quot;autorizo publicar&quot; e o coach aprovar,
           assinada com as iniciais (ou o primeiro nome, se você escolher). Fotos de antes e depois exigem uma autorização específica e nunca são publicadas
-          por padrão. Você pode retirar a autorização a qualquer momento em Consultas, e o depoimento sai do site na hora.
+          por padrão. Você pode retirar a autorização a qualquer momento em Mais → Seu depoimento, e o depoimento sai do site na hora.
         </p>
         <p>
           <strong>Pagamentos:</strong> o pagamento dos planos é feito pelo <strong>Mercado Pago</strong>, que atua como operador e processa os dados de

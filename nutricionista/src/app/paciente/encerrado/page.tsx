@@ -15,7 +15,7 @@ import { PageHead } from '@/components/ui'
 export const metadata: Metadata = { title: 'Seu histórico' }
 
 /**
- * Plano vencido: a área do cliente mostra só o histórico (peso, planos anteriores em PDF, consultas,
+ * Plano vencido: a área do cliente mostra só o histórico (peso, planos anteriores em PDF,
  * check-ins e registros do diário) e o botão de renovar. Nada se perde: ao renovar, tudo volta.
  */
 export default async function ExpiredPage() {
@@ -23,18 +23,12 @@ export default async function ExpiredPage() {
   if (!(await accessExpired(user.patientId))) redirect('/paciente')
   const [s, p, rows] = await Promise.all([getSettings(), getPatient(user.patientId), measurementsOf(user.patientId)])
   const [pkg] = p.packageId ? await db.select().from(schema.packages).where(eq(schema.packages.id, p.packageId)) : []
-  const [plans, appts, [diary], [checks]] = await Promise.all([
+  const [plans, [diary], [checks]] = await Promise.all([
     db
       .select({ id: schema.mealPlans.id, title: schema.mealPlans.title, version: schema.mealPlans.version, publishedAt: schema.mealPlans.publishedAt })
       .from(schema.mealPlans)
       .where(and(eq(schema.mealPlans.patientId, user.patientId), inArray(schema.mealPlans.status, ['publicado', 'arquivado'])))
       .orderBy(desc(schema.mealPlans.publishedAt))
-      .limit(10),
-    db
-      .select({ id: schema.appointments.id, startAt: schema.appointments.startAt, service: schema.appointments.serviceName })
-      .from(schema.appointments)
-      .where(and(eq(schema.appointments.patientId, user.patientId), lt(schema.appointments.startAt, new Date()), eq(schema.appointments.status, 'realizada')))
-      .orderBy(desc(schema.appointments.startAt))
       .limit(10),
     db.select({ n: count() }).from(schema.diaryEntries).where(eq(schema.diaryEntries.patientId, user.patientId)),
     db.select({ n: count() }).from(schema.checkins).where(and(eq(schema.checkins.patientId, user.patientId), eq(schema.checkins.status, 'enviado'))),
@@ -85,7 +79,6 @@ export default async function ExpiredPage() {
             Resumo do acompanhamento
           </h2>
           <ul className="list">
-            <li>{appts.length} consulta(s) realizada(s){appts[0] ? `, a última em ${fmtDay(zonedParts(appts[0].startAt, s.timezone).date)}` : ''}</li>
             <li>{diary?.n ?? 0} registro(s) no diário</li>
             <li>{checks?.n ?? 0} check-in(s) enviado(s)</li>
             <li>

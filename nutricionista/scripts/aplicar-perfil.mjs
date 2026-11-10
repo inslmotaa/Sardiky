@@ -1,5 +1,5 @@
 // Aplica os dados reais do consultório (deploy/perfil.json) no banco de produção:
-// perfil, contatos, agenda, chat, serviços e perguntas frequentes. Também desliga a faixa de demonstração.
+// perfil, contatos, fuso horário, chat, planos e perguntas frequentes. Também desliga a faixa de demonstração.
 // Uso:
 //   node scripts/aplicar-perfil.mjs deploy/perfil.json --conferir   (só confere, não grava)
 //   DATABASE_URL=... node scripts/aplicar-perfil.mjs deploy/perfil.json
@@ -121,24 +121,15 @@ const Perfil = z.object({
     email: z.email('e-mail inválido'),
     emailPrivacidade: z.email('e-mail inválido'),
   }),
+  // Sem agendamento de consultas: o site leva a Ver planos → Contratar. Só a opção dos valores dos planos.
   site: z
     .object({
-      agendamento: z.enum(['whatsapp', 'site'], { error: 'use whatsapp ou site' }).default('whatsapp'),
-      mostrarValores: z.boolean().default(false),
       mostrarValoresPlanos: z.boolean().default(true),
     })
-    .default({ agendamento: 'whatsapp', mostrarValores: false, mostrarValoresPlanos: true }),
+    .default({ mostrarValoresPlanos: true }),
   anamneseUrl: z.url({ protocol: /^https$/, error: 'use o link completo (https://…)' }).optional(),
-  agenda: z.object({
-    fusoHorario: z.string().default('America/Sao_Paulo'),
-    intervaloMinutos: z.number().int().min(5).max(120),
-    folgaEntreConsultasMinutos: z.number().int().min(0).max(120),
-    antecedenciaMinimaHoras: z.number().int().min(0).max(240),
-    diasAFrente: z.number().int().min(1).max(365),
-    horarios: z
-      .array(z.object({ dia, inicio: hora, fim: hora }).refine((h) => h.inicio < h.fim, 'o início precisa ser antes do fim'))
-      .min(1, 'informe ao menos um horário de atendimento'),
-  }),
+  // Só o fuso horário do consultório (lembretes, idade e datas do app).
+  agenda: z.object({ fusoHorario: z.string().default('America/Sao_Paulo') }).default({ fusoHorario: 'America/Sao_Paulo' }),
   chat: z
     .object({
       horario: z.object({ inicio: hora, fim: hora, dias: z.array(dia).min(1) }).optional(),
@@ -147,20 +138,6 @@ const Perfil = z.object({
     })
     .default({ respostasRapidas: [] }),
   refeicoesPadrao: z.array(z.object({ nome: texto(60), horario: hora })).max(10).default([]),
-  servicos: z
-    .array(
-      z.object({
-        nome: texto(120),
-        descricao: z.string().trim().max(1000).default(''),
-        // Atendimento 100% on-line: todo serviço é por videochamada.
-        modalidade: z.enum(['online'], { error: 'o atendimento é só on-line: use online' }).default('online'),
-        duracaoMinutos: z.number().int().min(10).max(300),
-        // Opcional: usado no financeiro e só aparece no site com site.mostrarValores = true.
-        preco: reais.default(0),
-        publico: z.boolean().default(true),
-      }),
-    )
-    .min(1, 'informe ao menos um serviço'),
   perguntasFrequentes: z.array(z.object({ pergunta: texto(200), resposta: texto(2000) })).default([]),
   // Planos de acompanhamento (seção "Planos" do site e financeiro).
   planos: z
@@ -191,13 +168,9 @@ try {
   console.error(`Fuso horário inválido: ${p.agenda.fusoHorario}`)
   process.exit(1)
 }
-if (new Set(p.servicos.map((s) => s.nome.toLowerCase())).size !== p.servicos.length) {
-  console.error('Há serviços com o mesmo nome; use nomes diferentes.')
-  process.exit(1)
-}
 
 if (onlyCheck) {
-  console.log(`Arquivo conferido: ${p.servicos.length} serviço(s), ${p.agenda.horarios.length} faixa(s) de horário, ${p.perguntasFrequentes.length} pergunta(s). Nada foi gravado.`)
+  console.log(`Arquivo conferido: ${p.planos.length} plano(s), ${p.perguntasFrequentes.length} pergunta(s). Nada foi gravado.`)
   process.exit(0)
 }
 
@@ -229,26 +202,17 @@ const settings = {
   modality_text: null,
   anamnese_url: p.anamneseUrl ?? null,
   timezone: p.agenda.fusoHorario,
-  slot_step_minutes: p.agenda.intervaloMinutos,
-  buffer_minutes: p.agenda.folgaEntreConsultasMinutos,
-  min_notice_hours: p.agenda.antecedenciaMinimaHoras,
-  max_days_ahead: p.agenda.diasAFrente,
   chat_hours: p.chat.horario ? sql.json({ start: p.chat.horario.inicio, end: p.chat.horario.fim, weekdays: [...new Set(p.chat.horario.dias)].sort() }) : null,
   chat_auto_reply: p.chat.respostaAutomatica || null,
   quick_replies: sql.json(p.chat.respostasRapidas),
   default_meals: sql.json(p.refeicoesPadrao.map((m) => ({ name: m.nome, time: m.horario }))),
   demo_banner: false,
-  booking_channel: p.site.agendamento,
-  show_prices: p.site.mostrarValores,
   show_plan_prices: p.site.mostrarValoresPlanos,
   plans_included: sql.json(p.planosIncluem.map((x) => ({ title: x.titulo, text: x.texto }))),
   updated_at: new Date(),
 }
-const templates = {
-  confirmacao: 'Olá, {nome}! Sua consulta ({servico}) está confirmada para {data} às {hora}. Código: {codigo}.',
-  lembrete: 'Olá, {nome}! Lembrete: sua consulta ({servico}) é amanhã, {data}, às {hora}.',
-  cancelamento: 'Olá, {nome}. Sua consulta de {data} às {hora} foi cancelada. Fale conosco para escolher um novo horário.',
-}
+// Modelos de mensagem: só os botões de WhatsApp (editáveis no painel); vazios = texto padrão.
+const templates = {}
 
 const out = await sql.begin(async (tx) => {
   const cols = Object.keys(settings)
@@ -256,40 +220,11 @@ const out = await sql.begin(async (tx) => {
     insert into settings ${tx({ id: 1, templates: tx.json(templates), ...settings }, 'id', 'templates', ...cols)}
     on conflict (id) do update set ${tx(settings, ...cols)}`
 
-  // Serviços: atualiza pelo nome, cria os novos e desativa os que saíram do arquivo
-  // (desativar preserva o histórico de consultas já marcadas).
-  const existing = await tx`select id, name from services`
-  const keep = []
-  for (const [i, s] of p.servicos.entries()) {
-    const row = {
-      name: s.nome,
-      description: s.descricao,
-      modality: s.modalidade,
-      duration_minutes: s.duracaoMinutos,
-      price_cents: Math.round(s.preco * 100),
-      is_public: s.publico,
-      active: true,
-      sort: i + 1,
-    }
-    const found = existing.find((e) => e.name.trim().toLowerCase() === s.nome.toLowerCase())
-    if (found) {
-      await tx`update services set ${tx(row)} where id = ${found.id}`
-      keep.push(found.id)
-    } else {
-      const [n] = await tx`insert into services ${tx(row)} returning id`
-      keep.push(n.id)
-    }
-  }
-  const off = await tx`update services set active = false where active and not (id = any(${keep}::uuid[])) returning name`
-
-  await tx`delete from working_hours`
-  await tx`insert into working_hours ${tx(p.agenda.horarios.map((h) => ({ weekday: h.dia, start: h.inicio, end: h.fim })))}`
-
   await tx`delete from faqs`
   if (p.perguntasFrequentes.length)
     await tx`insert into faqs ${tx(p.perguntasFrequentes.map((f, i) => ({ question: f.pergunta, answer: f.resposta, published: true, sort: i + 1 })))}`
 
-  // Planos: mesma regra dos serviços (atualiza pelo nome, cria os novos, desativa os que saíram).
+  // Planos: atualiza pelo nome, cria os novos e desativa os que saíram do arquivo.
   const plans = await tx`select id, name from packages`
   const keepPlans = []
   for (const [i, pl] of p.planos.entries()) {
@@ -317,13 +252,12 @@ const out = await sql.begin(async (tx) => {
 
   const [admins] = await tx`select count(*)::int as n from users where role = 'admin' and is_active`
   const [media] = await tx`select photo_file_id, logo_file_id from settings where id = 1`
-  return { off: off.map((r) => r.name), admins: admins.n, media }
+  return { admins: admins.n, media }
 })
 await sql.end()
 
 console.log(`Perfil aplicado: ${p.profissional.nome} (${p.profissional.titulo}).`)
-console.log(`  ${p.servicos.length} serviço(s), ${p.planos.length} plano(s), ${p.agenda.horarios.length} faixa(s) de horário, ${p.perguntasFrequentes.length} pergunta(s) frequente(s).`)
-if (out.off.length) console.log(`  Serviços desativados (não estão mais no arquivo): ${out.off.join(', ')}`)
+console.log(`  ${p.planos.length} plano(s), ${p.perguntasFrequentes.length} pergunta(s) frequente(s).`)
 console.log('  Faixa de demonstração desligada.')
 const todo = []
 if (!out.admins) todo.push('criar a conta do coach: node scripts/create-admin.mjs "Nome" email')

@@ -13,7 +13,6 @@ import { addDays, todayIn, zonedToUtc } from '../lib/time'
 import { newCode } from '../lib/auth/tokens'
 import { normalize, bmr as calcBmr, tdee as calcTdee, bodyFatFromSkinfolds, leanMass as leanMassOf } from '../lib/nutricao'
 import { buildDemoPlans } from './demo-plans'
-import { jitsiRoom } from '../lib/feriados'
 import { importTables } from './import-tables'
 import type { FormField } from '../lib/forms'
 
@@ -66,9 +65,9 @@ async function main() {
       'Acompanhamento próximo, com ajustes conforme o seu progresso',
     ],
     howItWorks: [
-      { title: 'Escolha seu plano', text: 'Mensal, trimestral, semestral ou anual.' },
-      { title: 'Responda a anamnese', text: 'No próprio site, em etapas curtas, depois de criar sua conta.' },
-      { title: 'Avaliação e metas', text: 'Conversa, avaliação física e definição de metas.' },
+      { title: 'Escolha seu plano', text: 'Mensal, trimestral, semestral ou anual, com pagamento pelo Mercado Pago.' },
+      { title: 'Crie sua conta e responda a anamnese', text: 'No próprio site, em etapas curtas, logo depois da contratação.' },
+      { title: 'Avaliação e metas', text: 'Por videochamada, combinada pelo WhatsApp.' },
       { title: 'Plano no app', text: 'Ajustado a cada 15 dias.' },
     ],
     address: null,
@@ -107,73 +106,22 @@ async function main() {
       { title: 'Dieta personalizada', text: 'Atualizada a cada 15 dias.' },
       { title: 'Manipulados e ergogênicos', text: 'Acompanhamento com orientações e ajustes individuais.' },
     ],
-    bookingChannel: 'site',
     dailyQuote: 'Constância vale mais que perfeição: cada refeição registrada conta.',
     weeklyTip: 'Deixe frutas lavadas e porcionadas na geladeira: fica mais fácil escolher bem nos lanches da tarde.',
-    templates: {
-      confirmacao:
-        'Olá, {nome}! Sua consulta ({servico}) está confirmada para {data} às {hora}. Código: {codigo}. Se precisar remarcar, responda esta mensagem.',
-      lembrete: 'Olá, {nome}! Lembrete: sua consulta ({servico}) é amanhã, {data}, às {hora}.',
-      cancelamento: 'Olá, {nome}. Sua consulta de {data} às {hora} foi cancelada. Fale conosco para escolher um novo horário.',
-    },
+    templates: {},
   })
-
-  const services = await db
-    .insert(s.services)
-    .values([
-      {
-        name: 'Primeira consulta',
-        description: 'Avaliação completa, definição de metas e elaboração do plano alimentar individualizado.',
-        modality: 'online',
-        durationMinutes: 60,
-        priceCents: 25000,
-        sort: 1,
-      },
-      {
-        name: 'Retorno',
-        description: 'Reavaliação, análise da evolução e ajustes no plano.',
-        modality: 'online',
-        durationMinutes: 40,
-        priceCents: 15000,
-        sort: 2,
-      },
-      {
-        name: 'Acompanhamento esportivo',
-        description: 'Estratégia nutricional alinhada à rotina de treinos e às competições.',
-        modality: 'online',
-        durationMinutes: 60,
-        priceCents: 28000,
-        sort: 3,
-      },
-      {
-        name: 'Reeducação alimentar',
-        description: 'Consulta por videochamada com foco em hábitos e rotina.',
-        modality: 'online',
-        durationMinutes: 50,
-        priceCents: 22000,
-        sort: 4,
-      },
-    ])
-    .returning()
-  const [svcFirst, svcReturn, svcSport] = services
-
-  const hours: { weekday: number; start: string; end: string }[] = []
-  for (const wd of [1, 2, 3, 4, 5]) hours.push({ weekday: wd, start: '08:00', end: '12:00' }, { weekday: wd, start: '13:30', end: '18:00' })
-  hours.push({ weekday: 6, start: '08:00', end: '12:00' })
-  await db.insert(s.workingHours).values(hours)
-
 
   await db.insert(s.faqs).values([
     {
-      question: 'Como funciona a primeira consulta?',
+      question: 'Como começa o acompanhamento?',
       answer:
-        'Conversamos por videochamada sobre sua rotina, histórico de saúde, preferências e objetivos, com uma avaliação de medidas orientada. Em até alguns dias, seu plano fica disponível na área do cliente.',
+        'Você escolhe o plano, faz o pagamento pelo Mercado Pago e cria sua conta. Em seguida responde a anamnese no próprio site e combinamos a avaliação pelo WhatsApp. Em poucos dias o seu plano aparece no app.',
       sort: 1,
     },
     {
-      question: 'Como funciona o atendimento on-line?',
+      question: 'Como é a avaliação por videochamada?',
       answer:
-        'Todo o acompanhamento é on-line: as consultas acontecem por videochamada e as medidas são informadas por você, com orientação; elas aparecem identificadas como “informadas pelo cliente” nos gráficos. Plano, diário e mensagens ficam no app.',
+        'É uma conversa por vídeo, combinada pelo WhatsApp, sobre rotina, histórico e objetivos, com medidas feitas por você com orientação. Elas aparecem nos gráficos como “informadas pelo cliente”. Plano, diário e mensagens ficam no app.',
       sort: 2,
     },
     {
@@ -183,8 +131,8 @@ async function main() {
       sort: 3,
     },
     {
-      question: 'Posso remarcar minha consulta?',
-      answer: 'Sim. Pedimos aviso com pelo menos 24 horas de antecedência, pelo WhatsApp ou pela área do cliente.',
+      question: 'Posso mudar o horário da avaliação?',
+      answer: 'Sim. É só avisar pelo WhatsApp, de preferência com 24 horas de antecedência.',
       sort: 5,
     },
     {
@@ -205,10 +153,10 @@ async function main() {
       '',
       '## Um título de seção',
       '',
-      'Parágrafos separados por uma linha em branco. Use **negrito** para destacar e [links](/planos) para outras páginas.',
+      'Parágrafos separados por uma linha em branco. Use **negrito** para destacar e [links](/#planos) para outras páginas.',
       '',
       '- Itens de lista começam com hífen',
-      '- O convite para agendar entra sozinho no fim',
+      '- O convite para ver os planos entra sozinho no fim',
     ].join('\n'),
     status: 'rascunho',
     publishedOn: '2026-01-01',
@@ -241,7 +189,7 @@ async function main() {
         name: 'Recepção (exemplo)',
         role: 'staff',
         passwordHash: staffHash,
-        permissions: ['agenda', 'cadastro', 'financeiro', 'site'],
+        permissions: ['cadastro', 'financeiro', 'site'],
       },
       { email: 'paciente@example.com', name: 'Beatriz Exemplo', role: 'patient', passwordHash: patientHash, onboardedAt: at(-150, '20:00') },
       { email: 'lucas@example.com', name: 'Lucas Fictício', role: 'patient', passwordHash: patientHash, onboardedAt: at(-24, '20:00') },
@@ -252,7 +200,7 @@ async function main() {
         name: 'Carla Coach (exemplo)',
         role: 'staff',
         passwordHash: staffHash,
-        permissions: ['clinico', 'agenda', 'cadastro'],
+        permissions: ['clinico', 'cadastro'],
         ownPatientsOnly: true,
       },
     ])
@@ -358,84 +306,12 @@ async function main() {
     { userId: uHelena.id, patientId: helena.id, kind: 'tratamento_dados_saude', version: '2026-10' },
   ])
 
-  /* ------------------------------ consultas ---------------------------- */
-  const appt = (
-    p: { id: string; fullName: string; email: string | null; phone: string | null } | null,
-    svc: typeof svcFirst,
-    offset: number,
-    time: string,
-    status: (typeof s.appointmentStatusEnum.enumValues)[number],
-    extra: Partial<typeof s.appointments.$inferInsert> = {},
-  ): typeof s.appointments.$inferInsert => {
-    const startAt = at(offset, time)
-    return {
-      patientId: p?.id ?? null,
-      serviceId: svc.id,
-      serviceName: svc.name,
-      modality: 'online',
-      startAt,
-      endAt: new Date(startAt.getTime() + svc.durationMinutes * 60_000),
-      status,
-      priceCents: svc.priceCents,
-      contactName: p?.fullName ?? 'Contato',
-      contactEmail: p?.email ?? 'contato@example.com',
-      contactPhone: p?.phone ?? '11900000000',
-      isReturning: Boolean(p),
-      code: newCode(),
-      source: 'admin',
-      ...extra,
-    }
-  }
-  // Ajusta para dia útil: evita gerar consultas de exemplo em domingos.
+  // Ajusta para dia útil: evita datas de exemplo em domingos.
   const wd = (offset: number) => {
     let o = offset
     while (new Date(at(o, '12:00')).getUTCDay() === 0) o += offset >= 0 ? 1 : -1
     return o
   }
-
-  const pastAppts = await db
-    .insert(s.appointments)
-    .values([
-      appt(beatriz, svcFirst, wd(-150), '09:00', 'realizada'),
-      appt(beatriz, svcReturn, wd(-120), '09:00', 'realizada'),
-      appt(beatriz, svcReturn, wd(-90), '10:00', 'realizada'),
-      appt(beatriz, svcReturn, wd(-60), '10:00', 'realizada', { modality: 'online' }),
-      appt(beatriz, svcReturn, wd(-30), '14:00', 'realizada'),
-      appt(lucas, svcSport, wd(-24), '15:00', 'realizada'),
-      appt(rafael, svcReturn, wd(-45), '16:00', 'faltou'),
-      appt(helena, svcReturn, wd(-15), '11:00', 'cancelada', { cancelReason: 'Cliente pediu para remarcar' }),
-      appt(helena, svcReturn, wd(-10), '11:00', 'realizada'),
-    ])
-    .returning()
-
-  await db.insert(s.appointments).values([
-    appt(helena, svcReturn, 0, '14:00', 'confirmada'),
-    appt(lucas, svcReturn, wd(1), '16:00', 'confirmada', { modality: 'online', meetingUrl: jitsiRoom('André Farion', 'demo0a1b2c') }),
-    appt(beatriz, svcReturn, wd(5), '09:00', 'confirmada'),
-    appt(null, svcFirst, wd(2), '10:00', 'pendente', {
-      contactName: 'Interessada Exemplo',
-      contactEmail: 'interessada@example.com',
-      contactPhone: '11900000010',
-      isReturning: false,
-      source: 'site',
-      patientNotes: 'Gostaria de orientação para melhorar a alimentação no trabalho.',
-    }),
-    appt(null, svcSport, wd(3), '15:00', 'pendente', {
-      contactName: 'Atleta Fictício',
-      contactEmail: 'atleta@example.com',
-      contactPhone: '11900000011',
-      isReturning: false,
-      source: 'site',
-      modality: 'online',
-    }),
-  ])
-
-  await db.insert(s.timeBlocks).values({
-    startAt: at(wd(4), '13:30'),
-    endAt: at(wd(4), '18:00'),
-    reason: 'Congresso (exemplo)',
-    createdBy: admin.id,
-  })
 
   /* ------------------------------ evolução ----------------------------- */
   const lucasFolds = { peitoral: 8, axilarMedia: 10, triceps: 9, subescapular: 12, abdominal: 16, suprailiaca: 11, coxa: 13 }
@@ -551,7 +427,7 @@ async function main() {
     { isTemplate: true, title: 'Modelo — Emagrecimento (uma opção por refeição)', status: 'rascunho', version: 1, content: emagrecimentoPlan, createdBy: admin.id },
   ])
 
-  // Gasto energético calculado na última consulta (Mifflin-St Jeor, atividade leve, déficit de 400 kcal).
+  // Gasto energético calculado na última avaliação (Mifflin-St Jeor, atividade leve, déficit de 400 kcal).
   const bmrB = calcBmr('mifflin', { sex: 'F', weightKg: 75.1, heightCm: 165, age: 35 })!
   const tdeeB = calcTdee(bmrB, 1.375)
   await db
@@ -719,9 +595,9 @@ async function main() {
     .insert(s.formTemplates)
     .values([
       { title: 'Anamnese nutricional', kind: 'anamnese', description: 'Objetivo, saúde, rotina e alimentação. Leva cerca de 10 minutos.', fields: anamnese },
-      { title: 'Questionário de acompanhamento', kind: 'acompanhamento', description: 'Preencha entre as consultas.', fields: acompanhamento },
+      { title: 'Questionário de acompanhamento', kind: 'acompanhamento', description: 'Preencha entre os check-ins.', fields: acompanhamento },
       { title: 'Termo de consentimento', kind: 'consentimento', description: 'Autorização para tratamento de dados de saúde.', fields: termo },
-      { title: 'Questionário pré-consulta', kind: 'pre_consulta', description: 'Enviado antes da primeira consulta.', fields: preConsulta },
+      { title: 'Questionário inicial', kind: 'pre_consulta', description: 'Enviado antes da avaliação por videochamada.', fields: preConsulta },
     ])
     .returning()
 
@@ -820,20 +696,12 @@ async function main() {
   ])
 
   await db.insert(s.payments).values([
-    ...pastAppts
-      .filter((a) => a.status === 'realizada')
-      .map((a) => ({
-        patientId: a.patientId,
-        appointmentId: a.id,
-        description: a.serviceName,
-        amountCents: a.priceCents,
-        status: 'pago' as const,
-        method: 'pix',
-        paidAt: a.startAt.toISOString().slice(0, 10),
-        createdBy: admin.id,
-      })),
-    { patientId: lucas.id, description: 'Pacote trimestral', amountCents: 49000, discountCents: 4900, discountReason: 'Pagamento à vista', status: 'pendente', dueDate: day(7), createdBy: admin.id },
-    { patientId: helena.id, description: 'Retorno', amountCents: 15000, status: 'pendente', dueDate: day(-5), createdBy: admin.id },
+    // Pagamentos sempre ligados ao plano contratado (não há consultas avulsas).
+    { patientId: beatriz.id, packageId: pkgTrimestral.id, description: 'Plano Trimestral', amountCents: pkgTrimestral.priceCents, status: 'pago' as const, method: 'pix', paidAt: day(wd(-150)), createdBy: admin.id },
+    { patientId: beatriz.id, packageId: pkgTrimestral.id, description: 'Plano Trimestral (renovação)', amountCents: pkgTrimestral.priceCents, status: 'pago' as const, method: 'cartao', paidAt: day(wd(-60)), createdBy: admin.id },
+    { patientId: lucas.id, packageId: pkgTrimestral.id, description: 'Plano Trimestral', amountCents: pkgTrimestral.priceCents, status: 'pago' as const, method: 'pix', paidAt: day(wd(-24)), createdBy: admin.id },
+    { patientId: lucas.id, packageId: pkgTrimestral.id, description: 'Plano Trimestral (renovação)', amountCents: pkgTrimestral.priceCents, status: 'pendente', dueDate: day(7), createdBy: admin.id },
+    { patientId: helena.id, packageId: pkgMensal.id, description: 'Plano Mensal', amountCents: pkgMensal.priceCents, status: 'pendente', dueDate: day(-5), createdBy: admin.id },
   ])
 
   /* ------------------------ check-ins periódicos ----------------------- */
@@ -866,7 +734,7 @@ async function main() {
 
   await db.insert(s.notifications).values([
     { userId: uBeatriz.id, title: 'Novo questionário disponível', body: 'Questionário de acompanhamento', link: '/paciente/formularios', createdAt: at(-1, '09:00') },
-    { userId: uBeatriz.id, title: 'Consulta confirmada', body: 'Seu retorno foi confirmado.', link: '/paciente/consultas', createdAt: at(-2, '09:00') },
+    { userId: uBeatriz.id, title: 'Plano atualizado', body: 'O coach ajustou o seu plano alimentar.', link: '/paciente/plano', createdAt: at(-2, '09:00') },
   ])
 
   await db.insert(s.auditLogs).values({ action: 'seed', entity: 'sistema', actorLabel: 'script de demonstração', details: { note: 'Dados fictícios carregados' } })

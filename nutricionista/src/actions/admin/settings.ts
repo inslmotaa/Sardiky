@@ -83,10 +83,8 @@ const profileSchema = z.object({
   waterMlPerKg: z.coerce.number().int().min(20, 'Entre 20 e 60').max(60, 'Entre 20 e 60'),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Cor inválida'),
   demoBanner: checkbox,
-  showPrices: checkbox,
   showPlanPrices: checkbox,
   plansIncluded: z.string().max(3000).optional(),
-  bookingChannel: z.enum(['whatsapp', 'site']),
 })
 
 export async function saveProfile(_: ActionState, fd: FormData): Promise<ActionState> {
@@ -134,85 +132,18 @@ export async function saveProfile(_: ActionState, fd: FormData): Promise<ActionS
   }
 }
 
-/* ------------------------------ serviços ------------------------------ */
 
-const serviceSchema = z.object({
-  id: z.string().optional(),
-  name: str(120, 'Informe o nome'),
-  description: z.string().trim().max(500),
-  modality: z.enum(['online']).default('online'),
-  durationMinutes: int(10, 240),
-  price: z
-    .string()
-    .optional()
-    .transform((v) => (v ? parseMoney(v) : 0))
-    .refine((v) => v !== null, 'Valor inválido'),
-  sort: int(0, 99),
-  isPublic: checkbox,
-  active: checkbox,
-})
+/* ------------------------- módulos e retenção ------------------------- */
 
-export async function saveService(_: ActionState, fd: FormData): Promise<ActionState> {
-  const parsed = serviceSchema.safeParse(formObject(fd))
-  if (!parsed.success) return zodErrors(parsed.error)
-  const { id, price, ...d } = parsed.data
-  try {
-    const user = await requireTeam('config')
-    const values = { ...d, priceCents: price ?? 0 }
-    if (id) {
-      if (!uuid.safeParse(id).success) return { error: 'Serviço inválido.' }
-      await db.update(schema.services).set(values).where(eq(schema.services.id, id))
-    } else {
-      await db.insert(schema.services).values(values)
-    }
-    await audit(user, id ? 'servico_editado' : 'servico_criado', 'servico', { entityId: id ?? null, details: { nome: d.name } })
-    refreshAll()
-    return { ok: true, message: 'Serviço salvo.' }
-  } catch (err) {
-    return failure(err)
-  }
-}
-
-/* ------------------------ horários e agendamento ------------------------ */
-
-export async function saveSchedule(_: ActionState, fd: FormData): Promise<ActionState> {
-  const rules = z
-    .object({
-      slotStepMinutes: int(5, 120),
-      bufferMinutes: int(0, 120),
-      minNoticeHours: int(0, 720),
-      maxDaysAhead: int(1, 365),
-      leadRetentionDays: int(30, 730),
-      financeEnabled: checkbox,
-    })
-    .safeParse(formObject(fd))
+export async function saveModules(_: ActionState, fd: FormData): Promise<ActionState> {
+  const rules = z.object({ leadRetentionDays: int(30, 730), financeEnabled: checkbox }).safeParse(formObject(fd))
   if (!rules.success) return zodErrors(rules.error)
-  const windows: { weekday: number; start: string; end: string }[] = []
-  for (let wd = 0; wd < 7; wd++) {
-    for (const n of [1, 2]) {
-      const start = String(fd.get(`d${wd}_s${n}`) ?? '')
-      const end = String(fd.get(`d${wd}_e${n}`) ?? '')
-      if (!start && !end) continue
-      if (!time.safeParse(start).success || !time.safeParse(end).success || end <= start) {
-        return { error: 'Revise os horários: cada período precisa de início e fim, com o fim depois do início.', fieldErrors: { [`d${wd}`]: 'Período inválido' } }
-      }
-      windows.push({ weekday: wd, start, end })
-    }
-  }
-  for (let wd = 0; wd < 7; wd++) {
-    const w = windows.filter((x) => x.weekday === wd).sort((a, b) => a.start.localeCompare(b.start))
-    if (w.length === 2 && w[1].start < w[0].end) return { error: 'Os dois períodos de um mesmo dia não podem se sobrepor.', fieldErrors: { [`d${wd}`]: 'Períodos sobrepostos' } }
-  }
   try {
     const user = await requireTeam('config')
-    await db.transaction(async (tx) => {
-      await tx.delete(schema.workingHours)
-      if (windows.length) await tx.insert(schema.workingHours).values(windows)
-      await tx.update(schema.settings).set({ ...rules.data, updatedAt: new Date() }).where(eq(schema.settings.id, 1))
-    })
-    await audit(user, 'horarios_atualizados', 'configuracoes')
+    await db.update(schema.settings).set({ ...rules.data, updatedAt: new Date() }).where(eq(schema.settings.id, 1))
+    await audit(user, 'modulos_atualizados', 'configuracoes')
     refreshAll()
-    return { ok: true, message: 'Horários e regras de agendamento salvos.' }
+    return { ok: true, message: 'Configurações salvas.' }
   } catch (err) {
     return failure(err)
   }
@@ -222,7 +153,7 @@ export async function saveTemplates(_: ActionState, fd: FormData): Promise<Actio
   // Mensagens do WhatsApp: vazio = volta ao texto padrão.
   const wa = Object.fromEntries((Object.keys(WA_TEMPLATES) as WaTemplateKey[]).map((k) => [k, optStr(1000)]))
   const parsed = z
-    .object({ confirmacao: str(1000, 'Obrigatório'), lembrete: str(1000, 'Obrigatório'), cancelamento: str(1000, 'Obrigatório'), ...wa })
+    .object({ ...wa })
     .safeParse(formObject(fd))
   if (!parsed.success) return zodErrors(parsed.error)
   try {

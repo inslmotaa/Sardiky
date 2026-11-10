@@ -93,7 +93,6 @@ type Client = {
   diary: Entry[]
   messages: Msg[]
   goals: { id: string; title: string; done: boolean }[]
-  nextAppointment: string
 }
 type Entry = DiaryEntryView & { date: string; mealKey: string | null }
 type Msg = { id: string; fromPatient: boolean; body: string; at: string; read: boolean; diaryId?: string | null }
@@ -193,7 +192,6 @@ function seed(): Store {
           { id: uid(), title: 'Reduzir a circunferência da cintura', done: false },
           { id: uid(), title: 'Beber 2 litros de água por dia', done: true },
         ],
-        nextAppointment: `${fmtDay(addDays(t, 5))} às 09:00`,
       },
       {
         id: 'helena',
@@ -215,7 +213,6 @@ function seed(): Store {
           { id: uid(), fromPatient: true, body: 'Estou chegando tarde e acabo pulando o jantar.', at: `${fmtDay(addDays(t, -3))} às 20:40`, read: true },
         ],
         goals: [],
-        nextAppointment: `${fmtDay(addDays(t, 12))} às 14:00`,
       },
       {
         id: 'lucas',
@@ -234,7 +231,6 @@ function seed(): Store {
         diary: [],
         messages: [],
         goals: [],
-        nextAppointment: `${fmtDay(addDays(t, 9))} às 16:00`,
       },
     ],
   }
@@ -454,7 +450,7 @@ function DemoAuth({ mode }: { mode: 'entrar' | 'criar' | 'anamnese' }) {
                 <div>
                   <h1 style={{ fontSize: '1.6rem' }}>Criar conta</h1>
                   <p className="muted" style={{ margin: 0 }}>
-                    Com a conta você preenche a anamnese, agenda a consulta e acompanha o seu plano pelo app.
+                    Com a conta você preenche a anamnese e acompanha o seu plano pelo app.
                   </p>
                 </div>
                 {error && <p className="alert alert--error">{error}</p>}
@@ -626,7 +622,6 @@ function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
                 waterMl: c.water[t] ?? 0,
                 waterGoalMl: w ? waterGoalMl(w.value) : 2000,
                 features: f,
-                nextAppointment: { when: c.nextAppointment, label: 'Retorno · on-line · confirmada', meetingUrl: null },
                 guidance: content?.guidance ?? null,
                 lastWeight: w ? { value: w.value, date: fmtDay(w.date) } : null,
               }
@@ -788,7 +783,7 @@ function ClientArea({ tab, extra }: { tab: string; extra?: string }) {
                   </a>
                 </li>
               </ul>
-              <p className="small muted">Agenda (confirmar presença, remarcar e avaliar), materiais, notificações, fotos de evolução e perfil funcionam no sistema publicado.</p>
+              <p className="small muted">Materiais, notificações, fotos do corpo e perfil funcionam no sistema publicado.</p>
             </div>
           )}
 
@@ -1151,7 +1146,6 @@ function AndreArea({ page, extra }: { page?: string; extra?: string }) {
                           diary: [],
                           messages: [],
                           goals: [],
-                          nextAppointment: `${fmtDay(addDays(today(), 7))} às 10:00`,
                         }),
                       )
                       location.hash = `#andre/${id}`

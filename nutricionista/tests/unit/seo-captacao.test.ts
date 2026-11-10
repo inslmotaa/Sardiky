@@ -110,8 +110,8 @@ describe('Pixels (Meta e Google) com consentimento', () => {
   })
 
   it('só nas páginas públicas', () => {
-    for (const p of ['/', '/sobre', '/planos/', '/conteudos', '/conteudos/cafe-da-manha', '/privacidade?x=1']) expect(isPublicSitePath(p)).toBe(true)
-    for (const p of ['/login', '/paciente', '/admin/conteudos', '/criar-conta', '/conteudos/a/b', '/api/health']) expect(isPublicSitePath(p)).toBe(false)
+    for (const p of ['/', '/#planos', '/sobre/', '/conteudos', '/conteudos/cafe-da-manha', '/privacidade?x=1']) expect(isPublicSitePath(p)).toBe(true)
+    for (const p of ['/login', '/paciente', '/admin/conteudos', '/criar-conta', '/conteudos/a/b', '/api/health', '/planos', '/agendar']) expect(isPublicSitePath(p)).toBe(false)
   })
 })
 
@@ -179,7 +179,10 @@ describe('Metadados por página', () => {
     for (const p of ['/admin', '/painel', '/paciente', '/app', '/login', '/entrar', '/criar-conta', '/recuperar-senha', '/redefinir-senha', '/api/'])
       expect(NO_INDEX_PATHS).toContain(p)
     const paths = PUBLIC_PAGES.map((p) => p.path)
-    expect(paths).toEqual(expect.arrayContaining(['/', '/sobre', '/como-funciona', '/planos', '/conteudos', '/duvidas']))
+    expect(paths).toEqual(expect.arrayContaining(['/', '/sobre', '/como-funciona', '/conteudos', '/duvidas']))
+    // Planos só na página inicial (#planos); /planos e /agendar redirecionam para lá.
+    expect(paths).not.toContain('/planos')
+    expect(paths).not.toContain('/agendar')
     for (const p of paths) expect(NO_INDEX_PATHS.some((n) => p.startsWith(n))).toBe(false)
   })
 })

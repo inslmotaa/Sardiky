@@ -52,7 +52,7 @@ async function fillAnamnesisUntilReview(page: Page) {
 
 test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe, vê, exporta e pede reavaliação', async ({ page }) => {
   // Escolhe o plano e cria a conta.
-  await page.goto('/planos')
+  await page.goto('/#planos')
   await page.locator('.tl-plan', { hasText: 'Trimestral' }).getByRole('link', { name: /Contratar/ }).click()
   await expect(page).toHaveURL(/\/criar-conta\?plano=/)
   await expect(page.getByText('Plano escolhido:')).toContainText('Trimestral')

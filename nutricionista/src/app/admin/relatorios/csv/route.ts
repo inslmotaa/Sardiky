@@ -2,11 +2,11 @@ import { getCurrentUser } from '@/lib/auth/session'
 import { can } from '@/lib/auth/permissions'
 import { audit } from '@/lib/audit'
 import { getSettings } from '@/lib/settings'
-import { appointmentsInRange, paymentsInRange, toCsv, weightEvolution } from '@/lib/reports'
-import { addDays, isValidDay, startOfMonth, todayIn, zonedParts } from '@/lib/time'
+import { paymentsInRange, toCsv, weightEvolution } from '@/lib/reports'
+import { addDays, isValidDay, startOfMonth, todayIn } from '@/lib/time'
 import { STATUS_LABEL } from '@/lib/format'
 import { db, schema } from '@/db'
-import { isNull } from 'drizzle-orm'
+import { and, gte, isNull, lt } from 'drizzle-orm'
 
 export async function GET(req: Request) {
   const user = await getCurrentUser()
@@ -22,19 +22,17 @@ export async function GET(req: Request) {
   const range = { from, to, tz: s.timezone }
   let csv: string
 
-  if (tipo === 'atendimentos') {
-    const rows = await appointmentsInRange(range)
-    csv = toCsv(
-      ['data', 'hora', 'cliente', 'servico', 'modalidade', 'situacao', 'valor'],
-      rows.map((a) => {
-        const p = zonedParts(a.startAt, s.timezone)
-        return [p.date, p.time, a.contactName, a.serviceName, a.modality, STATUS_LABEL[a.status], (a.priceCents / 100).toFixed(2).replace('.', ',')]
-      }),
-    )
+  if (tipo === 'vencimentos') {
+    if (!can(user, 'cadastro') && !can(user, 'financeiro')) return new Response('Não autorizado', { status: 403 })
+    const rows = await db
+      .select({ name: schema.patients.fullName, end: schema.patients.packageEnd, start: schema.patients.packageStart })
+      .from(schema.patients)
+      .where(and(isNull(schema.patients.anonymizedAt), gte(schema.patients.packageEnd, from), lt(schema.patients.packageEnd, to)))
+    csv = toCsv(['cliente', 'inicio_do_plano', 'termino_do_plano'], rows.map((r) => [r.name, r.start ?? '', r.end ?? '']))
   } else if (tipo === 'pacientes') {
     if (!can(user, 'cadastro')) return new Response('Não autorizado', { status: 403 })
     const rows = await db.select().from(schema.patients).where(isNull(schema.patients.anonymizedAt))
-    csv = toCsv(['nome', 'situacao', 'etapa', 'proximo_retorno', 'cadastro'], rows.map((p) => [p.fullName, STATUS_LABEL[p.status], p.stage, p.nextFollowUp ?? '', p.createdAt.toISOString().slice(0, 10)]))
+    csv = toCsv(['nome', 'situacao', 'etapa', 'termino_do_plano', 'cadastro'], rows.map((p) => [p.fullName, STATUS_LABEL[p.status], p.stage, p.packageEnd ?? '', p.createdAt.toISOString().slice(0, 10)]))
   } else if (tipo === 'evolucao') {
     if (!can(user, 'clinico')) return new Response('Não autorizado', { status: 403 })
     const rows = await weightEvolution()

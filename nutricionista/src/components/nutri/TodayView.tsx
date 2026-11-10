@@ -20,7 +20,6 @@ export type TodayData = {
   waterMl: number
   waterGoalMl: number
   features: { calorias: boolean; macros: boolean; agua: boolean; peso: boolean; chat: boolean; diario: boolean }
-  nextAppointment: { when: string; label: string; meetingUrl: string | null } | null
   guidance: string | null
   lastWeight: { value: number; date: string } | null
   /** Alimentos registrados no diário hoje fora do plano (“comi outra coisa”). */
@@ -351,25 +350,6 @@ export function TodayView({
             )}
 
             {waterCard}
-
-            {data.nextAppointment && (
-              <section className="card">
-                <div className="card__head">
-                  <h2>Próxima consulta</h2>
-                </div>
-                <p className="stat__value" style={{ fontSize: '1.3rem', margin: 0 }}>
-                  {data.nextAppointment.when}
-                </p>
-                <p className="muted" style={{ margin: '4px 0 0' }}>
-                  {data.nextAppointment.label}
-                </p>
-                {data.nextAppointment.meetingUrl && (
-                  <a href={data.nextAppointment.meetingUrl} target="_blank" rel="noopener noreferrer" className="btn btn--primary btn--sm" style={{ marginTop: 10 }}>
-                    Entrar na videochamada
-                  </a>
-                )}
-              </section>
-            )}
 
             {data.guidance && (
               <section className="card card--soft">

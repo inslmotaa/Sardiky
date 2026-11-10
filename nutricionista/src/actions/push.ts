@@ -47,7 +47,6 @@ const prefsSchema = z.object({
   agua: checkbox,
   plano: checkbox,
   mensagens: checkbox,
-  consultas: checkbox,
   lembretes: checkbox,
   pesagem: checkbox,
   quietStart: time,

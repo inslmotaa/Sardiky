@@ -2,7 +2,7 @@ import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { requireTeam } from '@/lib/auth/session'
 import { can, STAFF_PERMISSIONS } from '@/lib/auth/permissions'
-import { getSettings, getWorkingHours } from '@/lib/settings'
+import { getSettings } from '@/lib/settings'
 import { integrationStatus } from '@/lib/integrations'
 import { fmtDateTime, weekdayName } from '@/lib/time'
 import {
@@ -10,8 +10,7 @@ import {
   inviteStaff,
   saveFaq,
   saveProfile,
-  saveSchedule,
-  saveService,
+  saveModules,
   saveChatSettings,
   saveClinicalSettings,
   saveTemplates,
@@ -36,8 +35,7 @@ const EMAIL_FREE = emailLimits()
 
 const SECTIONS = [
   { key: 'perfil', label: 'Perfil e identidade', perm: 'config' },
-  { key: 'servicos', label: 'Serviços e valores', perm: 'config' },
-  { key: 'horarios', label: 'Horários e agendamento', perm: 'config' },
+  { key: 'modulos', label: 'Módulos e retenção', perm: 'config' },
   { key: 'mensagens', label: 'Mensagens', perm: 'config' },
   { key: 'chat', label: 'Chat', perm: 'config' },
   { key: 'planos', label: 'Planos, anamnese e PDF', perm: 'config' },
@@ -61,8 +59,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       <PageHead title="Configurações" />
       <Tabs current={sec.key} items={visible.map((x) => ({ key: x.key, label: x.label, href: `/admin/configuracoes?secao=${x.key}` }))} />
       {sec.key === 'perfil' && <ProfileSection s={s} />}
-      {sec.key === 'servicos' && <ServicesSection />}
-      {sec.key === 'horarios' && <ScheduleSection s={s} />}
+      {sec.key === 'modulos' && <ModulesSection s={s} />}
       {sec.key === 'mensagens' && <TemplatesSection s={s} />}
       {sec.key === 'chat' && <ChatSection s={s} />}
       {sec.key === 'planos' && <ClinicalSection s={s} />}
@@ -175,15 +172,6 @@ function ProfileSection({ s }: { s: S }) {
             <input name="waterMlPerKg" inputMode="numeric" defaultValue={s.waterMlPerKg} />
           </Field>
         </div>
-        <Field label="Botão “Agendar consulta” do site" name="bookingChannel" hint="Pelo WhatsApp, a agenda on-line fica desligada e todos os botões de agendar e o contato abrem a conversa.">
-          <select name="bookingChannel" defaultValue={s.bookingChannel}>
-            <option value="whatsapp">Abre o WhatsApp</option>
-            <option value="site">Abre a agenda on-line do site</option>
-          </select>
-        </Field>
-        <label className="check">
-          <input type="checkbox" name="showPrices" defaultChecked={s.showPrices} /> Mostrar os valores das consultas no site
-        </label>
         <label className="check">
           <input type="checkbox" name="showPlanPrices" defaultChecked={s.showPlanPrices} /> Mostrar os valores dos planos de acompanhamento no site (os planos são editados em Financeiro)
         </label>
@@ -201,122 +189,10 @@ function ProfileSection({ s }: { s: S }) {
   )
 }
 
-async function ServicesSection() {
-  const services = await db.select().from(schema.services).orderBy(asc(schema.services.sort))
-  const form = (svc?: typeof schema.services.$inferSelect) => (
-    <ActionForm action={saveService} className="stack">
-      {svc && <input type="hidden" name="id" value={svc.id} />}
-      <div className="form-grid form-grid--3">
-        <Field label="Nome" name="name">
-          <input name="name" defaultValue={svc?.name} />
-        </Field>
-        {/* Atendimento 100% on-line: todo serviço é por videochamada. */}
-        <input type="hidden" name="modality" value="online" />
-        <Field label="Duração (min)" name="durationMinutes">
-          <input name="durationMinutes" inputMode="numeric" defaultValue={svc?.durationMinutes ?? 60} />
-        </Field>
-        <Field label="Valor (R$)" name="price">
-          <input name="price" inputMode="decimal" defaultValue={svc ? (svc.priceCents / 100).toFixed(2).replace('.', ',') : ''} />
-        </Field>
-        <Field label="Ordem" name="sort">
-          <input name="sort" inputMode="numeric" defaultValue={svc?.sort ?? services.length + 1} />
-        </Field>
-      </div>
-      <Field label="Descrição" name="description">
-        <input name="description" defaultValue={svc?.description} maxLength={500} />
-      </Field>
-      <div className="row">
-        <label className="check">
-          <input type="checkbox" name="isPublic" defaultChecked={svc?.isPublic ?? true} /> Exibir no site e no agendamento on-line
-        </label>
-        <label className="check">
-          <input type="checkbox" name="active" defaultChecked={svc?.active ?? true} /> Ativo
-        </label>
-      </div>
-      <div>
-        <SubmitButton>{svc ? 'Salvar' : 'Adicionar serviço'}</SubmitButton>
-      </div>
-    </ActionForm>
-  )
+/** Módulo financeiro e retenção dos contatos de interessados (o agendamento de consultas saiu do sistema). */
+function ModulesSection({ s }: { s: S }) {
   return (
-    <div className="stack">
-      {services.map((svc) => (
-        <details key={svc.id} className="disclosure">
-          <summary>
-            {svc.name} · {svc.durationMinutes} min · {(svc.priceCents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            {!svc.active && ' · inativo'}
-            {svc.active && !svc.isPublic && ' · interno'}
-          </summary>
-          <div>{form(svc)}</div>
-        </details>
-      ))}
-      <section className="card">
-        <h2 style={{ fontSize: '1.1rem' }}>Novo serviço</h2>
-        {form()}
-      </section>
-    </div>
-  )
-}
-
-async function ScheduleSection({ s }: { s: S }) {
-  const hours = await getWorkingHours()
-  return (
-    <ActionForm action={saveSchedule} className="stack">
-      <section className="card">
-        <h2 style={{ fontSize: '1.1rem' }}>Horário de atendimento</h2>
-        <p className="muted small">Até dois períodos por dia (ex.: manhã e tarde). Deixe em branco os dias sem atendimento.</p>
-        <div className="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Dia</th>
-                <th>1º período</th>
-                <th>2º período</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[1, 2, 3, 4, 5, 6, 0].map((wd) => {
-                const w = hours.filter((h) => h.weekday === wd)
-                return (
-                  <tr key={wd}>
-                    <td style={{ textTransform: 'capitalize' }}>
-                      {weekdayName(wd)}
-                      <FieldError name={`d${wd}`} />
-                    </td>
-                    {[1, 2].map((n) => (
-                      <td key={n}>
-                        <div className="row" style={{ flexWrap: 'nowrap', gap: 6 }}>
-                          <input type="time" name={`d${wd}_s${n}`} defaultValue={w[n - 1]?.start ?? ''} aria-label={`${weekdayName(wd)}, início do ${n}º período`} />
-                          <span>às</span>
-                          <input type="time" name={`d${wd}_e${n}`} defaultValue={w[n - 1]?.end ?? ''} aria-label={`${weekdayName(wd)}, fim do ${n}º período`} />
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="card">
-        <h2 style={{ fontSize: '1.1rem' }}>Regras do agendamento on-line</h2>
-        <div className="form-grid">
-          <Field label="Intervalo entre horários oferecidos (min)" name="slotStepMinutes">
-            <input name="slotStepMinutes" inputMode="numeric" defaultValue={s.slotStepMinutes} />
-          </Field>
-          <Field label="Folga entre consultas (min)" name="bufferMinutes">
-            <input name="bufferMinutes" inputMode="numeric" defaultValue={s.bufferMinutes} />
-          </Field>
-          <Field label="Antecedência mínima (horas)" name="minNoticeHours">
-            <input name="minNoticeHours" inputMode="numeric" defaultValue={s.minNoticeHours} />
-          </Field>
-          <Field label="Agendar até quantos dias à frente" name="maxDaysAhead">
-            <input name="maxDaysAhead" inputMode="numeric" defaultValue={s.maxDaysAhead} />
-          </Field>
-        </div>
-        <p className="small muted">A duração e o valor de cada consulta são definidos em “Serviços e valores”.</p>
-      </section>
+    <ActionForm action={saveModules} className="stack">
       <section className="card">
         <h2 style={{ fontSize: '1.1rem' }}>Módulos e retenção de dados</h2>
         <label className="check">
@@ -329,7 +205,7 @@ async function ScheduleSection({ s }: { s: S }) {
         </div>
       </section>
       <div>
-        <SubmitButton>Salvar horários e regras</SubmitButton>
+        <SubmitButton>Salvar</SubmitButton>
       </div>
     </ActionForm>
   )
@@ -451,24 +327,10 @@ function ChatSection({ s }: { s: S }) {
 }
 
 function TemplatesSection({ s }: { s: S }) {
-  const email = integrationStatus().email
   return (
     <section className="card">
-      <p className="muted small">
-        Variáveis disponíveis: <code>{'{nome}'}</code> <code>{'{data}'}</code> <code>{'{hora}'}</code> <code>{'{servico}'}</code> <code>{'{codigo}'}</code>.{' '}
-        {email ? 'As mensagens são enviadas por e-mail.' : 'Enquanto o e-mail não estiver configurado, os textos são usados no botão “Enviar pelo WhatsApp” da consulta e nos avisos da área do cliente.'}
-      </p>
       <ActionForm action={saveTemplates} className="stack">
-        <Field label="Confirmação de consulta" name="confirmacao">
-          <textarea name="confirmacao" rows={3} defaultValue={s.templates.confirmacao} />
-        </Field>
-        <Field label={<>Lembrete (enviado na véspera {!integrationStatus().cron || !email ? <DemoTag>requer e-mail e tarefa agendada</DemoTag> : null})</>} name="lembrete">
-          <textarea name="lembrete" rows={3} defaultValue={s.templates.lembrete} />
-        </Field>
-        <Field label="Cancelamento" name="cancelamento">
-          <textarea name="cancelamento" rows={3} defaultValue={s.templates.cancelamento} />
-        </Field>
-        <h3 style={{ fontSize: '1rem', margin: '12px 0 0' }}>Mensagens do WhatsApp (botões do painel)</h3>
+        <h3 style={{ fontSize: '1rem', margin: 0 }}>Mensagens do WhatsApp (botões do painel)</h3>
         <p className="muted small" style={{ margin: 0 }}>
           Os botões de WhatsApp do painel abrem a conversa (wa.me) com estes textos prontos, sem API paga: você revisa e envia. Em branco, vale o texto
           padrão mostrado.
@@ -556,7 +418,7 @@ async function SiteSection() {
         específica e nunca são publicadas por padrão. Sem promessas de resultado e sem dados de saúde identificáveis.
       </p>
       {testimonials.length === 0 ? (
-        <p className="muted">Nenhum depoimento ainda. Quando um cliente autoriza publicar a avaliação da consulta, ela aparece aqui.</p>
+        <p className="muted">Nenhum depoimento ainda. Quando um cliente autoriza publicar a avaliação do acompanhamento (app → Mais → Seu depoimento), ela aparece aqui.</p>
       ) : (
         <ul className="card list" aria-label="Depoimentos">
           {testimonials.map((t) => (
@@ -807,7 +669,7 @@ async function TeamSection({ tz }: { tz: string }) {
             <div className="choice-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))' }}>
               {perms.map(([k, label]) => (
                 <label key={k} className="check">
-                  <input type="checkbox" name="permissions" value={k} defaultChecked={k === 'agenda'} /> {label}
+                  <input type="checkbox" name="permissions" value={k} defaultChecked={k === 'cadastro'} /> {label}
                 </label>
               ))}
             </div>
@@ -835,7 +697,7 @@ function IntegrationsSection({ s }: { s: S }) {
         ? `Confirmações, convites, link de acesso e redefinição de senha por e-mail. Plano gratuito: ${EMAIL_FREE.day} por dia e ${EMAIL_FREE.month} por mês; os essenciais reservam ${EMAIL_FREE.reserve} por dia e o resumo do dia usa o que sobra.`
         : 'Não configurado: nenhum e-mail é enviado (nada quebra; os lembretes seguem por push). Defina RESEND_API_KEY e EMAIL_FROM.',
     ],
-    ['Tarefa agendada (lembretes)', st.cron, st.cron ? 'Rota /api/cron protegida por CRON_SECRET. Chame a cada 5 minutos (lembretes de refeição, água e consultas).' : 'Não configurada. Defina CRON_SECRET e agende /api/cron a cada 5 minutos.'],
+    ['Tarefa agendada (lembretes)', st.cron, st.cron ? 'Rota /api/cron protegida por CRON_SECRET. Chame a cada 5 minutos (lembretes de refeição, água, pesagem, check-in e vencimento).' : 'Não configurada. Defina CRON_SECRET e agende /api/cron a cada 5 minutos.'],
     ['Notificações push', st.push, st.push ? (process.env.VAPID_PUBLIC_KEY ? 'Chaves VAPID configuradas.' : 'Usando chaves locais de desenvolvimento. Em produção, defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT (npx web-push generate-vapid-keys).') : 'Não configurado. Defina VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY e VAPID_SUBJECT.'],
     ['WhatsApp (envio automático)', st.whatsappApi, 'Sem API paga: o sistema abre conversas no WhatsApp (wa.me) com a mensagem pronta. Lembretes automáticos de água e refeição saem por push, calendário e, se o cliente quiser, resumo por e-mail.'],
     [
@@ -845,7 +707,7 @@ function IntegrationsSection({ s }: { s: S }) {
         ? 'Checkout Pro ativo: Pix, cartão e boleto. Confirmação pelo webhook /api/webhooks/mercadopago e conciliação no cron.'
         : 'Mercado Pago: não configurado. Defina MERCADOPAGO_ACCESS_TOKEN e MERCADOPAGO_WEBHOOK_SECRET (passo a passo em docs/14-mercado-pago.md). Sem elas, o botão de pagar vira “Fale pelo WhatsApp para contratar”.',
     ],
-    ['Videoconferência', st.video, 'Não integrado. Cole o link da sala (Meet, Zoom, Jitsi) na consulta on-line.'],
+    ['Videoconferência', st.video, 'Não integrado. A avaliação por videochamada é combinada pelo WhatsApp (Meet, Zoom ou Jitsi, sem custo).'],
   ]
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>

@@ -11,7 +11,7 @@ import { chromium } from '@playwright/test'
 const BASE = (process.argv[2] ?? 'http://localhost:3100').replace(/\/$/, '')
 const MIN = Number(process.env.LH_MIN ?? 90)
 const PORT = 9333
-const PUBLIC = ['/', '/sobre', '/como-funciona', '/planos', '/conteudos', '/duvidas', '/login']
+const PUBLIC = ['/', '/sobre', '/como-funciona', '/conteudos', '/duvidas', '/login']
 const APP = ['/paciente', '/paciente/plano', '/paciente/diario']
 const OUT = path.join(process.cwd(), 'lighthouse')
 mkdirSync(OUT, { recursive: true })

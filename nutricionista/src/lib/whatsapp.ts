@@ -5,11 +5,6 @@
 import { onlyDigits } from './format'
 
 export const WA_TEMPLATES = {
-  waLembreteConsulta: {
-    label: 'Lembrete de consulta',
-    vars: '{nome} {data} {hora} {servico} {link}',
-    text: 'Olá, {nome}! Lembrete da sua consulta ({servico}) em {data} às {hora}. Pode confirmar a presença por aqui ou pelo app: {link}',
-  },
   waPlanoNovo: {
     label: 'Plano novo publicado',
     vars: '{nome} {link}',

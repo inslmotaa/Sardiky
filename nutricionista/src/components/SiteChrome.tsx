@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { SITE_NAV } from '@/lib/constants'
 import { initSiteFx } from '@/lib/site-fx'
 
@@ -77,16 +77,28 @@ export function UserMenu({ name, area, logout }: { name: string; area: string; l
   )
 }
 
-/** Links do menu principal (seções da página inicial), no estilo "/ Sobre". */
+/** Links do menu principal (seções da página inicial), no estilo "/ Sobre". "Planos" fica ativo com a seção na tela. */
 export function SiteNavLinks({ className }: { className?: string }) {
+  const pathname = usePathname()
+  const [plansInView, setPlansInView] = useState(false)
+  useEffect(() => {
+    const el = pathname === '/' ? document.getElementById('planos') : null
+    if (!el || typeof IntersectionObserver === 'undefined') return setPlansInView(false)
+    const io = new IntersectionObserver(([e]) => setPlansInView(e.isIntersecting), { rootMargin: '-35% 0px -45% 0px' })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [pathname])
   return (
     <>
-      {SITE_NAV.map((n) => (
-        <Link key={n.href} href={n.href} className={className}>
-          <span aria-hidden>/ </span>
-          {n.label}
-        </Link>
-      ))}
+      {SITE_NAV.map((n) => {
+        const active = n.href === '/#planos' && plansInView
+        return (
+          <Link key={n.href} href={n.href} className={`${className ?? ''}${active ? ' is-active' : ''}`} aria-current={active ? 'location' : undefined}>
+            <span aria-hidden>/ </span>
+            {n.label}
+          </Link>
+        )
+      })}
     </>
   )
 }

@@ -2,9 +2,8 @@ import Link from 'next/link'
 import './site.css'
 import { getSettings } from '@/lib/settings'
 import { getCurrentUser } from '@/lib/auth/session'
-import { bookingLink, phoneLabel, whatsappLink } from '@/lib/format'
+import { phoneLabel, whatsappLink } from '@/lib/format'
 import { logout } from '@/actions/auth'
-import { BookingLink } from '@/components/BookingLink'
 import { BackToTop } from '@/components/BackToTop'
 import { emailLink, instagramLink } from '@/lib/social'
 import { LoginMenu, MobileMenu, SiteBrand, SiteFx, SiteNavLinks, UserMenu } from '@/components/SiteChrome'
@@ -20,7 +19,6 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   // Redes e e-mail só aparecem com valores reais.
   const ig = instagramLink(s.instagram)
   const mail = emailLink(s.contactEmail)
-  const booking = bookingLink(s, undefined, { loggedIn: Boolean(user) })
   const wa = whatsappLink(s.whatsapp, 'Olá! Vim pelo site e gostaria de mais informações sobre o acompanhamento.')
   const area = user ? (user.role === 'patient' ? '/paciente' : '/admin') : '/entrar'
   // Pixels (Meta/Google): só com a chave ligada no painel e um ID válido; aí aparece o aviso de cookies.
@@ -64,9 +62,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
                     </Link>
                   </div>
                 )}
-                <BookingLink to={booking} className="pill pill--block">
-                  Agendar consulta <span aria-hidden>→</span>
-                </BookingLink>
+                <a href="/#planos" className="pill pill--block">
+                  Ver planos <span aria-hidden>→</span>
+                </a>
               </MobileMenu>
             </div>
           </div>
