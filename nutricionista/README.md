@@ -80,6 +80,7 @@ Os valores nutricionais da base inicial (`src/db/foods-taco.ts`, 60 alimentos) t
 - [Conversa pelo WhatsApp e lembretes gratuitos (push, calendário .ics e resumo por e-mail)](docs/18-whatsapp-e-lembretes.md)
 - [Fotos do corpo, fotos das refeições e perfil físico (Meu corpo)](docs/20-corpo-e-fotos.md)
 - [Uma seção de planos e sem consultas avulsas: o fluxo Ver planos → Contratar → Conta → Anamnese → Plano](docs/21-planos-sem-consultas.md)
+- [Entrega das Partes 1 a 8: arquivos por parte, migrações, variáveis novas e pendências](docs/22-entrega.md)
 - [Qualidade antes de publicar: Lighthouse, testes da Parte 6 e checklist manual](docs/19-qualidade.md)
 - [Testes](docs/04-testes.md)
 - [Fase 1 da plataforma: o que foi entregue e o que falta](docs/06-fase-1.md)
