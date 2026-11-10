@@ -68,6 +68,7 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 
 ### Check-ins, renovação, recibos e WhatsApp
 
+- **Corpo e fotos (Parte 7):** o card **Corpo** no topo da ficha mostra peso, altura, idade, IMC e a última foto; atualize a altura por ali. Em **Avaliações e evolução**, comente cada conjunto de fotos do corpo (o cliente vê no app) e baixe o **Relatório de evolução (PDF)** para mandar pelo WhatsApp (as fotos só entram se o cliente autorizou). Em **Diário → Pratos da semana**, veja as fotos dos pratos ao lado do plano e reaja (Ótimo, Bom, Atenção) ou comente. Quem passa 14 dias sem registrar peso aparece no **Acompanhamento**. O espaço ocupado pelas fotos fica em **Configurações → Armazenamento**. Detalhes: [20-corpo-e-fotos.md](20-corpo-e-fotos.md).
 - **Check-ins:** na ficha do cliente, aba **Check-ins**, escolha a frequência (ex.: a cada 15 dias). O cliente responde um questionário curto com peso, medidas e fotos opcionais. Quem atrasa aparece em **Acompanhamento → Check-ins atrasados**, com o botão de WhatsApp. Leia as respostas na aba e clique em **Marcar como visto** (o comentário aparece para o cliente).
 - **Vitaminas e minerais:** no editor de planos, abra o quadro **Vitaminas e minerais** (fica fechado). Para mostrar ao cliente, ligue o recurso na ficha → Recursos do app.
 - **Produto industrializado:** em Alimentos, leia o código de barras com a câmera do celular ou digite os números. Confira os valores com o rótulo, marque a confirmação e salve.
@@ -126,12 +127,14 @@ O cliente vê **somente os próprios dados**:
   - cadastro, troca de senha e privacidade (LGPD);
 - **Fotos e exames** (em **Mais**), tudo opcional:
   - foto da refeição, pelo diário;
-  - fotos do corpo (frente, lado e costas), em Progresso;
+  - fotos do corpo (frente, lado e costas), com captura guiada e autorização própria do cliente na primeira vez;
   - exames em PDF ou foto, que aparecem na ficha em **Documentos e exames** com o aviso "Exame enviado pelo cliente".
   O André liga ou desliga as fotos do corpo e os exames por cliente em **Recursos do app do cliente**;
 - **Plano:** opções, quantidades, substituições e o PDF;
 - **Diário:** foto e anotações de cada refeição;
-- **Progresso:** peso, medidas, fotos de evolução e metas;
+- **Meu corpo:** peso, altura, idade, IMC e última foto, sempre atualizados; "Complete seus dados" quando falta algo;
+- **Foto do prato:** na tela Hoje, cada refeição tem o botão que já registra a refeição no diário com a foto;
+- **Progresso:** resumo, peso e IMC com a meta, linha do tempo (peso, medidas, fotos e check-ins), fotos do corpo com primeira × última e relatório em PDF;
 - **Mensagens:** o chat com o André;
 - **Mais:**
   - lista de compras gerada do plano;
