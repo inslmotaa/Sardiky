@@ -107,6 +107,7 @@ export function DiaryDay({
           </button>
         </p>
       )}
+      <h2 className="sr-only">Refeições do dia</h2>
       {meals.map((m) => (
         <section key={m.key} className="card diary-meal" aria-label={`Refeição ${m.name}`}>
           <div className="row row--between">

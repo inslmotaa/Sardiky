@@ -3,10 +3,8 @@ import { cookies } from 'next/headers'
 import { getSettings } from '@/lib/settings'
 import { THEME_COOKIE, themeAttr } from '@/lib/tema'
 import { clip, siteUrl } from '@/lib/seo'
-// Fontes empacotadas no projeto (não dependem de download do Google no build).
-import '@fontsource-variable/inter'
-import '@fontsource-variable/archivo/wdth.css'
-import '@fontsource-variable/geist-mono'
+// Fontes empacotadas no projeto (não dependem de download do Google), pré-carregadas pelo next/font.
+import { archivo, geistMono, inter } from './fonts'
 import './globals.css'
 import './app-theme.css'
 import './dark-theme.css'
@@ -51,7 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Aparência escolhida no app (cookie); sem escolha, segue o modo do aparelho (prefers-color-scheme).
   const theme = themeAttr((await cookies()).get(THEME_COOKIE)?.value)
   return (
-    <html lang="pt-BR" data-theme={theme}>
+    <html lang="pt-BR" data-theme={theme} className={`${inter.variable} ${archivo.variable} ${geistMono.variable}`}>
       <body style={{ ['--brand-custom' as string]: brand }}>{children}</body>
     </html>
   )

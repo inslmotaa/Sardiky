@@ -327,8 +327,9 @@ function mountReveal(root: ParentNode, reduce: boolean): Cleanup {
   )
   for (const el of els) {
     const r = el.getBoundingClientRect()
-    // O que já está na tela (e toda a abertura) entra junto com a página; o resto, ao rolar.
-    if ((r.top < vh * 0.92 && r.bottom > 0) || el.closest('.hero')) requestAnimationFrame(() => el.classList.add('is-in'))
+    // O que já está na tela (e toda a abertura) fica visível como veio do servidor, sem sumir e
+    // reaparecer (isso atrasava o maior elemento visível, o LCP); só o resto entra ao rolar.
+    if ((r.top < vh * 0.92 && r.bottom > 0) || el.closest('.hero')) el.classList.add('is-in', 'rv-now')
     else io.observe(el)
   }
   document.documentElement.classList.add('fx-ready')

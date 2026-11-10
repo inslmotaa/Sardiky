@@ -11,9 +11,9 @@
   --tl-ink: #18271e;
   --tl-line: rgb(31 94 59 / 0.15);
   --tl-header: 68px;
-  --f-wide: "Archivo Variable", "Archivo", system-ui, sans-serif;
+  --f-wide: var(--font-archivo), system-ui, sans-serif;
   --f-mono:
-    "Geist Mono Variable", "Geist Mono", ui-monospace, SFMono-Regular, Menlo,
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo,
     monospace;
   --font-display: var(--f-wide);
   --bg: var(--tl-bg);
@@ -193,6 +193,10 @@ html:has(.tl) {
 .fx-ready [data-rv]:not(.is-in) {
   opacity: 0;
   transform: translateY(22px);
+}
+/* Já visível ao carregar: sem transição (nada pisca). */
+[data-rv].rv-now {
+  transition: none;
 }
 
 /* ------------------- fundo de natureza, alimentos e bem-estar ------------------- */

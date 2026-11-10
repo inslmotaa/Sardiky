@@ -145,6 +145,7 @@ export function PatientPlan({
         </section>
       )}
 
+      <h2 className="sr-only">Refeições · {day.label}</h2>
       {sortedMeals(day).map((m) => {
         const opt = m.options.find((o) => o.id === chosen[m.id]) ?? m.options[0]
         const sub = optionTotals(opt)

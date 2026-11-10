@@ -43,6 +43,7 @@ export default async function PlansPage() {
             <p className="tl-lead">Os planos serão publicados em breve. Fale pelo WhatsApp.</p>
           ) : (
             <>
+              <h2 className="sr-only">Planos disponíveis</h2>
               <PlanGrid plans={plans} showPrices={s.showPlanPrices} href={target} />
               <p className="tl-plans__note" data-rv="">
                 {mpConfigured() ? `Pix, cartão em até ${s.mpMaxInstallments}x ou boleto · pagamento seguro pelo Mercado Pago` : 'Contratação pelo WhatsApp ou na sua conta'}

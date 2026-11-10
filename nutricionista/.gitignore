@@ -10,3 +10,4 @@ playwright-report/
 *.tmp.mjs
 deploy/.env
 deploy/backups/
+/lighthouse/
