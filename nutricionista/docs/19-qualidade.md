@@ -19,20 +19,19 @@ npm run lighthouse       # mede e grava os relatórios em lighthouse/
 - **Regra:** o script termina com erro se alguma nota ficar abaixo de 90. Para mudar, use `LH_MIN=95 npm run lighthouse`; para outro endereço, `npm run lighthouse -- https://homologacao.DOMINIO`.
 - **Relatórios:** um HTML por página na pasta `lighthouse/` (fora do git), com o motivo de cada ponto perdido.
 
-### Última medição (build de produção)
+### Última medição (build de produção, após a Parte 8; `/planos` virou a seção `/#planos` da página inicial)
 
 | Página | Desempenho | Acessibilidade |
 |---|---|---|
-| `/` | 93 | 100 |
+| `/` | 92 | 100 |
 | `/sobre` | 94 | 100 |
-| `/como-funciona` | 95 | 100 |
-| `/planos` | 94 | 100 |
-| `/conteudos` | 93 | 100 |
-| `/duvidas` | 97 | 100 |
-| `/login` | 94 | 100 |
-| `/paciente` (Hoje) | 94 | 100 |
+| `/como-funciona` | 94 | 100 |
+| `/conteudos` | 94 | 100 |
+| `/duvidas` | 94 | 100 |
+| `/login` | 93 | 100 |
+| `/paciente` (Hoje) | 92 | 100 |
 | `/paciente/plano` | 93 | 100 |
-| `/paciente/diario` | 93 | 100 |
+| `/paciente/diario` | 95 | 100 |
 
 A nota de desempenho varia 1 a 3 pontos entre medições na mesma máquina (é uma simulação). Por isso a meta tem folga.
 

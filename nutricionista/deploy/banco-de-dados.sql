@@ -711,7 +711,7 @@ CREATE TABLE "users" (
 	"google_sub" text,
 	"onboarded_at" timestamp with time zone,
 	"own_patients_only" boolean DEFAULT false NOT NULL,
-	"notification_prefs" jsonb DEFAULT '{"refeicoes":true,"agua":true,"plano":true,"mensagens":true,"consultas":true,"lembretes":true,"pesagem":true,"quietStart":"22:00","quietEnd":"07:00","waterEveryH":2,"waterStart":"08:00","waterEnd":"20:00","emailResumo":false}'::jsonb NOT NULL,
+	"notification_prefs" jsonb DEFAULT '{"refeicoes":true,"agua":true,"plano":true,"mensagens":true,"lembretes":true,"pesagem":true,"quietStart":"22:00","quietEnd":"07:00","waterEveryH":2,"waterStart":"08:00","waterEnd":"20:00","emailResumo":false}'::jsonb NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
