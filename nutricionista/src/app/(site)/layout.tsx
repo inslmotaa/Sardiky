@@ -100,7 +100,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
               </div>
               <nav aria-label="Seções">
                 <h2>Seções</h2>
-                {SITE_NAV.map((n) => (
+                {/* "Planos" já está em Páginas. */}
+                {SITE_NAV.filter((n) => n.href !== '/#planos').map((n) => (
                   <Link key={n.href} href={n.href}>
                     / {n.label}
                   </Link>

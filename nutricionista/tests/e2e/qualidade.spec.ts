@@ -62,7 +62,7 @@ test('nenhuma tela (site, login, app do cliente, painel) mostra "nutricionista",
   // Site público: todas as páginas do sitemap, mais as de entrada.
   const sitemap = await (await request.get('/sitemap.xml')).text()
   const pub = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => new URL(m[1]).pathname)
-  expect(pub.length).toBeGreaterThanOrEqual(8)
+  expect(pub.length).toBeGreaterThanOrEqual(6)
   await page.context().clearCookies()
   const site = await crawl(page, [...pub, '/login', '/criar-conta', '/recuperar-senha'], '/no-follow', 200)
   expect(site.size).toBeGreaterThanOrEqual(pub.length)

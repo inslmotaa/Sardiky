@@ -101,6 +101,8 @@ test('nenhuma página do site nem do app mostra "Agendar", "Próxima consulta" o
 
 test('fluxo completo sem consulta: Ver planos → Contratar (Mercado Pago) → Criar conta → Anamnese → Plano no app', async ({ page }) => {
   await page.context().clearCookies()
+  // Outra rede: o cadastro tem limite por IP e a suíte já cria várias contas.
+  await page.context().setExtraHTTPHeaders({ 'x-forwarded-for': '203.0.113.80' })
   await page.goto('/')
   await page.locator('#inicio').getByRole('link', { name: /Ver planos/ }).click()
   await expect(page).toHaveURL(/#planos$/)
