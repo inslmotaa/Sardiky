@@ -3551,3 +3551,332 @@ kbd {
     display: none;
   }
 }
+
+/* ------------------------------ Meu corpo (Parte 7) ------------------------------ */
+.body-card__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.body-card__grid > div {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--surface);
+  min-width: 0;
+}
+.body-card__grid dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.body-card__grid dd {
+  margin: 2px 0 0;
+}
+.body-card__grid strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1.15;
+}
+.body-card__grid dd span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.body-card__missing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.body-card__actions {
+  margin-top: 12px;
+}
+
+/* Captura guiada das fotos do corpo */
+.capture {
+  display: grid;
+  gap: 12px;
+}
+.capture__stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 3 / 4;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #111;
+  margin: 0 auto;
+}
+.capture__stage video,
+.capture__stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.capture__silhouette {
+  position: absolute;
+  inset: 4% 18%;
+  width: 64%;
+  height: 92%;
+  pointer-events: none;
+  color: rgb(255 255 255 / 0.85);
+}
+.capture__count {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 5rem;
+  color: #fff;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 0.5);
+}
+.capture__tips {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.capture__angles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.capture__angles figure {
+  margin: 0;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  aspect-ratio: 3 / 4;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--brand-soft);
+  font-size: 0.85rem;
+  color: var(--muted);
+  text-align: center;
+}
+.capture__angles figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.capture__angles figure[data-active="true"] {
+  border: 2px solid var(--brand);
+}
+
+/* Sobreposição de duas fotos do mesmo ângulo */
+.photo-overlay {
+  position: relative;
+  max-width: 420px;
+  margin: 0 auto;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--brand-soft);
+}
+.photo-overlay img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-timeline {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 6px;
+  margin: 0;
+  list-style: none;
+}
+.photo-timeline li {
+  flex: none;
+}
+.photo-timeline button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: inherit;
+  min-height: 36px;
+}
+.photo-timeline button[aria-pressed="true"] {
+  border-color: var(--brand);
+  background: var(--brand-soft);
+  font-weight: 600;
+}
+.photo-set__comment {
+  margin: 6px 0 0;
+  padding: 8px 12px;
+  border-left: 3px solid var(--brand);
+  background: var(--brand-soft);
+  border-radius: 0 10px 10px 0;
+  font-size: 0.92rem;
+}
+
+/* Foto do prato na tela Hoje */
+.plate-btn {
+  position: relative;
+  overflow: hidden;
+}
+.plate-btn input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+.plate-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Pratos da semana (painel) */
+.plates-week {
+  display: grid;
+  gap: 12px;
+}
+.plates-week__day {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: var(--surface);
+}
+.plates-week__meals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+.plate-cell {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
+  align-items: start;
+  min-width: 0;
+}
+.plate-cell img,
+.plate-cell__empty {
+  width: 96px;
+  height: 96px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--brand-soft);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 0.75rem;
+  text-align: center;
+}
+.plate-cell ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.reactions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+.reactions button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: inherit;
+  min-height: 28px;
+}
+.reactions button[aria-pressed="true"] {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+}
+
+/* Linha do tempo da evolução */
+.evo-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.evo-timeline > li {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+.evo-timeline > li:first-child {
+  border-top: 0;
+}
+.evo-timeline time {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding-top: 2px;
+}
+.evo-timeline ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.evo-tag {
+  display: inline-block;
+  min-width: 74px;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--brand);
+  font-weight: 700;
+}
+.evo-thumbs {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+.evo-thumbs img {
+  width: 48px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.timeline-day li > span:last-child {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+@media (max-width: 560px) {
+  .timeline-day li {
+    grid-template-columns: 52px 1fr;
+  }
+  .timeline-day li > span:last-child {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+.page-head + .body-card {
+  margin-bottom: 16px;
+}

@@ -162,6 +162,13 @@
       "when": 1794264395398,
       "tag": "0022_whatsapp_e_lembretes",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794311745340,
+      "tag": "0023_fotos_e_perfil_fisico",
+      "breakpoints": true
     }
   ]
 }

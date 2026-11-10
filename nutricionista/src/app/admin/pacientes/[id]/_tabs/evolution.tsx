@@ -3,16 +3,27 @@ import { goalsOf, measurementsOf } from '@/lib/patient-data'
 import { getSettings } from '@/lib/settings'
 import { ageFrom, fmtDay, todayIn } from '@/lib/time'
 import { addMeasurement, addProgressPhotos, deleteMeasurement, deleteProgressPhoto } from '@/actions/admin/patients'
+import { commentPhotoSet } from '@/actions/admin/corpo'
 import { photosOf } from '@/lib/photos'
+import { evolutionData } from '@/lib/evolucao'
+import { FOTOS_CORPO, FOTOS_RELATORIO, hasConsent } from '@/lib/corpo-server'
+import { EvolutionOverview } from '@/components/EvolutionOverview'
 import { ProgressPhotos } from '@/components/nutri/ProgressPhotos'
 import { AssessmentForm } from '@/components/nutri/AssessmentForm'
 import { Evolution } from '@/components/Evolution'
 
-export async function EvolutionTab({ patient, compare, viewerId }: { patient: typeof schema.patients.$inferSelect; compare: { a?: string; b?: string }; viewerId: string }) {
+export async function EvolutionTab({ patient, compare }: { patient: typeof schema.patients.$inferSelect; compare: { a?: string; b?: string } }) {
   const s = await getSettings()
-  const [rows, goals, photos] = await Promise.all([measurementsOf(patient.id), goalsOf(patient.id), photosOf(patient.id, viewerId, true)])
-  const lastHeight = [...rows].reverse().find((r) => r.heightCm != null)?.heightCm
   const today = todayIn(s.timezone)
+  const [rows, goals, photos, evo, bodyConsent, reportPhotos] = await Promise.all([
+    measurementsOf(patient.id),
+    goalsOf(patient.id),
+    photosOf(patient.id),
+    evolutionData(patient.id, today),
+    hasConsent(patient.id, FOTOS_CORPO),
+    hasConsent(patient.id, FOTOS_RELATORIO),
+  ])
+  const lastHeight = [...rows].reverse().find((r) => r.heightCm != null)?.heightCm
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       <details className="disclosure" open={rows.length === 0}>
@@ -28,16 +39,26 @@ export async function EvolutionTab({ patient, compare, viewerId }: { patient: ty
         </div>
       </details>
 
-      <Evolution rows={rows} goals={goals} compare={compare} basePath={`/admin/pacientes/${patient.id}`} />
+      <div className="row">
+        <a href={`/admin/pacientes/${patient.id}/evolucao/pdf`} className="btn btn--sm btn--primary">
+          Relatório de evolução (PDF)
+        </a>
+        <span className="small muted">{reportPhotos ? 'O cliente autorizou as fotos no relatório.' : 'Sem autorização do cliente: o relatório sai sem fotos.'}</span>
+      </div>
+      <EvolutionOverview data={evo} who="coach" />
+      <Evolution rows={rows} goals={goals} compare={compare} basePath={`/admin/pacientes/${patient.id}`} skip={['weightKg']} />
 
       <section className="card" id="fotos">
-        <h2 style={{ fontSize: '1.15rem' }}>Fotos de evolução</h2>
+        <h2 style={{ fontSize: '1.15rem' }}>Fotos do corpo</h2>
+        {!bodyConsent && <p className="alert alert--warn small">O cliente ainda não autorizou fotos do corpo. Novas fotos só depois da autorização dele (Meu corpo → Fotos do corpo).</p>}
         <ProgressPhotos
           photos={photos}
-          upload={addProgressPhotos.bind(null, patient.id)}
+          sets={evo.sets}
+          upload={bodyConsent ? addProgressPhotos.bind(null, patient.id) : undefined}
           onDelete={deleteProgressPhoto.bind(null, patient.id)}
+          comment={commentPhotoSet.bind(null, patient.id)}
           today={today}
-          privacyNote="Fotos privadas: visíveis apenas ao cliente e à equipe com permissão clínica."
+          privacyNote="Fotos privadas: só o cliente e o coach responsável. Nunca aparecem no site, em depoimentos ou no relatório sem autorização."
         />
       </section>
 

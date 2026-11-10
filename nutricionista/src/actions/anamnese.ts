@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { recordHeight } from '@/lib/corpo-server'
 import { revalidatePath } from 'next/cache'
 import { and, eq, inArray } from 'drizzle-orm'
 import { db, schema } from '@/db'
@@ -124,6 +125,8 @@ export async function submitAnamnesis(_: ActionState, fd: FormData): Promise<Act
           notes: `Anamnese (versão ${draft.version})`,
         })
     })
+    // A altura da anamnese entra no histórico de altura (card "Meu corpo" e IMC por data).
+    if (Number(a.medidas?.altura) >= 100) await recordHeight(user.patientId, todayIn(s.timezone), Number(a.medidas!.altura), 'paciente', user.id)
     const title = draft.version > 1 ? 'Reavaliação: anamnese atualizada' : 'Nova anamnese recebida'
     const link = `/admin/pacientes/${user.patientId}?aba=anamnese`
     await notifyTeam('clinico', title, user.name, link, user.patientId)

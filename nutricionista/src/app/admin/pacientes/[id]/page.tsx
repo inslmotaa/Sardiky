@@ -26,6 +26,10 @@ import { DocumentsTab } from './_tabs/documents'
 import { MessagesTab } from './_tabs/messages'
 import { FinanceTab } from './_tabs/finance'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
+import { BodyCard } from '@/components/BodyCard'
+import { ActionForm, Field, SubmitButton } from '@/components/form'
+import { bodyProfile } from '@/lib/corpo-server'
+import { updatePatientHeight } from '@/actions/admin/corpo'
 
 const TABS = [
   { key: 'resumo', label: 'Resumo', perm: 'cadastro' },
@@ -63,6 +67,8 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
   const age = ageFrom(p.birthDate, todayIn(s.timezone))
   const [pkg] = p.packageId ? await db.select().from(schema.packages).where(eq(schema.packages.id, p.packageId)) : []
   const contract = pkg ? contractInfo(pkg, p.packageStart, p.packageEnd, todayIn(s.timezone)) : null
+  // Perfil físico no topo da ficha (dados de saúde: só para quem tem acesso clínico).
+  const body = can(user, 'clinico') ? await bodyProfile(p.id, todayIn(s.timezone)) : null
 
   return (
     <div>
@@ -98,12 +104,43 @@ export default async function PatientPage({ params, searchParams }: { params: Pr
           </>
         }
       />
+      {body && (
+        <BodyCard
+          data={body}
+          who="coach"
+          id="corpo-ficha"
+          actions={
+            <>
+              <Link href={`/admin/pacientes/${p.id}?aba=evolucao`} className="btn btn--sm">
+                Evolução e fotos
+              </Link>
+              <a href={`/admin/pacientes/${p.id}/evolucao/pdf`} className="btn btn--sm">
+                Relatório de evolução (PDF)
+              </a>
+              <details className="disclosure">
+                <summary>Atualizar altura</summary>
+                <ActionForm action={updatePatientHeight.bind(null, p.id)} className="row" resetOnSuccess>
+                  <Field label="Altura (cm)" name="heightCm">
+                    <input name="heightCm" inputMode="decimal" placeholder={body.heightCm ? String(body.heightCm) : 'Ex.: 170'} style={{ maxWidth: 140 }} />
+                  </Field>
+                  <Field label="Medida em" name="date">
+                    <input type="date" name="date" defaultValue={todayIn(s.timezone)} max={todayIn(s.timezone)} />
+                  </Field>
+                  <div style={{ alignSelf: 'flex-end' }}>
+                    <SubmitButton className="btn btn--sm">Salvar altura</SubmitButton>
+                  </div>
+                </ActionForm>
+              </details>
+            </>
+          }
+        />
+      )}
       <Tabs current={tab.key} items={visible.map((t) => ({ key: t.key, label: t.label, href: `/admin/pacientes/${p.id}?aba=${t.key}` }))} />
       {tab.key === 'resumo' && <SummaryTab patient={p} user={user} />}
       {tab.key === 'consultas' && <AppointmentsTab patient={p} />}
-      {tab.key === 'evolucao' && <EvolutionTab patient={p} compare={{ a: sp.a, b: sp.b }} viewerId={user.id} />}
+      {tab.key === 'evolucao' && <EvolutionTab patient={p} compare={{ a: sp.a, b: sp.b }} />}
       {tab.key === 'planos' && <PlansTab patient={p} />}
-      {tab.key === 'diario' && <DiaryTab patient={p} />}
+      {tab.key === 'diario' && <DiaryTab patient={p} view={sp.vista} />}
       {tab.key === 'checkins' && <CheckinsTab patient={p} />}
       {tab.key === 'anamnese' && <AnamnesisTab patient={p} version={sp.versao} />}
       {tab.key === 'formularios' && <FormsTab patient={p} view={sp.ver} />}

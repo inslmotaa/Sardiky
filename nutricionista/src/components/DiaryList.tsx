@@ -68,6 +68,11 @@ export function DiaryList({
                         {e.quantity && <div className="small muted">Quantidade: {e.quantity}</div>}
                         <Feelings e={e} />
                         {e.notes && <div className="small">“{e.notes}”</div>}
+                        {e.professionalReaction && (
+                          <p className="small" style={{ margin: '6px 0 0' }}>
+                            <span className="badge badge--ok">Coach: {e.professionalReaction === 'otimo' ? 'Ótimo' : e.professionalReaction === 'bom' ? 'Bom' : 'Atenção'}</span>
+                          </p>
+                        )}
                         {e.professionalComment && (
                           <p className="alert alert--info small" style={{ margin: '8px 0 0' }}>
                             <strong>Seu comentário:</strong> {e.professionalComment}

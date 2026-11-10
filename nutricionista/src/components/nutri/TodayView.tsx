@@ -1,6 +1,8 @@
 'use client'
 
 import { startTransition, useOptimistic, useState, type ReactNode } from 'react'
+import type { ActionState } from '@/lib/action'
+import { compressImage } from '@/lib/image-compress'
 import { optionTotals, quantityLabel, sortedMeals, type PlanDay, type PlanMeal } from '@/lib/plan'
 import { fmt, sum, times, ZERO, type Nutrients } from '@/lib/nutricao'
 import { KcalRing, MacroBars, NutriInline } from './MacroBars'
@@ -23,11 +25,15 @@ export type TodayData = {
   lastWeight: { value: number; date: string } | null
   /** Alimentos registrados no diário hoje fora do plano (“comi outra coisa”). */
   extraConsumed?: Nutrients
+  /** Fotos do prato de hoje por refeição (diaId:refeicaoId → endereço da foto). */
+  platePhotos?: Record<string, string>
 }
 
 export type TodayActions = {
   setMeal: (mealKey: string, optionId: string, status: string) => Promise<void>
   water: (delta: number) => Promise<void>
+  /** "Foto do prato": cria ou atualiza o registro do diário da refeição (Parte 7). */
+  platePhoto?: (state: ActionState, fd: FormData) => Promise<ActionState>
 }
 
 const STATUS_LABEL = { feita: 'Feita', parcial: 'Parcial', pulada: 'Pulada', outra: 'Outra coisa' } as const
@@ -63,6 +69,9 @@ export function TodayView({
   })
   const [water, addWaterOptimistic] = useOptimistic(data.waterMl, (cur, delta: number) => Math.max(0, cur + delta))
   const [chosen, setChosen] = useState<Record<string, string>>({})
+  const [plates, setPlates] = useState<Record<string, string>>(data.platePhotos ?? {})
+  const [plateMsg, setPlateMsg] = useState<{ ok: boolean; text: string } | null>(null)
+  const [sending, setSending] = useState<string | null>(null)
   const day = data.day
   const calc = data.mode === 'calculado'
   const meals = day ? sortedMeals(day) : []
@@ -88,6 +97,42 @@ export function TodayView({
       await actions.setMeal(keyOf(m), opt.id, status ?? '')
     })
   }
+  // Foto do prato: comprime no celular (sem EXIF), envia e já marca a refeição como feita se ainda não estava.
+  const sendPlate = async (m: PlanMeal, input: HTMLInputElement) => {
+    const raw = input.files?.[0]
+    input.value = ''
+    if (!raw || !actions.platePhoto) return
+    const key = keyOf(m)
+    setSending(key)
+    setPlateMsg(null)
+    const file = await compressImage(raw)
+    const fd = new FormData()
+    fd.set('mealKey', key)
+    fd.set('optionId', optionOf(m).id)
+    fd.set('photo', file)
+    const res = await actions.platePhoto({}, fd)
+    setSending(null)
+    setPlateMsg({ ok: Boolean(res.ok), text: res.ok ? (res.message ?? 'Foto salva.') : (res.error ?? 'Não foi possível enviar a foto.') })
+    if (res.ok) {
+      setPlates((p) => ({ ...p, [key]: URL.createObjectURL(file) }))
+      if (!logs[key]) startTransition(() => setLogOptimistic({ key, log: { status: 'feita', optionId: optionOf(m).id } }))
+    }
+  }
+  const plateButton = (m: PlanMeal) =>
+    actions.platePhoto && data.features.diario ? (
+      <label className="btn btn--sm plate-btn" aria-busy={sending === keyOf(m)}>
+        {sending === keyOf(m) ? 'Enviando…' : plates[keyOf(m)] ? 'Trocar foto' : 'Foto do prato'}
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          aria-label={`Foto do prato: ${m.name}`}
+          disabled={sending !== null}
+          onChange={(e) => sendPlate(m, e.currentTarget)}
+        />
+      </label>
+    ) : null
+
   const addWater = (delta: number) => {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) navigator.vibrate?.(12)
     startTransition(async () => {
@@ -142,6 +187,7 @@ export function TodayView({
             <button type="button" className="btn btn--ghost" onClick={() => mark(next, 'pulada')}>
               Pulei
             </button>
+            {plateButton(next)}
           </div>
         </section>
       ) : allDone ? (
@@ -160,6 +206,11 @@ export function TodayView({
             Ver plano
           </a>
         </div>
+        {plateMsg && (
+          <p className={`alert ${plateMsg.ok ? 'alert--ok' : 'alert--error'} small`} role={plateMsg.ok ? 'status' : 'alert'} style={{ margin: '0 0 8px' }}>
+            {plateMsg.text}
+          </p>
+        )}
         <ol className="timeline-day">
           {meals.map((m) => {
             const log = logs[keyOf(m)]
@@ -171,6 +222,11 @@ export function TodayView({
                   {log && log.status !== 'pulada' && m.options.length > 1 && <span className="small muted"> · {optionOf(m).label}</span>}
                 </span>
                 <span className="row" style={{ gap: 6, flexWrap: 'nowrap' }}>
+                  {plates[keyOf(m)] && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="plate-thumb" src={plates[keyOf(m)]} alt={`Foto do prato: ${m.name}`} />
+                  )}
+                  {plateButton(m)}
                   {log ? (
                     <>
                       <span className={`badge ${STATUS_TONE[log.status]}`}>{STATUS_LABEL[log.status]}</span>

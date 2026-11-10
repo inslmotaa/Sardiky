@@ -17,6 +17,7 @@ import { CHAT_TYPES, deleteUpload, DOC_TYPES, saveUpload } from '@/lib/storage'
 import { postMessage } from '@/lib/chat'
 import { assignTemplate } from '@/lib/anamnese'
 import { deletePhoto, saveProgressPhotos } from '@/lib/photos'
+import { FOTOS_CORPO, hasConsent, recordHeight } from '@/lib/corpo-server'
 import { pushToUser } from '@/lib/push'
 import { ageFrom, todayIn } from '@/lib/time'
 import { day, int, optDay, optEmail, optNum, optStr, str, uuid } from '@/lib/validation'
@@ -107,6 +108,10 @@ export async function updatePatient(id: string, _: ActionState, fd: FormData): P
     const before = await patientOrThrow(id)
     if (isRestricted(user)) parsed.data.nutritionistId = user.id
     await db.update(schema.patients).set({ ...parsed.data, updatedAt: new Date() }).where(eq(schema.patients.id, id))
+    // Altura alterada no cadastro: entra no histórico (o IMC de datas antigas segue com a altura da época).
+    if (parsed.data.heightCm && Number(parsed.data.heightCm) !== Number(before.heightCm ?? 0)) {
+      await recordHeight(id, todayIn((await getSettings()).timezone), Number(parsed.data.heightCm), 'profissional', user.id)
+    }
     if (before.userId && parsed.data.fullName !== before.fullName) {
       await db.update(schema.users).set({ name: parsed.data.fullName }).where(eq(schema.users.id, before.userId))
     }
@@ -287,7 +292,10 @@ export async function addProgressPhotos(patientId: string, _: ActionState, fd: F
   try {
     const user = await requireTeam('clinico')
     await patientOrThrow(patientId)
-    const r = await saveProgressPhotos(patientId, user.id, date.data, fd)
+    // Fotos do corpo só com o consentimento específico do cliente (Meu corpo → Fotos do corpo).
+    if (!(await hasConsent(patientId, FOTOS_CORPO))) return { error: 'O cliente ainda não autorizou fotos do corpo. Peça para ele autorizar em Meu corpo → Fotos do corpo.' }
+    const kg = optNum(20, 350).safeParse(fd.get('weightKg') ?? '')
+    const r = await saveProgressPhotos(patientId, user.id, date.data, fd, { weightKg: kg.success ? kg.data : null, source: 'profissional' })
     if ('error' in r) return { error: r.error }
     await audit(user, 'fotos_evolucao_enviadas', 'foto', { patientId, details: { quantidade: r.saved } })
     revalidatePath(patientPath(patientId, 'evolucao'))

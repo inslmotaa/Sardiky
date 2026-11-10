@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useFormStatus } from 'react-dom'
+import { compressImage } from '@/lib/image-compress'
 import type { ActionState } from '@/lib/action'
 
 type Action = (state: ActionState, data: FormData) => Promise<ActionState>
@@ -30,6 +31,7 @@ export function ActionForm({
   resetOnSuccess = false,
   confirm,
   id,
+  compressImages,
 }: {
   action: Action
   children: ReactNode
@@ -37,6 +39,8 @@ export function ActionForm({
   resetOnSuccess?: boolean
   confirm?: string
   id?: string
+  /** Campos de foto comprimidos no celular antes do envio (1600 px, JPEG 0,8, sem EXIF). */
+  compressImages?: string[]
   /** Mantido por clareza nos formulários com arquivo; o React já envia como multipart. */
   encType?: 'multipart/form-data'
 }) {
@@ -56,10 +60,18 @@ export function ActionForm({
       className={className}
       aria-busy={pending}
       noValidate
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault()
         if (confirm && !window.confirm(confirm)) return
         const fd = new FormData(e.currentTarget, (e.nativeEvent as SubmitEvent).submitter)
+        if (compressImages?.length) {
+          for (const name of compressImages) {
+            const files = fd.getAll(name).filter((f): f is File => f instanceof File && f.size > 0)
+            if (!files.length) continue
+            fd.delete(name)
+            for (const f of files) fd.append(name, await compressImage(f))
+          }
+        }
         startTransition(() => formAction(fd))
       }}
     >

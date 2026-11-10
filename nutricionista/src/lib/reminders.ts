@@ -93,7 +93,7 @@ export async function runReminders(now = new Date()) {
       // 3. Pesagem semanal: segunda-feira de manhã.
       if (features.peso && prefs.pesagem && z.weekday === 1 && nowMin >= 7 * 60 && nowMin < 10 * 60) {
         if (await claimReminder(userId, 'pesagem', startOfWeek(today)))
-          if (await send('pesagem', { title: 'Pesagem da semana', body: 'Se puder, pese-se em jejum e registre no app.', url: '/paciente#peso', tag: 'pesagem' })) out.pesagem++
+          if (await send('pesagem', { title: 'Pesagem da semana', body: 'Se puder, pese-se em jejum e registre no app.', url: '/paciente/meu-corpo#peso', tag: 'pesagem' })) out.pesagem++
       }
     }
 

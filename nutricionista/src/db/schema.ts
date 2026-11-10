@@ -613,6 +613,8 @@ export const diaryEntries = pgTable(
     mood: smallint('mood'),
     notes: text('notes'),
     professionalComment: text('professional_comment'),
+    /** Reação rápida do coach à foto do prato (palavra, sem emoji): ótimo, bom, atenção. */
+    professionalReaction: text('professional_reaction').$type<'otimo' | 'bom' | 'atencao'>(),
     commentedAt: timestamp('commented_at', { withTimezone: true }),
     createdAt: createdAt(),
   },
@@ -1123,4 +1125,46 @@ export const emailLog = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('email_log_created_idx').on(t.createdAt)],
+)
+
+/* ------------------------------------------------------------------ */
+/* Perfil físico e fotos do corpo (Parte 7)                            */
+/* ------------------------------------------------------------------ */
+
+/** Histórico de altura: o IMC de cada data usa a altura vigente naquela data. */
+export const heightLogs = pgTable(
+  'height_logs',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    date: date('date').notNull(),
+    heightCm: numeric('height_cm', { mode: 'number' }).notNull(),
+    source: measurementSourceEnum('source').notNull(),
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('height_logs_patient_idx').on(t.patientId, t.date)],
+)
+
+/**
+ * Conjunto de fotos do corpo de uma data (as fotos em si ficam em progress_photos): peso do dia
+ * informado junto e o comentário do coach, que o cliente vê no app.
+ */
+export const photoSets = pgTable(
+  'photo_sets',
+  {
+    id: id(),
+    patientId: uuid('patient_id')
+      .notNull()
+      .references(() => patients.id, { onDelete: 'cascade' }),
+    date: date('date').notNull(),
+    measurementId: uuid('measurement_id').references(() => measurements.id, { onDelete: 'set null' }),
+    coachComment: text('coach_comment'),
+    commentedBy: uuid('commented_by').references(() => users.id, { onDelete: 'set null' }),
+    commentedAt: timestamp('commented_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('photo_sets_patient_date_idx').on(t.patientId, t.date)],
 )

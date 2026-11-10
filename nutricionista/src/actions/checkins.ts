@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { FOTOS_CORPO, hasConsent, setConsent } from '@/lib/corpo-server'
 import { redirect } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
@@ -113,6 +114,13 @@ export async function submitCheckin(_: ActionState, fd: FormData): Promise<Actio
     if (state === 'enviado') return { error: 'Este check-in já foi enviado.' }
     if (state === 'aguardando') return { error: 'Este check-in ainda não abriu.' }
     if (photos.length && !rateLimit(`upload:${user.id}`, 30, 3_600_000)) return { error: 'Limite de envios atingido. Tente mais tarde.' }
+    // Fotos do corpo só com o consentimento específico (tipo fotos_corpo), dado aqui mesmo ou antes.
+    if (photos.length && !(await hasConsent(user.patientId, FOTOS_CORPO))) {
+      if (fd.get('consentFotos') !== 'on')
+        return { fieldErrors: { photos: 'Autorize o envio de fotos do corpo' }, error: 'Para enviar fotos do corpo, marque a autorização logo abaixo das fotos.' }
+      await setConsent(user.id, user.patientId, FOTOS_CORPO, true)
+      await audit(user, 'consentimento_fotos_corpo', 'consentimento', { patientId: user.patientId })
+    }
 
     // Fotos privadas: arquivos do próprio cliente, nunca públicos.
     const photoIds: string[] = []

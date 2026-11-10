@@ -33,12 +33,14 @@ export async function buildPatientExport(pid: string, userId: string | null) {
     by(db.select().from(schema.anamneses).where(eq(schema.anamneses.patientId, pid))),
     by(db.select().from(schema.testimonials).where(eq(schema.testimonials.patientId, pid))),
   ])
-  const [checkins, payments] = await Promise.all([
+  const [checkins, payments, heights, photoSets] = await Promise.all([
     db.select().from(schema.checkins).where(eq(schema.checkins.patientId, pid)),
     db
       .select({ descricao: schema.payments.description, valorCentavos: schema.payments.amountCents, situacao: schema.payments.status, pagoEm: schema.payments.paidAt, forma: schema.payments.method, recibo: schema.payments.receiptNumber })
       .from(schema.payments)
       .where(eq(schema.payments.patientId, pid)),
+    db.select({ data: schema.heightLogs.date, alturaCm: schema.heightLogs.heightCm, origem: schema.heightLogs.source }).from(schema.heightLogs).where(eq(schema.heightLogs.patientId, pid)),
+    db.select({ data: schema.photoSets.date, comentarioDoCoach: schema.photoSets.coachComment }).from(schema.photoSets).where(eq(schema.photoSets.patientId, pid)),
   ])
   const data = {
     geradoEm: new Date().toISOString(),
@@ -46,6 +48,11 @@ export async function buildPatientExport(pid: string, userId: string | null) {
     cadastro: patient,
     consultas: appointments.map(({ internalNotes: _i, ...a }) => a),
     medidas: measurements,
+    historicoDePeso: measurements
+      .filter((m) => m.weightKg != null)
+      .map((m) => ({ data: m.date, pesoKg: m.weightKg, origem: m.source === 'profissional' ? 'medido pelo coach' : 'informado pelo cliente' })),
+    historicoDeAltura: heights.map((h) => ({ ...h, origem: h.origem === 'profissional' ? 'medido pelo coach' : 'informado pelo cliente' })),
+    conjuntosDeFotosDoCorpo: photoSets,
     metas: goals,
     planosAlimentares: plans.filter((p) => p.status !== 'rascunho'),
     diarioAlimentar: diary,
@@ -86,4 +93,37 @@ export async function archiveExportBeforeDeletion(pid: string, userId: string | 
     .returning({ id: schema.files.id })
   await audit(actor, 'lgpd_exportacao_automatica', 'paciente', { entityId: pid, patientId: pid, details: { motivo, arquivo: f.id, protocolo, sha256, bytes: saved.size, guardadoPorDias: EXPORT_RETENTION_DAYS } })
   return { fileId: f.id, sha256, protocolo }
+}
+
+/**
+ * Exportação completa em ZIP: o JSON acima e todas as fotos do cliente (corpo, pratos, check-ins e
+ * demais arquivos dele), com nomes legíveis. Arquivos que sumiram do disco ficam listados no JSON.
+ */
+export async function buildPatientExportZip(pid: string, userId: string | null) {
+  const { readUpload } = await import('./storage')
+  const { zip } = await import('./zip')
+  const data = await buildPatientExport(pid, userId)
+  const rows = await db.select().from(schema.files).where(eq(schema.files.patientId, pid))
+  const photos = await db.select().from(schema.progressPhotos).where(eq(schema.progressPhotos.patientId, pid))
+  const ext = (mime: string) => (mime === 'image/png' ? 'png' : mime === 'image/webp' ? 'webp' : mime === 'application/pdf' ? 'pdf' : mime.startsWith('audio/') ? mime.split('/')[1] : 'jpg')
+  const folder = (kind: string) => (kind === 'foto_evolucao' ? 'fotos-do-corpo' : kind === 'foto_refeicao' ? 'fotos-dos-pratos' : kind === 'checkin' ? 'fotos-dos-checkins' : kind === 'lgpd_exportacao' ? null : 'arquivos')
+  const used = new Set<string>()
+  const entries: { name: string; data: Buffer | string }[] = []
+  for (const f of rows) {
+    const dir = folder(f.kind)
+    if (!dir) continue
+    const bytes = await readUpload(f.storageKey).catch(() => null)
+    if (!bytes) continue
+    const ph = photos.find((x) => x.fileId === f.id)
+    const base = (ph ? `${ph.date}-${ph.angle}` : `${f.createdAt.toISOString().slice(0, 10)}-${f.title}`)
+      .normalize('NFD')
+      .replace(/[^\w.-]+/g, '-')
+      .replace(/-+/g, '-')
+      .slice(0, 80)
+    let name = `${dir}/${base}.${ext(f.mime)}`
+    for (let i = 2; used.has(name); i++) name = `${dir}/${base}-${i}.${ext(f.mime)}`
+    used.add(name)
+    entries.push({ name, data: bytes })
+  }
+  return zip([{ name: 'meus-dados.json', data: JSON.stringify(data, null, 2) }, ...entries])
 }

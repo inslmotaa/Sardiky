@@ -30,6 +30,7 @@ import { siteUrl } from '@/lib/seo'
 import { WA_TEMPLATES, type WaTemplateKey } from '@/lib/whatsapp'
 import { CHAT_MODES, WA_CLIENTE_PADRAO, type ChatMode } from '@/lib/chat-mode'
 import { emailLimits } from '@/lib/email-cota'
+import { fmtBytes, storageUsage } from '@/lib/storage-usage'
 
 const EMAIL_FREE = emailLimits()
 
@@ -44,6 +45,7 @@ const SECTIONS = [
   { key: 'captacao', label: 'Captação e pixels', perm: 'site' },
   { key: 'equipe', label: 'Equipe e permissões', perm: 'config' },
   { key: 'integracoes', label: 'Integrações', perm: 'config' },
+  { key: 'armazenamento', label: 'Armazenamento', perm: 'config' },
 ] as const
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ secao?: string }> }) {
@@ -68,6 +70,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
       {sec.key === 'captacao' && <PixelsSection s={s} />}
       {sec.key === 'equipe' && <TeamSection tz={s.timezone} />}
       {sec.key === 'integracoes' && <IntegrationsSection s={s} />}
+      {sec.key === 'armazenamento' && <StorageSection />}
     </div>
   )
 }
@@ -886,3 +889,62 @@ function IntegrationsSection({ s }: { s: S }) {
   )
 }
 
+
+/** Espaço ocupado pelas fotos e arquivos, para acompanhar o disco do servidor (sem custo extra). */
+async function StorageSection() {
+  const u = await storageUsage()
+  const usedPct = u.disk ? Math.round(((u.disk.total - u.disk.free) / u.disk.total) * 100) : null
+  return (
+    <section className="card stack" aria-labelledby="armazenamento-titulo">
+      <h2 id="armazenamento-titulo" style={{ fontSize: '1.15rem', margin: 0 }}>
+        Armazenamento
+      </h2>
+      <p className="small muted" style={{ margin: 0 }}>
+        As fotos ficam numa pasta privada do próprio servidor (sem serviço externo). O app reduz cada foto no celular antes do envio (até 1600 px), então cada uma ocupa em geral de 150 a 400 KB.
+      </p>
+      <div className="stat-row">
+        <div className="stat">
+          <strong>{fmtBytes(u.photosBytes)}</strong>
+          <span>em fotos ({u.photosFiles} arquivos)</span>
+        </div>
+        <div className="stat">
+          <strong>{fmtBytes(u.totalBytes)}</strong>
+          <span>em todos os arquivos enviados</span>
+        </div>
+        {u.disk && (
+          <div className="stat">
+            <strong>{fmtBytes(u.disk.free)}</strong>
+            <span>
+              livres no disco do servidor ({usedPct}% usado de {fmtBytes(u.disk.total)})
+            </span>
+          </div>
+        )}
+      </div>
+      {usedPct != null && usedPct >= 85 && (
+        <p className="alert alert--warn small" role="status">
+          O disco do servidor está com {usedPct}% de uso. Libere espaço ou aumente o disco antes que os envios parem.
+        </p>
+      )}
+      <div className="table-wrap">
+        <table aria-label="Espaço por tipo de arquivo">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Arquivos</th>
+              <th>Espaço</th>
+            </tr>
+          </thead>
+          <tbody>
+            {u.byKind.map((k) => (
+              <tr key={k.kind}>
+                <td>{k.label}</td>
+                <td>{k.files}</td>
+                <td>{fmtBytes(k.bytes)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  )
+}

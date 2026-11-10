@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile, unlink } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
 import path from 'node:path'
 import { sniffMime } from './storage-sniff'
+import { stripImageMetadata } from './image-meta'
 import { localDataDir } from './data-dir'
 
 /**
@@ -12,15 +13,23 @@ import { localDataDir } from './data-dir'
  * mantendo estas três funções.
  */
 const root = () => path.resolve(process.env.UPLOAD_DIR ?? localDataDir('uploads'))
+/** Pasta privada dos arquivos enviados (para o painel mostrar o espaço em disco). */
+export const uploadRoot = root
 
 export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024
+/** Fotos (corpo, prato, chat): até 8 MB. O app já comprime no celular (1600 px, ~0,8), então quase sempre chegam bem abaixo. */
+export const MAX_IMAGE_BYTES = 8 * 1024 * 1024
 
 export async function saveUpload(file: File, allowed: string[]) {
   if (!file || file.size === 0) return { error: 'Nenhum arquivo selecionado.' } as const
-  if (file.size > MAX_UPLOAD_BYTES) return { error: 'Arquivo maior que 5 MB.' } as const
-  const buf = Buffer.from(await file.arrayBuffer())
-  const sig = sniffMime(buf, allowed)
+  if (file.size > MAX_IMAGE_BYTES) return { error: 'Arquivo maior que 8 MB.' } as const
+  const raw = Buffer.from(await file.arrayBuffer())
+  const sig = sniffMime(raw, allowed)
   if (!sig) return { error: 'Formato não permitido.' } as const
+  const isImage = sig.mime.startsWith('image/')
+  if (!isImage && raw.length > MAX_UPLOAD_BYTES) return { error: 'Arquivo maior que 5 MB.' } as const
+  // Fotos: sem EXIF, XMP ou textos (localização, aparelho, data) mesmo que tenham vindo da galeria sem compressão.
+  const buf = isImage ? stripImageMetadata(raw, sig.mime) : raw
   const key = `${new Date().toISOString().slice(0, 7)}/${randomUUID()}.${sig.ext}`
   const full = path.join(root(), key)
   await mkdir(path.dirname(full), { recursive: true })

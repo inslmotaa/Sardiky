@@ -9,6 +9,7 @@ import { fmtDay, todayIn } from '@/lib/time'
 import { num } from '@/lib/format'
 import { waHref, waText } from '@/lib/whatsapp'
 import { overdueCheckins } from '@/lib/checkins'
+import { withoutWeight } from '@/lib/corpo-server'
 import { daysLate } from '@/lib/checkin-rules'
 import { siteUrl } from '@/lib/seo'
 import { WhatsAppButton } from '@/components/WhatsAppButton'
@@ -30,6 +31,8 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
   const rows = await trackingBoard(today, s.timezone, { good: s.adherenceGood, low: s.adherenceLow }, isRestricted(user) ? user.id : null)
   // Check-ins com prazo vencido (só dos clientes que este coach acompanha).
   const late = await overdueCheckins(today, isRestricted(user) ? rows.map((r) => r.id) : undefined)
+  // Sem registrar peso há 14 dias ou mais (Parte 7): lembrete semanal não bastou.
+  const noWeight = await withoutWeight(today, 14, isRestricted(user) ? rows.map((r) => r.id) : undefined)
   const group = (ORDER as string[]).includes(sp.grupo ?? '') ? (sp.grupo as AdherenceClass) : null
   const counts = Object.fromEntries(ORDER.map((k) => [k, rows.filter((r) => r.klass === k).length])) as Record<AdherenceClass, number>
   const shown = rows
@@ -64,6 +67,32 @@ export default async function TrackingPage({ searchParams }: { searchParams: Pro
                   label="Lembrar pelo WhatsApp"
                   vars={{ nome: c.name.split(' ')[0], data: fmtDay(c.dueDate), link: `${siteUrl()}/paciente/checkin` }}
                 />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {noWeight.length > 0 && (
+        <section className="card stack" aria-labelledby="sem-peso" style={{ ['--gap' as string]: '10px' }}>
+          <h2 id="sem-peso" style={{ fontSize: '1.1rem', margin: 0 }}>
+            Sem registrar peso há 14 dias ou mais ({noWeight.length})
+          </h2>
+          <ul className="list" aria-label="Sem registrar peso há 14 dias">
+            {noWeight.map((c) => (
+              <li key={c.id} className="row row--between">
+                <span>
+                  <Link href={`/admin/pacientes/${c.id}?aba=evolucao`}>
+                    <strong>{c.name}</strong>
+                  </Link>{' '}
+                  <span className="muted small">
+                    · {c.lastDate ? `último peso em ${fmtDay(c.lastDate)}` : 'nenhum peso registrado'} · <span className="badge badge--warn">{c.days} dias</span>
+                  </span>
+                </span>
+                {waHref(c.phone, `Oi, ${c.name.split(' ')[0]}! Quando puder, registre seu peso no app: ${siteUrl()}/paciente/meu-corpo#peso`) && (
+                  <a className="btn btn--sm btn--whatsapp" target="_blank" rel="noopener noreferrer" href={waHref(c.phone, `Oi, ${c.name.split(' ')[0]}! Quando puder, registre seu peso no app: ${siteUrl()}/paciente/meu-corpo#peso`)!}>
+                    Lembrar pelo WhatsApp
+                  </a>
+                )}
               </li>
             ))}
           </ul>

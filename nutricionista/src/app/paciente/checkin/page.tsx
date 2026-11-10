@@ -7,6 +7,7 @@ import { checkinsOf } from '@/lib/checkins'
 import { CHECKIN_OPEN_DAYS, CHECKIN_SCALES, checkinState, daysLate, type CheckinScale } from '@/lib/checkin-rules'
 import { submitCheckin } from '@/actions/checkins'
 import { ActionForm, Field, FieldError, SubmitButton } from '@/components/form'
+import { FOTOS_CORPO, hasConsent } from '@/lib/corpo-server'
 import { Empty, PageHead } from '@/components/ui'
 
 export const metadata: Metadata = { title: 'Check-in' }
@@ -42,6 +43,7 @@ function Scale({ name, required }: { name: CheckinScale; required?: boolean }) {
 export default async function CheckinPage({ searchParams }: { searchParams: Promise<{ enviado?: string }> }) {
   const sp = await searchParams
   const user = await requireActivePatient()
+  const photoConsent = await hasConsent(user.patientId, FOTOS_CORPO)
   const s = await getSettings()
   const today = todayIn(s.timezone)
   const { pending, sent } = await checkinsOf(user.patientId)
@@ -78,7 +80,7 @@ export default async function CheckinPage({ searchParams }: { searchParams: Prom
               <span className="badge badge--ok">Aberto</span>
             )}
           </div>
-          <ActionForm action={submitCheckin} className="stack" encType="multipart/form-data">
+          <ActionForm action={submitCheckin} className="stack" encType="multipart/form-data" compressImages={['photos']}>
             <input type="hidden" name="checkinId" value={pending.id} />
             <Scale name="adesao" required />
             <Scale name="energia" />
@@ -112,6 +114,16 @@ export default async function CheckinPage({ searchParams }: { searchParams: Prom
             <Field label="Fotos (opcional, até 3)" name="photos" hint="Frente, lado e costas, se quiser. Ficam privadas: só você e o coach veem.">
               <input type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple />
             </Field>
+            {!photoConsent && (
+              <label className="check">
+                <input type="checkbox" name="consentFotos" />
+                <span>Autorizo o envio e o armazenamento das minhas fotos do corpo para o acompanhamento (necessário só se enviar fotos).</span>
+              </label>
+            )}
+            <p className="small" style={{ margin: 0 }}>
+              Prefere a câmera com guia (silhueta e contagem de 5 segundos)?{' '}
+              <Link href="/paciente/meu-corpo/fotos?origem=checkin">Enviar fotos do corpo</Link>
+            </p>
             <div>
               <SubmitButton pendingText="Enviando…">Enviar check-in</SubmitButton>
             </div>

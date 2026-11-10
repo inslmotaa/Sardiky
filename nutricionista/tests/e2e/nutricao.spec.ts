@@ -142,7 +142,9 @@ test('cliente envia exame (opcional) e o coach vê na ficha; fotos do corpo pode
   await page.goto('/paciente/enviar')
   await expect(page.getByRole('heading', { name: 'Foto do corpo' })).toHaveCount(0)
   await page.goto('/paciente/evolucao')
-  await expect(page.getByRole('heading', { name: /Fotos de evolução/ })).toHaveCount(0)
+  await expect(page.getByRole('heading', { name: /Fotos do corpo/ })).toHaveCount(0)
+  await page.goto('/paciente/meu-corpo')
+  await expect(page.getByRole('link', { name: 'Enviar fotos do corpo' })).toHaveCount(0)
 })
 
 test('depois de fechar o plano, a anamnese pode ser respondida pelo formulário do coach', async ({ page }) => {

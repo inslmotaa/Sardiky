@@ -24,6 +24,7 @@ export function entryView(e: Entry): DiaryEntryView {
     notes: e.notes,
     photoUrl: e.photoFileId ? `/arquivos/${e.photoFileId}` : null,
     comment: e.professionalComment,
+    reaction: e.professionalReaction ?? null,
   }
 }
 
@@ -97,7 +98,7 @@ export async function loadDiaryDay(patientId: string, date: string, historyDays 
 function statusOnlyEntry(log: typeof schema.mealLogs.$inferSelect, meal: string): DiaryEntryView | null {
   const choice = log.status === 'feita' ? 'total' : log.status === 'parcial' ? 'parcial' : log.status === 'outra' ? 'nao_seguiu' : null
   if (!choice) return null
-  return { id: `log-${log.id}`, time: '', meal, foods: choice === 'total' ? 'Marcada como feita na tela Hoje' : choice === 'parcial' ? 'Marcada como parcial na tela Hoje' : 'Comi outra coisa', choice, items: [], hunger: null, satiety: null, mood: null, notes: null, photoUrl: null, comment: null }
+  return { id: `log-${log.id}`, time: '', meal, foods: choice === 'total' ? 'Marcada como feita na tela Hoje' : choice === 'parcial' ? 'Marcada como parcial na tela Hoje' : 'Comi outra coisa', choice, items: [], hunger: null, satiety: null, mood: null, notes: null, photoUrl: null, comment: null, reaction: null }
 }
 
 /** Início do acompanhamento pelo app: primeira publicação de plano do paciente (data local). */

@@ -180,6 +180,7 @@ CREATE TABLE "diary_entries" (
 	"mood" smallint,
 	"notes" text,
 	"professional_comment" text,
+	"professional_reaction" text,
 	"commented_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -273,6 +274,16 @@ CREATE TABLE "goals" (
 	"due_date" date,
 	"status" text DEFAULT 'ativa' NOT NULL,
 	"completed_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "height_logs" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"patient_id" uuid NOT NULL,
+	"date" date NOT NULL,
+	"height_cm" numeric NOT NULL,
+	"source" "measurement_source" NOT NULL,
+	"created_by" uuid,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -476,6 +487,17 @@ CREATE TABLE "payments" (
 	"provider_status" text,
 	"receipt_number" integer,
 	"created_by" uuid,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+
+CREATE TABLE "photo_sets" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"patient_id" uuid NOT NULL,
+	"date" date NOT NULL,
+	"measurement_id" uuid,
+	"coach_comment" text,
+	"commented_by" uuid,
+	"commented_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -730,6 +752,8 @@ ALTER TABLE "foods" ADD CONSTRAINT "foods_created_by_users_id_fk" FOREIGN KEY ("
 ALTER TABLE "form_assignments" ADD CONSTRAINT "form_assignments_template_id_form_templates_id_fk" FOREIGN KEY ("template_id") REFERENCES "public"."form_templates"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "form_assignments" ADD CONSTRAINT "form_assignments_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "goals" ADD CONSTRAINT "goals_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "height_logs" ADD CONSTRAINT "height_logs_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "height_logs" ADD CONSTRAINT "height_logs_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "household_measures" ADD CONSTRAINT "household_measures_food_id_foods_id_fk" FOREIGN KEY ("food_id") REFERENCES "public"."foods"("id") ON DELETE cascade ON UPDATE no action;
 ALTER TABLE "materials" ADD CONSTRAINT "materials_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "meal_logs" ADD CONSTRAINT "meal_logs_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
@@ -749,6 +773,9 @@ ALTER TABLE "payments" ADD CONSTRAINT "payments_patient_id_patients_id_fk" FOREI
 ALTER TABLE "payments" ADD CONSTRAINT "payments_appointment_id_appointments_id_fk" FOREIGN KEY ("appointment_id") REFERENCES "public"."appointments"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "payments" ADD CONSTRAINT "payments_package_id_packages_id_fk" FOREIGN KEY ("package_id") REFERENCES "public"."packages"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "payments" ADD CONSTRAINT "payments_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "photo_sets" ADD CONSTRAINT "photo_sets_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
+ALTER TABLE "photo_sets" ADD CONSTRAINT "photo_sets_measurement_id_measurements_id_fk" FOREIGN KEY ("measurement_id") REFERENCES "public"."measurements"("id") ON DELETE set null ON UPDATE no action;
+ALTER TABLE "photo_sets" ADD CONSTRAINT "photo_sets_commented_by_users_id_fk" FOREIGN KEY ("commented_by") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "posts" ADD CONSTRAINT "posts_cover_file_id_files_id_fk" FOREIGN KEY ("cover_file_id") REFERENCES "public"."files"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "posts" ADD CONSTRAINT "posts_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE set null ON UPDATE no action;
 ALTER TABLE "prescriptions" ADD CONSTRAINT "prescriptions_patient_id_patients_id_fk" FOREIGN KEY ("patient_id") REFERENCES "public"."patients"("id") ON DELETE cascade ON UPDATE no action;
@@ -783,6 +810,7 @@ CREATE INDEX "email_log_created_idx" ON "email_log" USING btree ("created_at");
 CREATE INDEX "foods_search_idx" ON "foods" USING btree ("search");
 CREATE UNIQUE INDEX "foods_barcode_idx" ON "foods" USING btree ("barcode");
 CREATE INDEX "form_assignments_patient_idx" ON "form_assignments" USING btree ("patient_id");
+CREATE INDEX "height_logs_patient_idx" ON "height_logs" USING btree ("patient_id","date");
 CREATE INDEX "measures_food_idx" ON "household_measures" USING btree ("food_id");
 CREATE UNIQUE INDEX "meal_logs_unique" ON "meal_logs" USING btree ("patient_id","date","meal_key");
 CREATE INDEX "meal_plans_patient_idx" ON "meal_plans" USING btree ("patient_id");
@@ -795,6 +823,7 @@ CREATE INDEX "patients_status_idx" ON "patients" USING btree ("status");
 CREATE INDEX "payments_patient_idx" ON "payments" USING btree ("patient_id");
 CREATE INDEX "payments_provider_ref_idx" ON "payments" USING btree ("provider_ref");
 CREATE UNIQUE INDEX "payments_receipt_idx" ON "payments" USING btree ("receipt_number");
+CREATE UNIQUE INDEX "photo_sets_patient_date_idx" ON "photo_sets" USING btree ("patient_id","date");
 CREATE UNIQUE INDEX "posts_slug_idx" ON "posts" USING btree ("slug");
 CREATE INDEX "posts_status_idx" ON "posts" USING btree ("status","published_on");
 CREATE INDEX "prescriptions_patient_idx" ON "prescriptions" USING btree ("patient_id");
@@ -840,6 +869,7 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('006e7b8e1cd622cce4f9f9685c59cc71d00ac4cbd64c43be92a88e37772ea1a6', 1794245146457), -- 0019_depoimentos_e_formacoes
 	('e7ef7351f70253404a226c14e9826af7c790500bcb3354ac64e783fc3735c6e7', 1794246522668), -- 0020_conteudos_e_captacao
 	('04f386edd5a6f92b763d235cc2e7713aa91e1e076e34a79186e7139c4972e5df', 1794261956610), -- 0021_app_do_cliente_e_painel
-	('19218ebb2f81ae03a677fffb0cd7fa736117b4b45723c8a1a977dd5bd819671f', 1794264395398); -- 0022_whatsapp_e_lembretes
+	('19218ebb2f81ae03a677fffb0cd7fa736117b4b45723c8a1a977dd5bd819671f', 1794264395398), -- 0022_whatsapp_e_lembretes
+	('aa83c096f1b2c08f9d39faab95aaf491a6cec0d8b00774cb8a9ed73a6b22f1e6', 1794311745340); -- 0023_fotos_e_perfil_fisico
 
 COMMIT;

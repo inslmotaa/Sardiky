@@ -93,11 +93,14 @@ test('avaliação com dobras (Jackson-Pollock 3) calcula o percentual de gordura
 
 test('fotos de evolução são privadas: o paciente envia, o nutricionista vê, outro paciente não', async ({ page }) => {
   await login(page, 'beatriz')
+  // Fotos do corpo pedem uma autorização específica (uma vez), depois a captura guiada ou a galeria.
+  await page.goto('/paciente/meu-corpo/fotos')
+  await page.getByLabel(/Autorizo o envio e o armazenamento/).check()
+  await page.getByRole('button', { name: 'Autorizar e continuar' }).click()
+  await page.getByLabel('Frente: escolher da galeria').setInputFiles({ name: 'frente.png', mimeType: 'image/png', buffer: PNG })
+  await page.getByRole('button', { name: 'Enviar foto' }).click()
+  await expect(page.getByText(/Foto salva\. Só você e o seu coach podem ver\./)).toBeVisible()
   await page.goto('/paciente/evolucao')
-  await page.getByText('Adicionar fotos').click()
-  await page.getByLabel('Frente').setInputFiles({ name: 'frente.png', mimeType: 'image/png', buffer: PNG })
-  await page.getByRole('button', { name: 'Enviar fotos' }).click()
-  await expect(page.getByText('Foto salva.')).toBeVisible()
   const url = await page.locator('.photo-grid img').first().getAttribute('src')
   expect(url).toMatch(/^\/arquivos\//)
   expect((await page.request.get(url!)).status()).toBe(200)

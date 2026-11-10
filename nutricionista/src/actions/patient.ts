@@ -24,6 +24,7 @@ import { postMessage } from '@/lib/chat'
 import { pushToTeam } from '@/lib/push'
 import { sendEmail } from '@/lib/notify'
 import { deletePhoto, saveProgressPhotos } from '@/lib/photos'
+import { FOTOS_CORPO, hasConsent } from '@/lib/corpo-server'
 import { rateLimit } from '@/lib/rate-limit'
 import { assinatura } from '@/lib/depoimentos'
 import { THEME_COOKIE } from '@/lib/tema'
@@ -313,6 +314,7 @@ export async function deleteOwnExam(id: string): Promise<void> {
 export async function addOwnProgressPhotos(_: ActionState, fd: FormData): Promise<ActionState> {
   const user = await requirePatient()
   if (!(await featuresOf(user.patientId)).fotosCorpo) return { error: 'O envio de fotos do corpo não está liberado para você.' }
+  if (!(await hasConsent(user.patientId, FOTOS_CORPO))) return { error: 'Para enviar fotos do corpo, autorize primeiro (é só uma vez).' }
   const date = day.safeParse(fd.get('date'))
   const s = await getSettings()
   if (!date.success || date.data > todayIn(s.timezone)) return { fieldErrors: { date: 'Data inválida' }, error: 'Revise a data.' }
@@ -332,8 +334,8 @@ export async function addOwnProgressPhotos(_: ActionState, fd: FormData): Promis
 export async function deleteOwnProgressPhoto(id: string) {
   const user = await requirePatient()
   if (!uuid.safeParse(id).success) return
-  // O paciente só exclui as fotos que ele mesmo enviou.
-  if (await deletePhoto(user.patientId, id, user.id)) await audit(user, 'foto_evolucao_excluida', 'foto', { entityId: id, patientId: user.patientId })
+  // O cliente pode apagar qualquer foto do corpo dele (inclusive as enviadas pelo coach).
+  if (await deletePhoto(user.patientId, id)) await audit(user, 'foto_evolucao_excluida', 'foto', { entityId: id, patientId: user.patientId })
   revalidatePath('/paciente/evolucao')
 }
 

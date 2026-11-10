@@ -48,7 +48,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ['@electric-sql/pglite', 'postgres', 'web-push'],
   experimental: {
-    serverActions: { bodySizeLimit: '6mb' },
+    // Fotos até 8 MB (comprimidas no celular, quase sempre bem menores) + campos do formulário; até 3 fotos do corpo de uma vez.
+    serverActions: { bodySizeLimit: '26mb' },
   },
   // Endereços curtos equivalentes (documento de requisitos): /entrar, /nova-senha, /app, /painel.
   async redirects() {

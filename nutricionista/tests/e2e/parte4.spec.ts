@@ -105,6 +105,8 @@ test('check-in: atrasado no Acompanhamento com WhatsApp; cliente envia com fotos
   await page.getByLabel('Cintura (cm)').fill('82')
   await page.getByLabel('O que foi mais difícil?').fill('Jantar fora no fim de semana.')
   await page.getByLabel('Fotos (opcional, até 3)').setInputFiles({ name: 'frente.png', mimeType: 'image/png', buffer: PNG })
+  // Fotos do corpo só com a autorização específica (fotos_corpo), dada ali mesmo.
+  await page.getByLabel(/Autorizo o envio e o armazenamento das minhas fotos do corpo/).check()
   await page.getByRole('button', { name: 'Enviar check-in' }).click()
   await expect(page.getByText('Check-in enviado! O coach vai olhar e ajustar o que for preciso.')).toBeVisible()
   await page.reload()

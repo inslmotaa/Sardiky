@@ -25,6 +25,8 @@ export type DiaryEntryView = {
   notes: string | null
   photoUrl: string | null
   comment: string | null
+  /** Reação rápida do coach à foto do prato. */
+  reaction?: 'otimo' | 'bom' | 'atencao' | null
 }
 
 export type DiaryMeal = {
@@ -213,6 +215,11 @@ function EntrySummary({ e, show, onDelete, title }: { e: DiaryEntryView; show: {
         {n && (show.kcal || show.macros) && <NutriInline n={n} showKcal={show.kcal} showMacros={show.macros} />}
         <Feelings e={e} />
         {e.notes && <div className="small">“{e.notes}”</div>}
+        {e.reaction && (
+          <p className="small" style={{ margin: '6px 0 0' }}>
+            <span className="badge badge--ok">Coach: {e.reaction === 'otimo' ? 'Ótimo' : e.reaction === 'bom' ? 'Bom' : 'Atenção'}</span>
+          </p>
+        )}
         {e.comment && (
           <p className="alert alert--info small" style={{ margin: '8px 0 0' }}>
             <strong>Coach:</strong> {e.comment}

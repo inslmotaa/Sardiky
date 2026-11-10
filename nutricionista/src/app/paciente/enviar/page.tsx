@@ -51,8 +51,8 @@ export default async function SendPage() {
             <span className="send-card__tag">Opcional</span>
             <h2 id="enviar-corpo">Foto do corpo</h2>
             <p className="muted small">Frente, lado e costas, para comparar a evolução. Só você e o coach veem.</p>
-            <Link href="/paciente/evolucao#fotos" className="btn btn--primary btn--sm">
-              Enviar fotos de evolução
+            <Link href="/paciente/meu-corpo/fotos" className="btn btn--primary btn--sm">
+              Enviar fotos do corpo
             </Link>
           </section>
         )}

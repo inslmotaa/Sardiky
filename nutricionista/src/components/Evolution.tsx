@@ -16,7 +16,10 @@ export function Evolution({
   compare,
   basePath,
   onToggleGoal,
+  skip = [],
 }: {
+  /** Medidas já mostradas em outro gráfico (ex.: peso, no resumo da evolução). */
+  skip?: MetricKey[]
   rows: M[]
   goals: G[]
   compare: { a?: string; b?: string }
@@ -25,7 +28,7 @@ export function Evolution({
   onToggleGoal?: (id: string) => Promise<void>
 }) {
   const goalFor = (k: MetricKey) => goals.find((g) => g.status === 'ativa' && g.metric === k)?.targetValue ?? null
-  const charts = (Object.keys(METRICS) as MetricKey[]).filter((k) => series(rows, k).length > 0)
+  const charts = (Object.keys(METRICS) as MetricKey[]).filter((k) => !skip.includes(k) && series(rows, k).length > 0)
   const pro = rows.filter((r) => r.source === 'profissional')
   const A = pro.find((r) => r.id === compare.a) ?? pro[0]
   const B = pro.find((r) => r.id === compare.b) ?? pro[pro.length - 1]
@@ -33,7 +36,7 @@ export function Evolution({
   return (
     <div className="stack" style={{ ['--gap' as string]: '20px' }}>
       {charts.length === 0 ? (
-        <p className="empty">Ainda não há medidas registradas.</p>
+        skip.length ? null : <p className="empty">Ainda não há medidas registradas.</p>
       ) : (
         <div className="grid-2">
           {charts.map((k) => (

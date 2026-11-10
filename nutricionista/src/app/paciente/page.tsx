@@ -17,6 +17,9 @@ import { contactOptionsFor } from '@/lib/contact-options'
 import { calendarOutdated } from '@/lib/lembretes'
 import { ContactOptions } from '@/components/ContactOptions'
 import { changeWater, markNotificationsRead, quickWeight, setMealStatus } from '@/actions/patient'
+import { saveLoosePhoto, savePlatePhoto } from '@/actions/corpo'
+import { bodyProfile } from '@/lib/corpo-server'
+import { BodyCard } from '@/components/BodyCard'
 import { TodayView, type MealLog, type TodayData } from '@/components/nutri/TodayView'
 import { ActionForm, Field, SubmitButton } from '@/components/form'
 import { LineChart } from '@/components/LineChart'
@@ -57,7 +60,7 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
       .from(schema.waterLogs)
       .where(and(eq(schema.waterLogs.patientId, user.patientId), eq(schema.waterLogs.date, today))),
     db
-      .select({ items: schema.diaryEntries.items })
+      .select({ items: schema.diaryEntries.items, mealKey: schema.diaryEntries.mealKey, photoFileId: schema.diaryEntries.photoFileId })
       .from(schema.diaryEntries)
       .where(and(eq(schema.diaryEntries.patientId, user.patientId), eq(schema.diaryEntries.date, today))),
     currentDraft(user.patientId),
@@ -97,6 +100,7 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
     guidance: guidanceMsg[0]?.body ?? null,
     lastWeight: weight ? { value: weight.value, date: fmtDay(weight.date) } : null,
     extraConsumed: itemsNutrients(diaryToday.flatMap((e) => e.items ?? [])),
+    platePhotos: Object.fromEntries(diaryToday.filter((e) => e.mealKey && e.photoFileId).map((e) => [e.mealKey!, `/arquivos/${e.photoFileId}`])),
   }
 
   // Etapas do acompanhamento: a primeira não concluída é a atual.
@@ -117,6 +121,7 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
   const contact = await contactOptionsFor(user.patientId)
   const calendarOld = await calendarOutdated(user.id, user.patientId)
   const checkinNow = checkin ? checkinState(checkin, today) : null
+  const body = await bodyProfile(user.patientId, today)
 
   return (
     <MotionRoot>
@@ -182,7 +187,7 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
           <TodayView
             data={data}
             variant="hub"
-            actions={{ setMeal: setMealStatus, water: changeWater }}
+            actions={{ setMeal: setMealStatus, water: changeWater, platePhoto: savePlatePhoto }}
             links={{ plan: '/paciente/plano', chat: '/paciente/mensagens', diary: '/paciente/diario', progress: '/paciente/evolucao' }}
             emptyPlan={
               <section className="card hub-empty hub-empty--big">
@@ -202,6 +207,45 @@ export default async function PatientToday({ searchParams }: { searchParams: Pro
             }
           />
         </section>
+
+        {f.diario && (
+          <details className="disclosure card" id="foto-avulsa">
+            <summary>Foto avulsa: comi outra coisa</summary>
+            <ActionForm action={saveLoosePhoto} className="stack" resetOnSuccess compressImages={['photo']}>
+              <Field label="Foto do prato" name="photo" required>
+                <input type="file" name="photo" accept="image/*" capture="environment" />
+              </Field>
+              <Field label="O que foi (opcional)" name="text">
+                <input name="text" maxLength={300} placeholder="Ex.: almoço fora, pizza com salada" />
+              </Field>
+              <div>
+                <SubmitButton>Enviar foto</SubmitButton>
+              </div>
+            </ActionForm>
+          </details>
+        )}
+
+        <BodyCard
+          data={body}
+          completeHref="/paciente/meu-corpo#dados"
+          actions={
+            <>
+              {f.peso && (
+                <Link href="/paciente/meu-corpo#peso" className="btn btn--sm">
+                  Registrar peso
+                </Link>
+              )}
+              {f.fotosCorpo && (
+                <Link href="/paciente/meu-corpo/fotos" className="btn btn--sm">
+                  Enviar fotos do corpo
+                </Link>
+              )}
+              <Link href="/paciente/meu-corpo" className="btn btn--sm btn--ghost">
+                Ver detalhes
+              </Link>
+            </>
+          }
+        />
 
         {/* Atalhos compactos (sem repetir a barra de baixo). */}
         <nav className="hub-quick" aria-label="Atalhos rápidos">

@@ -347,12 +347,15 @@ export default async function MyDataPage({ searchParams }: { searchParams: Promi
           <a href="/paciente/meus-dados/exportar" className="btn btn--primary">
             Baixar meus dados
           </a>
+          <a href="/paciente/meus-dados/exportar?formato=zip" className="btn">
+            Baixar com as fotos (ZIP)
+          </a>
           <a href="#excluir-conta" className="btn btn--danger">
             Excluir minha conta
           </a>
         </div>
         <p className="small muted" style={{ margin: '6px 0 0' }}>
-          O arquivo (JSON) traz cadastro, anamnese, consultas, planos, diário, medidas, mensagens e consentimentos.
+          O arquivo (JSON) traz cadastro, anamnese, consultas, planos, diário, medidas, histórico de peso e altura, mensagens e consentimentos. O ZIP leva também todas as suas fotos (corpo, pratos e check-ins).
         </p>
         <hr style={{ border: 0, borderTop: '1px solid var(--line)', margin: '20px 0' }} />
         <ActionForm action={createDataRequest} className="stack" resetOnSuccess>
