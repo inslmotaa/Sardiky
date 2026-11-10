@@ -27,6 +27,9 @@ services:
       APP_URL: https://${DOMAIN}
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       EMAIL_FROM: ${EMAIL_FROM:-}
+      # Cota de e-mail (docs/18-whatsapp-e-lembretes.md). Vazias: 100 por dia e 3.000 por mês (plano grátis do Resend).
+      EMAIL_DAILY_LIMIT: ${EMAIL_DAILY_LIMIT:-}
+      EMAIL_MONTHLY_LIMIT: ${EMAIL_MONTHLY_LIMIT:-}
       CRON_SECRET: ${CRON_SECRET:?defina CRON_SECRET}
       VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
       VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}

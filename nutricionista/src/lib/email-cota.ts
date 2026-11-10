@@ -1,7 +1,7 @@
 /**
  * Cota de e-mail do plano gratuito do Resend (100 por dia e 3.000 por mês). Regras puras, testadas
  * em tests/unit/parte5.test.ts. Os e-mails essenciais (senha, confirmação de conta, link de acesso,
- * consulta, vencimento) têm prioridade e reservam 40 por dia; o resumo do dia usa só o que sobra.
+ * vencimento) têm prioridade e reservam 40 por dia; o resumo do dia usa só o que sobra.
  * Para um plano pago, ajuste EMAIL_DAILY_LIMIT e EMAIL_MONTHLY_LIMIT.
  */
 export type EmailCategory = 'essencial' | 'resumo'

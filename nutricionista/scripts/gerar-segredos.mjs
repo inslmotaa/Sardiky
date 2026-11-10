@@ -57,6 +57,10 @@ ANAMNESE_WEBHOOK_SECRET=${secret()}
 # E-mail (recuperação de senha, confirmações). Crie a chave em https://resend.com e cole aqui.
 RESEND_API_KEY=
 EMAIL_FROM="André Farion <nao-responda@${domain}>"
+# Cota de e-mail. Vazias: 100 por dia e 3.000 por mês, o limite do plano grátis do Resend.
+# Só mude se contratar um plano maior no Resend.
+EMAIL_DAILY_LIMIT=
+EMAIL_MONTHLY_LIMIT=
 
 # "Entrar com Google" (opcional). Retorno a cadastrar no Google Cloud: https://${domain}/api/auth/google/callback
 GOOGLE_CLIENT_ID=
