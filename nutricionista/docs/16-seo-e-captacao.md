@@ -6,9 +6,9 @@ O que faz o site aparecer bem no Google e nos links compartilhados, o blog (Cont
 
 ## 1. robots.txt e sitemap.xml
 
-- **`/robots.txt`** (`src/app/robots.ts`): libera o site público e deixa **fora do índice** o painel (`/admin`, `/painel`), a área do cliente (`/paciente`, `/app`), as rotas de autenticação (`/login`, `/entrar`, `/criar-conta`, `/recuperar-senha`, `/redefinir-senha`, `/nova-senha`, `/confirmar-email`), a confirmação de agendamento e a API. Aponta para o sitemap.
+- **`/robots.txt`** (`src/app/robots.ts`): libera o site público e deixa **fora do índice** o painel (`/admin`, `/painel`), a área do cliente (`/paciente`, `/app`), as rotas de autenticação (`/login`, `/entrar`, `/criar-conta`, `/recuperar-senha`, `/redefinir-senha`, `/nova-senha`, `/confirmar-email`) e a API. Aponta para o sitemap.
 - As mesmas páginas também têm `<meta name="robots" content="noindex, nofollow">` (layout do painel, da área do cliente e de autenticação).
-- **`/sitemap.xml`** (`src/app/sitemap.ts`): Início, Sobre, Como funciona, Planos, Conteúdos, Dúvidas, Agendar e Privacidade, mais cada **conteúdo publicado** (rascunhos e posts com data futura não entram).
+- **`/sitemap.xml`** (`src/app/sitemap.ts`): Início (com a seção de planos, `/#planos`), Sobre, Como funciona, Conteúdos, Dúvidas e Privacidade, mais cada **conteúdo publicado** (rascunhos e posts com data futura não entram).
 - A lista fica em `src/lib/seo.ts` (`NO_INDEX_PATHS` e `PUBLIC_PAGES`).
 
 Depois de publicar, cadastre o site no Google Search Console e envie `https://SEU-DOMINIO/sitemap.xml`.
@@ -42,7 +42,7 @@ Para validar: [Teste de pesquisa aprimorada do Google](https://search.google.com
 - **Público:** `/conteudos` (lista, com data e tempo de leitura) e `/conteudos/[endereço]`. Link "Conteúdos" no menu e no rodapé.
 - **Painel → Conteúdos do site** (permissão "Conteúdo do site e interessados"): título, endereço (criado a partir do título se ficar em branco), resumo, capa com descrição, texto em **Markdown simples**, situação (rascunho/publicado) e data.
 - **Rascunho** não aparece no site (o endereço responde 404) nem no sitemap; quem tem a permissão vê uma **pré-visualização** marcada, fora do índice. **Data futura** funciona como agendamento: o post aparece a partir dela.
-- **Fim de cada post:** convite fixo com **Agendar consulta** e **Contratar um plano**, mais o formulário curto "Quero saber mais".
+- **Fim de cada post:** convite fixo com **Contratar um plano** (vai para `/#planos`) e **Falar no WhatsApp**, mais o formulário curto "Quero saber mais".
 - A capa só é servida publicamente enquanto o post estiver publicado.
 
 Markdown aceito (`src/lib/markdown.ts`, sem biblioteca externa): `## título`, `### subtítulo`, `**negrito**`, `*itálico*`, `` `código` ``, `[link](https://...)` ou `[link](/planos)`, listas com `- ` ou `1. `, citação com `> ` e `---`. HTML digitado aparece como texto (nunca é executado) e links só aceitam `https://`, `http://`, `mailto:` e caminhos do próprio site. Links externos abrem em nova aba com `rel="noopener noreferrer nofollow"`.

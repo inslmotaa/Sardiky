@@ -14,14 +14,12 @@ Tudo isto vai aparecer no site e nos PDFs. Nada aqui é senha.
 
 | Informação | Onde aparece | Exemplo |
 |---|---|---|
-| WhatsApp (já preenchido: (41) 99155-1789) | Agendamento, contato, botão flutuante, cobranças | (41) 99155-1789 |
+| WhatsApp (já preenchido: (41) 99155-1789) | "Falar no WhatsApp", avaliação por videochamada, botão flutuante, cobranças | (41) 99155-1789 |
 | Instagram | Rodapé e contato | @andrefarion |
 | E-mail de contato | Contato e política de privacidade | contato@andrefarion.com.br |
 | E-mail para pedidos da LGPD | Política de privacidade | pode ser o mesmo |
 | Biografia curta (3 a 5 frases) | Seção "Sobre" | Formação, tempo de atuação, público, o que valoriza |
 | Especialidades e diferenciais | Seção "Sobre" | Reeducação alimentar, nutrição esportiva… |
-| Serviços e duração (preço opcional, não aparece no site) | Seção de serviços e financeiro | Primeira consulta, 60 min |
-| Dias e horários de atendimento | Horários livres no agendamento | Seg a sex, 8h–12h e 13h30–18h |
 | Foto profissional e logo (opcional) | Site, app e PDF | JPG ou PNG, boa luz, fundo neutro |
 | Domínio desejado | Endereço do site | andrefarion.com.br |
 | Hospedagem | Onde o sistema roda | VPS com Docker (recomendado) ou serviço gerenciado |
@@ -36,7 +34,7 @@ Tudo isto vai aparecer no site e nos PDFs. Nada aqui é senha.
    ```bash
    cp deploy/perfil.exemplo.json deploy/perfil.json
    ```
-2. Troque todo texto que começa com `PREENCHER`. Os dias da semana vão escritos (`segunda`, `terca`, `quarta`…). O bloco `site` define se o "Agendar consulta" abre o WhatsApp (`"agendamento": "whatsapp"`, padrão) ou a agenda on-line (`"site"`), e se os valores aparecem (`"mostrarValores": false`, padrão). O preço de cada serviço é opcional (`"preco": 250`) e serve ao financeiro. Os blocos `planos` e `planosIncluem` já vêm com os planos do material de divulgação (Mensal, Trimestral, Semestral e Anual); `"mostrarValoresPlanos": true` mostra os valores deles no site.
+2. Troque todo texto que começa com `PREENCHER`. Os dias da semana vão escritos (`segunda`, `terca`, `quarta`…). Não há agendamento de consultas: o site leva a **Ver planos → Contratar**, e a avaliação por videochamada é combinada pelo WhatsApp. O bloco `agenda` guarda só o fuso horário. Os blocos `planos` e `planosIncluem` já vêm com os planos do material de divulgação (Mensal, Trimestral, Semestral e Anual); `"mostrarValoresPlanos": true` mostra os valores deles no site.
 3. Confira antes de gravar. Este comando não precisa de banco:
    ```bash
    node scripts/aplicar-perfil.mjs deploy/perfil.json --conferir
@@ -81,7 +79,7 @@ Para usar e-mail (recuperação de senha e confirmações):
 - O banco de produção começa **vazio**: nenhum cliente ou plano de demonstração vai para o ar. Os dados fictícios existem só no ambiente local (`npm run setup`).
 - `aplicar-perfil.mjs` pode ser rodado de novo quando os dados mudarem. Ele:
   - atualiza os serviços pelo nome;
-  - desativa os que saíram do arquivo, sem apagar o histórico de consultas;
+  - desativa os planos que saíram do arquivo, sem apagar o histórico de pagamentos;
   - substitui os horários de atendimento e as perguntas frequentes.
 
   Ajustes feitos depois pelo painel nesses mesmos campos são sobrescritos. Escolha um caminho e mantenha.
@@ -95,7 +93,7 @@ Para usar e-mail (recuperação de senha e confirmações):
 - [ ] Senha do André criada pelo link e login testado no celular
 - [ ] Foto profissional, logo e assinatura enviados
 - [ ] Site abre em `https://` com cadeado; `https://DOMINIO/api/health` responde `{"ok":true}`
-- [ ] Agendamento de teste feito e cancelado
+- [ ] Compra de teste feita pela seção **Planos** da página inicial (`/#planos`): Contratar → conta → anamnese
 - [ ] App instalado no celular ("Adicionar à tela inicial") e notificação de teste recebida
 - [ ] E-mail configurado; recuperação de senha e **link mágico** testados (o botão "Renovar meu plano" do e-mail de vencimento também)
 - [ ] Mercado Pago ([14-mercado-pago.md](14-mercado-pago.md)):

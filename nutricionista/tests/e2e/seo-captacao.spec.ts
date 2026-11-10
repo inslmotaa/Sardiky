@@ -84,7 +84,7 @@ test('JSON-LD: Person + ProfessionalService (Coach, on-line) e FAQPage das dúvi
   expect(faq['@type']).toBe('FAQPage')
   const items = faq.mainEntity as { name: string; acceptedAnswer: { text: string } }[]
   await expect(page.locator('.faq__item')).toHaveCount(items.length)
-  expect(items[0].name).toBe('Como funciona a primeira consulta?')
+  expect(items[0].name).toBe('Como começa o acompanhamento?')
 })
 
 test('Conteúdos: coach escreve, rascunho fica fora do site, publica com convite final e entra no sitemap', async ({ page, request }) => {
@@ -125,9 +125,9 @@ test('Conteúdos: coach escreve, rascunho fica fora do site, publica com convite
   // HTML digitado aparece como texto, nunca como elemento.
   await expect(body).toContainText('<script>alert(1)</script>')
   expect(await body.locator('script').count()).toBe(0)
-  // Convite final para agendar ou contratar.
+  // Convite final para contratar um plano (ou falar no WhatsApp).
   const cta = page.getByRole('complementary', { name: 'Quer levar isso para a sua rotina?' })
-  await expect(cta.getByRole('link', { name: /Agendar consulta/ })).toBeVisible()
+  await expect(cta.getByRole('link', { name: 'Falar no WhatsApp' })).toBeVisible()
   await expect(cta.getByRole('link', { name: /Contratar um plano/ })).toHaveAttribute('href', '/#planos')
   expect(await page.locator('meta[property="og:type"]').getAttribute('content')).toBe('article')
   const ld = JSON.parse((await page.locator('script[type="application/ld+json"]').textContent())!)

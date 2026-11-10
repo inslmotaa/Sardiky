@@ -15,7 +15,7 @@ O André é **coach**: o título é sempre Coach, e nenhuma tela, PDF ou configu
 
 ### Rotina de um novo cliente
 
-1. **O cliente se cadastra pelo site.** Escolhe um plano em `/planos` (ou clica em "Agendar consulta"), cria a conta e já começa pela anamnese, em etapas. O André recebe "Novo cadastro pelo site" e "Nova anamnese recebida" em **Início → Avisos**.
+1. **O cliente contrata pelo site.** Em **Ver planos** (seção Planos da página inicial, `/#planos`), clica em **Contratar**, paga pelo Mercado Pago, cria a conta e responde a anamnese, em etapas. A avaliação por videochamada, incluída nos planos, é combinada com ele pelo WhatsApp. O André recebe "Novo cadastro pelo site" e "Nova anamnese recebida" em **Início → Avisos**.
 2. **Ou o André cadastra.** Em **Clientes → Novo cliente**, informe nome, telefone e objetivo. Depois, na ficha, clique em **Liberar acesso**: o sistema gera um link de primeiro acesso, que pode ser enviado pelo WhatsApp. No primeiro acesso, o cliente preenche a anamnese.
 3. **Anamnese.** Depois de fechar o plano e criar a conta, o cliente escolhe como responder: **aqui no app** (em etapas, recomendado) ou **pelo formulário** (Google Forms do André, link em **Configurações → Planos, anamnese e PDF**). Quem usa o formulário clica em **Já enviei o formulário**: o André recebe o aviso e as respostas ficam no Google Forms. Na ficha do cliente, aba **Anamnese**, ficam as respostas por etapa, o histórico de versões, **Exportar PDF** e **Pedir reavaliação**. Restrições e alergias informadas aparecem em destaque no editor de planos.
 4. **Avaliação.** Na ficha do cliente, aba **Avaliações e evolução**, registre peso, circunferências, dobras e bioimpedância. O percentual de gordura é calculado sozinho.
@@ -61,7 +61,7 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 - **Antes de publicar o site** (Início): lista o que ainda é texto de exemplo (biografia, e-mail, Instagram, foto, "(Texto de exemplo — …)"). Cada item tem **Ajustar**.
 - **Formações e certificações** (Configurações → Perfil): uma por linha, `Curso | Instituição | Ano`. Aparecem na página Sobre, ao lado da foto vertical.
 - **Depoimentos** (Configurações → Depoimentos e dúvidas):
-  - quando o cliente marca "autorizo publicar" na avaliação da consulta, o depoimento chega aqui como **Aguardando aprovação**, e só vai ao site depois de **Aprovar e publicar**;
+  - quando o cliente marca "autorizo publicar" na avaliação do acompanhamento (app → Mais → Seu depoimento), o depoimento chega aqui como **Aguardando aprovação**, e só vai ao site depois de **Aprovar e publicar**;
   - depoimentos recebidos por fora pedem a data e a forma da autorização;
   - fotos de antes e depois só com a **autorização específica** das fotos (data, forma e a confirmação marcada);
   - o cliente pode retirar a autorização quando quiser.
@@ -85,7 +85,7 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 
 ### Conteúdos, interessados e pixels
 
-- **Conteúdos do site** (menu Gestão): escreva textos para o blog em `/conteudos`. Título, resumo, capa, texto em Markdown simples, **Rascunho** ou **Publicado** e a data (data futura = agendado). Rascunho não aparece no site; o botão **Pré-visualizar** mostra como vai ficar. Todo post termina com o convite para agendar ou contratar.
+- **Conteúdos do site** (menu Gestão): escreva textos para o blog em `/conteudos`. Título, resumo, capa, texto em Markdown simples, **Rascunho** ou **Publicado** e a data (data futura = agendado). Rascunho não aparece no site; o botão **Pré-visualizar** mostra como vai ficar. Todo post termina com o convite para contratar um plano ou falar no WhatsApp.
 - **Interessados:** quem preencheu "Quero saber mais" ou o contato, com a **origem** (ex.: "instagram / bio · campanha novembro"). Use links com UTM nas divulgações: `https://SEU-SITE/?utm_source=instagram&utm_medium=bio&utm_campaign=novembro`.
 - **Configurações → Captação e pixels:** pixels da Meta e do Google, **desligados por padrão**. Ligados, o site pede o consentimento de cookies e só carrega os pixels para quem aceitar, apenas nas páginas públicas. Detalhes em [16-seo-e-captacao.md](16-seo-e-captacao.md).
 
@@ -93,21 +93,17 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 
 - **Acompanhamento:** mostra quem está em dia, com dificuldade ou sem progresso, pela adesão dos últimos 7 dias. Quem está há 3 dias sem registrar gera um alerta.
 - **Mensagens:** é o chat com cada cliente. Dá para responder a uma refeição do diário com foto, mandar áudio e usar respostas rápidas. Fora do horário configurado, o cliente recebe uma resposta automática.
-- **Agenda:** consultas, confirmação de presença, link de videochamada e feriados.
 - **Financeiro:** pagamentos, inadimplência e cobrança pelo WhatsApp.
 - **Planos de acompanhamento** (Mensal R$ 250, Trimestral R$ 637,50, Semestral R$ 1.200 e Anual R$ 2.250):
   - são editados em **Financeiro → Planos de acompanhamento**: nome, meses, valor total, selo de destaque e benefícios exclusivos;
   - o valor por mês, o desconto e o "de R$ …" aparecem sozinhos no site;
   - o botão de cada plano abre o WhatsApp com o nome do plano;
-  - os valores das consultas continuam fora do site.
 
 ### Configurações importantes
 
 | Onde | O quê |
 |---|---|
 | Configurações → Perfil | Nome do site (Farion), seu nome e o título (sempre Coach), biografia, foto, logo, WhatsApp, Instagram |
-| Configurações → Perfil | **Botão "Agendar consulta" do site**: agenda on-line com conta do cliente (padrão) ou WhatsApp |
-| Configurações → Perfil | **Mostrar os valores das consultas no site** (desligado por padrão) |
 | Configurações → Perfil | **Mostrar os valores dos planos** (ligado) e a lista **Todos os planos incluem** |
 | Configurações → Captação e pixels | Pixels da Meta e do Google (desligados por padrão) e exemplo de link com UTM |
 | Configurações → Equipe | Convidar recepção ou outro coach. Cada um pode ver só os próprios clientes. |
@@ -117,11 +113,11 @@ Logo abaixo fica o bloco **Pagamentos**, com quem pagou hoje, Pix/boleto aguarda
 
 O cliente vê **somente os próprios dados**:
 
-- **Hoje:** primeiro o que comer (a próxima refeição em destaque e as refeições do dia com feita/parcial/pulei), depois a água, a consulta, os avisos, o acompanhamento, o peso e a dica da semana. Faltando 7 dias para o fim do plano, aparece **Renovar**;
+- **Hoje:** primeiro o que comer (a próxima refeição em destaque e as refeições do dia com feita/parcial/pulei), depois a água, o card Meu corpo, os avisos, o acompanhamento, o peso e a dica da semana. Faltando 7 dias para o fim do plano, aparece **Renovar**;
 - **Plano:** o seletor **Seg · Ter · … · Dom** abre o dia certo (hoje fica marcado), cada aba mostra os dias que cobre (ex.: "Dia de treino · Seg, Qua, Sex") e a visão **Semana** resume a semana com as kcal. O PDF traz a mesma tabela;
 - **Meu perfil** (a bolinha com as iniciais, no topo, ou **Mais → Meu perfil**):
   - plano contratado, vigência e dias restantes, com o botão **Renovar o plano** quando estiver perto do fim;
-  - o coach, a etapa, o objetivo e a próxima consulta;
+  - o coach, a etapa e o objetivo;
   - o plano alimentar ativo, com as refeições do dia, **Ver plano completo**, **Baixar PDF** e **Lista de compras**;
   - **Aparência**: automático (segue o celular), claro ou escuro;
   - cadastro, troca de senha e privacidade (LGPD);
@@ -139,7 +135,7 @@ O cliente vê **somente os próprios dados**:
 - **Mais:**
   - lista de compras gerada do plano;
   - receitas e materiais;
-  - consultas: confirmar presença, pedir remarcação, entrar na videochamada e avaliar o atendimento;
+  - Seu depoimento: avaliar o acompanhamento e, se quiser, autorizar o depoimento no site;
   - notificações;
   - os próprios dados (LGPD): baixar uma cópia ou pedir exclusão.
 
@@ -174,12 +170,12 @@ Mais detalhes em [02-seguranca-lgpd.md](02-seguranca-lgpd.md).
 
 O menu lateral tem quatro grupos, do que se usa todo dia ao que se configura uma vez:
 
-- **Dia a dia:** Início (resumo do dia), Agenda, Clientes, Mensagens e Acompanhamento (quem está em dia ou precisa de atenção).
+- **Dia a dia:** Início (check-ins pendentes, planos vencendo na semana, clientes sem registro há 3+ dias), Clientes, Mensagens e Acompanhamento (quem está em dia ou precisa de atenção).
 - **Planos e conteúdo:** Planos alimentares, Alimentos, Receitas, Materiais, Formulários e Calculadoras.
 - **Gestão:** Financeiro, Relatórios e Interessados (contatos vindos do site).
 - **Sistema:** Configurações e Privacidade e auditoria.
 
-O atendimento é 100% on-line: as consultas são por videochamada e o link é gerado ao confirmar a consulta. No app, o cliente encontra no topo do "Hoje" os atalhos Meu plano, Registrar refeição, Meu progresso e Falar com o coach.
+O atendimento é 100% on-line, por planos de consultoria (sem consultas avulsas): a avaliação por videochamada é combinada pelo WhatsApp e o resultado é registrado em Ficha → Avaliações e evolução. No app, o cliente encontra no topo do "Hoje" os atalhos Meu plano, Registrar refeição, Meu progresso e Falar com o coach.
 
 ## Alimentos e tabela nutricional
 

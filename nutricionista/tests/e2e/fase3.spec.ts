@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test'
 import { login, openPatient } from './helpers'
 
-/** Fase 3: agenda, anamnese nativa, receitas, materiais, compras, prescrições, equipe e financeiro. */
+/** Fase 3: anamnese nativa, receitas, materiais, compras, prescrições, equipe e financeiro. */
 
 
 test('restrições da ficha geram alerta no editor de planos', async ({ page }) => {
@@ -128,36 +128,6 @@ test('prescrições: item com dose, texto escrito livremente e edição aparecem
   await expect(box.locator('.prescription-text', { hasText: 'Cafeína 150 mg' })).toHaveText('Creatina 5 g por dia, com água.\nCafeína 150 mg, 30 min antes do treino.')
   const pdf = await page.request.get('/paciente/plano/pdf')
   expect(pdf.headers()['content-type']).toContain('application/pdf')
-})
-
-test('agenda: paciente confirma presença, pede remarcação e avalia a consulta', async ({ page }) => {
-  await login(page, 'lucas')
-  await page.goto('/paciente/consultas')
-  await page.getByRole('button', { name: 'Confirmar presença' }).first().click()
-  await expect(page.getByText('Presença confirmada').first()).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Entrar na videochamada' }).first()).toHaveAttribute('href', /^https:\/\/meet\.jit\.si\//)
-  await page.getByText('Pedir remarcação').first().click()
-  await page.getByLabel(/Melhores dias e horários/).first().fill('Terças à noite')
-  await page.getByRole('button', { name: 'Enviar pedido' }).first().click()
-  await expect(page.getByText('Remarcação pedida — aguarde o contato').first()).toBeVisible()
-
-  await login(page, 'beatriz')
-  await page.goto('/paciente/consultas')
-  await page.getByRole('radio', { name: '5 estrelas' }).check()
-  await page.getByLabel('Comentário (opcional)').fill('Ótimo atendimento')
-  await page.getByRole('button', { name: 'Enviar avaliação' }).click()
-  await expect(page.getByText('Obrigado pela avaliação!')).toBeVisible()
-})
-
-test('feriados nacionais viram bloqueios na agenda (sem duplicar)', async ({ page }) => {
-  await login(page, 'admin')
-  await page.goto('/admin/agenda')
-  await page.getByText('Feriados nacionais').click()
-  await page.getByLabel('Ano').fill('2027')
-  await page.getByRole('button', { name: 'Bloquear feriados' }).click()
-  await expect(page.getByText('10 feriados de 2027 bloqueados na agenda.')).toBeVisible()
-  await page.getByRole('button', { name: 'Bloquear feriados' }).click()
-  await expect(page.getByText('Os feriados de 2027 já estavam bloqueados.')).toBeVisible()
 })
 
 test('equipe: nutricionista com pacientes próprios não vê os demais', async ({ page }) => {

@@ -1,5 +1,7 @@
 # Fase 3 — Gestão: entregue e pendente
 
+> **Atualização (Parte 8):** agenda, consultas e agendamento saíram do sistema; o que este documento diz sobre eles é histórico. Veja [21-planos-sem-consultas.md](21-planos-sem-consultas.md).
+
 Construída sobre as fases anteriores. Dados fictícios. Novo acesso de demonstração: **nutri2@example.com / Equipe#Demo2026** (coach que vê só a paciente Helena).
 
 ## Entregue

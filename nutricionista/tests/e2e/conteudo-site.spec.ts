@@ -39,7 +39,7 @@ test('Sobre: formações editáveis em Configurações e layout sem foto, sem bu
 
 test('depoimento: cliente autoriza, coach aprova; fotos só com autorização específica; cliente retira', async ({ page, request }) => {
   await login(page, 'helena')
-  await page.goto('/paciente/consultas')
+  await page.goto('/paciente/depoimento')
   await page.getByRole('radio', { name: '5 estrelas' }).check()
   await page.getByLabel('Autorizo publicar esta avaliação como depoimento no site').check()
   await page.getByRole('button', { name: 'Enviar avaliação' }).click()
@@ -97,7 +97,7 @@ test('depoimento: cliente autoriza, coach aprova; fotos só com autorização es
 
   // A cliente retira a autorização: sai do site e a foto deixa de ser pública.
   await login(page, 'helena')
-  await page.goto('/paciente/consultas')
+  await page.goto('/paciente/depoimento')
   await expect(page.getByText('Publicada no site')).toBeVisible()
   await page.getByRole('button', { name: 'Retirar autorização' }).click()
   await expect(page.getByText('Publicada no site')).toHaveCount(0)

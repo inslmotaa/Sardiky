@@ -17,14 +17,13 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 
 | Área | Casos |
 |---|---|
-| Agenda | horários cabem inteiros no expediente; dias sem atendimento; conflito com consultas e bloqueios; folga entre consultas; antecedência mínima; limite de dias; intervalos encostados não conflitam |
 | Fuso horário | Brasília → UTC; ida e volta; fuso com horário de verão; virada de mês/ano; semana começando na segunda; datas inválidas; idade |
 | Senhas e tokens | hash scrypt com sal aleatório, verificação, regra mínima; tokens guardados só como hash; códigos sem caracteres ambíguos |
 | Permissões | administrador pode tudo; equipe só o liberado e nunca configurações; paciente sem permissões de equipe |
 | Arquivos e exportação | tipo detectado pelo conteúdo (HTML disfarçado é recusado); CSV protegido contra fórmulas |
 | Cálculos nutricionais | Mifflin F 70 kg/165 cm/30 anos = 1.420,25 kcal e ×1,55 = 2.201,4; IMC 70/1,65 = 25,7 (sobrepeso; Lipschitz a partir de 60 anos); faixa de peso saudável; Harris-Benedict, Katch-McArdle, Cunningham; macros por % e g/kg; água por ml/kg; 150 g de alimento com 128 kcal/100 g = 192 kcal; medida caseira ↔ gramas; cru ↔ cozido; substituições sugeridas dentro de ±10% e no mesmo grupo; busca tolerante a acentos e erros de digitação; plural de medidas |
 | Composição corporal | Siri; Jackson-Pollock 3 dobras (homem e mulher, dobras certas por sexo); Jackson-Pollock 7 dobras; Durnin-Womersley com coeficiente por faixa etária; dobra faltando não calcula; massa magra |
-| Lista de compras, restrições, feriados | soma semanal por dia da semana, cozido → cru pelo fator de cocção, unidades; alertas de lactose/glúten/vegetariano/ovo (com exceções “sem lactose” e “pão de queijo”); Páscoa 2025–2027, Carnaval, Sexta-feira Santa, Corpus Christi; nome da sala do Jitsi |
+| Lista de compras e restrições | soma semanal por dia da semana, cozido → cru pelo fator de cocção, unidades; alertas de lactose/glúten/vegetariano/ovo (com exceções “sem lactose” e “pão de queijo”) |
 | Adesão ao plano | feita = 1, parcial = ½; dias antes do plano não contam; dias da semana com números diferentes de refeições; limites configuráveis; sequência de dias; adesão semanal |
 | SEO e captação | Markdown dos Conteúdos (HTML e `javascript:` viram texto), endereço sem acento, rascunho e data futura fora do site; UTM limpo (só o domínio de quem indicou, página sem query); IDs de pixel (Meta só números, Google `G-`/`AW-`), pixels desligados por padrão e só em páginas públicas; JSON-LD (Coach, on-line, FAQ) e JSON seguro dentro de `<script>`; canonical, Open Graph e descrição até 160 caracteres |
 | Validação | formulários configuráveis (obrigatórios, opções inválidas, campos desconhecidos descartados); plano alimentar v2 (dias, opções, itens calculados) e conversão de planos antigos; valores em reais; telefones |
@@ -35,9 +34,8 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 |---|---|
 | Site público | storytelling, nome do profissional, serviços, planos sem desconto, botão Contratar |
 | Interessados | consentimento obrigatório; dados digitados não se perdem no erro; contato salvo |
-| Agendamento | 5 passos até a confirmação com código; **o mesmo horário deixa de ser oferecido** |
 | SEO | `robots.txt` (painel, cliente e login fora), `sitemap.xml` sem rascunhos, título/descrição/canonical/Open Graph/Twitter por página, imagem 1200×630, JSON-LD Person + ProfessionalService e FAQPage |
-| Conteúdos | coach cria → rascunho dá 404 ao público e pré-visualização ao coach → publicado aparece na lista, no sitemap e termina com Agendar/Contratar |
+| Conteúdos | coach cria → rascunho dá 404 ao público e pré-visualização ao coach → publicado aparece na lista, no sitemap e termina com Contratar um plano / Falar no WhatsApp |
 | Captação e pixels | "Quero saber mais" guarda a origem UTM e aparece em Interessados; sem pixels, nenhum aviso de cookies; ligados, recusar não carrega nada, aceitar carrega com a CSP liberada só nas páginas públicas e o login abre sem pixels |
 | Parte 4 | micronutrientes fechados no editor e opcionais no app; código de barras com Open Food Facts simulado e conferência obrigatória; check-in atrasado → envio com foto privada → revisão; diário de 45 dias atrás com edição e real × planejado; vencido só com histórico; recibo PDF numerado e isolado; link mágico de uso único; assinatura mensal simulada; exclusão com exportação guardada e auditada |
 | Parte 5 | duas opções (app e WhatsApp) no app, toque registrado na ficha, frase fora do horário, modo global e por cliente; .ics válido sem duplicar, aviso de horários mudados, webcal revogável; resumo das 7h uma vez por dia e descadastro de um clique; cota de e-mail com reserva dos essenciais; silêncio; refeição marcada sem push |
@@ -47,7 +45,6 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Equipe | recepção sem permissão clínica não vê planos, notas clínicas nem mensagens |
 | Tarefas | `/api/cron` recusa chamada sem segredo |
 | Plano alimentar | publicação bloqueada sem confirmação de revisão; após publicar, paciente vê o plano com substituições |
-| Agenda | confirmação de pedido pendente |
 | Cadastro e convite | paciente criado, link de primeiro acesso gera senha, login funciona e o link não pode ser reutilizado |
 | Área do paciente | medida informada, mensagem enviada, formulário com validação e envio |
 | Editor com cálculo | 150 g de arroz = 192 kcal; trocar para 3 colheres de sopa recalcula (75 g, 96 kcal); sugestões dentro de ±10%; aprovar substituição; salvar rascunho |
@@ -69,8 +66,6 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Receitas | cadastro com cálculo (150 g de arroz = 192 kcal), uso no editor como “Receita: …”, biblioteca do paciente |
 | Lista de compras | itens da semana agrupados, cozidos em peso cru, marcação persiste |
 | Prescrições | registro no painel aparece no plano do paciente |
-| Agenda | paciente confirma presença, vê o link do Jitsi, pede remarcação e avalia a consulta |
-| Feriados | 10 feriados nacionais de 2027 bloqueados; repetir não duplica |
 | Equipe | coach com pacientes próprios não vê a ficha de outros (404), nem no acompanhamento e nas mensagens |
 | Materiais | material para todos × para pacientes escolhidos |
 | Financeiro | pendente vencido aparece como “Atrasado”, com link de cobrança pelo WhatsApp |
@@ -85,11 +80,12 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Conteúdo (e2e) | aviso no Início; formações no Sobre e layout sem foto; depoimento autorizado pelo cliente, aprovado pelo coach, fotos só com autorização específica e retirada da autorização (foto deixa de ser pública); modo escuro automático e chave no app; números de Resultados com o valor final sem animação |
 | Qualidade antes de publicar (e2e, `qualidade.spec.ts`) | sem "nutricionista", CRN ou registro em todas as páginas do sitemap, no app do cliente e no painel (varredura por links), nos PDFs (planos, anamnese, recibo) e no .ics; check-in com lembrete pela tarefa periódica, uma vez só; recibo só depois do webhook assinado do Mercado Pago; limite de e-mail (resumo pausa antes dos essenciais, aviso no painel, dia esgotado sem quebrar). Detalhes em [19-qualidade.md](19-qualidade.md) |
 | Corpo e fotos (unidade e e2e, `parte7`) | idade no aniversário (fuso de Brasília), IMC com a altura vigente, variação de peso; fotos sem EXIF/XMP (JPEG, PNG, WebP) e tipo real conferido; sem consentimento o envio de foto do corpo é bloqueado; outro cliente e coach de outra carteira recebem 404; foto do prato cria o registro certo sem duplicar; relatório PDF sem fotos sem autorização; exportação ZIP com as fotos. Detalhes em [20-corpo-e-fotos.md](20-corpo-e-fotos.md) |
+| Planos e sem consultas (e2e, `planos-sem-consultas`) | uma única seção de cards de planos em todo o site (#planos, depois de Como funciona); /planos e /agendar → 301 /#planos; nenhum link interno para /planos; nenhuma tela com "Agendar", "Próxima consulta" ou `\bconsulta\b`; fluxo Ver planos → Contratar (checkout falso) → conta → anamnese → plano no app; sem valores, botão "Falar no WhatsApp". Detalhes em [21-planos-sem-consultas.md](21-planos-sem-consultas.md) |
 | Banco em SQL (unidade) | `deploy/banco-de-dados.sql` + `deploy/alimentos.sql` criam o mesmo banco que as migrações |
 
 ## Revisão manual recomendada antes da produção
 
-- Navegar com leitor de tela (NVDA/VoiceOver) nas telas de agendamento e plano alimentar.
+- Navegar com leitor de tela (NVDA/VoiceOver) na seção de planos, no pagamento e no plano alimentar.
 - Testar em um celular Android e um iPhone reais (câmera no envio de foto do diário, gravação de áudio no chat, instalação na tela inicial).
 - Notificações push: ativar em um Android (Chrome) e em um iPhone com o app instalado (iOS 16.4+) e conferir lembretes de refeição e água com a tarefa agendada rodando a cada 5 minutos. O envio real depende dos serviços de push dos navegadores e não roda nos testes automáticos.
 - Rodar uma varredura de vulnerabilidades (ex.: OWASP ZAP) contra o ambiente de homologação.

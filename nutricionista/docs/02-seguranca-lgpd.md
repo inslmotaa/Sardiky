@@ -15,8 +15,8 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 | Perfil | Acesso |
 |---|---|
 | Coach (admin) | Tudo |
-| Equipe (staff) | Somente as áreas liberadas: agenda, cadastro, dados clínicos, financeiro, relatórios, conteúdo do site. Configurações e LGPD ficam restritas ao administrador. |
-| Coach da equipe (“só os próprios pacientes”) | Ficha, planos, diário, chat, acompanhamento, agenda, arquivos e avisos apenas dos pacientes em que é o responsável; os demais respondem como “não encontrado”. |
+| Equipe (staff) | Somente as áreas liberadas: cadastro, dados clínicos, financeiro, relatórios, conteúdo do site. Configurações e LGPD ficam restritas ao administrador. |
+| Coach da equipe (“só os próprios pacientes”) | Ficha, planos, diário, chat, acompanhamento, arquivos e avisos apenas dos pacientes em que é o responsável; os demais respondem como “não encontrado”. |
 | Paciente | Apenas os próprios dados. O identificador do paciente vem **sempre da sessão**, nunca de um parâmetro da URL. |
 
 - Cada Server Action e rota verifica permissão no servidor (não basta esconder botões).
@@ -47,13 +47,13 @@ Este documento descreve as proteções implementadas e o que ainda depende de co
 
 ## Registro de atividades (auditoria)
 
-Ficam registrados com data, usuário e IP: logins (inclusive falhos), visualização de prontuário e de planos, download do PDF do plano, envio e exclusão de fotos de evolução, ativação de notificações, respostas a registros do diário, criação/edição de pacientes (campos alterados, sem o conteúdo), avaliações, notas, documentos, publicação de planos, mudanças de agenda, permissões, exportações e solicitações LGPD. Consulte em **Painel → Privacidade e auditoria**.
+Ficam registrados com data, usuário e IP: logins (inclusive falhos), visualização de prontuário e de planos, download do PDF do plano, envio e exclusão de fotos de evolução, ativação de notificações, respostas a registros do diário, criação/edição de pacientes (campos alterados, sem o conteúdo), avaliações, notas, documentos, publicação de planos, permissões, exportações e solicitações LGPD. Consulte em **Painel → Privacidade e auditoria**.
 
 ## LGPD na prática
 
 | Princípio / direito | Como o sistema atende |
 |---|---|
-| Base legal e consentimento | Consentimento registrado (tipo, versão da política e data) no agendamento, no formulário de contato, no primeiro acesso, nos termos assinados pelo paciente e **antes da anamnese** (autorização específica para dados de saúde). |
+| Base legal e consentimento | Consentimento registrado (tipo, versão da política e data) no cadastro, no formulário de contato, no primeiro acesso, nos termos assinados pelo paciente e **antes da anamnese** (autorização específica para dados de saúde). |
 | Minimização | Formulários públicos pedem só nome e contato; os formulários clínicos são configuráveis e o construtor lembra de pedir só o necessário. |
 | Acesso e portabilidade | Paciente baixa os próprios dados em JSON (“Meus dados”). |
 | Correção, eliminação, revogação | Solicitação pela área do paciente → fila em “Privacidade e auditoria” com resposta registrada. |

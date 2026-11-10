@@ -1,5 +1,7 @@
 # Site novo, contas de cliente, anamnese no site e hub do cliente
 
+> **Atualização (Parte 8):** agenda, consultas e agendamento saíram do sistema; o que este documento diz sobre eles é histórico. Veja [21-planos-sem-consultas.md](21-planos-sem-consultas.md).
+
 Este documento descreve o que mudou nesta etapa e o que fazer no servidor.
 
 ## Pedido × sistema real

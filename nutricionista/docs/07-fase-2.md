@@ -1,5 +1,7 @@
 # Fase 2 — Acompanhamento: entregue e pendente
 
+> **Atualização (Parte 8):** agenda, consultas e agendamento saíram do sistema; o que este documento diz sobre eles é histórico. Veja [21-planos-sem-consultas.md](21-planos-sem-consultas.md).
+
 Construída sobre as fases anteriores. Dados fictícios. Acessos de demonstração no README (inclui a paciente Helena, “com dificuldade”).
 
 ## Entregue

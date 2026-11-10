@@ -1,5 +1,7 @@
 # Etapa 1 — Planejamento
 
+> **Atualização (Parte 8):** o agendamento de consultas saiu do sistema. O fluxo do cliente passou a ser Ver planos → Contratar (Mercado Pago) → Criar conta → Anamnese → Plano no app, com a avaliação por videochamada combinada pelo WhatsApp. As partes deste planejamento sobre agenda, serviços, horários e lembretes de consulta ficam como registro histórico. Veja [21-planos-sem-consultas.md](21-planos-sem-consultas.md).
+
 Sistema para o consultório do coach **André Farion**, com três ambientes: site público, área do paciente e painel administrativo.
 
 ## 1. Arquitetura recomendada

@@ -79,16 +79,16 @@ test('cliente: plano → cadastro → anamnese em etapas → hub; André recebe,
   await expect(page.locator('.anam__review', { hasText: 'Dados pessoais' })).toContainText('20/05/1990')
   await page.getByRole('button', { name: 'Enviar anamnese' }).click()
   await expect(page.getByRole('heading', { name: 'Obrigado! Sua anamnese foi enviada.' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/agendar')
+  await expect(page.getByText(/O próximo passo é a avaliação por videochamada, combinada pelo WhatsApp/)).toBeVisible()
   await page.getByRole('link', { name: 'Ir para minha área' }).click()
 
-  // Hub: sem banner, plano escolhido e etapa atual "Consulta".
+  // Hub: sem banner, plano escolhido e etapa atual "Avaliação e metas" (combinada pelo WhatsApp).
   await expect(page.getByRole('heading', { name: 'Olá, Cliente!' })).toBeVisible()
   await expect(page.locator('.hub-banner')).toHaveCount(0)
   await expect(page.locator('.hub-status')).toContainText('Plano Trimestral')
-  await expect(page.locator('.hub-steps li[aria-current="step"]')).toContainText('Consulta')
+  await expect(page.locator('.hub-steps li[aria-current="step"]')).toContainText('Avaliação e metas')
   await expect(page.getByText('Seu plano está sendo preparado pelo André')).toBeVisible()
-  await expect(page.getByText('Você ainda não tem consulta marcada.')).toBeVisible()
+  await expect(page.getByText(/Próxima consulta/)).toHaveCount(0)
   for (const sc of ['Registrar refeição', 'Falar com o coach', 'Meu perfil']) await expect(page.getByRole('navigation', { name: 'Atalhos rápidos' }).getByRole('link', { name: sc })).toBeVisible()
 
   // André: aviso, aba Anamnese, PDF e reavaliação.
@@ -133,29 +133,24 @@ test('permissões: paciente sem acesso ao painel e equipe fora da área do clien
   await expect(page.locator('.tl-header .login-menu')).toHaveCount(0)
   await page.locator('.tl-nav .user-menu summary').click()
   await expect(page.locator('.tl-nav .user-menu').getByRole('link', { name: 'Minha área' })).toHaveAttribute('href', '/paciente')
-  // Logado, "Agendar consulta" vai direto para a agenda.
-  await expect(page.locator('#inicio').getByRole('link', { name: 'Agendar consulta' })).toHaveAttribute('href', '/agendar')
+  // Logado ou não, o caminho é Ver planos (sem agendamento de consultas).
+  await expect(page.locator('#inicio').getByRole('link', { name: /Ver planos/ })).toHaveAttribute('href', '#planos')
 
   await login(page, 'admin')
   await page.goto('/app')
   await expect(page).toHaveURL(/\/login\?sem-acesso=paciente/)
 })
 
-test('hub do cliente: saudação, frase do dia, consulta com .ics, peso e dica da semana', async ({ page }) => {
+test('hub do cliente: saudação, frase do dia, plano, peso e dica da semana (sem consulta)', async ({ page }) => {
   await login(page, 'beatriz')
   await expect(page.getByRole('heading', { name: 'Olá, Beatriz!' })).toBeVisible()
   await expect(page.locator('.hub-quote')).toContainText('Constância')
   await expect(page.locator('.hub-status')).toContainText('Plano Trimestral')
   await expect(page.locator('.hub-tip')).toContainText('frutas lavadas')
-  const ics = page.getByRole('link', { name: 'Adicionar à agenda' })
-  const href = await ics.getAttribute('href')
-  const res = await page.request.get(href!)
-  expect(res.headers()['content-type']).toContain('text/calendar')
-  expect(await res.text()).toContain('BEGIN:VEVENT')
   await expect(page.locator('.water-ring')).toBeVisible()
-  // Outro paciente não baixa o .ics da Beatriz.
-  await login(page, 'lucas')
-  expect((await page.request.get(href!)).status()).toBe(404)
+  await expect(page.getByText(/Próxima consulta|Adicionar à agenda/)).toHaveCount(0)
+  // Rotas antigas de consultas não existem mais.
+  expect((await page.request.get('/paciente/consultas')).status()).toBe(404)
 })
 
 test('Perfil: baixar meus dados e excluir minha conta', async ({ page }) => {

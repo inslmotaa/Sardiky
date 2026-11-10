@@ -644,7 +644,7 @@ async function TeamSection({ tz }: { tz: string }) {
                 <input type="checkbox" name="isActive" defaultChecked={u.isActive} /> Acesso ativo
               </label>
               <label className="check">
-                <input type="checkbox" name="ownPatientsOnly" defaultChecked={u.ownPatientsOnly} /> Coach: vê só os próprios clientes (ficha, planos, diário, chat, acompanhamento e agenda)
+                <input type="checkbox" name="ownPatientsOnly" defaultChecked={u.ownPatientsOnly} /> Coach: vê só os próprios clientes (ficha, planos, diário, chat e acompanhamento)
               </label>
               <div>
                 <SubmitButton className="btn btn--sm btn--primary">Salvar permissões</SubmitButton>

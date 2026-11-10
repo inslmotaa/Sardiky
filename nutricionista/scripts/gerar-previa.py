@@ -12,7 +12,6 @@ get = lambda u: urllib.request.urlopen(BASE + u).read()
 
 home = BeautifulSoup(get('/').decode(), 'html.parser')
 priv = BeautifulSoup(get('/privacidade').decode(), 'html.parser')
-plans = BeautifulSoup(get('/planos').decode(), 'html.parser')
 faqp = BeautifulSoup(get('/duvidas').decode(), 'html.parser')
 posts = BeautifulSoup(get('/conteudos').decode(), 'html.parser')
 demo_css = open(os.path.join(ROOT, 'previa/src/demo.css'), encoding='utf-8').read()
@@ -90,12 +89,12 @@ area = BeautifulSoup('''
 <section class="tl-sec" id="area-do-paciente">
   <div class="tl-container" style="max-width:980px">
     <p class="sec-label">/ ÁREA DO CLIENTE</p>
-    <h2 class="display">Acompanhamento também entre as consultas</h2>
+    <h2 class="display">Acompanhamento de perto, todos os dias</h2>
     <p class="tl-lead">Clientes em acompanhamento recebem acesso exclusivo ao app: a tela <strong>Hoje</strong> mostra a próxima refeição e permite marcar
     o que foi feito, o <strong>Plano</strong> traz as opções e substituições, e há contador de água, registro de peso,
     gráficos de evolução, calculadoras e mensagens.</p>
     <p class="tl-lead">No painel, o André monta o plano com cálculo automático de calorias e macros, acompanha quem está em dia
-    e responde a cada registro do diário. O cliente também tem lista de compras, receitas, materiais e a agenda com confirmação de presença.</p>
+    e responde a cada registro do diário. O cliente também tem lista de compras, receitas, materiais, check-ins e o card Meu corpo.</p>
     <div class="tl-actions"><a class="pill" href="#cliente">Ver a área do cliente <span aria-hidden="true">→</span></a><a class="ulink" href="#andre">Ver o painel do André</a><a class="ulink" href="#andre/acompanhamento">Ver o Acompanhamento</a></div>
     <p class="tl-note">Nesta prévia, as duas telas funcionam como demonstração e guardam os dados só no seu navegador. Na versão publicada, cada cliente entra com login e senha e só vê os próprios dados.</p>
   </div>
@@ -110,8 +109,7 @@ def bring(doc, first_id):
                 a['href'] = '#'; a['data-agendar'] = '1'
             elif a['href'] == '/planos': a['href'] = '#planos'
         main.append(sec.extract())
-# Páginas de planos e dúvidas (no site publicado ficam em /planos e /duvidas).
-bring(plans, 'planos')
+# Dúvidas e conteúdos (no site publicado ficam em /duvidas e /conteudos). Os planos já estão na página inicial (#planos).
 bring(faqp, 'duvidas')
 bring(posts, 'conteudos')
 psec = priv.find('main').find('section')
@@ -137,12 +135,12 @@ script.string = r'''
   var WA = %s;
   function waLink(text) { return WA ? WA + '?text=' + encodeURIComponent(text) : '#contato'; }
 
-  // Botões de agendamento: abrem o WhatsApp com o serviço escolhido.
+  // Contratar (na prévia não há checkout): abre o WhatsApp com o plano escolhido.
   document.querySelectorAll('a[data-agendar]').forEach(function (a) {
     var card = a.closest('li, article');
     var name = card && card.querySelector('.tl-plan__name');
     var svc = name ? name.textContent.trim() : '';
-    a.href = waLink(svc ? 'Olá! Vim pelo site e tenho interesse no plano ' + svc + '.' : 'Olá! Vim pelo site e gostaria de agendar uma consulta.');
+    a.href = waLink(svc ? 'Olá! Vim pelo site e tenho interesse no plano ' + svc + '.' : 'Olá! Vim pelo site e gostaria de saber mais sobre os planos.');
     a.target = '_blank'; a.rel = 'noopener noreferrer';
   });
 

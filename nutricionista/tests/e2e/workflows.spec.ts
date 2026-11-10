@@ -29,14 +29,6 @@ test('nutricionista revisa e publica plano; paciente passa a vê-lo', async ({ p
   await expect(page.getByText('Substituições autorizadas').first()).toBeVisible()
 })
 
-test('nutricionista confirma pedido pendente do site', async ({ page }) => {
-  await login(page, 'admin')
-  await page.goto('/admin/agenda?status=pendente')
-  await page.getByRole('link', { name: 'Abrir' }).first().click()
-  await page.getByRole('button', { name: 'Confirmar consulta' }).click()
-  await expect(page.locator('.page-head .badge')).toHaveText('Confirmada')
-})
-
 test('nutricionista cadastra paciente e libera acesso por link', async ({ page, browser }) => {
   await login(page, 'admin')
   await page.goto('/admin/pacientes/novo')
@@ -107,7 +99,7 @@ test('área do paciente e painel sem rolagem horizontal no celular', async ({ pa
     await expectNoHorizontalScroll(page)
   }
   await login(page, 'admin')
-  for (const path of ['/admin', '/admin/agenda', '/admin/pacientes', '/admin/relatorios', '/admin/calculadoras', '/admin/acompanhamento', '/admin/mensagens']) {
+  for (const path of ['/admin', '/admin/pacientes', '/admin/relatorios', '/admin/calculadoras', '/admin/acompanhamento', '/admin/mensagens']) {
     await page.goto(path)
     await expectNoHorizontalScroll(page)
   }

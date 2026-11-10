@@ -47,7 +47,7 @@ Tudo aqui é gratuito: nenhuma API paga de WhatsApp. Os lembretes automáticos c
 ### Cota gratuita do Resend (100 por dia, 3.000 por mês)
 
 - **Contador:** todo e-mail passa pelo mesmo contador (`email_log`: só categoria, sucesso e data; sem destinatário nem conteúdo).
-- **Essenciais têm prioridade e reservam 40 por dia:** recuperação de senha, confirmação de conta, link de acesso, convites, consultas e vencimento.
+- **Essenciais têm prioridade e reservam 40 por dia:** recuperação de senha, confirmação de conta, link de acesso, convites e vencimento.
 - **O resumo do dia usa só o que sobra:**
   - até 60 por dia (100 − 40);
   - no mês, para antes de comer a reserva dos dias que faltam (3.000 − 40 × dias restantes).
@@ -67,7 +67,7 @@ Não há lembretes automáticos pelo WhatsApp: isso só seria possível pela API
 ## 5. Regras gerais
 
 - **Preferências por tipo e canal:**
-  - por tipo: refeições, água, plano, mensagens, consultas, pesagem;
+  - por tipo: refeições, água, plano, mensagens, pesagem e lembretes (check-in, vencimento);
   - por canal: **push ligado por padrão**, **resumo por e-mail desligado**, calendário quando o cliente baixa ou assina.
 - **Horário de silêncio:** vale para tudo (push, calendário e e-mail).
 - **Sem repetição:** a tabela `reminder_log` impede o mesmo lembrete duas vezes. **Refeição já marcada como feita no app antes do horário não gera push.**
