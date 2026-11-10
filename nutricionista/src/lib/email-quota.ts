@@ -1,8 +1,10 @@
 import 'server-only'
+import { readFileSync } from 'node:fs'
 import { and, eq, gte, isNull } from 'drizzle-orm'
 import { db, schema } from '@/db'
 import { PRIVACY_VERSION } from './constants'
-import { emailLimits, quaseNoLimite, type EmailCategory } from './email-cota'
+import { emailLimits, quaseNoLimite, type EmailCategory, type EmailLimits } from './email-cota'
+import { integrationStatus } from './integrations'
 
 const startOfUtcDay = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()))
 const startOfUtcMonth = (d: Date) => new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1))
@@ -21,10 +23,28 @@ export async function logEmail(category: EmailCategory, ok: boolean, error?: str
   await db.insert(schema.emailLog).values({ category, ok, error: error?.slice(0, 300) ?? null }).catch((e) => console.error('[e-mail] falha ao registrar envio', e))
 }
 
+/**
+ * Limites em vigor (EMAIL_DAILY_LIMIT / EMAIL_MONTHLY_LIMIT). Só nos testes automáticos — e-mails
+ * indo para o arquivo EMAIL_TEST_OUTBOX, sem provedor configurado — o arquivo
+ * `<EMAIL_TEST_OUTBOX>.limites.json` pode trocá-los, para o teste ponta a ponta chegar ao limite.
+ */
+export function currentEmailLimits(): EmailLimits {
+  const base = emailLimits()
+  const outbox = process.env.EMAIL_TEST_OUTBOX
+  if (!outbox || integrationStatus().email) return base
+  try {
+    const o = JSON.parse(readFileSync(`${outbox}.limites.json`, 'utf8')) as Partial<EmailLimits>
+    const n = (v: unknown, d: number) => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? Math.floor(v) : d)
+    return { day: n(o.day, base.day), month: n(o.month, base.month), reserve: n(o.reserve, base.reserve) }
+  } catch {
+    return base
+  }
+}
+
 /** Situação da cota para o painel. */
 export async function emailQuotaStatus(now = new Date()) {
   const used = await emailUsage(now)
-  const limits = emailLimits()
+  const limits = currentEmailLimits()
   return { used, limits, warn: quaseNoLimite(used, limits, now) }
 }
 

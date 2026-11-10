@@ -1,8 +1,8 @@
 import 'server-only'
 import { db, schema } from '@/db'
 import { integrationStatus } from './integrations'
-import { emailLimits, podeEnviar, type EmailCategory } from './email-cota'
-import { emailUsage, logEmail } from './email-quota'
+import { podeEnviar, type EmailCategory } from './email-cota'
+import { currentEmailLimits, emailUsage, logEmail } from './email-quota'
 
 /** Notificação dentro do sistema (sempre funciona). */
 export async function notifyUser(userId: string | null | undefined, title: string, body?: string, link?: string) {
@@ -36,7 +36,7 @@ export async function deliverEmail(to: string, subject: string, text: string, op
     }
     return { ok: false, reason: 'sem-integracao' }
   }
-  if (!podeEnviar(category, await emailUsage(), emailLimits())) {
+  if (!podeEnviar(category, await emailUsage(), currentEmailLimits())) {
     await logEmail(category, false, 'cota gratuita: não enviado')
     console.warn(`[e-mail] cota gratuita: ${category} não enviado`)
     return { ok: false, reason: 'cota' }

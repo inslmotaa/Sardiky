@@ -13,11 +13,13 @@ export const inter = localFont({
   fallback: ['system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
 })
 
+// Archivo variável cortada para as faixas usadas no CSS (peso 400–800, largura 100–125%):
+// 59 KB em vez de 90 KB, mesmo visual. Gerada por scripts/fonte-archivo.py.
 export const archivo = localFont({
-  src: '../../node_modules/@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2',
+  src: './fonts/archivo-latin-wght400-800-wdth100-125.woff2',
   variable: '--font-archivo',
-  weight: '100 900',
-  declarations: [{ prop: 'font-stretch', value: '62% 125%' }],
+  weight: '400 800',
+  declarations: [{ prop: 'font-stretch', value: '100% 125%' }],
   display: 'swap',
   fallback: ['system-ui', 'sans-serif'],
 })

@@ -1,7 +1,7 @@
 import 'server-only'
 import { and, asc, desc, eq, gt, inArray, isNull, lt, lte } from 'drizzle-orm'
 import { db, schema } from '@/db'
-import { addDays, todayIn, zonedParts } from './time'
+import { addDays, zonedParts } from './time'
 import { getSettings } from './settings'
 import { claimReminder, pushToUser } from './push'
 import { notifyUser } from './notify'
@@ -77,7 +77,7 @@ export async function unreviewedCheckins(patientIds?: string[]) {
  */
 export async function checkinReminders(now = new Date()) {
   const s = await getSettings()
-  const today = todayIn(s.timezone)
+  const today = zonedParts(now, s.timezone).date
   const rows = await db
     .select({ id: schema.checkins.id, dueDate: schema.checkins.dueDate, userId: schema.patients.userId })
     .from(schema.checkins)

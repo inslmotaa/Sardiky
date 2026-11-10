@@ -6,6 +6,7 @@
 npm run typecheck   # tipos
 npm test            # testes de unidade (Vitest)
 npm run test:e2e    # testes no navegador (Playwright); sobe um servidor próprio com banco temporário
+npm run lighthouse  # desempenho e acessibilidade ≥ 90 no build de produção (ver docs/19-qualidade.md)
 ```
 
 Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporária do sistema, recriado com os dados fictícios a cada execução. Se o Chromium do Playwright não estiver instalado, rode `npx playwright install chromium` (ou aponte `PW_CHROMIUM` para um Chromium existente).
@@ -82,6 +83,7 @@ Os testes de ponta a ponta usam um banco PGlite descartável na pasta temporári
 | Perfil de produção (unidade) | `aplicar-perfil.mjs` recusa o campo `registro` ("o campo registro não existe mais") e título que não seja de coach |
 | Conteúdo (unidade) | pendências (PREENCHER, example.com, Instagram vazio, foto, "(Texto de exemplo —"), formações, regras dos depoimentos e contraste AA do tema claro e escuro (lido do CSS) |
 | Conteúdo (e2e) | aviso no Início; formações no Sobre e layout sem foto; depoimento autorizado pelo cliente, aprovado pelo coach, fotos só com autorização específica e retirada da autorização (foto deixa de ser pública); modo escuro automático e chave no app; números de Resultados com o valor final sem animação |
+| Qualidade antes de publicar (e2e, `qualidade.spec.ts`) | sem "nutricionista", CRN ou registro em todas as páginas do sitemap, no app do cliente e no painel (varredura por links), nos PDFs (planos, anamnese, recibo) e no .ics; check-in com lembrete pela tarefa periódica, uma vez só; recibo só depois do webhook assinado do Mercado Pago; limite de e-mail (resumo pausa antes dos essenciais, aviso no painel, dia esgotado sem quebrar). Detalhes em [19-qualidade.md](19-qualidade.md) |
 | Banco em SQL (unidade) | `deploy/banco-de-dados.sql` + `deploy/alimentos.sql` criam o mesmo banco que as migrações |
 
 ## Revisão manual recomendada antes da produção

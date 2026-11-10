@@ -34,7 +34,7 @@ def embed(m):
 def keep_face(m):
     block = m.group(0)
     src = re.search(r'url\(([^)]+)\)', block)
-    return block if not src or re.search(r'-latin-(?!ext)', src.group(1)) else ''
+    return block if not src or re.search(r'[-_]latin[-_](?!ext)', src.group(1)) else ''
 css = re.sub(r'@font-face\{[^}]*\}', keep_face, css)
 css = re.sub(r'url\((\.\./media/[^)]+\.woff2)\)', embed, css)
 

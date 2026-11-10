@@ -111,3 +111,62 @@ Para usar e-mail (recuperação de senha e confirmações):
 - [ ] Política de privacidade revisada por profissional jurídico
 - [ ] Backup externo configurado e uma restauração testada ([03-publicacao.md](03-publicacao.md))
 - [ ] Monitoramento de disponibilidade ativo (UptimeRobot ou similar)
+
+## Qualidade antes de publicar (Parte 6)
+
+O que é automático está em [19-qualidade.md](19-qualidade.md): Lighthouse ≥ 90 em desempenho e acessibilidade (`npm run lighthouse`) e os testes de ponta a ponta. O que só dá para conferir em aparelhos e contas reais fica nesta lista. Marque cada item no domínio final (`https://DOMINIO`), com `APP_URL` já apontando para ele.
+
+### Celulares reais: instalação e notificações push
+
+- [ ] **Android (Chrome):**
+  - [ ] abrir `https://DOMINIO/paciente` com uma conta de cliente de teste e instalar pelo menu ⋮ → **Instalar app** (ou "Adicionar à tela inicial");
+  - [ ] o ícone verde aparece na tela inicial e o app abre em tela cheia, sem a barra do navegador;
+  - [ ] **Mais → Notificações → Ativar notificações** e permitir ("Notificações ligadas neste aparelho");
+  - [ ] fechar o app e bloquear a tela; no computador, o André manda uma mensagem a esse cliente pelo painel (ficha → Mensagens): a notificação "Mensagem de André" chega e, tocada, abre a conversa;
+  - [ ] um lembrete de água ou de refeição chega no horário, com a tarefa periódica rodando a cada 5 minutos ([03-publicacao.md](03-publicacao.md)).
+- [ ] **iPhone (iOS 16.4 ou mais novo; Ajustes → Geral → Sobre → Versão do iOS):**
+  - [ ] abrir no **Safari** e tocar em Compartilhar → **Adicionar à Tela de Início** (no iPhone, o push só funciona com o app instalado);
+  - [ ] abrir o app **pelo ícone**, e não pelo Safari, e ativar as notificações em Mais → Notificações (pelo Safari aparece o aviso "No iPhone, instale o app…");
+  - [ ] a mensagem do André pelo painel chega como notificação com o app fechado;
+  - [ ] o lembrete de refeição chega no horário;
+  - [ ] em Ajustes → Notificações, o app "Farion" aparece com os alertas permitidos.
+- [ ] Nos dois aparelhos: o **horário de silêncio** é respeitado (nenhum push entre 22h e 7h, ou no horário escolhido) e uma refeição marcada como feita antes da hora não gera push.
+- [ ] Nos dois aparelhos: sem internet (modo avião), o app instalado ainda abre o **Plano**.
+
+### Lembretes no calendário (.ics)
+
+- [ ] **Google Agenda (Android ou computador):**
+  - [ ] em **Mais → Notificações**, "Assinar por link" → **Criar link de assinatura** e copiar o link `https://…/lembretes/….ics`;
+  - [ ] no Google Agenda do computador: Outras agendas → **+** → **Do URL**, colar e adicionar;
+  - [ ] os eventos "Água · ver no app" e "Almoço · ver no app" aparecem nos horários certos (fuso de Brasília);
+  - [ ] o **alarme toca no celular** no horário de um evento (deixe um para daqui a alguns minutos mudando o horário da água);
+  - [ ] o Google atualiza assinaturas em algumas horas, não na hora: confira no dia seguinte que uma mudança de horário chegou sozinha.
+- [ ] **Calendário do iPhone:**
+  - [ ] em Mais → Notificações, tocar em **Adicionar lembretes ao meu calendário**, abrir o arquivo e tocar em "Adicionar tudo"; ou **Assinar no calendário do celular** (`webcal://`);
+  - [ ] os eventos aparecem nos horários certos e o **alarme toca** com o app fechado e sem internet.
+- [ ] Baixar o arquivo de novo **não duplica** eventos (o iPhone substitui os mesmos eventos).
+- [ ] Depois de mudar o plano, aparece "Seus horários mudaram: atualize os lembretes do calendário".
+- [ ] **Gerar um novo link** faz o link antigo parar de funcionar; "Cancelar o link de assinatura" também.
+- [ ] Os eventos mostram só o nome da refeição e o horário, sem calorias, peso ou dados de saúde.
+
+### Prévia do link no WhatsApp
+
+- [ ] Mandar `https://DOMINIO` numa conversa do WhatsApp (de preferência para você mesmo):
+  - [ ] a prévia mostra o **título**, a **descrição** e a **imagem verde** (1200×630);
+  - [ ] repetir com `https://DOMINIO/planos` e com um post de Conteúdos (com capa, a imagem é a capa).
+- [ ] O WhatsApp guarda a prévia em cache. Se uma mudança não aparecer, teste com `https://DOMINIO/?v=2` e use o [Depurador de compartilhamento da Meta](https://developers.facebook.com/tools/debug/) para atualizar.
+- [ ] O botão **Chamar no WhatsApp** do app do cliente abre a conversa com o número do André e o texto pronto. Teste no modo escolhido em Configurações → Chat ("os dois", "só app" ou "só WhatsApp").
+
+### Compra com o Mercado Pago em modo de teste
+
+Antes do pagamento real de valor baixo (lista acima), faça o fluxo completo com as **credenciais de teste**:
+
+- [ ] no [painel de desenvolvedores do Mercado Pago](https://www.mercadopago.com.br/developers/panel/app), na aplicação "Farion", copiar o **Access Token de teste** e criar as **contas de teste** (um vendedor e um comprador) em "Contas de teste";
+- [ ] num ambiente de homologação, ou temporariamente no servidor, colocar o token de teste em `MERCADOPAGO_ACCESS_TOKEN` e reiniciar (`docker compose up -d app`);
+- [ ] com o webhook apontando para `https://DOMINIO/api/webhooks/mercadopago`, escolher um plano em `/planos`, criar uma conta de cliente nova e pagar entrando com o **comprador de teste**:
+  - [ ] **cartão de teste aprovado**: titular `APRO`, um dos [cartões de teste](https://www.mercadopago.com.br/developers/pt/docs/checkout-pro/additional-content/your-integrations/test/cards). A anamnese é liberada na volta e a ficha mostra "Confirmado por mercadopago";
+  - [ ] **cartão recusado** (titular `OTHE`): o acesso continua fechado, com a mensagem de pagamento não aprovado;
+  - [ ] **Pix**: a tela "Aguardando pagamento" aparece e libera sozinha quando o Mercado Pago confirma (ou na próxima execução da tarefa periódica);
+- [ ] **recibo:** em Meus dados → **Recibo (PDF)**, abrir e conferir o nome do cliente, o valor, o plano e o número, sem "nutricionista" ou CRN;
+- [ ] no painel do Mercado Pago: **Webhooks → Simular notificação** responde 200;
+- [ ] voltar o `MERCADOPAGO_ACCESS_TOKEN` para o de **produção** e reiniciar. Apagar as contas de cliente de teste em Clientes → ficha → Excluir.
