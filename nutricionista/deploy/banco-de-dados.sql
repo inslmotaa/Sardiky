@@ -870,6 +870,7 @@ INSERT INTO drizzle.__drizzle_migrations (hash, created_at) VALUES
 	('e7ef7351f70253404a226c14e9826af7c790500bcb3354ac64e783fc3735c6e7', 1794246522668), -- 0020_conteudos_e_captacao
 	('04f386edd5a6f92b763d235cc2e7713aa91e1e076e34a79186e7139c4972e5df', 1794261956610), -- 0021_app_do_cliente_e_painel
 	('19218ebb2f81ae03a677fffb0cd7fa736117b4b45723c8a1a977dd5bd819671f', 1794264395398), -- 0022_whatsapp_e_lembretes
-	('aa83c096f1b2c08f9d39faab95aaf491a6cec0d8b00774cb8a9ed73a6b22f1e6', 1794311745340); -- 0023_fotos_e_perfil_fisico
+	('aa83c096f1b2c08f9d39faab95aaf491a6cec0d8b00774cb8a9ed73a6b22f1e6', 1794311745340), -- 0023_fotos_e_perfil_fisico
+	('4ad0c95754605398738411efec1f0ca2fab046e134c9cfdda1633886826d805f', 1794332865156); -- 0024_sem_consultas_nas_notificacoes
 
 COMMIT;

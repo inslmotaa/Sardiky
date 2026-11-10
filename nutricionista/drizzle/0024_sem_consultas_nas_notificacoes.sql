@@ -1,0 +1,1 @@
+ALTER TABLE "users" ALTER COLUMN "notification_prefs" SET DEFAULT '{"refeicoes":true,"agua":true,"plano":true,"mensagens":true,"lembretes":true,"pesagem":true,"quietStart":"22:00","quietEnd":"07:00","waterEveryH":2,"waterStart":"08:00","waterEnd":"20:00","emailResumo":false}'::jsonb;

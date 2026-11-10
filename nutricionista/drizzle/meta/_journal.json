@@ -169,6 +169,13 @@
       "when": 1794311745340,
       "tag": "0023_fotos_e_perfil_fisico",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794332865156,
+      "tag": "0024_sem_consultas_nas_notificacoes",
+      "breakpoints": true
     }
   ]
 }
